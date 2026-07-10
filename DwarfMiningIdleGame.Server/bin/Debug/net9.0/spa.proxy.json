@@ -1,0 +1,10 @@
+{
+"SpaProxyServer": {
+"ServerUrl": "http://localhost:8080",
+"RedirectUrl": "",
+"LaunchCommand": "npm run serve",
+"WorkingDirectory": "C:\\Users\\monak\\source\\repos\\DwarfMiningIdleGame\\DwarfMiningIdleGame.Server\\..\\DwarfMiningIdleGame.Client",
+"MaxTimeoutInSeconds": "120",
+"KeepRunning": "false"
+}
+}

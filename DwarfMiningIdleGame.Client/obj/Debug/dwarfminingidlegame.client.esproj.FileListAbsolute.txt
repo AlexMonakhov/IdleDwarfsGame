@@ -1,0 +1,2 @@
+C:\Users\monak\source\repos\DwarfMiningIdleGame\DwarfMiningIdleGame.Client1\obj\Debug\dwarfminingidlegame.client.esproj.CoreCompileInputs.cache
+C:\Users\monak\source\repos\DwarfMiningIdleGame\DwarfMiningIdleGame.Client\obj\Debug\dwarfminingidlegame.client.esproj.CoreCompileInputs.cache

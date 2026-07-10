@@ -1,0 +1,6 @@
+@DwarfMiningIdleGame.Server_HostAddress = http://localhost:5015
+
+GET {{DwarfMiningIdleGame.Server_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <PropertyGroup>
+    <PackageJsonName Condition="$(PackageJsonName) == ''">dwarf-mining</PackageJsonName>
+    <PackageJsonVersion Condition="$(PackageJsonVersion) == ''">0.1.0</PackageJsonVersion>
+    <PackageJsonPrivate Condition="$(PackageJsonPrivate) == ''">true</PackageJsonPrivate>
+    <PackageJsonScriptsServe Condition="$(PackageJsonScriptsServe) == ''">vue-cli-service serve</PackageJsonScriptsServe>
+    <PackageJsonScriptsBuild Condition="$(PackageJsonScriptsBuild) == ''">vue-cli-service build</PackageJsonScriptsBuild>
+    <PackageJsonScriptsLint Condition="$(PackageJsonScriptsLint) == ''">vue-cli-service lint</PackageJsonScriptsLint>
+    <PackageJsonDependenciesAxios Condition="$(PackageJsonDependenciesAxios) == ''">^1.16.1</PackageJsonDependenciesAxios>
+    <PackageJsonDependenciesCoreJs Condition="$(PackageJsonDependenciesCoreJs) == ''">^3.8.3</PackageJsonDependenciesCoreJs>
+    <PackageJsonDependenciesVue Condition="$(PackageJsonDependenciesVue) == ''">^3.2.13</PackageJsonDependenciesVue>
+    <PackageJsonDependenciesVueClassComponent Condition="$(PackageJsonDependenciesVueClassComponent) == ''">^8.0.0-0</PackageJsonDependenciesVueClassComponent>
+    <PackageJsonDependenciesVueRouter Condition="$(PackageJsonDependenciesVueRouter) == ''">^4.0.3</PackageJsonDependenciesVueRouter>
+    <PackageJsonDevdependenciesTypescriptEslintEslintPlugin Condition="$(PackageJsonDevdependenciesTypescriptEslintEslintPlugin) == ''">^5.4.0</PackageJsonDevdependenciesTypescriptEslintEslintPlugin>
+    <PackageJsonDevdependenciesTypescriptEslintParser Condition="$(PackageJsonDevdependenciesTypescriptEslintParser) == ''">^5.4.0</PackageJsonDevdependenciesTypescriptEslintParser>
+    <PackageJsonDevdependenciesVueCliPluginBabel Condition="$(PackageJsonDevdependenciesVueCliPluginBabel) == ''">~5.0.0</PackageJsonDevdependenciesVueCliPluginBabel>
+    <PackageJsonDevdependenciesVueCliPluginEslint Condition="$(PackageJsonDevdependenciesVueCliPluginEslint) == ''">~5.0.0</PackageJsonDevdependenciesVueCliPluginEslint>
+    <PackageJsonDevdependenciesVueCliPluginRouter Condition="$(PackageJsonDevdependenciesVueCliPluginRouter) == ''">~5.0.0</PackageJsonDevdependenciesVueCliPluginRouter>
+    <PackageJsonDevdependenciesVueCliPluginTypescript Condition="$(PackageJsonDevdependenciesVueCliPluginTypescript) == ''">~5.0.0</PackageJsonDevdependenciesVueCliPluginTypescript>
+    <PackageJsonDevdependenciesVueCliService Condition="$(PackageJsonDevdependenciesVueCliService) == ''">~5.0.0</PackageJsonDevdependenciesVueCliService>
+    <PackageJsonDevdependenciesVueEslintConfigTypescript Condition="$(PackageJsonDevdependenciesVueEslintConfigTypescript) == ''">^9.1.0</PackageJsonDevdependenciesVueEslintConfigTypescript>
+    <PackageJsonDevdependenciesEslint Condition="$(PackageJsonDevdependenciesEslint) == ''">^7.32.0</PackageJsonDevdependenciesEslint>
+    <PackageJsonDevdependenciesEslintPluginVue Condition="$(PackageJsonDevdependenciesEslintPluginVue) == ''">^8.0.3</PackageJsonDevdependenciesEslintPluginVue>
+    <PackageJsonDevdependenciesLess Condition="$(PackageJsonDevdependenciesLess) == ''">^4.0.0</PackageJsonDevdependenciesLess>
+    <PackageJsonDevdependenciesLessLoader Condition="$(PackageJsonDevdependenciesLessLoader) == ''">^8.0.0</PackageJsonDevdependenciesLessLoader>
+    <PackageJsonDevdependenciesSass Condition="$(PackageJsonDevdependenciesSass) == ''">^1.86.0</PackageJsonDevdependenciesSass>
+    <PackageJsonDevdependenciesSassLoader Condition="$(PackageJsonDevdependenciesSassLoader) == ''">^10.5.2</PackageJsonDevdependenciesSassLoader>
+    <PackageJsonDevdependenciesTypescript Condition="$(PackageJsonDevdependenciesTypescript) == ''">~4.5.5</PackageJsonDevdependenciesTypescript>
+  </PropertyGroup>
+</Project>
