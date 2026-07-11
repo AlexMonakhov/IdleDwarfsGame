@@ -26,41 +26,45 @@ const registerEmitters = () => {
   emitterIds.value = [];
 
   if (containerRef.value && props.active && props.effects?.length) {
-    const rect = containerRef.value.getBoundingClientRect();
-    
-    // Получаем абсолютные координаты центра кнопки на экране
-    let centerX = rect.left + rect.width / 2;
-    let centerY = rect.top + rect.height / 2;
-
-    props.effects.forEach(effect => {
-      const id = Math.random().toString(36).substring(7);
-      emitterIds.value.push(id);
+    setTimeout(() => {
+      if (!containerRef.value) return;
       
-      const layer = effect.isUnder === false ? 'foreground' : 'background';
-
-      // --- ВОТ ЭТО ИСПРАВЛЯЕТ СМЕЩЕНИЕ ---
-      // Получаем инстанс нужного канваса из сервиса
-      const canvasNode = layer === 'foreground' ? particleService?.fgCanvas : particleService?.bgCanvas;
+      const rect = containerRef.value.getBoundingClientRect();
       
-      if (canvasNode) {
-        const canvasRect = canvasNode.getBoundingClientRect();
-        // Вычитаем позицию канваса, чтобы получить координаты относительно ВНУТРЕННОСТЕЙ холста
-        centerX -= canvasRect.left;
-        centerY -= canvasRect.top;
-      }
-      // -----------------------------------
+      // Используем const, чтобы не менять оригинальные экранные координаты
+      const btnScreenCenterX = rect.left + rect.width / 2;
+      const btnScreenCenterY = rect.top + rect.height / 2;
 
-      particleService?.addEmitter({
-        id,
-        x: centerX,
-        y: centerY,
-        type: effect.func,
-        padding: effect.padding || 40,
-        layer
+      props.effects.forEach(effect => {
+        const id = Math.random().toString(36).substring(7);
+        emitterIds.value.push(id);
+        
+        const layer = effect.isUnder === false ? 'foreground' : 'background';
+        const canvasNode = layer === 'foreground' ? particleService?.fgCanvas : particleService?.bgCanvas;
+        
+        // Создаем локальные переменные для текущего эффекта
+        let localX = btnScreenCenterX;
+        let localY = btnScreenCenterY;
+        
+        if (canvasNode) {
+          const canvasRect = canvasNode.getBoundingClientRect();
+          localX -= canvasRect.left;
+          localY -= canvasRect.top;
+        }
+
+        particleService?.addEmitter({
+          id,
+          x: localX,
+          y: localY,
+          type: effect.func,
+          padding: effect.padding || 40,
+          layer
+        });
       });
-    });
+    }, 300);
   }
 };
+
 
 onMounted(registerEmitters);
 

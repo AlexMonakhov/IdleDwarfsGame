@@ -3,25 +3,38 @@
     <CanvasLayer>
       <h1>{{ aboutMessage }}</h1>
     <TimelineGorizontal></TimelineGorizontal>
-    
+    <CanvasComponent 
+      :effects="[{ func: 'god-rays-radiance', padding: 100, isUnder: true }, { func: 'particles', padding: 100, isUnder: true }]"
+    >    
+      <IconButton :badge-count="armorBadge" round inner>
+        <IconHelm size="60px" primary-color="rgb(217 215 178)" secondary-color="rgb(64 255 251)"></IconHelm>
+      </IconButton>
+    </CanvasComponent>
     <GemButton :color="'pink'" @click="open = !open" :width="'70px'" height="44px">compaign</GemButton>
     <GemButton :color="'green'" @click="open = !open" :badge-count="helmBadge">hello</GemButton>
     <GemButton :color="'blue'" @click="open = !open" :badge-count="armorBadge" height="60px" width="60px" round>hi</GemButton>
     <GemButton :color="'yellow'">yes?</GemButton>
-    {{ helmBadge }} {{ armorBadge }}
 
     <ModalComponent 
         v-model="open"
         :header-message="'campaign'">
           <ul class="company-list">
-            
+            <CanvasLayer>
             <CanvasComponent 
-              :effects="[{ func: 'god-rays-radiance', padding: 100, isUnder: true },{ func: 'particles', padding: 100, isUnder: false }]"
+              :effects="[{ func: 'god-rays-radiance', padding: 100, isUnder: true }, { func: 'particles', padding: 100, isUnder: true }]"
             >    
-              <IconButton :badge-count="armorBadge" round inner>
+              <IconButton :badge-count="armorBadge" round inner style="margin: 50px">
                 <IconHelm size="60px" primary-color="rgb(217 215 178)" secondary-color="rgb(64 255 251)"></IconHelm>
               </IconButton>
             </CanvasComponent>
+            <CanvasComponent 
+              :effects="[{ func: 'particles', padding: 100, isUnder: false }, { func: 'god-rays-radiance', padding: 100, isUnder: true }]"
+            >    
+              <IconButton :badge-count="armorBadge" round inner style="margin: 20px" >
+                <IconHelm size="60px" primary-color="rgb(217 215 178)" secondary-color="rgb(64 255 251)"></IconHelm>
+              </IconButton>
+            </CanvasComponent>
+            </CanvasLayer>
           </ul>
     </ModalComponent>
 
@@ -33,7 +46,8 @@
     </ModalComponent>
 
     <CanvasComponent 
-      :effects="[{ func: 'god-rays-radiance', padding: 100, isUnder: true }, { func: 'particles', padding: 100, isUnder: true }]"
+      style="margin: 50px 0 0 50px"
+      :effects="[{ func: 'god-rays-radiance', padding: 100, isUnder: true }, { func: 'particles', padding: 100, isUnder: false }]"
     >    
       <IconButton :badge-count="armorBadge" round inner>
         <IconHelm size="60px" primary-color="rgb(217 215 178)" secondary-color="rgb(64 255 251)"></IconHelm>
@@ -70,7 +84,7 @@ const { count: armorBadge } = useInventoryBadge('armor');
 <style lang="scss">
 .town {
     width: 100vw;
-    height: 100%;
+    height: 100vh;
     position: fixed;
     background-color: darkcyan;
 }
