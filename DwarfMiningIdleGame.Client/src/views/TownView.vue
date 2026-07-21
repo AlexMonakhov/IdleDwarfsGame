@@ -53,6 +53,10 @@
         <IconHelm size="60px" primary-color="rgb(217 215 178)" secondary-color="rgb(64 255 251)"></IconHelm>
       </IconButton>
     </CanvasComponent>
+
+    <CardComponent></CardComponent>
+    <CardComponent></CardComponent>
+    <CardComponent></CardComponent>
     </CanvasLayer>
   </div>
 </template>
@@ -68,6 +72,7 @@ import IconButton from '@/components/common/IconButton.vue';
 import { ref, onMounted, provide, nextTick } from 'vue';
 import CanvasComponent from '@/components/canvas/CanvasComponent.vue';
 import CanvasLayer from '@/components/canvas/CanvasLayer.vue';
+import CardComponent from '@/components/card/CardComponent.vue';
 
 const aboutMessage = ref("about message");
 const open = ref(false);
