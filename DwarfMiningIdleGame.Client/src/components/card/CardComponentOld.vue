@@ -117,9 +117,218 @@ const cardStyle = computed(() => ({
 }));
 </script>
 
+
+<!-- ЭТО ДЛЯ РАЗРУШЕНИЙ ОСКОЛКОВ КОТОРЫЕ РЯДОМ И ВЗРЫВА КОГДА ДОХОДИТ УРОН -->
+<!--
+
+<script setup lang="ts">
+import { ref, onMounted } from 'vue';
+
+interface Shard {
+  id: number;
+  // Индексы в сетке для поиска соседей
+  row: number;
+  col: number;
+
+  clipPath: string;
+  centerX: number;
+  centerY: number;
+  transform: string;
+  opacity: number;
+  filter: string;
+  transitionDuration: string;
+  zIndex: number;
+
+  // Состояние осколка: 0 - цел, 1 - легкие трещины, 2 - глубокие трещины
+  damageLevel: number; 
+
+  // Подготовка к взрыву
+  shiftX: number;
+  shiftY: number;
+}
+
+const shards = ref<Shard[]>([]);
+const isFirstClickHappened = ref(false); // Чтобы скрыть cover
+const isFullyShattered = ref(false); // Флаг финального взрыва
+const cardRef = ref<HTMLElement | null>(null);
+
+// Разрешение сетки осколков (чем больше, тем мельче осколки)
+const COLS = 6; 
+const ROWS = 8;
+
+onMounted(() => {
+  shards.value = generateFineShards(COLS, ROWS);
+});
+
+function generateFineShards(cols: number, rows: number): Shard[] {
+  const points: { x: number; y: number }[][] = [];
+  const cellWidth = 100 / cols;
+  const cellHeight = 100 / rows;
+
+  for (let i = 0; i <= rows; i++) {
+    const rowPoints = [];
+    for (let j = 0; j <= cols; j++) {
+      let x = j * cellWidth;
+      let y = i * cellHeight;
+      if (i > 0 && i < rows && j > 0 && j < cols) {
+        // Увеличиваем jitter для более рваных форм
+        const jitterX = (Math.random() - 0.5) * cellWidth * 0.9;
+        const jitterY = (Math.random() - 0.5) * cellHeight * 0.9;
+        x += jitterX;
+        y += jitterY;
+      }
+      rowPoints.push({ x, y });
+    }
+    points.push(rowPoints);
+  }
+
+  const result: Shard[] = [];
+  let id = 0;
+
+  for (let i = 0; i < rows; i++) {
+    for (let j = 0; j < cols; j++) {
+      const p1 = points[i][j], p2 = points[i][j + 1];
+      const p3 = points[i + 1][j + 1], p4 = points[i + 1][j];
+
+      result.push({
+        id: id++,
+        row: i, // Сохраняем позицию в сетке
+        col: j,
+        clipPath: `polygon(${p1.x}% ${p1.y}%, ${p2.x}% ${p2.y}%, ${p3.x}% ${p3.y}%, ${p4.x}% ${p4.y}%)`,
+        centerX: (p1.x + p2.x + p3.x + p4.x) / 4,
+        centerY: (p1.y + p2.y + p3.y + p4.y) / 4,
+        
+        // Начальное состояние: Идеально ровный и целый
+        transform: 'translate(0px, 0px) rotate(0deg) scale(1)',
+        filter: 'none',
+        opacity: 1,
+        transitionDuration: '0.1s',
+        zIndex: 1,
+        damageLevel: 0, 
+        
+        shiftX: (Math.random() - 0.5) * 6,
+        shiftY: (Math.random() - 0.5) * 6,
+      });
+    }
+  }
+  return result;
+}
+
+// Поиск индексов соседей в 1D массиве
+function getNeighborIndices(clickedIndex: number): number[] {
+  const neighbors: number[] = [];
+  const shard = shards.value[clickedIndex];
+
+  // Проверяем 8 соседей вокруг (включая диагонали)
+  for (let dr = -1; dr <= 1; dr++) {
+    for (let dc = -1; dc <= 1; dc++) {
+      if (dr === 0 && dc === 0) continue; // Это сам кликнутый осколок
+
+      const nr = shard.row + dr;
+      const nc = shard.col + dc;
+
+      // Проверяем границы сетки
+      if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS) {
+        // Переводим 2D координаты сетки в 1D индекс массива
+        neighbors.push(nr * COLS + nc);
+      }
+    }
+  }
+  return neighbors;
+}
+
+// Функция нанесения урона осколку
+function damageShard(shardIndex: number, forceDeepCracks = false) {
+  const shard = shards.value[shardIndex];
+  
+  if (shard.damageLevel >= 2) return; // Ужe макс. поврежден
+
+  if (forceDeepCracks) {
+    shard.damageLevel = 2; // Принудительно глубокие (для центра удара)
+  } else {
+    shard.damageLevel++; // Постепенно
+  }
+
+  shard.transitionDuration = '0.15s'; // Быстрый раскол
+
+  if (shard.damageLevel === 1) {
+    // ЛЕГКИЕ ТРЕЩИНЫ
+    shard.transform = 'translate(0px, 0px) rotate(0deg) scale(0.97)';
+    // Тонкое красное свечение
+    shard.filter = 'drop-shadow(0 0 2px rgb(241, 43, 17))';
+  } else if (shard.damageLevel === 2) {
+    // ГЛУБОКИЕ РАЗЛОМЫ
+    // Куски слегка сдвигаются
+    shard.transform = `translate(${shard.shiftX}px, ${shard.shiftY}px) rotate(${shard.shiftX}deg) scale(0.90)`;
+    // Яркое оранжевое ядро и тень
+    shard.filter = 'drop-shadow(0 0 7px rgb(255, 100, 0)) drop-shadow(0 0 2px rgba(0,0,0,0.8))';
+  }
+}
+
+// Обработчик клика по КОНКРЕТНОМУ осколку
+const handleShardClick = (event: MouseEvent, index: number) => {
+  if (isFullyShattered.value) return; // Если все разбито - игнорируем
+
+  if (!isFirstClickHappened.value) {
+    isFirstClickHappened.value = true;
+    // Сразу дамажим все осколки на scale 0.99, чтобы между ними появились микро-щели
+    // (Иначе clip-path может давать артефакты сглаживания)
+    shards.value.forEach(s => {
+       s.transform = 'translate(0px, 0px) rotate(0deg) scale(0.995)';
+    });
+  }
+
+  // 1. Повреждаем сам осколок, по которому кликнули (сразу глубоко)
+  damageShard(index, true);
+
+  // 2. Находим и повреждаем соседей (постепенно)
+  const neighbors = getNeighborIndices(index);
+  neighbors.forEach(nIndex => {
+    damageShard(nIndex);
+  });
+
+  // 3. Проверяем, нужно ли взорвать всю плиту
+  checkFinalShatter(event);
+};
+
+// Функция проверки на финальный взрыв
+function checkFinalShatter(event: MouseEvent) {
+  // Например, взрываем, когда 80% осколков имеют хотя бы легкие трещины
+  const damagedCount = shards.value.filter(s => s.damageLevel > 0).length;
+  const totalCount = shards.value.length;
+
+  if (damagedCount / totalCount > 0.8) {
+    isFullyShattered.value = true;
+    
+    // Получаем координаты финального клика
+    const target = event.currentTarget as HTMLElement;
+    const rect = target.getBoundingClientRect();
+    const clickX = ((event.clientX - rect.left) / rect.width) * 100;
+    const clickY = ((event.clientY - rect.top) / rect.height) * 100;
+
+    // Запускаем финальный разлет
+    shards.value.forEach(shard => {
+      shard.damageLevel = 2; // Все становятся глубоко разбитыми
+
+      const deltaX = shard.centerX - clickX;
+      const deltaY = shard.centerY - clickY;
+      const angle = Math.atan2(deltaY, deltaX);
+      const distance = (Math.random() * 150 + 100); 
+      
+      const flyX = Math.cos(angle) * distance;
+      const flyY = Math.sin(angle) * distance;
+      const rotate = Math.random() * 360 - 180;
+
+      shard.transform = `translate(${flyX}%, ${flyY}%) rotate(${rotate}deg) scale(0.3)`;
+      shard.opacity = 0;
+      shard.zIndex = 100; // Полет поверх всего
+      shard.transitionDuration = '1s'; // Медленный красивый разлет
+    });
+  }
+}
+</script> -->
+
 <style scoped>
-
-
 .overlay-block {
   position: absolute;
   

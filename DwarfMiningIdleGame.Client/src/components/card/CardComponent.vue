@@ -9,8 +9,7 @@
     <div class="tilt-card-content">
       
       <slot>
-        <h2>Dwarf Mining</h2>
-        <p>Наведи курсор</p>
+        чето
       </slot>
     </div>
 
@@ -25,11 +24,13 @@
         :style="{
           clipPath: shard.clipPath,
           transform: shard.transform,
+          '--base-transform': shard.transform, /* Передаем базовый сдвиг в CSS */
           opacity: shard.opacity,
           filter: shard.filter,
           transformOrigin: `${shard.centerX}% ${shard.centerY}%`,
           transitionDuration: shard.transitionDuration,
-          animation: shard.animation ? shard.animation : 'none'
+          transitionTimingFunction: shard.easing || 'cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+          animation: shard.animation || 'none'
         }"
       ></div>
 
@@ -145,6 +146,7 @@ interface Shard {
   shiftX: number;
   shiftY: number;
   animation?: string; // Для дрожания в фазе 2
+  easing?: string; // Для фазы 3 (разлет)
 }
 
 const shards = ref<Shard[]>([]);
@@ -232,10 +234,13 @@ const handleRockClick = (event: MouseEvent) => {
       shard.transform = `translate(${shard.shiftX}px, ${shard.shiftY}px) rotate(${shard.shiftX}deg) scale(0.92)`;
       shard.filter = 'drop-shadow(0 0 8px rgb(255, 100, 0)) drop-shadow(0 0 2px rgba(0,0,0,0.8))';
       shard.transitionDuration = '0.5s';
-      shard.animation = 'shake 0.2s infinite'; // Добавляем дрожание
+      // Делаем рандомную скорость тряски (от 0.15s до 0.25s) для хаотичности
+      const randomSpeed = (0.15 + Math.random() * 0.1).toFixed(2);
+      shard.animation = `shake ${randomSpeed}s infinite alternate`; // Добавляем дрожание
       
     } else if (clickPhase.value === 3) {
       // ФАЗА 3: Полное разрушение и разлет
+      shard.animation = 'none'; // Останавливаем дрожание
       const deltaX = shard.centerX - clickX;
       const deltaY = shard.centerY - clickY;
       
@@ -248,10 +253,14 @@ const handleRockClick = (event: MouseEvent) => {
       const rotate = Math.random() * 360 - 180;
 
       // Летим в % от размера карточки
-      shard.transform = `translate(${flyX}%, ${flyY}%) rotate(${rotate}deg) scale(0.4)`;
-      shard.opacity = 0;
-      shard.transitionDuration = '0.8s'; // Медленный красивый разлет
-      layerOpacity.value = 0; // Скрываем слой, чтобы не было видно "крышки"
+      setTimeout(() => {
+        shard.transform = `translate(${flyX}%, ${flyY}%) rotate(${rotate}deg) scale(0.4)`;
+        shard.opacity = 0;
+        shard.transitionDuration = '1.2s'; // Медленный красивый разлет
+        shard.easing = 'cubic-bezier(0.25, 1, 0.5, 1)';
+        layerOpacity.value = 0; // Скрываем слой, чтобы не было видно "крышки"
+      }, 20); // Даем браузеру зафиксировать начальное состояние
+
     }
   });
 };
@@ -263,22 +272,23 @@ const handleRockClick = (event: MouseEvent) => {
   position: relative;
   width: 200px;
   height: 300px;
+  margin: 10px;
   /* ... твои стили ... */
 }
 
 /* Контейнер породы (ядро) */
 .rock-layer {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  top: -1%;
+  left: -1%;
+  width: 102%;
+  height: 102%;
   border-radius: inherit;
   overflow: visible; /* Чтобы куски вылетали за пределы карточки */
   cursor: pointer;
   transform: translateZ(21px);
   z-index: 10;
-  transition: opacity 0.5s ease-out; /* Плавное исчезновение слоя при фазе 3 */
+  transition: opacity 1s ease-out; /* Плавное исчезновение слоя при фазе 3 */
   /* Лавовое ядро, которое просвечивает сквозь щели */
   background: radial-gradient(circle at center, rgb(238, 195, 23) 0%, rgb(241, 43, 17) 50%, #2b2b2b 100%);
 }
@@ -323,7 +333,6 @@ const handleRockClick = (event: MouseEvent) => {
   height: 300px;
   background: linear-gradient(135deg, #2b2b2b, #1a1a1a);
   border-radius: 16px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 10px 2px rgb(72, 255, 0);
   border: 1px solid #3a3a3a;
   
   /* Критично для сохранения 3D-эффекта дочерних элементов */
@@ -350,12 +359,11 @@ const handleRockClick = (event: MouseEvent) => {
 </style>
 
 <style>
-/* @keyframes shake {
-  0% { transform: translate(0, 0) rotate(0deg); }
-  20% { transform: translate(-2px, 2px) rotate(-1deg); }
-  40% { transform: translate(2px, -2px) rotate(1deg); }
-  60% { transform: translate(-2px, 2px) rotate(-1deg); }
-  80% { transform: translate(2px, -2px) rotate(1deg); }
-  100% { transform: translate(0, 0) rotate(0deg); }
-} */
+@keyframes shake {
+  0% { transform: var(--base-transform) translate(0px, 0px) rotate(0deg); }
+  25% { transform: var(--base-transform) translate(-1px, 1.5px) rotate(-1deg); }
+  50% { transform: var(--base-transform) translate(1px, -1px) rotate(1deg); }
+  75% { transform: var(--base-transform) translate(-1.5px, -1px) rotate(-0.5deg); }
+  100% { transform: var(--base-transform) translate(1px, 1px) rotate(0.5deg); }
+}
 </style>
