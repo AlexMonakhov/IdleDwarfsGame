@@ -35,7 +35,6 @@ const backgroundStyle = `url(${background}) center / cover no-repeat, radial-gra
     border-radius: 15px;
     /* Убираем фон отсюда, переносим в after */
     background: transparent; 
-    isolation: isolate; /* Создаем локальный слой для этого компонента */
 }
 
 /* СЛОЙ 1: Внешняя рамка и свечение (Металл) */
