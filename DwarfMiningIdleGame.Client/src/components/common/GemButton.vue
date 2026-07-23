@@ -170,24 +170,24 @@ const buttonClasses = computed<string[]>(() => {
 
 /* 5. Вариации цветов для разных кристаллов */
 .blue-gem {
-  background-color: #0077ff;
+  background-color: var(--blue-gem-color, #2196f3);
 }
 
 .green-gem {
-  background-color: #00c853;
+  background-color: var(--green-gem-color, #00c853);
 }
 
 .pink-gem {
-  background-color: #e91e63;
+  background-color: var(--pink-gem-color, #e91e63);
 }
 
 .red-gem {
-    background-color: #d40808;
+    background-color: var(--red-gem-color, #d40808);
 }
 
 /* Можно добавить и золотой/желтый кристалл */
 .yellow-gem {
-  background-color: #ffb300;
+  background-color: var(--yellow-gem-color, #ffb300);
 }
 
 .gem-inner-top {

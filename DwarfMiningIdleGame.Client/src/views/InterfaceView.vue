@@ -25,7 +25,7 @@ const volumeChange = (delta: number) => {
 
 onMounted(() => {
     if (audioRef.value) {
-        audioRef.value.volume = 0.5; // Set initial volume to 50%
+        audioRef.value.volume = 0.01; // Set initial volume to 50%
     }
 });
 </script>
