@@ -6,12 +6,17 @@
     @mouseleave="handleMouseLeave"
     :style="cardStyle"
   >
-    <div class="tilt-card-content">
-      
-      <slot>
-        чето
-      </slot>
-    </div>
+    
+    <span class="tilt-card-inner" >
+        <info-component></info-component>
+        <div class="tilt-card-content">
+        
+        <slot>
+          <icon-helm></icon-helm>
+        </slot>
+      </div>
+    </span>
+    
 
 
     <div  class="rock-layer" @click="handleRockClick" :style="{ opacity: layerOpacity }">
@@ -50,6 +55,17 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, nextTick } from 'vue';
 import { generateOverlaySets, OverlayBlock } from './cardHelper';
+import IconHelm from '../icons/IconHelm.vue';
+import InfoComponent from '../common/InfoComponent.vue';
+
+interface Props {
+  color?: 'pink' | 'green' | 'blue' | 'yellow' | 'red' | 'grey' | 'dark' | 'light'
+}
+
+
+const props = withDefaults(defineProps<Props>(), {
+  color: 'grey',
+})
 
 const blocks = ref<[OverlayBlock[], OverlayBlock[], OverlayBlock[]]>([[], [], []]);
 const clicked = ref<number>(-1);
@@ -59,7 +75,6 @@ const cardRef = ref<HTMLElement | null>(null);
 const rotateX = ref(0);
 const rotateY = ref(0);
 const layerOpacity = ref(1);
-
 // Максимальный угол наклона в градусах
 const maxTilt = 15; 
 
@@ -122,13 +137,22 @@ const handleMouseLeave = () => {
   rotateY.value = 0;
 };
 
-const cardStyle = computed(() => ({
-  transform: `perspective(1000px) rotateX(${rotateX.value}deg) rotateY(${rotateY.value}deg)`,
-  // Меняем transition динамически: 
-  // Быстрый отклик при движении, плавная анимация возврата (когда координаты 0)
-  transition: (rotateX.value === 0 && rotateY.value === 0)
-    ? 'transform 0.5s cubic-bezier(0.23, 1, 0.32, 1)'
-    : 'transform 0.1s linear'
+const cardStyle = computed(() => (
+ {
+    transform: `perspective(1000px) rotateX(${rotateX.value}deg) rotateY(${rotateY.value}deg)`,
+    // Меняем transition динамически: 
+    // Быстрый отклик при движении, плавная анимация возврата (когда координаты 0)
+    transition: (rotateX.value === 0 && rotateY.value === 0)
+      ? 'transform 0.5s cubic-bezier(0.23, 1, 0.32, 1)'
+      : 'transform 0.1s linear',
+    '--bg-color': `var(--${props.color}-gem-color, rgba(255, 192, 203, 0.8))`,
+      // Переменные для управления бликами
+      '--glare-x': `${rotateY.value / maxTilt * 50 + 50}%`,
+      '--glare-y': `${-rotateX.value / maxTilt * 50 + 50}%`,
+      // Переменная для плавного возврата бликов в центр
+      '--glare-transition': rotateX.value === 0 && rotateY.value === 0
+        ? 'background-position 0.6s cubic-bezier(0.23, 1, 0.32, 1)'
+      : 'background-position 0s',
 }));
 
 
@@ -259,8 +283,8 @@ const handleRockClick = (event: MouseEvent) => {
         shard.transitionDuration = '1.2s'; // Медленный красивый разлет
         shard.easing = 'cubic-bezier(0.25, 1, 0.5, 1)';
         layerOpacity.value = 0; // Скрываем слой, чтобы не было видно "крышки"
+         // Отключаем overflow, чтобы куски могли вылетать за пределы карточки
       }, 20); // Даем браузеру зафиксировать начальное состояние
-
     }
   });
 };
@@ -269,12 +293,110 @@ const handleRockClick = (event: MouseEvent) => {
 <style scoped>
 /* Настройки самой карточки оставляй свои */
 .tilt-card {
+  --bg-color: rgba(255, 192, 203, 0.8); /* Цвет кристалла по умолчанию */
   position: relative;
   width: 200px;
   height: 300px;
   margin: 10px;
-  /* ... твои стили ... */
+  
+  /* Металлический фон рамки */
+  background: var(--metalic-background, linear-gradient(135deg, #df0404, #240315));
+  padding: 6px; /* Толщина рамки (сделали толще, т.к. карточка большая) */
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 16px; /* Радиус внешней рамки */
+  
+  /* Внешняя тень и светлый блик на самом металле */
+  box-shadow: 
+    0 15px 30px rgba(0, 0, 0, 0.4), 
+    inset 0 1px 3px rgba(255, 255, 255, 0.8);
+  
+  transform-style: preserve-3d;
+  will-change: transform;
+  
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
+
+/* Имитация самого кристалла (.gem-inner) через ::before */
+.tilt-card::before {
+  content: '';
+  position: absolute;
+  top: 6px; left: 6px; right: 6px; bottom: 6px; /* Отступы на ширину рамки */
+  border-radius: 12px; /* Внутренний радиус кристалла */
+  
+  /* Цвет кристалла (здесь розовый как в .pink-gem, можешь менять) */
+  background-color: var(--bg-color, rgba(255, 192, 203, 0.8)); 
+  opacity: 0.9;
+  /* Внутреннее свечение кристалла */
+  box-shadow: inset 0 0 6px rgba(255, 255, 255, 0.5), 0px 1px 3px rgba(0,0,0,0.5);
+  z-index: 0; /* Под контентом */
+  filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.5)) drop-shadow(0 0 4px rgba(0,0,0,0.5)) contrast(1.4);
+}
+
+/* Блики света на кристалле (.gem-inner::after) */
+.tilt-card::after {
+  content: '';
+  position: absolute;
+  top: 6px; left: 6px; right: 6px; bottom: 6px;
+  border-radius: 12px;
+  
+  /* Те самые граненые переливы */
+  background: linear-gradient( 45deg , 
+    rgba(0,0,0,0.3) 0%,
+    rgba(0,0,0,0.1) 25%,
+    rgba(255,255,255,0.3) 30%,
+    rgba(255,255,255,0.2) 40%,
+    rgba(0,0,0,0.1) 45%,
+    rgba(0,0,0,0.1) 65%,
+    rgba(255,255,255,0.3) 70%,
+    rgba(255,255,255,0.2) 75%,
+    rgba(0,0,0,0.1) 80%,
+    rgba(0,0,0,0.3) 100%);
+    
+  pointer-events: none;
+  z-index: 1; /* Выше фона, но ниже текста */
+  background-size: 250% 250%;
+  
+  /* Привязываем позицию фона к нашим CSS-переменным из Vue */
+  background-position: var(--glare-x, 50%) var(--glare-y, 50%);
+  
+  /* Плавность движения бликов (берем из Vue, чтобы совпадало с наклоном) */
+  transition: var(--glare-transition, background-position 0.1s linear);
+}
+
+/* Текст внутри карточки */
+.tilt-card-content {
+  position: relative;
+  z-index: 2; /* Текст поверх бликов */
+  color: #ffffff;
+  text-align: center;
+  pointer-events: none;
+  
+  /* 3D эффект */
+  transform: translateZ(20px);
+  
+  /* Перенесли стили шрифта из .gem-text */
+  font-family: 'Arial', sans-serif;
+  font-weight: bold;
+  font-size: 24px; /* Сделали крупнее для карточки */
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  text-shadow: 2px 2px 0px rgba(0,0,0,0.6);
+}
+
+.tilt-card-inner{
+  position: relative;
+  width: 80%;
+  height: 80%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+}
+
+
 
 /* Контейнер породы (ядро) */
 .rock-layer {
@@ -327,34 +449,6 @@ const handleRockClick = (event: MouseEvent) => {
   background-image: linear-gradient(135deg, #57585a 0%, #303236 100%);
   transition: opacity 0.1s ease-out; /* Резко исчезает при первом клике */
 }
-
-.tilt-card {
-  width: 200px;
-  height: 300px;
-  background: linear-gradient(135deg, #2b2b2b, #1a1a1a);
-  border-radius: 16px;
-  border: 1px solid #3a3a3a;
-  
-  /* Критично для сохранения 3D-эффекта дочерних элементов */
-  transform-style: preserve-3d;
-  will-change: transform;
-  
-  /* Центрирование контента */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.tilt-card-content {
-  color: #e0e0e0;
-  text-align: center;
-  pointer-events: none; /* Чтобы контент не перехватывал события мыши */
-  
-  /* Выдвигаем контент ближе к зрителю по оси Z */
-  /* За счет transform-style: preserve-3d у родителя это создаст крутой параллакс */
-  transform: translateZ(20px);
-}
-
 
 </style>
 

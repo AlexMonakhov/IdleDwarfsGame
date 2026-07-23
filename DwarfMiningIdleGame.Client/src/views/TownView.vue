@@ -54,9 +54,9 @@
       </IconButton>
     </CanvasComponent>
 
-    <CardComponent></CardComponent>
-    <CardComponent></CardComponent>
-    <CardComponent></CardComponent>
+    <CardComponent :color="'grey'"></CardComponent>
+    <CardComponent :color="'yellow'"></CardComponent>
+    <CardComponent :color="'green'"></CardComponent>
     </CanvasLayer>
   </div>
 </template>

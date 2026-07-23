@@ -54,7 +54,12 @@ import InterfaceView from './views/InterfaceView.vue';
     -webkit-repeating-radial-gradient( 50% 50%, 100% 100%, hsla(0,0%,100%,0) 0%, hsla(0,0%,100%,0) 1.2%, hsla(0,0%,100%,.2) 2.2%),
     
     -webkit-radial-gradient( 50% 50%, 200% 50%, hsla(0,0%,90%,1) 5%, hsla(0,0%,85%,1) 30%, hsla(0,0%,60%,1) 100%);
-}
+    --blue-gem-color: #2196f3;
+    --green-gem-color: #00c853;
+    --pink-gem-color: #e91e63;
+    --red-gem-color: #d40808;
+    --yellow-gem-color: #ffb300;
+  }
 
 nav {
   text-align: start;
