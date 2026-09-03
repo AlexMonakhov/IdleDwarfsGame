@@ -224,7 +224,7 @@ const modalStyle = computed<CSSProperties>(() => ({
 
   border-radius: var(--border-radius) var(--border-radius) 0 0;
 
-  box-shadow: inset 0px 0px 6px black, inset 0px 0px 20px #333;
+  box-shadow: inset 0px 0px 6px black, inset 0px 0px 20px #333, 0 0 0 4px rgb(157, 173, 175), 0 0 0 6px #333, inset 0px 0px 6px black, inset 0px 0px 20px #333;;
 
   text-align: center;
 
