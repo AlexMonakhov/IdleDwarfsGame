@@ -13,7 +13,9 @@
     <GemButton :color="'pink'" @click="open = !open" :width="'70px'" height="44px">compaign</GemButton>
     <GemButton :color="'green'" @click="open = !open" :badge-count="helmBadge">hello</GemButton>
     <GemButton :color="'blue'" @click="open = !open" :badge-count="armorBadge" height="60px" width="60px" round>hi</GemButton>
-    <GemButton :color="'yellow'">yes?</GemButton>
+    <TooltipComponent>
+      <GemButton :color="'yellow'">yes?</GemButton>
+    </TooltipComponent>
 
     <ModalComponent 
         v-model="open"
@@ -28,7 +30,7 @@
               </IconButton>
             </CanvasComponent>
             <CanvasComponent 
-              :effects="[{ func: 'particles', padding: 100, isUnder: false }, { func: 'god-rays-radiance', padding: 100, isUnder: true }]"
+              :effects="[{ func: 'particles', padding: 100, isUnder: false }, { func: 'god-rays-radiance', padding: 100, isUnder: false }]"
             >    
               <IconButton :badge-count="armorBadge" round inner style="margin: 20px" >
                 <IconHelm size="60px" primary-color="rgb(217 215 178)" secondary-color="rgb(64 255 251)"></IconHelm>
@@ -45,6 +47,7 @@
         <div class="company-list-row"> AHAHH </div>
     </ModalComponent>
 
+    <TooltipComponent>
     <CanvasComponent 
       style="margin: 50px 0 0 50px"
       :effects="[{ func: 'god-rays-radiance', padding: 100, isUnder: true }, { func: 'particles', padding: 100, isUnder: false }]"
@@ -53,10 +56,15 @@
         <IconHelm size="60px" primary-color="rgb(217 215 178)" secondary-color="rgb(64 255 251)"></IconHelm>
       </IconButton>
     </CanvasComponent>
+    </TooltipComponent>
 
     <CardComponent :color="'grey'"></CardComponent>
     <CardComponent :color="'yellow'"></CardComponent>
+    <TooltipComponent>
+      <CardComponent :color="'blue'"></CardComponent>
+    </TooltipComponent>
     <CardComponent :color="'green'"></CardComponent>
+    <InfoComponent></InfoComponent>
     </CanvasLayer>
   </div>
 </template>
@@ -73,6 +81,8 @@ import { ref, onMounted, provide, nextTick } from 'vue';
 import CanvasComponent from '@/components/canvas/CanvasComponent.vue';
 import CanvasLayer from '@/components/canvas/CanvasLayer.vue';
 import CardComponent from '@/components/card/CardComponent.vue';
+import InfoComponent from '@/components/common/InfoComponent.vue';
+import TooltipComponent from '@/components/common/TooltipComponent.vue';
 
 const aboutMessage = ref("about message");
 const open = ref(false);

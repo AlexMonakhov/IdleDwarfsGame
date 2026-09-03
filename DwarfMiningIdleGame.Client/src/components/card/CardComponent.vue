@@ -19,7 +19,7 @@
     
 
 
-    <div  class="rock-layer" @click="handleRockClick" :style="{ opacity: layerOpacity }">
+    <div  class="rock-layer" @click="handleRockClick" :style="{ opacity: layerOpacity, pointerEvents: clickPhase >= 3 ? 'none' : 'auto' }">
       
       <!-- Осколки -->
       <div 

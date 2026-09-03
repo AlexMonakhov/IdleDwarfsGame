@@ -1,23 +1,25 @@
 <script lang="ts" setup>
+import TooltipComponent from './TooltipComponent.vue';
+
 
 </script>
 
 <template>
+  <TooltipComponent class="info-tooltip" >
   <div class="info-outer">
+    
     <div  :class="['info-inner', 'info-info']">
         i
     </div>
+    
     <span class="sparkle sparkle-top"></span>
     <span class="sparkle sparkle-bottom"></span>
   </div>
+  </TooltipComponent>
 </template>
 
 <style scoped>
-.info-outer {
-  position: absolute; 
-  top: 2px; 
-  right: 2px; 
-  z-index: 100; 
+.info-outer { 
   min-width: 20px; 
   height: 20px;
   border-radius: 10px; 
@@ -44,6 +46,7 @@
   align-items: center;
   text-shadow: 1px 1px 1px #333, 0 0 1px black;
   user-select: none;
+  pointer-events: none;
 }
 
 .info-error{
@@ -68,6 +71,7 @@
     position: absolute;
     background: radial-gradient(circle at center, rgba(255, 255, 255, 0.9) 0%, transparent 60%);
     transition: all ease-in-out 0.3s;
+    pointer-events: none;
 }
 
 .sparkle-top{
@@ -78,6 +82,13 @@
 .sparkle-bottom{
     bottom: 0;
     left: 5%;
+}
+
+.info-tooltip{
+  position:absolute;
+  top: 0;
+  right: 0;
+  z-index: 1000;
 }
 
 </style>
