@@ -28,6 +28,15 @@ public class EntityFactory(IPlayerRepository playerRepository) : IEntityFactory
             {
                 TeamId = 2
             };
+
+            world.Spells[entity.Id] = new SpellComponent();
+            world.StatusEffects[entity.Id] = new StatusEffectComponent();
+            world.TurnState[entity.Id] = new TurnStateComponent()
+            {
+                CanAct = true,
+                ActionCompleted = false
+            };
+
         }
         
     }
@@ -88,6 +97,20 @@ public class EntityFactory(IPlayerRepository playerRepository) : IEntityFactory
             world.Team[entity.Id] = new TeamComponent
             {
                 TeamId = 1
+            };
+
+            // Добавляем спеллы героям (пример: Fireball Lvl1, Lightning Lvl2)
+            world.Spells[entity.Id] = new SpellComponent
+            {
+                SpellIds = new List<int> { 1, 5 } // Fireball Lvl1 (ID 1), Lightning Lvl2 (ID 5)
+            };
+
+            world.StatusEffects[entity.Id] = new StatusEffectComponent();
+
+            world.TurnState[entity.Id] = new TurnStateComponent
+            {
+                CanAct = true,
+                ActionCompleted = false
             };
         }
     }

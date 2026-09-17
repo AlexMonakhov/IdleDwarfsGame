@@ -17,7 +17,7 @@ public class CombatService(
     private async Task<CombatResult> ProcessCombat(Guid playerId, int level, ICombatScenario scenario)
     {
         // 1. ������� ��� (������ WorldFactory ���������� ����� �� ��)
-        var world = await worldFactory.CreateWorldAsync(playerId, scenario, level);
+        var world = await worldFactory.CreateWorldAsync(playerId, scenario, level, new List<IGlobalEffect> { new LavaArenaEffect() });
 
         // 2. �������� ���
         var context = combatEngine.Run(world);

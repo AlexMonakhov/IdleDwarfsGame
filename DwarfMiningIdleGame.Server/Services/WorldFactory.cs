@@ -9,7 +9,7 @@ public class WorldFactory : IWorldFactory
         _entityFactory = entityFactory;
     }
 
-    public async Task<World> CreateWorldAsync(Guid playerId, ICombatScenario scenario, int level)
+    public async Task<World> CreateWorldAsync(Guid playerId, ICombatScenario scenario, int level, List<IGlobalEffect> globalEffects)
     {
         // 1. Берем сквад игрока
         //var playerSquad = await _squads.GetActiveSquadAsync(playerId);
@@ -34,6 +34,12 @@ public class WorldFactory : IWorldFactory
 
         // 3. Сценарий спавнит врагов
         await scenario.PopulateEnemiesAsync(world, level);
+        
+        // 4. Добавляем глобальные эффекты
+        foreach (var globalEffect in globalEffects)
+        {
+            world.AddGlobalEffect(globalEffect);
+        }
 
         return world;
     }
