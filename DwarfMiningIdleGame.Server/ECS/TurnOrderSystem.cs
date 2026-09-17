@@ -4,7 +4,7 @@ public class TurnOrderSystem : ICombatSystem
 {
     public void Execute(World world, CombatContext context)
     {
-        // Если раунд закончился — формируем новый
+        // Если очередь пуста — начался новый раунд
         if (context.CurrentRoundOrder.Count == 0)
         {
             var aliveOrdered = world.Entities
@@ -19,12 +19,23 @@ public class TurnOrderSystem : ICombatSystem
             }
 
             context.CurrentRoundOrder = aliveOrdered;
+            context.CurrentRound++;
+            context.IsNewRound = true; // Поднимаем флаг нового раунда
+        }
+        else
+        {
+            context.IsNewRound = false; // В рамках раунда флаг сброшен
         }
 
-        // Берём следующего
         var nextEntity = context.CurrentRoundOrder[0];
         context.CurrentRoundOrder.RemoveAt(0);
-
         context.CurrentActor = nextEntity.Id;
+
+        // Сбрасываем TurnState для ходящего
+        if (world.TurnState.ContainsKey(nextEntity.Id))
+        {
+            world.TurnState[nextEntity.Id].CanAct = true;
+            world.TurnState[nextEntity.Id].ActionCompleted = false;
+        }
     }
 }

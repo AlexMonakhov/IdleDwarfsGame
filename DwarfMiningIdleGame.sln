@@ -5,7 +5,7 @@ VisualStudioVersion = 17.14.36310.24
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DwarfMiningIdleGame.Server", "DwarfMiningIdleGame.Server\DwarfMiningIdleGame.Server.csproj", "{5826BE4C-DE7E-4ABB-BC9C-441D63D1E23C}"
 EndProject
-Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "dwarfminingidlegame.client", "DwarfMiningIdleGame.Client\dwarfminingidlegame.client.esproj", "{4ACE6DC2-615D-7E66-5869-849CA3566288}"
+Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "DwarfMiningIdleGame.Client", "DwarfMiningIdleGame.Client\DwarfMiningIdleGame.Client.esproj", "{4ACE6DC2-615D-7E66-5869-849CA3566288}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DwarfMiningIdleGame.Server.Tests", "DwarfMiningIdleGame.Server.Tests\DwarfMiningIdleGame.Server.Tests.csproj", "{6EF7D1B8-B25E-41DC-B737-A2CBA326140B}"
 EndProject

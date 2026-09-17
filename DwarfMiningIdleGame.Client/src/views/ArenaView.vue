@@ -1,19 +1,25 @@
 <template>
+  
   <div class="arena" :style="bgStyle">
-      {{  fightresult }}
+      <CanvasLayer>
       <div class="grid">
         <template v-for="(hero, n) in teamA" :key="hero">
-          <CharacterComponent  :class="['grid-item',`grid-item-left-${n + 1}`]"  :entity="hero" :animation-type="animationType"/> 
+          <CanvasComponent :class="['grid-item',`grid-item-left-${n + 1}`]"   :effects="[{ func: 'god-rays-radiance', padding: 100, isUnder: true }, { func: 'particles', padding: 100, isUnder: true }]" style="position: absolute;">
+            <CharacterComponent  :entity="hero" :animation-type="animationType"/>
+          </CanvasComponent>
         </template>
         <template v-for="(hero, n) in teamB" :key="hero">
-          <CharacterComponent  :class="['grid-item', 'grid-item-right',`grid-item-right-${n + 1}`]"  :entity="hero" rotate :animation-type="animationType"/> 
+          <CanvasComponent :class="['grid-item', 'grid-item-right',`grid-item-right-${n + 1}`]" :effects="[{ func: 'god-rays-radiance', padding: 100, isUnder: true }]" style="position: absolute;">
+            <CharacterComponent   :entity="hero" rotate :animation-type="animationType"/> 
+          </CanvasComponent>
         </template>
       </div>
       <div><button @click="changeAnim('idle')">Toggle Idle</button>
       <button @click="changeAnim('victory')">Toggle victory</button>
-    <button @click="changeAnim('attack')">Toggle attack</button></div>
-      
+      <button @click="changeAnim('attack')">Toggle attack</button></div>
+      </CanvasLayer>
 </div>
+
 
   </template>
   
@@ -21,15 +27,13 @@
   import { battleManager } from '../ecs/service/BattleManager';
   import { computed, onMounted, ref } from 'vue';
   import { heroes, buildHeroes, updateHeroHp  } from '../models/composables/heroes';
-  import CharacterDwarf from '@/components/character-dwarf.vue';
   import { Entity } from '@/ecs/entities/Storage';
   import arenaBgBlueCrystals from '@/assets/arena_red_crystals.png';
-  import mButton from '@/components/m-button.vue';
   import { logService } from '@/ecs/service/LogService';
-  import CharacterSkeleton from '@/components/character-skeleton.vue';
   import CharacterComponent from '@/components/character-component.vue';
-  import image from '@/assets/sprite-list/dwarf-idle/dwarf_idle_lvl4_red_1.png';
-  import { CombatApiService } from '@/services/apiServices/CombatApiService';
+  import CombatApiService from '@/services/apiServices/CombatApiService';
+import CanvasComponent from '@/components/canvas/CanvasComponent.vue';
+import CanvasLayer from '@/components/canvas/CanvasLayer.vue';
 
   const bgImage = ref('arena_blue_crystals')
   const teamA = ref<Entity[]>([]);
@@ -76,7 +80,7 @@
   <style lang="scss">
   .arena{
     width: 100vw;
-    height: 100%;
+    height: 100vh;
     position: fixed;
   }
 
@@ -219,4 +223,3 @@
 }
 
 </style>
-  

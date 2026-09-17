@@ -61,6 +61,7 @@
     <CardComponent :color="'grey'"></CardComponent>
     <CardComponent :color="'yellow'"></CardComponent>
     <TooltipComponent>
+      <template #description>lorem ipsum dolor sit amet consectetur adipisicing elit some long description lorem ipsum dolor sit amet consectetur adipisicing elit some long description</template>
       <CardComponent :color="'blue'"></CardComponent>
     </TooltipComponent>
     <CardComponent :color="'green'"></CardComponent>

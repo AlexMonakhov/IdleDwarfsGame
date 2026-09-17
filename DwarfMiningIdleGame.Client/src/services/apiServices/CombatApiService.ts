@@ -9,6 +9,7 @@ export interface CombatStartResponse {
 
     logs: object[];
     winningTeam: number;
+    fightId: string;
 }
 
 
@@ -20,7 +21,8 @@ const apiClient = axios.create({
     }
 });
 
-export const CombatApiService = {
+class CombatApiService {
+
     async start(): Promise<CombatStartResponse> {
         try {
             const response = await apiClient.post<CombatStartResponse>('/combat/start');
@@ -30,4 +32,27 @@ export const CombatApiService = {
             throw error; 
         }
     }
-};
+
+    async getCombatEntities(): Promise<any> {
+        try {
+            const response = await apiClient.get('/combat/entities');
+            return response.data;
+        } catch (error) {
+            console.error('Ошибка при получении сущностей боя:', error);
+            throw error; 
+        }
+    }
+
+    async getRewards(fightId: string): Promise<any> {
+        try {
+            const response = await apiClient.get(`/combat/rewards/${fightId}`);
+            return response.data;
+        } catch (error) {
+            console.error('Ошибка при получении наград:', error);
+            throw error; 
+        }
+    }
+}
+
+export default new CombatApiService();
+

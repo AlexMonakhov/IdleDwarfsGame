@@ -4,10 +4,20 @@ public class CombatEngine : ICombatEngine
 
     public CombatEngine()
     {
+        var spellRegistry = new Dictionary<int, ISpell>();
+        spellRegistry[1] = new Fireball(1);
+        spellRegistry[2] = new Fireball(2);
+        spellRegistry[4] = new Lightning(1);
+
         _systems = new List<ICombatSystem>
         {
             new TurnOrderSystem(),
+            new RoundStartSystem(),
+            new AuraSystem(),
+            new StatusEffectSystem(EffectPhase.Start),
+            new SpellSystem(spellRegistry),
             new DamageSystem(),
+            new StatusEffectSystem(EffectPhase.End),
             new HealthSystem()
         };
     }
@@ -30,61 +40,3 @@ public class CombatEngine : ICombatEngine
         return context;
     }
 }
-
-//public class CombatSystem
-//{
-//    //public List<CombatLogEntry> RunCombat(World world)
-//    //{
-//    //    var logs = new List<CombatLogEntry>();
-
-//    //    while (TeamAlive(world, 1) && TeamAlive(world, 2))
-//    //    {
-//    //        var turnOrder = world.Entities
-//    //            .Where(e => world.Health[e.Id].Current > 0)
-//    //            .OrderByDescending(e => world.Speed[e.Id].Value)
-//    //            .ToList();
-
-//    //        foreach (var entity in turnOrder)
-//    //        {
-//    //            if (world.Health[entity.Id].Current <= 0)
-//    //                continue;
-
-//    //            int attackerTeam = world.Team[entity.Id].TeamId;
-//    //            int enemyTeam = attackerTeam == 1 ? 2 : 1;
-
-//    //            var target = world.Entities
-//    //                .Where(e => world.Team[e.Id].TeamId == enemyTeam
-//    //                            && world.Health[e.Id].Current > 0)
-//    //                .FirstOrDefault();
-
-//    //            if (target == null)
-//    //                break;
-
-//    //            int damage = world.Attack[entity.Id].Damage;
-
-//    //            world.Health[target.Id].Current -= damage;
-
-//    //            logs.Add(new CombatLogEntry
-//    //            {
-//    //                AttackerId = entity.Id,
-//    //                TargetId = target.Id,
-//    //                AttackerTeam = attackerTeam,
-//    //                TargetTeam = enemyTeam,
-//    //                ActionType = "BasicAttack",
-//    //                Damage = damage,
-//    //                TargetRemainingHp =
-//    //                    Math.Max(0, world.Health[target.Id].Current)
-//    //            });
-//    //        }
-//    //    }
-
-//    //    return logs;
-//    //}
-
-//    //private bool TeamAlive(World world, int teamId)
-//    //{
-//    //    return world.Entities.Any(e =>
-//    //        world.Team[e.Id].TeamId == teamId &&
-//    //        world.Health[e.Id].Current > 0);
-//    //}
-//}
