@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("DwarfMiningIdleGame.Server")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f37a8556021976c258b1d7abf1b82929a9a3693b")]
 [assembly: System.Reflection.AssemblyProductAttribute("DwarfMiningIdleGame.Server")]
 [assembly: System.Reflection.AssemblyTitleAttribute("DwarfMiningIdleGame.Server")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
