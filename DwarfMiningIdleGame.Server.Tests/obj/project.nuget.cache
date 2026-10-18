@@ -1,12 +1,12 @@
 {
   "version": 2,
-  "dgSpecHash": "Yu8ei628o4c=",
+  "dgSpecHash": "97u84k4eVp8=",
   "success": true,
-  "projectFilePath": "C:\\Users\\monak\\source\\repos\\DwarfMiningIdleGame\\DwarfMiningIdleGame.Server.Tests\\DwarfMiningIdleGame.Server.Tests.csproj",
+  "projectFilePath": "C:\\Users\\monak\\source\\repos\\IdleDwarfsGame\\DwarfMiningIdleGame.Server.Tests\\DwarfMiningIdleGame.Server.Tests.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\monak\\.nuget\\packages\\castle.core\\5.1.1\\castle.core.5.1.1.nupkg.sha512",
     "C:\\Users\\monak\\.nuget\\packages\\coverlet.collector\\6.0.2\\coverlet.collector.6.0.2.nupkg.sha512",
-    "C:\\Users\\monak\\.nuget\\packages\\microsoft.aspnetcore.spaproxy\\9.0.15\\microsoft.aspnetcore.spaproxy.9.0.15.nupkg.sha512",
+    "C:\\Users\\monak\\.nuget\\packages\\microsoft.aspnetcore.spaproxy\\9.0.21\\microsoft.aspnetcore.spaproxy.9.0.21.nupkg.sha512",
     "C:\\Users\\monak\\.nuget\\packages\\microsoft.codecoverage\\17.12.0\\microsoft.codecoverage.17.12.0.nupkg.sha512",
     "C:\\Users\\monak\\.nuget\\packages\\microsoft.data.sqlite.core\\9.0.13\\microsoft.data.sqlite.core.9.0.13.nupkg.sha512",
     "C:\\Users\\monak\\.nuget\\packages\\microsoft.entityframeworkcore\\9.0.13\\microsoft.entityframeworkcore.9.0.13.nupkg.sha512",

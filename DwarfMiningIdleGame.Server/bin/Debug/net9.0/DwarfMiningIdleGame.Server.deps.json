@@ -8,7 +8,7 @@
     ".NETCoreApp,Version=v9.0": {
       "DwarfMiningIdleGame.Server/1.0.0": {
         "dependencies": {
-          "Microsoft.AspNetCore.SpaProxy": "9.0.13",
+          "Microsoft.AspNetCore.SpaProxy": "9.0.21",
           "Microsoft.EntityFrameworkCore": "9.0.13",
           "Microsoft.EntityFrameworkCore.Sqlite": "9.0.13",
           "Microsoft.EntityFrameworkCore.Tools": "9.0.13",
@@ -26,11 +26,11 @@
           }
         }
       },
-      "Microsoft.AspNetCore.SpaProxy/9.0.13": {
+      "Microsoft.AspNetCore.SpaProxy/9.0.21": {
         "runtime": {
           "lib/net9.0/Microsoft.AspNetCore.SpaProxy.dll": {
-            "assemblyVersion": "9.0.13.0",
-            "fileVersion": "9.0.1326.6409"
+            "assemblyVersion": "9.0.21.0",
+            "fileVersion": "9.0.2126.50509"
           }
         }
       },
@@ -842,12 +842,12 @@
       "path": "humanizer.core/2.14.1",
       "hashPath": "humanizer.core.2.14.1.nupkg.sha512"
     },
-    "Microsoft.AspNetCore.SpaProxy/9.0.13": {
+    "Microsoft.AspNetCore.SpaProxy/9.0.21": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-e5XHGLQPTEvkbCl5bLpsFC/FY0RCz6vOpV0lD1CHZpI8jmomDRmqEoW97sWcFTMCwV26aB0DEzaFlibcZBTalg==",
-      "path": "microsoft.aspnetcore.spaproxy/9.0.13",
-      "hashPath": "microsoft.aspnetcore.spaproxy.9.0.13.nupkg.sha512"
+      "sha512": "sha512-VxihbFiKKLIDYGH+TYkIitscHg6sJdhJEOH940JsKjonAYYVw18YKUpTK9TNSsnMm7sb2EBtGF6Z+ao1DMyygQ==",
+      "path": "microsoft.aspnetcore.spaproxy/9.0.21",
+      "hashPath": "microsoft.aspnetcore.spaproxy.9.0.21.nupkg.sha512"
     },
     "Microsoft.Bcl.AsyncInterfaces/7.0.0": {
       "type": "package",

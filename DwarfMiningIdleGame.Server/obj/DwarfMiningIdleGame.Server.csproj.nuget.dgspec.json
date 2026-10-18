@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\monak\\source\\repos\\DwarfMiningIdleGame\\DwarfMiningIdleGame.Server\\DwarfMiningIdleGame.Server.csproj": {}
+    "C:\\Users\\monak\\source\\repos\\IdleDwarfsGame\\DwarfMiningIdleGame.Server\\DwarfMiningIdleGame.Server.csproj": {}
   },
   "projects": {
-    "C:\\Users\\monak\\source\\repos\\DwarfMiningIdleGame\\DwarfMiningIdleGame.Server\\DwarfMiningIdleGame.Server.csproj": {
+    "C:\\Users\\monak\\source\\repos\\IdleDwarfsGame\\DwarfMiningIdleGame.Server\\DwarfMiningIdleGame.Server.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\monak\\source\\repos\\DwarfMiningIdleGame\\DwarfMiningIdleGame.Server\\DwarfMiningIdleGame.Server.csproj",
+        "projectUniqueName": "C:\\Users\\monak\\source\\repos\\IdleDwarfsGame\\DwarfMiningIdleGame.Server\\DwarfMiningIdleGame.Server.csproj",
         "projectName": "DwarfMiningIdleGame.Server",
-        "projectPath": "C:\\Users\\monak\\source\\repos\\DwarfMiningIdleGame\\DwarfMiningIdleGame.Server\\DwarfMiningIdleGame.Server.csproj",
+        "projectPath": "C:\\Users\\monak\\source\\repos\\IdleDwarfsGame\\DwarfMiningIdleGame.Server\\DwarfMiningIdleGame.Server.csproj",
         "packagesPath": "C:\\Users\\monak\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\monak\\source\\repos\\DwarfMiningIdleGame\\DwarfMiningIdleGame.Server\\obj\\",
+        "outputPath": "C:\\Users\\monak\\source\\repos\\IdleDwarfsGame\\DwarfMiningIdleGame.Server\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

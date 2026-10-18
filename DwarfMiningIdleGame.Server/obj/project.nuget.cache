@@ -1,11 +1,11 @@
 {
   "version": 2,
-  "dgSpecHash": "g2vepwupY/A=",
+  "dgSpecHash": "WkfYLNMxvoo=",
   "success": true,
-  "projectFilePath": "C:\\Users\\monak\\source\\repos\\DwarfMiningIdleGame\\DwarfMiningIdleGame.Server\\DwarfMiningIdleGame.Server.csproj",
+  "projectFilePath": "C:\\Users\\monak\\source\\repos\\IdleDwarfsGame\\DwarfMiningIdleGame.Server\\DwarfMiningIdleGame.Server.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\monak\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",
-    "C:\\Users\\monak\\.nuget\\packages\\microsoft.aspnetcore.spaproxy\\9.0.13\\microsoft.aspnetcore.spaproxy.9.0.13.nupkg.sha512",
+    "C:\\Users\\monak\\.nuget\\packages\\microsoft.aspnetcore.spaproxy\\9.0.21\\microsoft.aspnetcore.spaproxy.9.0.21.nupkg.sha512",
     "C:\\Users\\monak\\.nuget\\packages\\microsoft.bcl.asyncinterfaces\\7.0.0\\microsoft.bcl.asyncinterfaces.7.0.0.nupkg.sha512",
     "C:\\Users\\monak\\.nuget\\packages\\microsoft.build.framework\\17.8.43\\microsoft.build.framework.17.8.43.nupkg.sha512",
     "C:\\Users\\monak\\.nuget\\packages\\microsoft.build.locator\\1.7.8\\microsoft.build.locator.1.7.8.nupkg.sha512",
