@@ -1,1 +1,87 @@
 .vs/
+
+# Visual Studio / .NET core common ignores
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Build artifacts
+bin/
+obj/
+[Rr]elease/
+[Dd]ebug/
+publish/
+*/publish/
+
+# NuGet
+*.nupkg
+packages/
+.project.lock.json
+project.assets.json
+.nuget/packages/
+.nuget/
+
+# Rider
+.idea/
+*.sln.iml
+
+# Visual Studio Code
+.vscode/
+.history/
+
+# OS files
+Thumbs.db
+.DS_Store
+desktop.ini
+
+# Logs
+*.log
+*.sql
+*.sqlite
+*.db
+
+# User secrets
+secrets.json
+appsettings.*.Local.json
+
+# Resharper
+_ReSharper*/
+*.DotSettings.user
+
+# IIS Express
+/.vs/Config/aspnetcore_localdb*
+
+# EF Core Migrations snapshot/build
+**/Migrations/**/ModelSnapshot.*
+
+# DotCover
+*.dotCover
+
+# JetBrains Rider caches
+.idea/
+*.suo
+
+# Temporary files
+*.tmp
+*.temp
+~$*
+
+# Ignore publish output
+publish_output/
+
+# Ignore generated files from tools
+*.generated.cs
+
+# Node modules (in case front-end is added)
+node_modules/
+
+# Docker
+docker-compose.override.yml
+
+# Visual Studio profiler
+*.psess
+*.vsp
+*.vspx
+
+# End of file
