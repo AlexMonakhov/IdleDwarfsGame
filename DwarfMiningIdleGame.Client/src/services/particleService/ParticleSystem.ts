@@ -1,5 +1,5 @@
-import { EffectType, EffectStrategy, EmitterConfig } from './types/interfaces/canvas-interfaces';
-import { ParticlesStrategy, GodRaysStrategy, GodRaysRadianceStrategy } from './types/canvas-effects';
+import { EffectType, EffectStrategy, EmitterConfig } from '@/services/particleService/types/interfaces/canvas-interfaces';
+import { ParticlesStrategy, GodRaysStrategy, GodRaysRadianceStrategy } from '@/services/particleService/types/canvas-effects';
 
 export class GlobalParticleService {
   private bgCanvas: HTMLCanvasElement | null = null;
@@ -34,32 +34,139 @@ export class GlobalParticleService {
   }
 
   addEmitter(config: EmitterConfig) {
-    this.emitters.set(config.id, config);
+    const emitter = this.emitters.get(config.id);
+
+    const nextConfig: EmitterConfig = {
+      ...config,
+      startX: config.startX ?? config.x,
+      startY: config.startY ?? config.y,
+      endX: config.endX ?? config.x,
+      endY: config.endY ?? config.y,
+      travelStartedAt: config.travelStartedAt ?? performance.now(),
+      travelDuration: config.travelDuration ?? 400,
+    };
+
+    if (emitter && emitter.fadeDirection === 'out' && emitter.fadeDuration) {
+      const resumed: EmitterConfig = {
+        ...emitter,
+        ...nextConfig,
+        opacity: 0,
+        fadeStart: performance.now(),
+        fadeDuration: 200,
+        fadeDirection: 'in',
+      };
+      this.emitters.set(config.id, resumed);
+      return;
+    }
+
+    const finalEmitter: EmitterConfig = {
+      ...nextConfig,
+      opacity: config.opacity ?? 0,
+      fadeStart: performance.now(),
+      fadeDuration: 200,
+      fadeDirection: 'in',
+    };
+
+    this.emitters.set(config.id, finalEmitter);
   }
 
-  removeEmitter(id: string) {
-    this.emitters.delete(id);
+  /**
+   * Remove emitter. If fadeDurationMs is provided, the emitter will be faded out over that many milliseconds
+   * before being removed. If omitted, emitter is removed immediately.
+   */
+  removeEmitter(id: string, fadeDurationMs?: number) {
+    const emitter = this.emitters.get(id);
+    if (!emitter) return;
+
+    if (fadeDurationMs && fadeDurationMs > 0) {
+      emitter.fadeStart = performance.now();
+      emitter.fadeDuration = fadeDurationMs;
+      emitter.fadeDirection = 'out';
+      emitter.opacity = emitter.opacity ?? 1;
+      this.emitters.set(id, emitter);
+    } else {
+      this.emitters.delete(id);
+      const strategy = this.strategies[emitter.type] as any;
+      if (strategy && typeof strategy.disposeEmitter === 'function') {
+        strategy.disposeEmitter(id);
+      }
+    }
+  }
+
+  private updateEmitterPosition(emitter: EmitterConfig, now: number) {
+    if (emitter.travelStartedAt === undefined || emitter.travelDuration === undefined) {
+      return;
+    }
+
+    const elapsed = now - emitter.travelStartedAt;
+    const t = Math.min(elapsed / emitter.travelDuration, 1);
+
+    if (emitter.startX !== undefined && emitter.endX !== undefined) {
+      emitter.x = emitter.startX + (emitter.endX - emitter.startX) * t;
+    }
+
+    if (emitter.startY !== undefined && emitter.endY !== undefined) {
+      emitter.y = emitter.startY + (emitter.endY - emitter.startY) * t;
+    }
+
+    if (t >= 1) {
+      emitter.x = emitter.endX ?? emitter.x;
+      emitter.y = emitter.endY ?? emitter.y;
+    }
   }
 
   private startLoop() {
     const render = () => {
       if (!this.bgCtx || !this.fgCtx || !this.bgCanvas || !this.fgCanvas) return;
 
-      // 1. Очищаем оба холста
       this.bgCtx.clearRect(0, 0, this.bgCanvas.width, this.bgCanvas.height);
       this.fgCtx.clearRect(0, 0, this.fgCanvas.width, this.fgCanvas.height);
 
-      // 2. Отрисовываем эмиттеры на нужных слоях
+      const now = performance.now();
+      const toRemove: string[] = [];
       this.emitters.forEach((emitter) => {
+        this.updateEmitterPosition(emitter, now);
+
+        if (emitter.fadeStart !== undefined && emitter.fadeDuration !== undefined) {
+          const progress = Math.min((now - emitter.fadeStart) / emitter.fadeDuration, 1);
+          if (emitter.fadeDirection === 'in') {
+            emitter.opacity = progress;
+          } else {
+            emitter.opacity = 1 - progress;
+          }
+
+          if (progress >= 1) {
+            if (emitter.fadeDirection === 'in') {
+              emitter.opacity = 1;
+              emitter.fadeStart = undefined;
+              emitter.fadeDuration = undefined;
+              emitter.fadeDirection = undefined;
+            } else {
+              emitter.opacity = 0;
+              toRemove.push(emitter.id);
+              return;
+            }
+          }
+        }
+
         const strategy = this.strategies[emitter.type];
         if (strategy) {
           strategy.update(emitter);
-          
-          // Определяем, в какой контекст рисовать
+
           const targetCtx = emitter.layer === 'foreground' ? this.fgCtx! : this.bgCtx!;
           strategy.draw(targetCtx, emitter);
         }
       });
+
+      for (const id of toRemove) {
+        const emitter = this.emitters.get(id);
+        if (!emitter) continue;
+        const strategy = this.strategies[emitter.type] as any;
+        if (strategy && typeof strategy.disposeEmitter === 'function') {
+          strategy.disposeEmitter(id);
+        }
+        this.emitters.delete(id);
+      }
 
       this.animationId = requestAnimationFrame(render);
     };

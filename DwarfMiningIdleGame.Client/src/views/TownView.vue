@@ -4,7 +4,7 @@
       <h1>{{ aboutMessage }}</h1>
     <TimelineGorizontal></TimelineGorizontal>
     <CanvasComponent 
-      :effects="[{ func: 'god-rays-radiance', padding: 100, isUnder: true }, { func: 'particles', padding: 100, isUnder: true }]"
+      :effects="animationObject2"
     >    
       <IconButton :badge-count="armorBadge" round inner>
         <IconHelm size="60px" primary-color="rgb(217 215 178)" secondary-color="rgb(64 255 251)"></IconHelm>
@@ -50,9 +50,9 @@
     <TooltipComponent>
     <CanvasComponent 
       style="margin: 50px 0 0 50px"
-      :effects="[{ func: 'god-rays-radiance', padding: 100, isUnder: true }, { func: 'particles', padding: 100, isUnder: false }]"
+      :effects="animationObject"
     >    
-      <IconButton :badge-count="armorBadge" round inner>
+      <IconButton :badge-count="armorBadge" round inner @click="animationvalue = !animationvalue">
         <IconHelm size="60px" primary-color="rgb(217 215 178)" secondary-color="rgb(64 255 251)"></IconHelm>
       </IconButton>
     </CanvasComponent>
@@ -78,7 +78,7 @@ import GemButton from '@/components/common/GemButton.vue';
 import IconHelm from '@/components/icons/IconHelm.vue';
 import { useInventoryBadge } from '@/composables/UseInventoryBadge';
 import IconButton from '@/components/common/IconButton.vue';
-import { ref, onMounted, provide, nextTick } from 'vue';
+import { ref, onMounted, provide, nextTick, computed } from 'vue';
 import CanvasComponent from '@/components/canvas/CanvasComponent.vue';
 import CanvasLayer from '@/components/canvas/CanvasLayer.vue';
 import CardComponent from '@/components/card/CardComponent.vue';
@@ -88,6 +88,7 @@ import TooltipComponent from '@/components/common/TooltipComponent.vue';
 const aboutMessage = ref("about message");
 const open = ref(false);
 const open1 = ref(false);
+const animationvalue = ref(false);
 const onStageClick = async (lvl: number) => {
   open1.value = !open1.value;
   await nextTick();
@@ -95,6 +96,16 @@ const onStageClick = async (lvl: number) => {
 }
 const { count: helmBadge } = useInventoryBadge('helm');
 const { count: armorBadge } = useInventoryBadge('armor');
+
+const animationObject = computed(() => {
+  if(animationvalue.value) return ([{ func: 'particles', padding: 100, isUnder: false }, { func: 'god-rays', padding: 100, isUnder: true }])
+  else return ([])
+})
+
+const animationObject2 = computed(() => {
+  if(animationvalue.value) return ([{ func: 'particles', padding: 100, isUnder: false }])
+  else return ([{ func: 'particles', padding: 100, isUnder: true, args: { speed: '2', color: '#0ff' } }])
+})
 </script>
 
 <style lang="scss">
