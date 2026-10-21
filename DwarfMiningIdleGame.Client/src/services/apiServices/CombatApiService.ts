@@ -1,13 +1,49 @@
 import axios from 'axios';
 
+export interface CombatLogEntry {
+    attackerId?: number;
+    targetId?: number;
+    attackerTeam?: number;
+    targetTeam?: number;
+    actionType?: string;
+    eventType?: string;
+    phase?: string;
+    round?: number;
+    skillId?: number | null;
+    skillName?: string;
+    damageType?: string;
+    damage?: number;
+    targetRemainingHp?: number;
+    targetRemainingHpAfter?: number | null;
+    isCritical?: boolean;
+    text?: string;
+    appliedEffects?: Array<{
+        effectId?: string;
+        name?: string;
+        duration?: number;
+        stacks?: number;
+        tickDamage?: number | null;
+        damageType?: string | null;
+        description?: string | null;
+    }>;
+    activeEffects?: Array<{
+        effectId?: string;
+        name?: string;
+        duration?: number;
+        stacks?: number;
+        tickDamage?: number | null;
+        damageType?: string | null;
+        description?: string | null;
+    }>;
+}
+
 export interface CombatStartRequest {
     zoneId: number;
     partyId?: number;
 }
 
 export interface CombatStartResponse {
-
-    logs: object[];
+    logs: CombatLogEntry[];
     winningTeam: number;
     fightId: string;
 }

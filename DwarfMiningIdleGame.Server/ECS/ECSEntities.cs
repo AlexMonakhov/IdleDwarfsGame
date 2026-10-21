@@ -8,6 +8,41 @@ public class Entity
     }
 }
 
+public enum CombatEventType
+{
+    RoundStart,
+    SkillCast,
+    Damage,
+    StatusApplied,
+    StatusTick,
+    StatusExpired,
+    Heal,
+    Death
+}
+
+public enum DamageType
+{
+    Physical,
+    Magical,
+    Fire,
+    Frost,
+    Lightning,
+    Poison,
+    Bleed,
+    True
+}
+
+public class StatusEffectLogData
+{
+    public string EffectId { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public int Duration { get; set; }
+    public int Stacks { get; set; }
+    public int? TickDamage { get; set; }
+    public DamageType? DamageType { get; set; }
+    public string? Description { get; set; }
+}
+
 public class CombatLogEntry
 {
     public int AttackerId { get; set; }
@@ -16,11 +51,28 @@ public class CombatLogEntry
     public int AttackerTeam { get; set; }
     public int TargetTeam { get; set; }
 
+    // Существующее поле, оставляем для совместимости со старой логикой.
     public string ActionType { get; set; } = "";
+
+    // Новые поля для структурированного лога, нужные UI/анимациям.
+    public int Round { get; set; }
+    public CombatEventType EventType { get; set; } = CombatEventType.Damage;
+    public string Phase { get; set; } = "Action";
+    public int? SkillId { get; set; }
+    public string SkillName { get; set; } = string.Empty;
+    public DamageType DamageType { get; set; } = DamageType.Physical;
     public int Damage { get; set; }
     public int TargetRemainingHp { get; set; }
+    public int? TargetRemainingHpAfter { get; set; }
 
     public bool IsCritical { get; set; }
+
+    // Для UI удобно иметь уже подготовленный текст, но не использовать его как единственный источник данных.
+    public string? Text { get; set; }
+
+    // Список эффектов, которые были применены или активны в момент этого лога.
+    public List<StatusEffectLogData> AppliedEffects { get; set; } = new();
+    public List<StatusEffectLogData> ActiveEffects { get; set; } = new();
 }
 
 public class CombatResult

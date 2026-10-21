@@ -31,11 +31,11 @@
         }
       },
       "coverlet.collector/6.0.2": {},
-      "Microsoft.AspNetCore.SpaProxy/9.0.15": {
+      "Microsoft.AspNetCore.SpaProxy/9.0.21": {
         "runtime": {
           "lib/net9.0/Microsoft.AspNetCore.SpaProxy.dll": {
-            "assemblyVersion": "9.0.15.0",
-            "fileVersion": "9.0.1526.17607"
+            "assemblyVersion": "9.0.21.0",
+            "fileVersion": "9.0.2126.50509"
           }
         }
       },
@@ -756,7 +756,7 @@
       "xunit.runner.visualstudio/2.8.2": {},
       "DwarfMiningIdleGame.Server/1.0.0": {
         "dependencies": {
-          "Microsoft.AspNetCore.SpaProxy": "9.0.15",
+          "Microsoft.AspNetCore.SpaProxy": "9.0.21",
           "Microsoft.EntityFrameworkCore": "9.0.13",
           "Microsoft.EntityFrameworkCore.Sqlite": "9.0.13",
           "Swashbuckle.AspNetCore": "10.1.2"
@@ -790,12 +790,12 @@
       "path": "coverlet.collector/6.0.2",
       "hashPath": "coverlet.collector.6.0.2.nupkg.sha512"
     },
-    "Microsoft.AspNetCore.SpaProxy/9.0.15": {
+    "Microsoft.AspNetCore.SpaProxy/9.0.21": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-008ZhbMLCHXqxlSGl98fsS8I6+p2lz1KumiEigzfjymJAWS7lnVcFCw5V2XQ1++agRW/QE6nuVHH0nbFd6BC9w==",
-      "path": "microsoft.aspnetcore.spaproxy/9.0.15",
-      "hashPath": "microsoft.aspnetcore.spaproxy.9.0.15.nupkg.sha512"
+      "sha512": "sha512-VxihbFiKKLIDYGH+TYkIitscHg6sJdhJEOH940JsKjonAYYVw18YKUpTK9TNSsnMm7sb2EBtGF6Z+ao1DMyygQ==",
+      "path": "microsoft.aspnetcore.spaproxy/9.0.21",
+      "hashPath": "microsoft.aspnetcore.spaproxy.9.0.21.nupkg.sha512"
     },
     "Microsoft.CodeCoverage/17.12.0": {
       "type": "package",
