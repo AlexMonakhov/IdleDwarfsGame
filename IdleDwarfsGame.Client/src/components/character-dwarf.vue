@@ -1,8 +1,9 @@
 <script lang="ts" setup>
 
 import { onMounted, onBeforeUnmount, ref, getCurrentInstance, reactive, defineProps, watch, defineExpose, computed } from 'vue';
-import { registerComponent, unregisterComponent } from '../ecs/entities/ComponentRegistry';
-import type { Entity } from '../ecs/entities/Storage';
+import { registerUnitView, unregisterUnitView } from '@/battle/UnitRegistry';
+
+type Entity = number;
 import { heroes } from '@/models/composables/heroes';
 import { DwarfCharacterConfig, HeroModel } from '@/models/hero';
 import characterStats from './character-stats.vue';
@@ -49,11 +50,11 @@ const attack = () => {
 
 
 onMounted(() => {
-  registerComponent(props.entity, getCurrentInstance()!);
+  registerUnitView(props.entity, { hit, attack });
 });
 
 onBeforeUnmount(() => {
-  unregisterComponent(props.entity);
+  unregisterUnitView(props.entity);
 });
 
 watch(

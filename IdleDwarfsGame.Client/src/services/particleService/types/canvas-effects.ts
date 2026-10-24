@@ -182,3 +182,125 @@ export class GodRaysRadianceStrategy implements EffectStrategy {
     ctx.restore();
   }
 }
+
+// Ломаная молния между startX/startY и endX/endY, перестраивается каждые несколько кадров
+export class LightningStrategy implements EffectStrategy {
+  private bolts = new Map<string, { points: { x: number; y: number }[]; frame: number }>();
+
+  update(emitter: EmitterConfig) {
+    const bolt = this.bolts.get(emitter.id);
+    if (bolt && bolt.frame++ % 3 !== 0) return;
+
+    const sx = emitter.startX ?? emitter.x;
+    const sy = emitter.startY ?? emitter.y;
+    const ex = emitter.endX ?? emitter.x;
+    const ey = emitter.endY ?? emitter.y;
+    const segments = 12;
+    const jitter = Number(emitter.args?.jitter ?? 18);
+
+    const points = [{ x: sx, y: sy }];
+    for (let i = 1; i < segments; i++) {
+      const t = i / segments;
+      points.push({
+        x: sx + (ex - sx) * t + (Math.random() - 0.5) * jitter * 2,
+        y: sy + (ey - sy) * t + (Math.random() - 0.5) * jitter * 2,
+      });
+    }
+    points.push({ x: ex, y: ey });
+
+    this.bolts.set(emitter.id, { points, frame: (bolt?.frame ?? 0) + 1 });
+  }
+
+  draw(ctx: CanvasRenderingContext2D, emitter: EmitterConfig) {
+    const bolt = this.bolts.get(emitter.id);
+    if (!bolt) return;
+
+    const color = emitter.args?.color ?? '#9be7ff';
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.globalAlpha = emitter.opacity ?? 1;
+    ctx.lineJoin = 'round';
+
+    // Широкое свечение + тонкое ядро
+    for (const [width, style] of [[10, color], [3, '#ffffff']] as const) {
+      ctx.lineWidth = width;
+      ctx.strokeStyle = style;
+      ctx.shadowColor = color;
+      ctx.shadowBlur = width * 2;
+      ctx.beginPath();
+      bolt.points.forEach((p, i) => (i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y)));
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  disposeEmitter(id: string) {
+    this.bolts.delete(id);
+  }
+}
+
+// Вспышка попадания: расширяющееся кольцо и разлетающиеся искры
+export class ImpactStrategy implements EffectStrategy {
+  private sparks = new Map<string, Particle[]>();
+
+  update(emitter: EmitterConfig) {
+    let sparks = this.sparks.get(emitter.id);
+    if (!sparks) {
+      const color = emitter.args?.color ?? '#ffd166';
+      sparks = Array.from({ length: 18 }, () => {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 4 + 2;
+        return {
+          x: emitter.x,
+          y: emitter.y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          life: 1,
+          maxLife: Math.random() * 0.03 + 0.03,
+          size: Math.random() * 3 + 2,
+          color,
+        };
+      });
+      this.sparks.set(emitter.id, sparks);
+    }
+
+    sparks.forEach(p => {
+      p.x += p.vx;
+      p.y += p.vy;
+      p.vx *= 0.94;
+      p.vy *= 0.94;
+      p.life -= p.maxLife;
+    });
+    this.sparks.set(emitter.id, sparks.filter(p => p.life > 0));
+  }
+
+  draw(ctx: CanvasRenderingContext2D, emitter: EmitterConfig) {
+    const color = emitter.args?.color ?? '#ffd166';
+    const age = performance.now() - (emitter.travelStartedAt ?? performance.now());
+    const progress = Math.min(age / 400, 1);
+    const radius = (emitter.padding ?? 40) * (0.3 + progress);
+
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.globalAlpha = (emitter.opacity ?? 1) * (1 - progress);
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 6 * (1 - progress) + 1;
+    ctx.beginPath();
+    ctx.arc(emitter.x, emitter.y, radius, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.globalAlpha = emitter.opacity ?? 1;
+    this.sparks.get(emitter.id)?.forEach(p => {
+      ctx.globalAlpha = (emitter.opacity ?? 1) * Math.max(p.life, 0);
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    ctx.restore();
+  }
+
+  disposeEmitter(id: string) {
+    this.sparks.delete(id);
+  }
+}

@@ -2,29 +2,33 @@ public class RoundStartSystem : ICombatSystem
 {
     public void Execute(World world, CombatContext context)
     {
-        // Если это не начало нового раунда — просто выходим!
+        // Р•СЃР»Рё СЌС‚Рѕ РќР• РЅР°С‡Р°Р»Рѕ РЅРѕРІРѕРіРѕ СЂР°СѓРЅРґР° вЂ” РЅРёС‡РµРіРѕ РЅРµ РґРµР»Р°РµРј!
         if (!context.IsNewRound) return;
 
-        // 1. Проверка лимита раундов (Таймаут боя)
+        // 1. РџСЂРѕРІРµСЂРєР° Р»РёРјРёС‚Р° СЂР°СѓРЅРґРѕРІ (Р·Р°С‰РёС‚Р° РѕС‚ Р±РµСЃРєРѕРЅРµС‡РЅРѕРіРѕ Р±РѕСЏ)
         if (context.CurrentRound > context.MaxRounds)
         {
+            context.CurrentRound = context.MaxRounds;
             context.CombatEnded = true;
-            context.Win = false; // Превышен лимит раундов — поражение нападающего
-            context.Logs.Add(new CombatLogEntry
+            context.Win = false; // РќРёС‡СЊСЏ РїРѕ Р»РёРјРёС‚Сѓ Р·Р°СЃС‡РёС‚С‹РІР°РµС‚СЃСЏ РёРіСЂРѕРєСѓ РєР°Рє РїРѕСЂР°Р¶РµРЅРёРµ
+            context.WinningTeam = 2;
+            context.AddLog(new CombatLogEntry
             {
+                EventType = CombatEventType.CombatEnd,
+                Phase = "End",
                 ActionType = "RoundLimitReached",
-                Damage = 0
+                WinningTeam = 2,
+                Text = "Round limit reached"
             });
             return;
         }
 
-        // 2. Лог начала раунда для UI
-        context.Logs.Add(new CombatLogEntry
+        // 2. Р›РѕРі РЅР°С‡Р°Р»Р° СЂР°СѓРЅРґР° РґР»СЏ UI
+        context.AddLog(new CombatLogEntry
         {
-            ActionType = $"RoundStart_{context.CurrentRound}",
-            Damage = 0
+            EventType = CombatEventType.RoundStart,
+            Phase = "RoundStart",
+            ActionType = $"RoundStart_{context.CurrentRound}"
         });
-
-        // 3. Здесь же можно вызывать глобальные ауры / погоду / восстанавливать энергию раз в раунд
     }
 }

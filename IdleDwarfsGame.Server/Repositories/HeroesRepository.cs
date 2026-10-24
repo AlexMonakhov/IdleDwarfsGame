@@ -26,6 +26,23 @@ public class HeroesRepository : IHeroesRepository
             .ToListAsync();
     }
 
+    public async Task<List<Hero>> GetSquadAsync(Guid playerId, int maxSize = 5)
+    {
+        var heroes = await _context.Heroes
+            .Where(h => h.PlayerId == playerId)
+            .ToListAsync();
+
+        var squad = heroes
+            .Where(h => h.PlaceInSquad != null)
+            .OrderBy(h => h.PlaceInSquad)
+            .Take(maxSize)
+            .ToList();
+
+        return squad.Count > 0
+            ? squad
+            : heroes.OrderBy(h => h.Name).Take(maxSize).ToList();
+    }
+
     public async Task CreateAsync(Hero hero)
     {
         // Ensure Id is set

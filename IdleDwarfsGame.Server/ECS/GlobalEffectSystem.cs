@@ -2,17 +2,17 @@ public class GlobalEffectSystem : ICombatSystem
 {
     public void Execute(World world, CombatContext context)
     {
-        if (world.GlobalEffects.Count == 0) return;
+        if (world.GlobalEffects.Count == 0 || context.CurrentActor == -1) return;
 
         foreach (var globalEffect in world.GlobalEffects)
         {
-            // 1. Эффекты, которые срабатывают ровно 1 раз в начале раунда
+            // 1. Р­С„С„РµРєС‚С‹, РєРѕС‚РѕСЂС‹Рµ СЃСЂР°Р±Р°С‚С‹РІР°СЋС‚ СЂРѕРІРЅРѕ 1 СЂР°Р· РІ РЅР°С‡Р°Р»Рµ СЂР°СѓРЅРґР°
             if (globalEffect.Trigger == TriggerPhase.OnRoundStart && context.IsNewRound)
             {
                 globalEffect.Apply(world, context);
             }
 
-            // 2. Эффекты, которые срабатывают перед ходом КАЖДОГО персонажа
+            // 2. Р­С„С„РµРєС‚С‹, РєРѕС‚РѕСЂС‹Рµ СЃСЂР°Р±Р°С‚С‹РІР°СЋС‚ РїРµСЂРµРґ С…РѕРґРѕРј РєР°Р¶РґРѕРіРѕ РїРµСЂСЃРѕРЅР°Р¶Р°
             if (globalEffect.Trigger == TriggerPhase.OnTurnStart)
             {
                 globalEffect.Apply(world, context);

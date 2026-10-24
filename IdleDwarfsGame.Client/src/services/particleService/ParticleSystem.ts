@@ -1,5 +1,15 @@
 import { EffectType, EffectStrategy, EmitterConfig } from '@/services/particleService/types/interfaces/canvas-interfaces';
-import { ParticlesStrategy, GodRaysStrategy, GodRaysRadianceStrategy } from '@/services/particleService/types/canvas-effects';
+import { ParticlesStrategy, GodRaysStrategy, GodRaysRadianceStrategy, LightningStrategy, ImpactStrategy } from '@/services/particleService/types/canvas-effects';
+import {
+  ProjectileStrategy,
+  ExplosionStrategy,
+  SlashStrategy,
+  FlamesStrategy,
+  FrostAuraStrategy,
+  StunStarsStrategy,
+  SparklesStrategy,
+  RingStrategy,
+} from '@/services/particleService/types/combat-effects';
 
 export class GlobalParticleService {
   private bgCanvas: HTMLCanvasElement | null = null;
@@ -14,7 +24,30 @@ export class GlobalParticleService {
     'particles': new ParticlesStrategy(),
     'god-rays': new GodRaysStrategy(),
     'god-rays-radiance': new GodRaysRadianceStrategy(),
+    'lightning': new LightningStrategy(),
+    'impact': new ImpactStrategy(),
+    'projectile': new ProjectileStrategy(),
+    'explosion': new ExplosionStrategy(),
+    'slash': new SlashStrategy(),
+    'flames': new FlamesStrategy(),
+    'frost-aura': new FrostAuraStrategy(),
+    'stun-stars': new StunStarsStrategy(),
+    'sparkles': new SparklesStrategy(),
+    'ring': new RingStrategy(),
   };
+
+  // Подменить/добавить стратегию отрисовки (например, для нового эффекта статуса)
+  registerStrategy(type: EffectType, strategy: EffectStrategy) {
+    this.strategies[type] = strategy;
+  }
+
+  hasEmitter(id: string) {
+    return this.emitters.has(id);
+  }
+
+  getCanvas(layer: 'background' | 'foreground'): HTMLCanvasElement | null {
+    return layer === 'foreground' ? this.fgCanvas : this.bgCanvas;
+  }
 
   /**
    * Инициализация сервиса с двумя канвасами
@@ -59,13 +92,15 @@ export class GlobalParticleService {
       return;
     }
 
-    const finalEmitter: EmitterConfig = {
-      ...nextConfig,
-      opacity: config.opacity ?? 0,
-      fadeStart: performance.now(),
-      fadeDuration: 200,
-      fadeDirection: 'in',
-    };
+    const finalEmitter: EmitterConfig = config.instant
+      ? { ...nextConfig, opacity: 1 }
+      : {
+        ...nextConfig,
+        opacity: config.opacity ?? 0,
+        fadeStart: performance.now(),
+        fadeDuration: 200,
+        fadeDirection: 'in',
+      };
 
     this.emitters.set(config.id, finalEmitter);
   }
@@ -86,14 +121,20 @@ export class GlobalParticleService {
       this.emitters.set(id, emitter);
     } else {
       this.emitters.delete(id);
-      const strategy = this.strategies[emitter.type] as any;
-      if (strategy && typeof strategy.disposeEmitter === 'function') {
-        strategy.disposeEmitter(id);
-      }
+      this.strategies[emitter.type]?.disposeEmitter?.(id);
     }
   }
 
   private updateEmitterPosition(emitter: EmitterConfig, now: number) {
+    if (emitter.follow) {
+      const point = emitter.follow();
+      if (point) {
+        emitter.x = point.x;
+        emitter.y = point.y;
+      }
+      return;
+    }
+
     if (emitter.travelStartedAt === undefined || emitter.travelDuration === undefined) {
       return;
     }
@@ -161,10 +202,7 @@ export class GlobalParticleService {
       for (const id of toRemove) {
         const emitter = this.emitters.get(id);
         if (!emitter) continue;
-        const strategy = this.strategies[emitter.type] as any;
-        if (strategy && typeof strategy.disposeEmitter === 'function') {
-          strategy.disposeEmitter(id);
-        }
+        this.strategies[emitter.type]?.disposeEmitter?.(id);
         this.emitters.delete(id);
       }
 

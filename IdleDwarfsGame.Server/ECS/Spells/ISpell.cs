@@ -3,7 +3,7 @@ public interface ISpell
     int Id { get; }
     string Name { get; }
     int Level { get; }
-    int EnergyCost { get; } // Новое поле!
+    int EnergyCost { get; } // Р¦РµРЅР° РєР°СЃС‚Р°
 
     void Execute(World world, int casterId, CombatContext context);
 }

@@ -1,43 +1,34 @@
-public class StunEffect : IStatusEffect
+public class StunEffect : StatusEffectBase
 {
-    public string EffectName => "Stun";
-    public int RemainingTurns { get; set; }
+    public override string EffectName => "Stun";
 
-    public StunEffect(int turns = 1)
+    public StunEffect(int turns = 1) : base(turns, 0)
     {
-        RemainingTurns = turns;
     }
 
-    public void ApplyEffect(World world, int targetId, CombatContext context)
+    public override void OnTurnStart(World world, int targetId, CombatContext context)
     {
-        if (!world.StatusEffects.ContainsKey(targetId))
-        {
-            world.StatusEffects[targetId] = new StatusEffectComponent();
-        }
-        world.StatusEffects[targetId].ActiveEffects.Add(this);
-    }
+        RemainingTurns--;
+        if (!world.IsAlive(targetId)) return;
 
-    public void OnTurnStart(World world, int targetId, CombatContext context)
-    {
-        // 1. Запрещаем ходить
+        // 1. Р‘Р»РѕРєРёСЂСѓРµРј РґРµР№СЃС‚РІРёРµ
         if (world.TurnState.ContainsKey(targetId))
         {
             world.TurnState[targetId].CanAct = false;
         }
 
-        // 2. Сразу пишем в лог, что ход пропущен из-за стана
-        context.Logs.Add(new CombatLogEntry
+        // 2. РџРёС€РµРј РІ Р»РѕРі, С‡С‚Рѕ С…РѕРґ РїСЂРѕРїСѓС‰РµРЅ РёР·-Р·Р° СЃС‚Р°РЅР°
+        context.AddLog(new CombatLogEntry
         {
+            EventType = CombatEventType.Stunned,
+            Phase = "TurnStart",
             AttackerId = targetId,
-            TargetId = -1,
+            AttackerTeam = world.Team[targetId].TeamId,
+            TargetId = targetId,
+            TargetTeam = world.Team[targetId].TeamId,
             ActionType = "Stunned",
-            Damage = 0
+            TargetRemainingHp = world.Health[targetId].Current,
+            ActiveEffects = { ToLogData() }
         });
-
-        RemainingTurns--;
-    }
-
-    public void OnTurnEnd(World world, int targetId, CombatContext context)
-    {
     }
 }

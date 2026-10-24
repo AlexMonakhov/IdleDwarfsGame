@@ -1,8 +1,6 @@
 
-import { Entity } from "@/ecs/entities/Storage";
-
 export interface HeroModel {
-  id: Entity;
+  id: number;
   name: string;
   currentHp: number;
   maxHp: number;

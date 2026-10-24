@@ -7,6 +7,10 @@ public interface IHeroesRepository
 {
     Task<Hero?> GetByIdAsync(Guid id);
     Task<List<Hero>> GetByPlayerAsync(Guid playerId);
+    /// <summary>
+    /// Heroes placed in the squad, ordered by slot. Falls back to the first heroes of the player when nobody is placed.
+    /// </summary>
+    Task<List<Hero>> GetSquadAsync(Guid playerId, int maxSize = 5);
     Task CreateAsync(Hero hero);
     Task UpdateAsync(Hero hero);
     Task DeleteAsync(Guid id);

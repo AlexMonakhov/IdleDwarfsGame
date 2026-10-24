@@ -2,14 +2,16 @@ public class Fireball : BaseSpell
 {
     public Fireball(int level = 1) : base(level, "Fireball", level, 20) { }
 
+    public override DamageType DamageType => DamageType.Fire;
+
     protected override List<int> GetTargets(World world, int casterId)
     {
         var enemies = GetAliveEnemies(world, casterId);
         return Level switch
         {
             1 => GetRandomTargets(enemies, 1),
-            2 => GetRandomTargets(enemies, 3), // На втором бьем троих
-            3 => enemies.Select(e => e.Id).ToList(), // На третьем всех
+            2 => GetRandomTargets(enemies, 3), // РџРѕ РіСЂСѓРїРїРµ СЃР»СѓС‡Р°Р№РЅС‹С… РІСЂР°РіРѕРІ
+            3 => enemies.Select(e => e.Id).ToList(), // РџРѕ РїР»РѕС‰Р°РґРё РІСЃРµС… РІСЂР°РіРѕРІ
             _ => new List<int>()
         };
     }
@@ -32,14 +34,14 @@ public class Fireball : BaseSpell
 
         if (Level == 1)
         {
-            // Поджигает на 1 ход, фиксированный урон (например 10)
-            new BurnEffect(turns: 1, damagePerTurn: 10).ApplyEffect(world, targetId, context);
+            // РџРѕРґР¶РёРіР°РµС‚ РЅР° 1 С…РѕРґ, С„РёРєСЃРёСЂРѕРІР°РЅРЅС‹Р№ СѓСЂРѕРЅ (РЅР°РїСЂРёРјРµСЂ 10)
+            new BurnEffect(turns: 1, damagePerTurn: 10).ApplyEffect(world, targetId, context, casterId);
         }
         else if (Level >= 2)
         {
-            // Поджигает на 2 хода, урон зависит от силы атаки кастера (например 30% от демеджа)
+            // РџРѕРґР¶РёРіР°РµС‚ РЅР° 2 С…РѕРґР°, СѓСЂРѕРЅ Р·Р°РІРёСЃРёС‚ РѕС‚ СЃРёР»С‹ Р°С‚Р°РєРё РєР°СЃС‚РµСЂР° (РЅР°РїСЂРёРјРµСЂ 30% РѕС‚ Р°С‚Р°РєРё)
             int burnTickDamage = (int)(baseDmg * 0.3);
-            new BurnEffect(turns: 2, damagePerTurn: burnTickDamage).ApplyEffect(world, targetId, context);
+            new BurnEffect(turns: 2, damagePerTurn: burnTickDamage).ApplyEffect(world, targetId, context, casterId);
         }
     }
 }

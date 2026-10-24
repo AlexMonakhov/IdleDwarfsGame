@@ -12,7 +12,7 @@ export interface EffectConfig {
 }
 
 interface Props {
-  effects: EffectConfig[];
+  effects?: EffectConfig[];
   active?: boolean;
   animationKey?: string | number | boolean;
 }

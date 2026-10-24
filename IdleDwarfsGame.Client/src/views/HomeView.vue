@@ -9,10 +9,7 @@
 </template>
 
 <script lang="ts" setup>
-import {battleManager} from '../ecs/service/BattleManager';
 import { onMounted, ref } from 'vue';
-import { heroes, buildHeroes, updateHeroHp  } from '../models/composables/heroes';
-import CharacterDwarf from '@/components/character-dwarf.vue';
 import { ICharacterConfig } from '@/models/hero';
 import generatePalette from '@/models/composables/colorUtils';
 import BlackHoleEffect from '@/components/BlackHoleEffect.vue';
@@ -22,8 +19,6 @@ const colors = ref<ICharacterConfig | null>(null)
 onMounted(() => {
   colors.value = generatePalette('#0ff');
 })
-
-const skipFight = () => battleManager.skipFight();
 
 
 </script>

@@ -1,45 +1,33 @@
 // src/models/heroes.ts
 import { reactive, ref } from 'vue';
-import { names, healths, Entity } from '@/ecs/entities/Storage'; // Путь подстрой под свой проект
-import { HeroModel } from '../hero'; // Подстрой под свой проект
+import { HeroModel } from '../hero';
 import { heroesSetup, setupHeroes } from './heroesSetup';
 
 // Глобальный реактивный список героев
 export const heroes = ref<HeroModel[]>([]);
 
 // Глобальная карта быстрого доступа к героям по id
-const heroMap = new Map<Entity, HeroModel>();
+const heroMap = new Map<number, HeroModel>();
 
-// Функция создания героев на основе ECS компонентов
-export async function buildHeroes() {
+// Заполняет список героев (например, из снимка юнитов боя)
+export function setHeroes(models: Omit<HeroModel, 'config'>[]) {
   heroes.value.length = 0;
   heroMap.clear();
   setupHeroes();
 
-  names.forEach((name, id) => {
-    const health = healths.get(id);
-    if (!health) {
-      console.warn(`Сущность ${id} пропущена — нет компонента здоровья.`);
-      return;
-    }
-
+  models.forEach(model => {
     const hero = reactive<HeroModel>({
-        id,
-        name,
-        currentHp: health.value,
-        maxHp: health.value,
-        config: heroesSetup.get(id),
-        lvl:4, // Временная заглушка, потом будет динамически
-        color: 'red' // Временная заглушка, потом будет динамически
-      });
+      ...model,
+      config: heroesSetup.get(model.id),
+    });
 
     heroes.value.push(hero);
-    heroMap.set(id, hero);
+    heroMap.set(model.id, hero);
   });
 }
 
 // Функция обновления HP конкретного героя
-export function updateHeroHp(entity: Entity, newHp: number) {
+export function updateHeroHp(entity: number, newHp: number) {
   const hero = heroMap.get(entity);
   if (hero) {
     hero.currentHp = newHp;

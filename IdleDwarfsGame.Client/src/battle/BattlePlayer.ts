@@ -1,0 +1,390 @@
+import { soundService } from '@/services/soundService/SoundService';
+import { BattleFx } from './BattleFx';
+import { BattleState, BattleUnit, FloatingText, UnitFocus, resetBattleState } from './BattleState';
+import { DAMAGE_COLORS, STATUS_VISUALS, resolveSpellVisual } from './FxRegistry';
+import { CombatLogEntry, CombatResult } from './types';
+import { getUnitView } from './UnitRegistry';
+
+interface DamageOptions {
+  // Визуал попадания уже проигран (взрыв заклинания)
+  silent?: boolean;
+  // Урон от тика статуса с таким именем
+  status?: string;
+}
+
+// Записи, которые входят в группу каста (идут после SkillCast с тем же ActionId)
+const CAST_GROUP_EVENTS = new Set(['Damage', 'Heal', 'StatusApplied', 'Immune']);
+
+// События-действия, после которых делаем паузу, чтобы анимации не сливались
+const ACTION_EVENTS = new Set(['Attack', 'Damage', 'StatusTick', 'Heal', 'Stunned']);
+
+// Базовые длительности (мс) при скорости x1
+const TIMING = {
+  roundBanner: 500,
+  attackWindup: 350,
+  attackRecover: 450,
+  castWindup: 300,
+  castRecover: 400,
+  tick: 380,
+  stunned: 450,
+  turnStart: 300,
+  death: 500,
+  floatingText: 1100,
+  actionGap: 400,
+};
+
+// Подсветка юнита, чей сейчас ход
+const TURN_COLOR = '#ffe8a3';
+
+let floatingTextId = 0;
+
+// Проигрывает бой, полностью восстанавливая состояние сцены из серверных логов.
+export class BattlePlayer {
+  private skipping = false;
+  private runId = 0;
+  // Юнит, чей сейчас ход: подсвечен с первого события хода до конца его действия
+  private currentActor: number | null = null;
+  speed = 1;
+
+  readonly fx: BattleFx;
+
+  constructor(private readonly state: BattleState, fx: BattleFx) {
+    this.fx = fx;
+  }
+
+  get isSkipping() {
+    return this.skipping;
+  }
+
+  // Мгновенно доиграть бой без анимаций
+  skip() {
+    this.skipping = true;
+  }
+
+  // Прервать проигрывание (например, при уходе со страницы)
+  stop() {
+    this.runId++;
+  }
+
+  async play(result: CombatResult) {
+    const runId = ++this.runId;
+    this.skipping = false;
+    this.currentActor = null;
+    resetBattleState(this.state, result);
+    this.state.playing = true;
+
+    // Дать Vue отрисовать юнитов, чтобы у эффектов были координаты
+    await this.delay(300, true);
+
+    const logs = [...result.logs].sort((a, b) => a.sequence - b.sequence);
+    let i = 0;
+
+    while (i < logs.length) {
+      if (runId !== this.runId) return;
+      const log = logs[i];
+
+      await this.beginTurn(log);
+      if (runId !== this.runId) return;
+
+      if (log.eventType === 'SkillCast') {
+        const group: CombatLogEntry[] = [];
+        let j = i + 1;
+        while (j < logs.length && logs[j].actionId === log.actionId && CAST_GROUP_EVENTS.has(logs[j].eventType)) {
+          group.push(logs[j++]);
+        }
+        await this.playCast(log, group);
+        await this.delay(TIMING.actionGap);
+        i = j;
+        continue;
+      }
+
+      await this.playEntry(log);
+      // StatusTick без урона ничего не показывает — паузу не делаем
+      if (ACTION_EVENTS.has(log.eventType) && !(log.eventType === 'StatusTick' && log.damage <= 0)) {
+        await this.delay(TIMING.actionGap);
+      }
+      i++;
+    }
+
+    if (runId !== this.runId) return;
+    this.state.playing = false;
+    this.state.finished = true;
+    if (this.state.winningTeam == null) this.state.winningTeam = result.winningTeam;
+  }
+
+  // ===== Обработчики событий =====
+
+  private async playEntry(log: CombatLogEntry) {
+    this.show(log);
+
+    switch (log.eventType) {
+      case 'RoundStart':
+        this.endTurn();
+        this.state.round = log.round;
+        await this.delay(TIMING.roundBanner);
+        break;
+
+      case 'Attack':
+        await this.playAttack(log);
+        break;
+
+      case 'Damage':
+        // Урон вне каста (на всякий случай) — просто попадание
+        this.applyDamage(log);
+        await this.delay(TIMING.tick);
+        break;
+
+      case 'StatusApplied':
+        this.applyStatus(log);
+        break;
+
+      case 'StatusExpired':
+        this.removeStatus(log);
+        break;
+
+      case 'StatusTick':
+        if (log.damage > 0) {
+          this.applyDamage(log, { status: log.activeEffects[0]?.name ?? log.actionType });
+          await this.delay(TIMING.tick);
+        }
+        break;
+
+      case 'Heal':
+        this.applyHeal(log);
+        await this.delay(TIMING.tick);
+        break;
+
+      case 'Stunned':
+        this.float(log.attackerId, 'Stunned', 'status');
+        this.sound(s => s.stun());
+        await this.delay(TIMING.stunned);
+        this.endTurn();
+        break;
+
+      case 'Immune':
+        this.applyImmune(log);
+        break;
+
+      case 'Death':
+        this.applyDeath(log);
+        await this.delay(TIMING.death);
+        break;
+
+      case 'CombatEnd':
+        this.state.winningTeam = log.winningTeam ?? null;
+        this.playVictory(log.winningTeam ?? 0);
+        break;
+    }
+  }
+
+  private async playAttack(log: CombatLogEntry) {
+    const attacker = this.unit(log.attackerId);
+    this.setFocus(log.attackerId, { role: 'attacker', color: TURN_COLOR });
+    this.setFocus(log.targetId, { role: 'target' });
+    this.animate(log.attackerId, v => v.attack?.());
+    this.sound(s => s.swing());
+    await this.delay(TIMING.attackWindup);
+
+    this.applyDamage(log);
+    if (attacker && log.attackerEnergy != null) attacker.energy = log.attackerEnergy;
+
+    await this.delay(TIMING.attackRecover);
+    this.endTurn();
+  }
+
+  private async playCast(cast: CombatLogEntry, group: CombatLogEntry[]) {
+    this.show(cast);
+    const caster = this.unit(cast.attackerId);
+    if (caster && cast.attackerEnergy != null) caster.energy = cast.attackerEnergy;
+
+    const isHealCast = group.some(e => e.eventType === 'Heal');
+    const color = isHealCast ? DAMAGE_COLORS.Heal : resolveSpellVisual(cast.skillName, cast.damageType).color;
+
+    this.setFocus(cast.attackerId, { role: 'caster', color });
+    if (!isHealCast) {
+      group.filter(e => e.targetId !== cast.attackerId).forEach(e => this.setFocus(e.targetId, { role: 'target' }));
+    }
+
+    this.animate(cast.attackerId, v => v.cast?.(color));
+    this.sound(s => s.cast());
+    this.float(cast.attackerId, cast.skillName, 'status');
+    if (!this.skipping) {
+      this.fx.castCircle(getUnitView(cast.attackerId)?.el?.(), color, TIMING.castWindup + 700);
+    }
+    await this.delay(TIMING.castWindup);
+
+    // Записи группируем по цели: снаряд прилетает — применяем всё, что относится к этой цели
+    const byTarget = new Map<number, CombatLogEntry[]>();
+    for (const entry of group) {
+      const entries = byTarget.get(entry.targetId) ?? [];
+      entries.push(entry);
+      byTarget.set(entry.targetId, entries);
+    }
+
+    await Promise.all([...byTarget.entries()].map(async ([targetId, entries]) => {
+      const isHeal = entries.some(e => e.eventType === 'Heal');
+      if (!this.skipping && !isHeal) {
+        await this.fx.spell(getUnitView(cast.attackerId)?.el?.(), getUnitView(targetId)?.el?.(), cast.skillName, cast.damageType);
+      }
+
+      for (const entry of entries) {
+        this.show(entry);
+        if (entry.eventType === 'Damage') this.applyDamage(entry, { silent: true });
+        else if (entry.eventType === 'Heal') this.applyHeal(entry);
+        else if (entry.eventType === 'StatusApplied') this.applyStatus(entry);
+        else if (entry.eventType === 'Immune') this.applyImmune(entry);
+      }
+    }));
+
+    await this.delay(TIMING.castRecover);
+    this.endTurn();
+  }
+
+  private playVictory(team: number) {
+    // Джингл играем и при пропуске боя — это единственный звук в конце
+    if (team === 1) soundService.victory();
+    else soundService.defeat();
+
+    Object.values(this.state.units)
+      .filter(u => u.team === team && u.alive)
+      .forEach(u => this.animate(u.id, v => v.victory?.()));
+  }
+
+  // ===== Изменение состояния =====
+
+  private applyDamage(log: CombatLogEntry, options: DamageOptions = {}) {
+    const target = this.unit(log.targetId);
+    if (!target) return;
+
+    const crit = log.isCritical;
+    target.hp = log.targetRemainingHp;
+    this.float(target.id, crit ? `-${log.damage}!` : `-${log.damage}`, 'damage', log.damageType, crit);
+
+    const flash = options.status ? STATUS_VISUALS[options.status]?.tickFlash : undefined;
+    this.animate(target.id, v => v.hit?.(log.damageType, { crit, flash }));
+    // Звук попадания нужен и для silent: взрыв заклинания беззвучный
+    this.sound(s => s.hit(log.damageType, crit));
+
+    if (this.skipping || options.silent) return;
+    const targetEl = getUnitView(target.id)?.el?.();
+    if (options.status) {
+      this.fx.statusTick(targetEl, options.status, log.damageType);
+    } else {
+      this.fx.hit(targetEl, log.damageType, { attacker: getUnitView(log.attackerId)?.el?.(), crit });
+    }
+  }
+
+  private applyHeal(log: CombatLogEntry) {
+    const target = this.unit(log.targetId);
+    if (!target) return;
+
+    target.hp = log.targetRemainingHp;
+    this.float(target.id, `+${log.heal}`, 'heal');
+    this.animate(target.id, v => v.heal?.());
+    this.sound(s => s.heal());
+    if (!this.skipping) this.fx.heal(getUnitView(target.id)?.el?.());
+  }
+
+  private applyImmune(log: CombatLogEntry) {
+    this.float(log.targetId, 'Immune', 'immune');
+    this.sound(s => s.block());
+  }
+
+  private applyStatus(log: CombatLogEntry) {
+    const target = this.unit(log.targetId);
+    const name = log.appliedEffects[0]?.name ?? log.actionType;
+    if (!target || !target.alive) return;
+    target.statuses[name] = (target.statuses[name] ?? 0) + 1;
+  }
+
+  private removeStatus(log: CombatLogEntry) {
+    const target = this.unit(log.targetId);
+    const name = log.activeEffects[0]?.name ?? log.actionType;
+    if (!target || !target.statuses[name]) return;
+    target.statuses[name]--;
+    if (target.statuses[name] <= 0) delete target.statuses[name];
+  }
+
+  private applyDeath(log: CombatLogEntry) {
+    const target = this.unit(log.targetId);
+    if (!target) return;
+    target.hp = 0;
+    target.alive = false;
+    target.statuses = {};
+    target.focus = null;
+    this.sound(s => s.death());
+  }
+
+  // ===== Утилиты =====
+
+  private show(log: CombatLogEntry) {
+    this.state.shownLogs.push(log);
+  }
+
+  private unit(id: number): BattleUnit | undefined {
+    return this.state.units[id];
+  }
+
+  private animate(id: number, action: (view: NonNullable<ReturnType<typeof getUnitView>>) => void) {
+    if (this.skipping) return;
+    const view = getUnitView(id);
+    if (view) action(view);
+  }
+
+  private setFocus(unitId: number, focus: UnitFocus) {
+    const unit = this.unit(unitId);
+    if (!unit || !unit.alive || this.skipping) return;
+    unit.focus = focus;
+  }
+
+  private clearFocus() {
+    Object.values(this.state.units).forEach(u => (u.focus = null));
+  }
+
+  // Чей ход открывает запись: действие — атакующего, события фазы TurnStart (тики, стан) — их носителя
+  private actorOf(log: CombatLogEntry): number | null {
+    if (log.eventType === 'Attack' || log.eventType === 'SkillCast') return log.attackerId;
+    if (log.phase === 'TurnStart') return log.targetId;
+    return null;
+  }
+
+  // Подсветить юнита в начале его хода и дать игроку заметить, кто сейчас ходит
+  private async beginTurn(log: CombatLogEntry) {
+    const actor = this.actorOf(log);
+    if (actor == null || actor === this.currentActor) return;
+
+    this.clearFocus();
+    this.currentActor = actor;
+    if (!this.unit(actor)?.alive) return;
+
+    this.setFocus(actor, { role: 'attacker', color: TURN_COLOR });
+    await this.delay(TIMING.turnStart);
+  }
+
+  private endTurn() {
+    this.clearFocus();
+    this.currentActor = null;
+  }
+
+  private sound(play: (sound: typeof soundService) => void) {
+    if (!this.skipping) play(soundService);
+  }
+
+  private float(unitId: number, text: string, kind: FloatingText['kind'], damageType?: string, crit = false) {
+    const unit = this.unit(unitId);
+    if (!unit || this.skipping) return;
+
+    const entry: FloatingText = { id: ++floatingTextId, text, kind, damageType, crit };
+    unit.floatingTexts.push(entry);
+    setTimeout(() => {
+      const index = unit.floatingTexts.findIndex(t => t.id === entry.id);
+      if (index >= 0) unit.floatingTexts.splice(index, 1);
+    }, TIMING.floatingText);
+  }
+
+  private delay(ms: number, ignoreSpeed = false) {
+    if (this.skipping) return Promise.resolve();
+    const duration = ignoreSpeed ? ms : ms / this.speed;
+    return new Promise<void>(resolve => setTimeout(resolve, duration));
+  }
+}

@@ -4,47 +4,45 @@ using System.Linq;
 
 public class SpellSystem : ICombatSystem
 {
-    private readonly Dictionary<int, ISpell> _spellRegistry;
-    private static Random _random = new();
+    private readonly IReadOnlyDictionary<int, ISpell> _spellRegistry;
+    private readonly Random _random;
 
-    public SpellSystem(Dictionary<int, ISpell> spellRegistry)
+    public SpellSystem(IReadOnlyDictionary<int, ISpell> spellRegistry, Random random)
     {
         _spellRegistry = spellRegistry;
+        _random = random;
     }
 
     public void Execute(World world, CombatContext context)
     {
         int attacker = context.CurrentActor;
-        if (attacker == -1 || !world.TurnState.ContainsKey(attacker)) return;
+        if (attacker == -1 || !world.TurnState.ContainsKey(attacker) || !world.IsAlive(attacker)) return;
 
         var state = world.TurnState[attacker];
-        if (!state.CanAct || state.ActionCompleted) return;   
+        if (!state.CanAct || state.ActionCompleted) return;
 
-        // Проверяем наличие компонентов
+        // РџСЂРѕРІРµСЂСЏРµРј РЅР°Р»РёС‡РёРµ РєРѕРјРїРѕРЅРµРЅС‚РѕРІ
         if (!world.Spells.ContainsKey(attacker) || !world.Energy.ContainsKey(attacker)) return;
+        if (world.GetAliveEnemies(attacker).Count == 0) return;
 
         var energy = world.Energy[attacker];
-        var availableSpellIds = world.Spells[attacker].SpellIds;
 
-        // Находим все заклинания, на которые ХВАТАЕТ энергии
-        var affordableSpells = availableSpellIds
+        // РќР°С…РѕРґРёРј РІСЃРµ Р·Р°РєР»РёРЅР°РЅРёСЏ, РЅР° РєРѕС‚РѕСЂС‹Рµ С…РІР°С‚Р°РµС‚ СЌРЅРµСЂРіРёРё
+        var affordableSpells = world.Spells[attacker].SpellIds
             .Select(id => _spellRegistry.GetValueOrDefault(id))
-            .Where(spell => spell != null && energy.Current >= spell.EnergyCost)
+            .OfType<ISpell>()
+            .Where(spell => energy.Current >= spell.EnergyCost)
             .ToList();
 
-        // Если хватает маны хотя бы на один спелл
-        if (affordableSpells.Any())
-        {
-            // Выбираем случайный из доступных (или можно выбирать самый дорогой)
-            var spellToCast = affordableSpells[_random.Next(affordableSpells.Count)];
+        // Р•СЃР»Рё СЌРЅРµСЂРіРёРё РЅРµ С…РІР°С‚Р°РµС‚ РЅРё РЅР° РѕРґРёРЅ СЃРїРµР»Р» вЂ” С…РѕРґ СѓР№РґС‘С‚ РІ DamageSystem (Р±Р°Р·РѕРІР°СЏ Р°С‚Р°РєР°)
+        if (affordableSpells.Count == 0) return;
 
-            // Кастуем!
-            spellToCast.Execute(world, attacker, context);
+        // Р’С‹Р±РёСЂР°РµРј СЃР»СѓС‡Р°Р№РЅС‹Р№ РёР· РґРѕСЃС‚СѓРїРЅС‹С… (С‚СѓС‚ РјРѕР¶РЅРѕ РґРѕР±Р°РІРёС‚СЊ СѓРјРЅС‹Р№ РІС‹Р±РѕСЂ)
+        var spellToCast = affordableSpells[_random.Next(affordableSpells.Count)];
 
-            // Списываем энергию
-            energy.Current -= spellToCast.EnergyCost;
-            state.ActionCompleted = true;
-        }
-        // Если энергии мало, метод завершается, и ход переходит в DamageSystem
+        // РЎРЅР°С‡Р°Р»Р° СЃРїРёСЃС‹РІР°РµРј СЌРЅРµСЂРіРёСЋ, С‡С‚РѕР±С‹ Р»РѕРі РєР°СЃС‚Р° РїРѕРєР°Р·С‹РІР°Р» Р°РєС‚СѓР°Р»СЊРЅРѕРµ Р·РЅР°С‡РµРЅРёРµ
+        energy.Current -= spellToCast.EnergyCost;
+        spellToCast.Execute(world, attacker, context);
+        state.ActionCompleted = true;
     }
 }

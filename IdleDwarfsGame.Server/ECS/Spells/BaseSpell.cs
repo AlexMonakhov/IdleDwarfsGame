@@ -8,6 +8,7 @@ public abstract class BaseSpell : ISpell
     public string Name { get; }
     public int Level { get; }
     public int EnergyCost { get; }
+    public virtual DamageType DamageType => DamageType.Magical;
 
     protected static Random _random = new();
 
@@ -21,53 +22,73 @@ public abstract class BaseSpell : ISpell
 
     public virtual void Execute(World world, int casterId, CombatContext context)
     {
-        var targets = GetTargets(world, casterId);
+        var targets = GetTargets(world, casterId)
+            .Where(id => id != -1 && world.IsAlive(id))
+            .ToList();
         if (targets.Count == 0) return;
+
+        // 1. Р›РѕРі РєР°СЃС‚Р° вЂ” С„СЂРѕРЅС‚ РїСЂРѕРёРіСЂС‹РІР°РµС‚ Р°РЅРёРјР°С†РёСЋ РєР°СЃС‚Р° Рё СЃРЅР°СЂСЏРґС‹ РєРѕ РІСЃРµРј С†РµР»СЏРј
+        LogCast(world, casterId, context, targets);
 
         foreach (var targetId in targets)
         {
-            if (targetId == -1 || world.Health[targetId].Current <= 0) continue;
-
-            // 1. Считаем и наносим урон
+            // 2. РЎС‡РёС‚Р°РµРј Рё РЅР°РЅРѕСЃРёРј СѓСЂРѕРЅ
             int damage = GetDamage(world, casterId, targetId);
-            world.Health[targetId].Current -= damage;
+            int hpLeft = world.ApplyDamage(targetId, damage);
 
-            // 2. Накладываем дополнительные эффекты (стан, горение и т.д.)
-            ApplyEffects(world, casterId, targetId, context);
-
-            // 3. Пишем лог
-            context.Logs.Add(new CombatLogEntry
+            // 3. РџРёС€РµРј Р»РѕРі РїРѕРїР°РґР°РЅРёСЏ
+            context.AddLog(new CombatLogEntry
             {
+                EventType = CombatEventType.Damage,
                 AttackerId = casterId,
                 TargetId = targetId,
                 AttackerTeam = world.Team[casterId].TeamId,
                 TargetTeam = world.Team[targetId].TeamId,
                 ActionType = $"{Name} (Lvl {Level})",
+                SkillId = Id,
+                SkillName = Name,
+                DamageType = DamageType,
                 Damage = damage,
-                TargetRemainingHp = Math.Max(0, world.Health[targetId].Current)
+                TargetRemainingHp = hpLeft
             });
+
+            // 4. РќР°РєР»Р°РґС‹РІР°РµРј РґРѕРїРѕР»РЅРёС‚РµР»СЊРЅС‹Рµ СЌС„С„РµРєС‚С‹ (РѕРіРѕРЅСЊ, РѕРіР»СѓС€РµРЅРёРµ Рё С‚.Рґ.)
+            if (world.IsAlive(targetId))
+                ApplyEffects(world, casterId, targetId, context);
         }
     }
 
-    // Теперь каждый спелл САМ решает, сколько целей он бьет
+    protected void LogCast(World world, int casterId, CombatContext context, List<int> targets)
+    {
+        context.AddLog(new CombatLogEntry
+        {
+            EventType = CombatEventType.SkillCast,
+            AttackerId = casterId,
+            AttackerTeam = world.Team[casterId].TeamId,
+            TargetId = targets[0],
+            TargetTeam = world.Team[targets[0]].TeamId,
+            ActionType = $"{Name} (Lvl {Level})",
+            SkillId = Id,
+            SkillName = Name,
+            DamageType = DamageType,
+            AttackerEnergy = world.GetEnergy(casterId),
+            Text = $"{Name} в†’ {targets.Count} target(s)"
+        });
+    }
+
+    // РљР°Р¶РґС‹Р№ СЃРїРµР»Р» СЂРµС€Р°РµС‚ СЃР°Рј, СЃРєРѕР»СЊРєРѕ С†РµР»РµР№ Р±РёС‚СЊ
     protected abstract List<int> GetTargets(World world, int casterId);
 
-    // Урон тоже считает сам спелл
+    // РЎРІРѕР№ СѓСЂРѕРЅ РґР»СЏ РєР°Р¶РґРѕРіРѕ СЃРїРµР»Р»Р°
     protected abstract int GetDamage(World world, int casterId, int targetId);
 
-    // Виртуальный метод для эффектов. По умолчанию ничего не делает.
+    // Р’РёСЂС‚СѓР°Р»СЊРЅС‹Р№ РјРµС‚РѕРґ РґР»СЏ СЌС„С„РµРєС‚РѕРІ. РџРѕ СѓРјРѕР»С‡Р°РЅРёСЋ РЅРёС‡РµРіРѕ РЅРµ РґРµР»Р°РµС‚.
     protected virtual void ApplyEffects(World world, int casterId, int targetId, CombatContext context)
     {
     }
 
-    // Вспомогательные методы оставляем в базе для удобства
-    protected List<Entity> GetAliveEnemies(World world, int casterId)
-    {
-        int enemyTeam = world.Team[casterId].TeamId == 1 ? 2 : 1;
-        return world.Entities
-            .Where(e => world.Team[e.Id].TeamId == enemyTeam && world.Health[e.Id].Current > 0)
-            .ToList();
-    }
+    // Р’СЃРїРѕРјРѕРіР°С‚РµР»СЊРЅС‹Рµ РјРµС‚РѕРґС‹ РґР»СЏ РїРѕРёСЃРєР° С†РµР»РµР№
+    protected List<Entity> GetAliveEnemies(World world, int casterId) => world.GetAliveEnemies(casterId);
 
     protected List<int> GetRandomTargets(List<Entity> availableTargets, int count)
     {

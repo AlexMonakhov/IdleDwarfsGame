@@ -2,21 +2,25 @@ public class LavaArenaEffect : IGlobalEffect
 {
     public string Name => "Lava Arena";
     public TriggerPhase Trigger => TriggerPhase.OnRoundStart;
-    private readonly int _burnDamage = 10;
+    private readonly int _burnDamage;
+
+    public LavaArenaEffect(int burnDamage = 5)
+    {
+        _burnDamage = burnDamage;
+    }
 
     public void Apply(World world, CombatContext context)
     {
         if (!context.IsNewRound) return;
 
-        // Íàõîäèì âñåõ æèâûõ þíèòîâ â îáîèõ êîìàíäàõ
+        // ÐÐ°Ñ…Ð¾Ð´Ð¸Ð¼ Ð²ÑÐµÑ… Ð¶Ð¸Ð²Ñ‹Ñ… Ð² ÑÐ°Ð¼Ð¾Ð¼ Ð½Ð°Ñ‡Ð°Ð»Ðµ Ñ€Ð°ÑƒÐ½Ð´Ð°
         var aliveEntities = world.Entities
-            .Where(e => world.Health[e.Id].Current > 0)
+            .Where(e => world.IsAlive(e.Id))
             .ToList();
 
         foreach (var entity in aliveEntities)
         {
-            var lavaBurn = new BurnEffect(turns: 1, damagePerTurn: 10);
-            lavaBurn.ApplyEffect(world, entity.Id, context);
+            new BurnEffect(turns: 1, damagePerTurn: _burnDamage).ApplyEffect(world, entity.Id, context);
         }
     }
 }

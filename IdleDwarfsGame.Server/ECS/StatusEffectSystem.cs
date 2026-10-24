@@ -20,22 +20,42 @@ public class StatusEffectSystem : ICombatSystem
         {
             if (Phase == EffectPhase.Start)
             {
-                // Âûçûâàåì òîëüêî ëîãèêó íà÷àëà õîäà (Stun, Burn è ò.ä.)
+                // Ð­Ñ„Ñ„ÐµÐºÑ‚Ñ‹ Ð½Ð°Ñ‡Ð°Ð»Ð° Ñ…Ð¾Ð´Ð° (Stun, Burn Ð¸ Ñ‚.Ð´.)
                 effect.OnTurnStart(world, actorId, context);
             }
             else if (Phase == EffectPhase.End)
             {
-                // Âûçûâàåì òîëüêî ëîãèêó êîíöà õîäà (Poison, ðåãåíåðàöèÿ è ò.ä.)
+                // Ð­Ñ„Ñ„ÐµÐºÑ‚Ñ‹ ÐºÐ¾Ð½Ñ†Ð° Ñ…Ð¾Ð´Ð° (Poison, ÐºÑ€Ð¾Ð²Ð¾Ñ‚ÐµÑ‡ÐµÐ½Ð¸Ðµ Ð¸ Ñ‚.Ð´.)
                 effect.OnTurnEnd(world, actorId, context);
             }
         }
 
+        var expired = effects.Where(e => e.RemainingTurns <= 0).ToList();
+        if (expired.Count == 0) return;
+
         effects.RemoveAll(e => e.RemainingTurns <= 0);
+
+        // ÐœÑ‘Ñ€Ñ‚Ð²Ñ‹Ð¼ Ð½Ðµ Ð¿Ð¸ÑˆÐµÐ¼ â€” Ð¸Ñ… ÑÑ‚Ð°Ñ‚ÑƒÑÑ‹ Ñ„Ñ€Ð¾Ð½Ñ‚ Ð¸ Ñ‚Ð°Ðº ÑÐ½Ð¸Ð¼ÐµÑ‚ Ð¿Ñ€Ð¸ ÑÐ¼ÐµÑ€Ñ‚Ð¸
+        if (!world.IsAlive(actorId)) return;
+
+        foreach (var effect in expired)
+        {
+            context.AddLog(new CombatLogEntry
+            {
+                EventType = CombatEventType.StatusExpired,
+                Phase = Phase == EffectPhase.Start ? "TurnStart" : "TurnEnd",
+                TargetId = actorId,
+                TargetTeam = world.Team[actorId].TeamId,
+                ActionType = effect.EffectName,
+                TargetRemainingHp = world.Health[actorId].Current,
+                ActiveEffects = { effect.ToLogData() }
+            });
+        }
     }
 }
 
 public enum EffectPhase
 {
-    Start, // Íà÷àëî õîäà
-    End    // Êîíåö õîäà
+    Start, // ÐÐ°Ñ‡Ð°Ð»Ð¾ Ñ…Ð¾Ð´Ð°
+    End    // ÐšÐ¾Ð½ÐµÑ† Ñ…Ð¾Ð´Ð°
 }

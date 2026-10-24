@@ -1,39 +1,28 @@
-public class FrostEffect : IStatusEffect
+// Мороз: небольшой урон холодом в начале хода и сжигание части энергии
+public class FrostEffect : StatusEffectBase
 {
-    public string EffectName => "Frost";
-    public int RemainingTurns { get; set; }
+    public override string EffectName => "Frost";
+    protected override DamageType? EffectDamageType => DamageType.Frost;
 
-    public FrostEffect(int turns = 2)
+    public FrostEffect(int turns = 2, int damagePerTurn = 0) : base(turns, damagePerTurn)
     {
-        RemainingTurns = turns;
     }
 
-    public void ApplyEffect(World world, int targetId, CombatContext context)
+    public override void OnTurnStart(World world, int targetId, CombatContext context)
     {
-        if (!world.StatusEffects.ContainsKey(targetId))
-        {
-            world.StatusEffects[targetId] = new StatusEffectComponent();
-        }
-        world.StatusEffects[targetId].ActiveEffects.Add(this);
-    }
-
-    public void OnTurnStart(World world, int targetId, CombatContext context)
-    {
-        context.Logs.Add(new CombatLogEntry
-        {
-            AttackerId = -1,
-            TargetId = targetId,
-            AttackerTeam = 0,
-            TargetTeam = world.Team[targetId].TeamId,
-            ActionType = "Frost",
-            Damage = 0,
-            TargetRemainingHp = world.Health[targetId].Current
-        });
-        
         RemainingTurns--;
-    }
+        if (!world.IsAlive(targetId)) return;
 
-    public void OnTurnEnd(World world, int targetId, CombatContext context)
-    {
+        int hpLeft = world.ApplyDamage(targetId, Power);
+        if (world.Energy.TryGetValue(targetId, out var energy))
+        {
+            energy.Current = Math.Max(0, energy.Current - 10);
+        }
+
+        var log = TickLog(world, targetId);
+        log.Damage = Power;
+        log.DamageType = DamageType.Frost;
+        log.TargetRemainingHp = hpLeft;
+        context.AddLog(log);
     }
 }

@@ -1,6 +1,7 @@
 <script lang="ts" setup>    
     import { ref, onMounted, onUnmounted, watch, defineProps, withDefaults } from "vue";
     import { HeroModel } from "@/models/hero";
+    import { SpriteTint } from "@/battle/FxRegistry";
 
 const props = withDefaults(defineProps<{
   model: HeroModel;
@@ -9,16 +10,40 @@ const props = withDefaults(defineProps<{
   frameHeight: number;
   frameCount: number;
   columns: number;
-  fps?: number; 
+  fps?: number;
   scale?: number;
   padding?: number;
+  // Постоянная окраска силуэта (статусы)
+  tint?: SpriteTint | null;
+  // Множитель скорости idle-анимации (0 — заморозка)
+  speed?: number;
 }>(), {
   animationType: 'idle',
   padding: 1,
   fps: 10,
   scale: 1,
   frameCount: 25,
+  tint: null,
+  speed: 1,
 });
+
+// Короткая вспышка силуэта (получение урона, удар, лечение)
+let flashState: { color: string; alpha: number; start: number; duration: number } | null = null;
+
+const flash = (color: string, alpha = 0.6, duration = 350) => {
+  flashState = { color, alpha, start: performance.now(), duration };
+};
+
+// Закрасить только непрозрачные пиксели спрайта
+function overlay(color: string, alpha: number) {
+  if (!ctx || alpha <= 0) return;
+  ctx.save();
+  ctx.globalCompositeOperation = 'source-atop';
+  ctx.globalAlpha = Math.min(alpha, 1);
+  ctx.fillStyle = color;
+  ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+  ctx.restore();
+}
 
 /* ===== STATE ===== */
 // Внутреннее состояние анимации (то, что мы реально видим)
@@ -64,15 +89,28 @@ function drawFrame(frame: number) {
     props.frameWidth * props.scale,
     props.frameHeight * props.scale
   );
+
+  const now = performance.now();
+  if (props.tint) {
+    const pulse = props.tint.pulse ? 0.75 + 0.25 * Math.sin((now / 1000) * Math.PI * 2 * props.tint.pulse) : 1;
+    overlay(props.tint.color, props.tint.alpha * pulse);
+  }
+  if (flashState) {
+    const progress = (now - flashState.start) / flashState.duration;
+    if (progress >= 1) flashState = null;
+    else overlay(flashState.color, flashState.alpha * (1 - progress));
+  }
 }
 
 /* ===== LOOP ===== */
 function animate(time: number) {
   // Рассчитываем FPS внутри цикла. 
   // Если нужно "2 удара в секунду", а в спрайте 10 кадров -> ставь fps 20
-  const frameDuration = 1000 / (props.fps || 10);
+  // Статусы замедляют только idle: атака/победа доигрываются с обычной скоростью
+  const speed = localAnimType.value === 'idle' ? props.speed : 1;
+  const frameDuration = 1000 / (props.fps || 10) / Math.max(speed, 0.0001);
 
-  if (time - lastTime >= frameDuration) {
+  if (speed > 0 && time - lastTime >= frameDuration) {
     let nextFrame = currentFrame + 1;
 
     // ПРОВЕРКА ЗАВЕРШЕНИЯ
@@ -125,7 +163,8 @@ const playAnimation = (type: 'idle' | 'attack' | 'victory') => {
 };
 
 defineExpose({
-  playAnimation
+  playAnimation,
+  flash,
 });
 
 // Следим за пропсом. Как только он меняется — сбрасываем кадр и ставим новую анимацию

@@ -2,23 +2,25 @@ public class TowerFloorScenario : ICombatScenario
 {
     public CombatMode Mode => CombatMode.Tower;
 
-    //private readonly IMonsterRepository _monsters;
+    private readonly IHeroesRepository _heroes;
     private readonly IEntityFactory _factory;
 
-    public TowerFloorScenario(/*IMonsterRepository monsters,*/ IEntityFactory factory)
+    public TowerFloorScenario(IHeroesRepository heroes, IEntityFactory factory)
     {
-        //_monsters = monsters;
+        _heroes = heroes;
         _factory = factory;
     }
 
     public async Task PopulateEnemiesAsync(World world, int floor)
     {
-        // Твой код со скейлингом от переменной floor
+        // РЁР°Р±Р»РѕРЅС‹ РІСЂР°РіРѕРІ Р»РµР¶Р°С‚ РІ С‚Р°Р±Р»РёС†Рµ Heroes Сѓ СЃР»СѓР¶РµР±РЅРѕРіРѕ РёРіСЂРѕРєР°, СЃС‚Р°С‚С‹ РјР°СЃС€С‚Р°Р±РёСЂСѓСЋС‚СЃСЏ СЌС‚Р°Р¶РѕРј
+        var enemies = await _heroes.GetSquadAsync(HeroSeedData.EnemyPlayerId);
+        _factory.CreateSquad(world, enemies, teamId: 2, level: floor);
     }
 
-    public async Task<RewardEntity> CalculateRewardsAsync(int floor, List<CombatLogEntry> logs)
+    public Task<RewardEntity> CalculateRewardsAsync(int floor, List<CombatLogEntry> logs)
     {
-        // Специфичная логика наград для башни
-        return new RewardEntity { Gold = floor * 100 };
+        // РЎРїРµС†РёС„РёС‡РЅР°СЏ Р»РѕРіРёРєР° РЅР°РіСЂР°Рґ РґР»СЏ Р±Р°С€РЅРё
+        return Task.FromResult(new RewardEntity { Gold = floor * 100, Experience = floor * 25 });
     }
 }

@@ -1,6 +1,24 @@
-export type EffectType = 'particles' | 'god-rays' | 'god-rays-radiance';
+export type EffectType =
+  | 'particles'
+  | 'god-rays'
+  | 'god-rays-radiance'
+  | 'lightning'
+  | 'impact'
+  | 'projectile'
+  | 'explosion'
+  | 'slash'
+  | 'flames'
+  | 'frost-aura'
+  | 'stun-stars'
+  | 'sparkles'
+  | 'ring';
 
 export type FadeDirection = 'in' | 'out';
+
+export interface Point {
+  x: number;
+  y: number;
+}
 
 export interface EmitterConfig {
   id: string;
@@ -23,6 +41,10 @@ export interface EmitterConfig {
   endY?: number;
   travelStartedAt?: number;
   travelDuration?: number;
+  // skip the fade-in (short-lived combat effects must be visible immediately)
+  instant?: boolean;
+  // привязка к движущемуся объекту: позиция пересчитывается каждый кадр (ауры статусов на юнитах)
+  follow?: () => Point | null;
 }
 
 export interface Particle {
@@ -34,9 +56,12 @@ export interface Particle {
   maxLife: number;
   size: number;
   color: string;
+  rotation?: number;
+  spin?: number;
 }
 
 export interface EffectStrategy {
   update(emitter: EmitterConfig): void;
   draw(ctx: CanvasRenderingContext2D, emitter: EmitterConfig): void;
+  disposeEmitter?(id: string): void;
 }

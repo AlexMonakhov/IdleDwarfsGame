@@ -1,56 +1,15 @@
 import axios from 'axios';
+import { CombatResult } from '@/battle/types';
 
-export interface CombatLogEntry {
-    attackerId?: number;
-    targetId?: number;
-    attackerTeam?: number;
-    targetTeam?: number;
-    actionType?: string;
-    eventType?: string;
-    phase?: string;
-    round?: number;
-    skillId?: number | null;
-    skillName?: string;
-    damageType?: string;
-    damage?: number;
-    targetRemainingHp?: number;
-    targetRemainingHpAfter?: number | null;
-    isCritical?: boolean;
-    text?: string;
-    appliedEffects?: Array<{
-        effectId?: string;
-        name?: string;
-        duration?: number;
-        stacks?: number;
-        tickDamage?: number | null;
-        damageType?: string | null;
-        description?: string | null;
-    }>;
-    activeEffects?: Array<{
-        effectId?: string;
-        name?: string;
-        duration?: number;
-        stacks?: number;
-        tickDamage?: number | null;
-        damageType?: string | null;
-        description?: string | null;
-    }>;
-}
+export type { CombatLogEntry, CombatResult, CombatUnitInfo } from '@/battle/types';
 
 export interface CombatStartRequest {
-    zoneId: number;
-    partyId?: number;
+    playerId?: string;
+    floor?: number;
 }
-
-export interface CombatStartResponse {
-    logs: CombatLogEntry[];
-    winningTeam: number;
-    fightId: string;
-}
-
 
 const apiClient = axios.create({
-    baseURL: 'https://localhost:7232', 
+    baseURL: 'https://localhost:7232',
     timeout: 5000,
     headers: {
         'Content-Type': 'application/json'
@@ -59,36 +18,25 @@ const apiClient = axios.create({
 
 class CombatApiService {
 
-    async start(): Promise<CombatStartResponse> {
+    async start(request: CombatStartRequest = {}): Promise<CombatResult> {
         try {
-            const response = await apiClient.post<CombatStartResponse>('/combat/start');
+            const response = await apiClient.post<CombatResult>('/combat/start', null, { params: request });
             return response.data;
         } catch (error) {
             console.error('Ошибка при инициализации боя:', error);
-            throw error; 
+            throw error;
         }
     }
 
-    async getCombatEntities(): Promise<any> {
+    async startBoss(playerId?: string, difficulty = 1): Promise<CombatResult> {
         try {
-            const response = await apiClient.get('/combat/entities');
+            const response = await apiClient.post<CombatResult>('/combat/boss', null, { params: { playerId, difficulty } });
             return response.data;
         } catch (error) {
-            console.error('Ошибка при получении сущностей боя:', error);
-            throw error; 
-        }
-    }
-
-    async getRewards(fightId: string): Promise<any> {
-        try {
-            const response = await apiClient.get(`/combat/rewards/${fightId}`);
-            return response.data;
-        } catch (error) {
-            console.error('Ошибка при получении наград:', error);
-            throw error; 
+            console.error('Ошибка при инициализации боя с боссом:', error);
+            throw error;
         }
     }
 }
 
 export default new CombatApiService();
-

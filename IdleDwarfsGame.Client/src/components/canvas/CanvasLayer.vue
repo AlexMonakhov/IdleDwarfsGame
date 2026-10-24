@@ -8,6 +8,7 @@ const fgCanvasRef = ref<HTMLCanvasElement | null>(null);
 
 const particleService = new GlobalParticleService();
 provide('particleService', particleService);
+defineExpose({ particleService });
 
 let resizeObserver: ResizeObserver | null = null;
 

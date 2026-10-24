@@ -20,7 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\DwarfMiningIdleGame.Server\IdleDwarfsGame.Server.csproj" />
+    <ProjectReference Include="..\IdleDwarfsGame.Server\IdleDwarfsGame.Server.csproj" />
   </ItemGroup>
 
 </Project>

@@ -5,54 +5,42 @@ public class DamageSystem : ICombatSystem
     public void Execute(World world, CombatContext context)
     {
         int attacker = context.CurrentActor;
-        if (attacker == -1 || !world.TurnState.ContainsKey(attacker)) return;
+        if (attacker == -1 || !world.TurnState.ContainsKey(attacker) || !world.IsAlive(attacker)) return;
 
-        // Åñëè ñïåëë óæå áûë ñêàñòîâàí â SpellSystem (èëè ïåðñîíàæ â ñòàíå) - ïðîïóñêàåì
+        // Ð•ÑÐ»Ð¸ Ð°ÐºÑ‚Ñ‘Ñ€ ÑƒÐ¶Ðµ ÑÐ´ÐµÐ»Ð°Ð» Ñ…Ð¾Ð´ Ð² SpellSystem (Ð¸Ð»Ð¸ Ð¾Ð³Ð»ÑƒÑˆÑ‘Ð½) â€” Ð¿Ñ€Ð¾Ð¿ÑƒÑÐºÐ°ÐµÐ¼
         var state = world.TurnState[attacker];
         if (!state.CanAct || state.ActionCompleted) return;
 
-        int target = FindTarget(world, attacker); // Èñïîëüçóåì òâîé ìåòîä ïîèñêà öåëè
-        if (target == -1)
-        {
-            context.CombatEnded = true;
-            return;
-        }
+        // Ð‘ÑŒÑ‘Ð¼ Ð±Ð»Ð¸Ð¶Ð°Ð¹ÑˆÐµÐ³Ð¾ Ð¶Ð¸Ð²Ð¾Ð³Ð¾ Ð²Ñ€Ð°Ð³Ð° (Ð¿ÐµÑ€ÐµÐ´Ð½ÑÑ Ð¿Ð¾Ð·Ð¸Ñ†Ð¸Ñ). Ð•ÑÐ»Ð¸ Ð²Ñ€Ð°Ð³Ð¾Ð² Ð½ÐµÑ‚ â€” Ð±Ð¾Ð¹ Ð·Ð°Ð²ÐµÑ€ÑˆÐ¸Ñ‚ HealthSystem
+        var target = world.GetAliveEnemies(attacker).FirstOrDefault();
+        if (target == null) return;
 
-        // 1. Íàíîñèì óðîí
+        // 1. ÐÐ°Ð½Ð¾ÑÐ¸Ð¼ ÑƒÑ€Ð¾Ð½
         int damage = world.Attack[attacker].Damage;
-        world.Health[target].Current -= damage;
+        int hpLeft = world.ApplyDamage(target.Id, damage);
 
-        // 2. ÍÀ×ÈÑËßÅÌ ÝÍÅÐÃÈÞ ÇÀ ÓÄÀÐ
+        // 2. ÐÐ°Ñ‡Ð¸ÑÐ»ÑÐµÐ¼ ÑÐ½ÐµÑ€Ð³Ð¸ÑŽ Ð·Ð° ÑƒÐ´Ð°Ñ€
         if (world.Energy.ContainsKey(attacker))
         {
             var energy = world.Energy[attacker];
-            energy.Current += energy.GainPerAttack;
-
-            // Íå äàåì ýíåðãèè ïðåâûñèòü ìàêñèìàëüíîå çíà÷åíèå
-            if (energy.Current > energy.Max)
-                energy.Current = energy.Max;
+            energy.Current = Math.Min(energy.Max, energy.Current + energy.GainPerAttack);
         }
 
-        // 3. Ïèøåì ëîã
-        context.Logs.Add(new CombatLogEntry
+        state.ActionCompleted = true;
+
+        // 3. ÐŸÐ¸ÑˆÐµÐ¼ Ð»Ð¾Ð³
+        context.AddLog(new CombatLogEntry
         {
+            EventType = CombatEventType.Attack,
             AttackerId = attacker,
-            TargetId = target,
+            TargetId = target.Id,
             AttackerTeam = world.Team[attacker].TeamId,
-            TargetTeam = world.Team[target].TeamId,
+            TargetTeam = world.Team[target.Id].TeamId,
             ActionType = "BasicAttack",
+            DamageType = DamageType.Physical,
             Damage = damage,
-            TargetRemainingHp = Math.Max(0, world.Health[target].Current)
+            TargetRemainingHp = hpLeft,
+            AttackerEnergy = world.GetEnergy(attacker)
         });
-    }
-
-    private int FindTarget(World world, int attacker)
-    {
-        int enemyTeam = world.Team[attacker].TeamId == 1 ? 2 : 1;
-
-        return world.Entities
-            .FirstOrDefault(e =>
-                world.Team[e.Id].TeamId == enemyTeam &&
-                world.Health[e.Id].Current > 0)?.Id ?? -1;
     }
 }

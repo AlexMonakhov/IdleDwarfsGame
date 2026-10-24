@@ -1,9 +1,8 @@
 
-import { Entity, names } from "@/ecs/entities/Storage";
 import { DwarfCharacterConfig, ICharacterConfig } from "../hero";
 import generatePalette from "./colorUtils";
 
-export const heroesSetup = new Map<Entity, ICharacterConfig>();
+export const heroesSetup = new Map<number, ICharacterConfig>();
 
 
 

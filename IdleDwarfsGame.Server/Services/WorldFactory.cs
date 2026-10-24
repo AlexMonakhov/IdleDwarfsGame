@@ -1,41 +1,30 @@
 public class WorldFactory : IWorldFactory
 {
-    //private readonly ISquadRepository _squads;
+    private readonly IHeroesRepository _heroes;
     private readonly IEntityFactory _entityFactory;
 
-    public WorldFactory(/*ISquadRepository squads, */IEntityFactory entityFactory)
+    public WorldFactory(IHeroesRepository heroes, IEntityFactory entityFactory)
     {
-        //_squads = squads;
+        _heroes = heroes;
         _entityFactory = entityFactory;
     }
 
     public async Task<World> CreateWorldAsync(Guid playerId, ICombatScenario scenario, int level, List<IGlobalEffect> globalEffects)
     {
-        // 1. Берем сквад игрока
-        //var playerSquad = await _squads.GetActiveSquadAsync(playerId);
-
-        // 2. Спавним игрока в мир (твоя реализация в ECS)
         var world = new World();
 
-        var heroes = new List<Hero>
-        {
-            new Hero{ Id = Guid.NewGuid(), Name = "Dwarf1", MaxHp = 100 , Attack = 10, Speed = 5 },
-            new Hero{ Id = Guid.NewGuid(), Name = "Dwarf2", MaxHp = 120 , Attack = 8 , Speed = 4 }
-        };
+        // 1. Р‘РµСЂС‘Рј РѕС‚СЂСЏРґ РёРіСЂРѕРєР° РёР· Р‘Р”
+        var squad = await _heroes.GetSquadAsync(playerId);
+        if (squad.Count == 0)
+            throw new InvalidOperationException($"Player {playerId} has no heroes");
 
-        var monsters = new List<MonsterStats>
-        {
-            new MonsterStats{  MaxHp = BalanceCalculator.ScaleStat(100, level), Attack = BalanceCalculator.ScaleStat(6, level), Speed = 6 },
-            new MonsterStats{   MaxHp = BalanceCalculator.ScaleStat(150, level), Attack = BalanceCalculator.ScaleStat(12, level), Speed = 3 }
-        };
-        // TODO change to create squad
-        _entityFactory.CreatePlayer(world, heroes);
-        _entityFactory.CreateMonster(world, monsters);
+        // 2. РџСЂРµРІСЂР°С‰Р°РµРј РіРµСЂРѕРµРІ РІ ECS-СЃСѓС‰РЅРѕСЃС‚Рё (РєРѕРјР°РЅРґР° 1)
+        _entityFactory.CreateSquad(world, squad, teamId: 1);
 
-        // 3. Сценарий спавнит врагов
+        // 3. РЎС†РµРЅР°СЂРёР№ СЃРїР°РІРЅРёС‚ РІСЂР°РіРѕРІ (РєРѕРјР°РЅРґР° 2)
         await scenario.PopulateEnemiesAsync(world, level);
-        
-        // 4. Добавляем глобальные эффекты
+
+        // 4. Р”РѕР±Р°РІР»СЏРµРј РіР»РѕР±Р°Р»СЊРЅС‹Рµ СЌС„С„РµРєС‚С‹
         foreach (var globalEffect in globalEffects)
         {
             world.AddGlobalEffect(globalEffect);
@@ -53,10 +42,10 @@ public static class BalanceCalculator
     {
         if (level <= 1) return baseValue;
 
-        // Формула: base * (multiplier ^ (level - 1))
+        // Р¤РѕСЂРјСѓР»Р°: base * (multiplier ^ (level - 1))
         double scaledValue = baseValue * Math.Pow(LevelMultiplier, level - 1);
 
-        // Округляем до ближайшего целого
+        // РћРєСЂСѓРіР»СЏРµРј РґРѕ Р±Р»РёР¶Р°Р№С€РµРіРѕ С†РµР»РѕРіРѕ
         return (int)Math.Round(scaledValue);
     }
 }

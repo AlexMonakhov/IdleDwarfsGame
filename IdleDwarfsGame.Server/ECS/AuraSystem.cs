@@ -5,26 +5,26 @@ public class AuraSystem : ICombatSystem
         int actor = context.CurrentActor;
         if (actor == -1) return;
 
-        // Èùåì âñåõ æèâûõ ïåðñîíàæåé, ó êîòîðûõ åñòü àóðà
+        // Ð˜Ñ‰ÐµÐ¼ Ð²ÑÐµÑ… Ð¶Ð¸Ð²Ñ‹Ñ… Ð¿ÐµÑ€ÑÐ¾Ð½Ð°Ð¶ÐµÐ¹, Ñƒ ÐºÐ¾Ñ‚Ð¾Ñ€Ñ‹Ñ… ÐµÑÑ‚ÑŒ Ð°ÑƒÑ€Ð°
         var auraBearers = world.Entities
-            .Where(e => world.Health[e.Id].Current > 0 && world.Auras.ContainsKey(e.Id))
+            .Where(e => world.IsAlive(e.Id) && world.Auras.ContainsKey(e.Id))
             .ToList();
 
         foreach (var bearer in auraBearers)
         {
             var aura = world.Auras[bearer.Id];
 
-            // Ïðîâåðÿåì óñëîâèå òðèããåðà
+            // ÐŸÑ€Ð¾Ð²ÐµÑ€ÑÐµÐ¼ ÑƒÑÐ»Ð¾Ð²Ð¸Ðµ Ñ‚Ñ€Ð¸Ð³Ð³ÐµÑ€Ð°
             if (aura.Trigger == TriggerPhase.OnRoundStart && !context.IsNewRound) continue;
             if (aura.Trigger == TriggerPhase.OnTurnStart && bearer.Id != actor) continue;
 
-            // Íàõîäèì öåëè (ñîþçíèêè, âðàãè èëè âîîáùå âñå)
+            // ÐÐ°Ñ…Ð¾Ð´Ð¸Ð¼ Ñ†ÐµÐ»Ð¸ (Ð½Ð°Ð¿Ñ€Ð¸Ð¼ÐµÑ€, Ð²ÑÐµÑ… Ð¶Ð¸Ð²Ñ‹Ñ… ÑÐ¾ÑŽÐ·Ð½Ð¸ÐºÐ¾Ð²)
             var targets = GetTargets(world, bearer.Id, aura.TargetType);
 
             foreach (var targetId in targets)
             {
-                // Èñïîëüçóåì íàø ñòàíäàðòíûé ìåõàíèçì íàëîæåíèÿ ýôôåêòîâ!
-                aura.EffectToApply.ApplyEffect(world, targetId, context);
+                // ÐÐ¾Ð²Ñ‹Ð¹ ÑÐºÐ·ÐµÐ¼Ð¿Ð»ÑÑ€ ÑÑ„Ñ„ÐµÐºÑ‚Ð° Ð½Ð° ÐºÐ°Ð¶Ð´ÑƒÑŽ Ñ†ÐµÐ»ÑŒ
+                aura.CreateEffect().ApplyEffect(world, targetId, context, bearer.Id);
             }
         }
     }
@@ -34,7 +34,7 @@ public class AuraSystem : ICombatSystem
         int bearerTeam = world.Team[bearerId].TeamId;
 
         return world.Entities
-            .Where(e => world.Health[e.Id].Current > 0)
+            .Where(e => world.IsAlive(e.Id))
             .Where(e => targetType switch
             {
                 AuraTarget.Allies => world.Team[e.Id].TeamId == bearerTeam,

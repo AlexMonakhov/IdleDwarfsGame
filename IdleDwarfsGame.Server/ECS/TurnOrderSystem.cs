@@ -4,34 +4,41 @@ public class TurnOrderSystem : ICombatSystem
 {
     public void Execute(World world, CombatContext context)
     {
-        // Если очередь пуста — начался новый раунд
+        // РЈР±РёСЂР°РµРј РёР· РѕС‡РµСЂРµРґРё С‚РµС…, РєС‚Рѕ РїРѕРіРёР± СЂР°РЅСЊС€Рµ РІ СЌС‚РѕРј СЂР°СѓРЅРґРµ
+        context.CurrentRoundOrder.RemoveAll(e => !world.IsAlive(e.Id));
+
+        // Р•СЃР»Рё РѕС‡РµСЂРµРґСЊ РїСѓСЃС‚Р° вЂ” РЅР°С‡РёРЅР°РµРј РЅРѕРІС‹Р№ СЂР°СѓРЅРґ
         if (context.CurrentRoundOrder.Count == 0)
         {
             var aliveOrdered = world.Entities
-                .Where(e => world.Health[e.Id].Current > 0)
+                .Where(e => world.IsAlive(e.Id))
                 .OrderByDescending(e => world.Speed[e.Id].Value)
+                .ThenBy(e => world.Team[e.Id].TeamId)
+                .ThenBy(e => world.GetPosition(e.Id))
                 .ToList();
 
             if (aliveOrdered.Count == 0)
             {
+                context.CurrentActor = -1;
                 context.CombatEnded = true;
                 return;
             }
 
             context.CurrentRoundOrder = aliveOrdered;
             context.CurrentRound++;
-            context.IsNewRound = true; // Поднимаем флаг нового раунда
+            context.IsNewRound = true; // РџРѕРґРЅРёРјР°РµРј С„Р»Р°Рі РЅРѕРІРѕРіРѕ СЂР°СѓРЅРґР°
         }
         else
         {
-            context.IsNewRound = false; // В рамках раунда флаг сброшен
+            context.IsNewRound = false; // Р’ РЅР°С‡Р°Р»Рµ Р»СЋР±РѕРіРѕ С…РѕРґР° СЃР±СЂРѕСЃРёРј
         }
 
         var nextEntity = context.CurrentRoundOrder[0];
         context.CurrentRoundOrder.RemoveAt(0);
         context.CurrentActor = nextEntity.Id;
+        context.NextAction();
 
-        // Сбрасываем TurnState для ходящего
+        // РЎР±СЂР°СЃС‹РІР°РµРј TurnState РґР»СЏ С‚РµРєСѓС‰РµРіРѕ
         if (world.TurnState.ContainsKey(nextEntity.Id))
         {
             world.TurnState[nextEntity.Id].CanAct = true;

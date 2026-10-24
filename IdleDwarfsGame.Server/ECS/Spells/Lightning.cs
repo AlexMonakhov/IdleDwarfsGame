@@ -2,15 +2,17 @@ public class Lightning : BaseSpell
 {
     public Lightning(int level = 1) : base(level + 3, "Lightning", level, 40) { }
 
+    public override DamageType DamageType => DamageType.Lightning;
+
     protected override List<int> GetTargets(World world, int casterId)
     {
         var enemies = GetAliveEnemies(world, casterId);
 
         return Level switch
         {
-            1 => GetRandomTargets(enemies, 1), // 1 цель
-            2 => GetRandomTargets(enemies, 2), // 2 цели
-            3 => GetRandomTargets(enemies, 2), // 2 цели
+            1 => GetRandomTargets(enemies, 1), // 1 С†РµР»СЊ
+            2 => GetRandomTargets(enemies, 2), // 2 С†РµР»Рё
+            3 => GetRandomTargets(enemies, 2), // 2 С†РµР»Рё
             _ => new List<int>()
         };
     }
@@ -22,18 +24,17 @@ public class Lightning : BaseSpell
         {
             1 => (int)(baseDamage * 1.3),
             2 => (int)(baseDamage * 0.9),
-            3 => (int)(baseDamage * 0.9), // Урон как на 2 уровне, но будет стан
+            3 => (int)(baseDamage * 0.9), // РЈСЂРѕРЅ РєР°Рє РЅР° 2 СѓСЂРѕРІРЅРµ, РЅРѕ СЃРѕ СЃС‚Р°РЅРѕРј
             _ => baseDamage
         };
     }
 
     protected override void ApplyEffects(World world, int casterId, int targetId, CombatContext context)
     {
-        // Стан накладывается только на 3-м уровне
+        // РЎС‚Р°РЅ РЅР°РєР»Р°РґС‹РІР°РµС‚СЃСЏ С‚РѕР»СЊРєРѕ РЅР° 3-Рј СѓСЂРѕРІРЅРµ
         if (Level == 3)
         {
-            var stun = new StunEffect(turns: 1);
-            stun.ApplyEffect(world, targetId, context);
+            new StunEffect(turns: 1).ApplyEffect(world, targetId, context, casterId);
         }
     }
 }

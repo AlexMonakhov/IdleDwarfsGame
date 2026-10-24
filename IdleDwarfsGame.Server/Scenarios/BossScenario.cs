@@ -1,24 +1,33 @@
 public class BossScenario : ICombatScenario
 {
-    public CombatMode Mode => CombatMode.Tower;
+    public CombatMode Mode => CombatMode.Boss;
 
-    //private readonly IMonsterRepository _monsters;
+    private const int BossHpMultiplier = 4;
+
+    private readonly IHeroesRepository _heroes;
     private readonly IEntityFactory _factory;
 
-    public BossScenario(/*IMonsterRepository monsters,*/ IEntityFactory factory)
+    public BossScenario(IHeroesRepository heroes, IEntityFactory factory)
     {
-        //_monsters = monsters;
+        _heroes = heroes;
         _factory = factory;
     }
 
-    public async Task PopulateEnemiesAsync(World world, int floor)
+    public async Task PopulateEnemiesAsync(World world, int difficulty)
     {
-        // Твой код со скейлингом от переменной floor
+        // Р‘РѕСЃСЃ вЂ” СЃР°РјС‹Р№ Р¶РёРІСѓС‡РёР№ РёР· С€Р°Р±Р»РѕРЅРѕРІ РІСЂР°РіРѕРІ СЃ СѓРјРЅРѕР¶РµРЅРЅС‹Рј HP
+        var template = (await _heroes.GetByPlayerAsync(HeroSeedData.EnemyPlayerId))
+            .OrderByDescending(h => h.MaxHp)
+            .First();
+
+        int bossId = _factory.CreateUnit(world, template, teamId: 2, position: 1, level: difficulty);
+        world.Info[bossId].Name = $"{template.Name} (Boss)";
+        world.Health[bossId].Max *= BossHpMultiplier;
+        world.Health[bossId].Current = world.Health[bossId].Max;
     }
 
-    public async Task<RewardEntity> CalculateRewardsAsync(int floor, List<CombatLogEntry> logs)
+    public Task<RewardEntity> CalculateRewardsAsync(int difficulty, List<CombatLogEntry> logs)
     {
-        // Специфичная логика наград для башни
-        return new RewardEntity { Gold = floor * 100 };
+        return Task.FromResult(new RewardEntity { Gold = difficulty * 300, Experience = difficulty * 75 });
     }
 }
