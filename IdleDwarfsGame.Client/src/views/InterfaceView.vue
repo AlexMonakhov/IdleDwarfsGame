@@ -5,9 +5,16 @@ import IconHelm from '@/components/icons/IconHelm.vue';
 import { onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import backgroundMusic from "@/assets/sounds/Beneath_The_Marble_Dome.mp3";
+import { useAuth } from '@/composables/UseAuth';
 
 const router = useRouter();
 const route = useRoute();
+const { isAuthenticated, logout } = useAuth();
+
+const onLogout = () => {
+    logout();
+    router.push('/login');
+};
 const mute  = ref<boolean>(false);
 const audioRef = ref<HTMLAudioElement | null>(null);
 
@@ -38,6 +45,11 @@ onMounted(() => {
             <GemButton @click="router.push('about')" :color="'blue'">About</GemButton>
             <GemButton v-if="route.name != 'arena'" @click="router.push('arena')" :color="'blue'">Arena</GemButton>
             <GemButton @click="router.push('town')" :color="'blue'">Town</GemButton>
+            <template v-if="!isAuthenticated">
+                <GemButton v-if="route.name != 'login'" @click="router.push('/login')" :color="'green'">Login</GemButton>
+                <GemButton v-if="route.name != 'register'" @click="router.push('/register')" :color="'yellow'">Register</GemButton>
+            </template>
+            <GemButton v-else @click="onLogout" :color="'red'">Logout</GemButton>
         </div>
         <div class="settings">
             <i class="button" @click="volumeChange(0.1)">+</i>

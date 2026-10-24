@@ -1,10 +1,17 @@
+using System.Text;
+using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddControllers();
+// Р•РЅР°РјС‹ (EventType, DamageType...) РѕС‚РґР°С‘Рј СЃС‚СЂРѕРєР°РјРё вЂ” С„СЂРѕРЅС‚ СЃСЂР°РІРЅРёРІР°РµС‚ 'SkillCast', 'Attack' Рё С‚.Рґ.
+builder.Services.AddControllers()
+    .AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddCors(options =>
@@ -12,10 +19,10 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowMyFrontend",
         policy =>
         {
-            policy.WithOrigins("http://localhost:8080") // Укажите http или https в зависимости от того, как открывается фронт
+            policy.WithOrigins("http://localhost:8080") // РЈРєР°Р¶РёС‚Рµ http РёР»Рё https РІ Р·Р°РІРёСЃРёРјРѕСЃС‚Рё РѕС‚ С‚РѕРіРѕ, РєР°Рє РѕС‚РєСЂС‹РІР°РµС‚СЃСЏ С„СЂРѕРЅС‚
                   .AllowAnyHeader()
                   .AllowAnyMethod()
-                  .AllowCredentials(); // Добавьте, если используете куки или авторизацию
+                  .AllowCredentials(); // Р”РѕР±Р°РІСЊС‚Рµ, РµСЃР»Рё РёСЃРїРѕР»СЊР·СѓРµС‚Рµ РєСѓРєРё РёР»Рё Р°РІС‚РѕСЂРёР·Р°С†РёСЋ
         });
 });
 builder.Services.AddDbContext<GameDbContext>(options =>
@@ -29,7 +36,34 @@ builder.Services.AddDbContext<GameDbContext>(options =>
     }
 });
 
+var jwtSection = builder.Configuration.GetSection(JwtOptions.SectionName);
+builder.Services.Configure<JwtOptions>(jwtSection);
+var jwtOptions = jwtSection.Get<JwtOptions>() ?? throw new InvalidOperationException("Jwt settings are missing");
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        // РћСЃС‚Р°РІР»СЏРµРј claim-С‹ РєР°Рє РµСЃС‚СЊ ("sub", "playerId"), Р±РµР· РјР°РїРїРёРЅРіР° РІ РґР»РёРЅРЅС‹Рµ ClaimTypes
+        options.MapInboundClaims = false;
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidIssuer = jwtOptions.Issuer,
+            ValidateAudience = true,
+            ValidAudience = jwtOptions.Audience,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Key)),
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.FromMinutes(1)
+        };
+    });
+builder.Services.AddAuthorization();
+
+builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
+builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IPlayerRepository, PlayerRepository>();
+builder.Services.AddScoped<IHeroesRepository, HeroesRepository>();
 builder.Services.AddScoped<IPlayerChestRepository, PlayerChestRepository>();
 builder.Services.AddScoped<IItemFactory, ItemFactory>();
 builder.Services.AddScoped<IItemDropService, ItemDropService>();
@@ -54,7 +88,7 @@ using (var scope = app.Services.CreateScope())
 
 
 app.UseDefaultFiles();
-app.UseStaticFiles(); // явная подача статических файлов
+app.UseStaticFiles(); // СЏРІРЅР°СЏ РїРѕРґР°С‡Р° СЃС‚Р°С‚РёС‡РµСЃРєРёС… С„Р°Р№Р»РѕРІ
 app.MapStaticAssets();
 
 // Configure the HTTP request pipeline.
@@ -71,6 +105,7 @@ app.UseCors("AllowMyFrontend");
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

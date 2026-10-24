@@ -33,6 +33,330 @@ namespace IdleDwarfsGame.Server.Migrations
                     b.ToTable("ChestDropTables");
                 });
 
+            modelBuilder.Entity("Hero", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Attack")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("AuraDuration")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("AuraEffect")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("AuraPower")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("AuraTarget")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("AuraTrigger")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Color")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT")
+                        .HasDefaultValue("red");
+
+                    b.Property<int>("EnergyPerAttack")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Immunities")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Level")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("MaxEnergy")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("MaxHp")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("PlaceInSquad")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<Guid>("PlayerId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Speed")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("SpellIds")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("StartEnergy")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("UnitType")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT")
+                        .HasDefaultValue("Dwarf");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PlayerId");
+
+                    b.ToTable("Heroes");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("11111111-0000-4000-8000-000000000001"),
+                            Attack = 14,
+                            AuraDuration = 1,
+                            AuraEffect = "Regen",
+                            AuraPower = 4,
+                            AuraTarget = 0,
+                            AuraTrigger = 1,
+                            Color = "red",
+                            EnergyPerAttack = 20,
+                            Immunities = "Stun",
+                            Level = 4,
+                            MaxEnergy = 100,
+                            MaxHp = 260,
+                            Name = "Brakk Ironbeard",
+                            PlaceInSquad = 1,
+                            PlayerId = new Guid("a1d2f3e4-0000-4000-8000-000000000001"),
+                            Speed = 4,
+                            SpellIds = "",
+                            StartEnergy = 0,
+                            UnitType = "Dwarf"
+                        },
+                        new
+                        {
+                            Id = new Guid("11111111-0000-4000-8000-000000000002"),
+                            Attack = 18,
+                            AuraDuration = 1,
+                            AuraPower = 0,
+                            AuraTarget = 0,
+                            AuraTrigger = 1,
+                            Color = "red",
+                            EnergyPerAttack = 20,
+                            Immunities = "Burn",
+                            Level = 4,
+                            MaxEnergy = 100,
+                            MaxHp = 130,
+                            Name = "Dain Emberforge",
+                            PlaceInSquad = 2,
+                            PlayerId = new Guid("a1d2f3e4-0000-4000-8000-000000000001"),
+                            Speed = 7,
+                            SpellIds = "2",
+                            StartEnergy = 20,
+                            UnitType = "Dwarf"
+                        },
+                        new
+                        {
+                            Id = new Guid("11111111-0000-4000-8000-000000000003"),
+                            Attack = 16,
+                            AuraDuration = 1,
+                            AuraPower = 0,
+                            AuraTarget = 0,
+                            AuraTrigger = 1,
+                            Color = "blue",
+                            EnergyPerAttack = 25,
+                            Immunities = "",
+                            Level = 4,
+                            MaxEnergy = 100,
+                            MaxHp = 150,
+                            Name = "Thora Stormhammer",
+                            PlaceInSquad = 3,
+                            PlayerId = new Guid("a1d2f3e4-0000-4000-8000-000000000001"),
+                            Speed = 6,
+                            SpellIds = "4,6",
+                            StartEnergy = 0,
+                            UnitType = "Dwarf"
+                        },
+                        new
+                        {
+                            Id = new Guid("11111111-0000-4000-8000-000000000004"),
+                            Attack = 20,
+                            AuraDuration = 1,
+                            AuraPower = 0,
+                            AuraTarget = 0,
+                            AuraTrigger = 1,
+                            Color = "red",
+                            EnergyPerAttack = 20,
+                            Immunities = "",
+                            Level = 4,
+                            MaxEnergy = 100,
+                            MaxHp = 180,
+                            Name = "Grim Ashaxe",
+                            PlaceInSquad = 4,
+                            PlayerId = new Guid("a1d2f3e4-0000-4000-8000-000000000001"),
+                            Speed = 5,
+                            SpellIds = "",
+                            StartEnergy = 0,
+                            UnitType = "Dwarf"
+                        },
+                        new
+                        {
+                            Id = new Guid("11111111-0000-4000-8000-000000000005"),
+                            Attack = 12,
+                            AuraDuration = 1,
+                            AuraPower = 0,
+                            AuraTarget = 0,
+                            AuraTrigger = 1,
+                            Color = "blue",
+                            EnergyPerAttack = 20,
+                            Immunities = "",
+                            Level = 4,
+                            MaxEnergy = 100,
+                            MaxHp = 120,
+                            Name = "Runa Frostpick",
+                            PlaceInSquad = 5,
+                            PlayerId = new Guid("a1d2f3e4-0000-4000-8000-000000000001"),
+                            Speed = 8,
+                            SpellIds = "7",
+                            StartEnergy = 40,
+                            UnitType = "Dwarf"
+                        },
+                        new
+                        {
+                            Id = new Guid("11111111-0000-4000-8000-000000000006"),
+                            Attack = 15,
+                            AuraDuration = 1,
+                            AuraPower = 0,
+                            AuraTarget = 0,
+                            AuraTrigger = 1,
+                            Color = "blue",
+                            EnergyPerAttack = 20,
+                            Immunities = "",
+                            Level = 4,
+                            MaxEnergy = 100,
+                            MaxHp = 140,
+                            Name = "Oin Deepdelver",
+                            PlayerId = new Guid("a1d2f3e4-0000-4000-8000-000000000001"),
+                            Speed = 5,
+                            SpellIds = "1",
+                            StartEnergy = 0,
+                            UnitType = "Dwarf"
+                        },
+                        new
+                        {
+                            Id = new Guid("22222222-0000-4000-8000-000000000001"),
+                            Attack = 13,
+                            AuraDuration = 1,
+                            AuraPower = 0,
+                            AuraTarget = 0,
+                            AuraTrigger = 1,
+                            Color = "blue",
+                            EnergyPerAttack = 20,
+                            Immunities = "Stun",
+                            Level = 4,
+                            MaxEnergy = 100,
+                            MaxHp = 210,
+                            Name = "Orc Brute",
+                            PlaceInSquad = 1,
+                            PlayerId = new Guid("e0e0e0e0-0000-4000-8000-000000000002"),
+                            Speed = 3,
+                            SpellIds = "",
+                            StartEnergy = 0,
+                            UnitType = "Orc"
+                        },
+                        new
+                        {
+                            Id = new Guid("22222222-0000-4000-8000-000000000002"),
+                            Attack = 10,
+                            AuraDuration = 1,
+                            AuraPower = 0,
+                            AuraTarget = 0,
+                            AuraTrigger = 1,
+                            Color = "blue",
+                            EnergyPerAttack = 20,
+                            Immunities = "",
+                            Level = 4,
+                            MaxEnergy = 100,
+                            MaxHp = 90,
+                            Name = "Goblin Scout",
+                            PlaceInSquad = 2,
+                            PlayerId = new Guid("e0e0e0e0-0000-4000-8000-000000000002"),
+                            Speed = 9,
+                            SpellIds = "",
+                            StartEnergy = 0,
+                            UnitType = "Goblin"
+                        },
+                        new
+                        {
+                            Id = new Guid("22222222-0000-4000-8000-000000000003"),
+                            Attack = 10,
+                            AuraDuration = 1,
+                            AuraPower = 0,
+                            AuraTarget = 0,
+                            AuraTrigger = 1,
+                            Color = "blue",
+                            EnergyPerAttack = 20,
+                            Immunities = "",
+                            Level = 4,
+                            MaxEnergy = 100,
+                            MaxHp = 85,
+                            Name = "Goblin Shaman",
+                            PlaceInSquad = 3,
+                            PlayerId = new Guid("e0e0e0e0-0000-4000-8000-000000000002"),
+                            Speed = 7,
+                            SpellIds = "1",
+                            StartEnergy = 20,
+                            UnitType = "Goblin"
+                        },
+                        new
+                        {
+                            Id = new Guid("22222222-0000-4000-8000-000000000004"),
+                            Attack = 12,
+                            AuraDuration = 1,
+                            AuraEffect = "Burn",
+                            AuraPower = 3,
+                            AuraTarget = 1,
+                            AuraTrigger = 1,
+                            Color = "blue",
+                            EnergyPerAttack = 20,
+                            Immunities = "Burn",
+                            Level = 4,
+                            MaxEnergy = 100,
+                            MaxHp = 180,
+                            Name = "Orc Warlord",
+                            PlaceInSquad = 4,
+                            PlayerId = new Guid("e0e0e0e0-0000-4000-8000-000000000002"),
+                            Speed = 4,
+                            SpellIds = "",
+                            StartEnergy = 0,
+                            UnitType = "Orc"
+                        },
+                        new
+                        {
+                            Id = new Guid("22222222-0000-4000-8000-000000000005"),
+                            Attack = 13,
+                            AuraDuration = 1,
+                            AuraPower = 0,
+                            AuraTarget = 0,
+                            AuraTrigger = 1,
+                            Color = "blue",
+                            EnergyPerAttack = 25,
+                            Immunities = "Frost",
+                            Level = 4,
+                            MaxEnergy = 100,
+                            MaxHp = 100,
+                            Name = "Skeleton Mage",
+                            PlaceInSquad = 5,
+                            PlayerId = new Guid("e0e0e0e0-0000-4000-8000-000000000002"),
+                            Speed = 6,
+                            SpellIds = "5",
+                            StartEnergy = 0,
+                            UnitType = "Skeleton"
+                        });
+                });
+
             modelBuilder.Entity("IdleDwarfsGame.Server.Entities.GameEntities.PlayerChest", b =>
                 {
                     b.Property<Guid>("Id")
@@ -59,36 +383,6 @@ namespace IdleDwarfsGame.Server.Migrations
                     b.ToTable("PlayerChests");
                 });
 
-            modelBuilder.Entity("Hero", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("Attack")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("MaxHp")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<int?>("PlaceInSquad")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<Guid>("PlayerId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("Speed")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Heroes");
-                });
-
             modelBuilder.Entity("Player", b =>
                 {
                     b.Property<string>("Id")
@@ -105,6 +399,20 @@ namespace IdleDwarfsGame.Server.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Players");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = "a1d2f3e4-0000-4000-8000-000000000001",
+                            Name = "Demo Player",
+                            Rating = 0
+                        },
+                        new
+                        {
+                            Id = "e0e0e0e0-0000-4000-8000-000000000002",
+                            Name = "Tower Monsters",
+                            Rating = 0
+                        });
                 });
 
             modelBuilder.Entity("PlayerResourses", b =>
@@ -148,6 +456,55 @@ namespace IdleDwarfsGame.Server.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Resourses");
+                });
+
+            modelBuilder.Entity("User", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(254)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("NormalizedEmail")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("NormalizedUsername")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("PlayerId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Username")
+                        .IsRequired()
+                        .HasMaxLength(24)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NormalizedEmail")
+                        .IsUnique();
+
+                    b.HasIndex("NormalizedUsername")
+                        .IsUnique();
+
+                    b.HasIndex("PlayerId")
+                        .IsUnique();
+
+                    b.ToTable("Users");
                 });
 
             modelBuilder.Entity("ChestDropTable", b =>
@@ -212,6 +569,17 @@ namespace IdleDwarfsGame.Server.Migrations
                         .IsRequired();
 
                     b.Navigation("ChestDropTable");
+
+                    b.Navigation("Player");
+                });
+
+            modelBuilder.Entity("User", b =>
+                {
+                    b.HasOne("Player", "Player")
+                        .WithOne()
+                        .HasForeignKey("User", "PlayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Player");
                 });

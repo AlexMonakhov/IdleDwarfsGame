@@ -142,7 +142,7 @@ const modalStyle = computed<CSSProperties>(() => ({
 
   align-items: center;
 
-  --border-radius: 100px;
+  --frame-radius: 28px;
 
 }
 
@@ -154,13 +154,16 @@ const modalStyle = computed<CSSProperties>(() => ({
 
   box-sizing: border-box;
 
-  padding-top: 80px;
+  /* Шапка теперь висит над рамкой, поэтому контенту нужен только небольшой отступ под её низ */
+  --content-top: 44px;
+
+  padding-top: var(--content-top);
 
   min-width: 400px;
 
   min-height: 300px;
 
-  border-radius: var(--border-radius);
+  border-radius: var(--frame-radius);
 
 }
 
@@ -202,7 +205,7 @@ const modalStyle = computed<CSSProperties>(() => ({
 
     z-index: -1;
 
-    border-radius: 80px 80px 10px 10px;
+    border-radius: var(--frame-radius);
 
     box-shadow: 0 4px 3px 2px #181717, 0 3px 20px 4px #65a7b8;
 
@@ -210,39 +213,60 @@ const modalStyle = computed<CSSProperties>(() => ({
 
 
 
-.modal-header{
-
-  width: 100%;
-
-  height: 70px;
-
-  background: var(--wood-background);
-
+/* Табличка с заголовком: выступает над верхним краем рамки и прибита заклёпками по углам */
+.modal-header {
+  --rivet: radial-gradient(circle at 35% 35%, #ffffff 0%, #c9d2d6 25%, #6e777b 55%, #2b2b2b 72%, transparent 78%);
   position: absolute;
-
-  top: 0;
-
-  border-radius: var(--border-radius) var(--border-radius) 0 0;
-
-  box-shadow: inset 0px 0px 6px black, inset 0px 0px 20px #333, 0 0 0 4px rgb(157, 173, 175), 0 0 0 6px #333, inset 0px 0px 6px black, inset 0px 0px 20px #333;;
-
+  top: -40px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+  box-sizing: border-box;
+  min-width: 55%;
+  max-width: calc(100% - 80px);
+  height: 64px;
+  padding: 0 44px;
+  background: var(--wood-background);
+  border-radius: 12px;
+  box-shadow:
+    inset 0px 0px 6px black,
+    inset 0px 0px 20px #333,
+    0 0 0 4px rgb(157, 173, 175),
+    0 0 0 6px #333,
+    0 8px 14px 2px rgba(0, 0, 0, 0.6),
+    0 3px 16px 4px #65a7b8;
   text-align: center;
+}
 
+.modal-header::before {
+  content: '';
+  position: absolute;
+  inset: 7px 10px;
+  pointer-events: none;
+  background:
+    var(--rivet) left top / 12px 12px no-repeat,
+    var(--rivet) right top / 12px 12px no-repeat,
+    var(--rivet) left bottom / 12px 12px no-repeat,
+    var(--rivet) right bottom / 12px 12px no-repeat;
 }
 
 
 
 .modal-header-text{
 
-  line-height: 70px;
+  line-height: 64px;
+
+  white-space: nowrap;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
 
   font-weight: 900;
 
   font-size: 2em;
 
   letter-spacing: 0.2em;
-
-  font-family: cursive;
 
   text-transform: uppercase;
 
@@ -270,13 +294,14 @@ const modalStyle = computed<CSSProperties>(() => ({
 
   width: 100%;
 
-  height: calc(100% - 80px);
+  height: calc(100% - var(--content-top));
 
   overflow-y: auto;
 
   color: white;
 
-  border-radius: 15px;
+  /* Радиус рамки минус её толщина — чтобы углы шли параллельно */
+  border-radius: calc(var(--frame-radius) - 14px);
 
   border: 2px solid #333;
 
@@ -284,7 +309,8 @@ const modalStyle = computed<CSSProperties>(() => ({
 
   position: absolute;
 
-  background:url(https://png.pngtree.com/png-vector/20240808/ourmid/pngtree-background-with-ground-texture-png-image_13065911.png) center / cover no-repeat, radial-gradient( #e1e8eb, #4c6a8d);
+  /* Тёмный центр, чтобы белый текст читался; свою текстуру можно положить первым слоем из assets */
+  background: radial-gradient(ellipse at 50% 35%, #5b7798 0%, #3f5a7a 45%, #1f2d42 100%);
 
   box-shadow: 0 0 0 4px rgb(157, 173, 175),
 
@@ -342,24 +368,36 @@ const modalStyle = computed<CSSProperties>(() => ({
 
 
 
-.modal-fade-enter-active,
-
-.modal-fade-leave-active {
-
-  transition: all 0.25s ease;
-
+/* Фон только проявляется, а окно «выпрыгивает» с лёгким перелётом.
+   Vue снимает классы по transition корневого элемента (оверлея),
+   поэтому его длительность не короче, чем у окна */
+.modal-fade-enter-active {
+  transition: opacity 0.35s ease;
 }
 
+.modal-fade-leave-active {
+  transition: opacity 0.2s ease;
+}
 
+.modal-fade-enter-active .modal-window {
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.25s ease;
+}
+
+.modal-fade-leave-active .modal-window {
+  transition: transform 0.2s ease-in, opacity 0.2s ease-in;
+}
 
 .modal-fade-enter-from,
-
 .modal-fade-leave-to {
-
   opacity: 0;
+}
 
-  transform: scale(0.95);
-
+/* Только сдвиг, без scale: CanvasLayer/CanvasComponent меряют getBoundingClientRect при монтировании,
+   и масштаб в этот момент сжимает канвас и смещает эффекты. Сдвиг же одинаково двигает и канвас, и кнопки */
+.modal-fade-enter-from .modal-window,
+.modal-fade-leave-to .modal-window {
+  opacity: 0;
+  transform: translateY(32px);
 }
 
 </style>
