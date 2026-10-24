@@ -39,7 +39,11 @@ desktop.ini
 *.log
 *.sql
 *.sqlite
+*.sqlite-shm
+*.sqlite-wal
 *.db
+*.db-shm
+*.db-wal
 
 # User secrets
 secrets.json
@@ -73,11 +77,15 @@ publish_output/
 # Ignore generated files from tools
 *.generated.cs
 
-# Node modules (in case front-end is added)
+# Node / Vue / frontend
 node_modules/
+dist/
+build/
+coverage/
+.DS_Store
 
 # Docker
-docker-compose.override.yml
+# docker-compose.override.yml
 
 # Visual Studio profiler
 *.psess

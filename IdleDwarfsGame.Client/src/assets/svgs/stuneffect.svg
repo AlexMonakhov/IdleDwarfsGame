@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <defs>
+    <!-- Градиент фона -->
+    <radialGradient id="stun-bg" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffe600" />
+      <stop offset="65%" stop-color="#b38f00" />
+      <stop offset="100%" stop-color="#3d3000" />
+    </radialGradient>
+  </defs>
+
+  <!-- Внешний круг -->
+  <circle cx="50" cy="50" r="45" fill="url(#stun-bg)" stroke="#fff59d" stroke-width="3" />
+  
+  <!-- Эллипс орбиты -->
+  <ellipse cx="50" cy="50" rx="32" ry="14" fill="none" stroke="#ffffff" stroke-width="3" stroke-dasharray="6 4" transform="rotate(-20 50 50)" />
+  
+  <!-- Звезды стана -->
+  <!-- Центральная большая звезда -->
+  <polygon points="50,22 53,32 63,32 55,38 58,48 50,42 42,48 45,38 37,32 47,32" fill="#ffffff" />
+  
+  <!-- Правая малая звезда -->
+  <polygon points="72,42 74,48 80,48 75,52 77,58 72,54 67,58 69,52 64,48 70,48" fill="#fff59d" />
+  
+  <!-- Левая малая звезда -->
+  <polygon points="28,52 30,57 35,57 31,60 33,65 28,62 23,65 25,60 21,57 26,57" fill="#fff59d" />
+</svg>

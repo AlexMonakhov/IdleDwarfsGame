@@ -1,0 +1,124 @@
+<script lang="ts" setup>
+import { reactive, ref } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import GemButton from '@/components/common/GemButton.vue';
+import InputComponent from '@/components/common/InputComponent.vue';
+import PanelComponent from '@/components/common/PanelComponent.vue';
+import { useAuth } from '@/composables/UseAuth';
+import { AuthApiError } from '@/services/apiServices/AuthApiService';
+
+const router = useRouter();
+const route = useRoute();
+const { login } = useAuth();
+
+const form = reactive({ login: '', password: '' });
+const fieldErrors = ref<Record<string, string>>({});
+const errorMessage = ref<string | null>(null);
+const loading = ref(false);
+
+const validate = (): boolean => {
+  const errors: Record<string, string> = {};
+  if (!form.login.trim()) errors.login = 'Введите имя или почту';
+  if (!form.password) errors.password = 'Введите пароль';
+  fieldErrors.value = errors;
+  return Object.keys(errors).length === 0;
+};
+
+const onSubmit = async () => {
+  errorMessage.value = null;
+  if (!validate() || loading.value) return;
+
+  loading.value = true;
+  try {
+    await login({ login: form.login.trim(), password: form.password });
+    const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : '/';
+    router.push(redirect);
+  } catch (error) {
+    if (error instanceof AuthApiError) {
+      errorMessage.value = error.message;
+      fieldErrors.value = error.fieldErrors;
+    } else {
+      errorMessage.value = 'Что-то пошло не так';
+    }
+  } finally {
+    loading.value = false;
+  }
+};
+</script>
+
+<template>
+  <div class="main auth-page">
+    <PanelComponent :header-message="'login'">
+      <form class="auth-form" novalidate @submit.prevent="onSubmit">
+        <InputComponent
+          v-model="form.login"
+          label="Имя или почта"
+          autocomplete="username"
+          :error="fieldErrors.login"
+          :disabled="loading"
+        />
+        <InputComponent
+          v-model="form.password"
+          label="Пароль"
+          type="password"
+          autocomplete="current-password"
+          :error="fieldErrors.password"
+          :disabled="loading"
+        />
+
+        <div class="auth-error">{{ errorMessage ?? '' }}</div>
+
+        <GemButton type="submit" :color="'green'" width="100%" :disabled="loading">
+          {{ loading ? 'Входим...' : 'Войти' }}
+        </GemButton>
+      </form>
+
+      <div class="auth-switch">
+        Нет аккаунта?
+        <router-link to="/register" class="auth-link">Регистрация</router-link>
+      </div>
+    </PanelComponent>
+  </div>
+</template>
+
+<style scoped>
+.auth-page {
+  height: 100vh;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  row-gap: 6px;
+}
+
+.auth-error {
+  min-height: 20px;
+  margin-bottom: 8px;
+  color: #ffb4b4;
+  font-family: 'Arial', sans-serif;
+  font-size: 14px;
+  font-weight: bold;
+  text-shadow: 1px 1px 0px rgba(0, 0, 0, 0.8);
+}
+
+.auth-switch {
+  margin-top: 16px;
+  color: #ffffff;
+  font-family: 'Arial', sans-serif;
+  font-size: 14px;
+  text-shadow: 1px 1px 0px rgba(0, 0, 0, 0.6);
+}
+
+.auth-link {
+  color: var(--yellow-gem-color);
+  font-weight: bold;
+  text-decoration: none;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.auth-link:hover {
+  filter: brightness(1.2) drop-shadow(0 0 2px #fff);
+}
+</style>
