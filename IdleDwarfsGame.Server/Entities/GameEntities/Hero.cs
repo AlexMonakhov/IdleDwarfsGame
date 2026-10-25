@@ -4,9 +4,10 @@ public class Hero
     public Guid PlayerId { get; set; }
     public string Name { get; set; } = string.Empty;
 
-    // Внешний вид (для фронта)
+    // Внешний вид (для фронта): спрайт выбирается по типу, уровню и стихии
     public string UnitType { get; set; } = "Dwarf";
-    public string Color { get; set; } = "red";
+    public HeroElement Element { get; set; } = HeroElement.Basic;
+    // HeroLevels.Min..HeroLevels.Max
     public int Level { get; set; } = 1;
 
     // HealthComponent / AttackComponent / SpeedComponent

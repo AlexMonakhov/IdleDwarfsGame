@@ -41,6 +41,8 @@ public class AuthController(
         user.PasswordHash = passwordHasher.HashPassword(user, request.Password);
 
         await context.Players.AddAsync(player);
+        await context.Heroes.AddRangeAsync(StarterSquad.Create(player.Id));
+        // Сохраняется одной транзакцией вместе с игроком и героями
         await userRepository.CreateAsync(user);
 
         return Ok(BuildResponse(user));
