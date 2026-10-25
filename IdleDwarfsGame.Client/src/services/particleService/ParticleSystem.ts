@@ -9,6 +9,8 @@ import {
   StunStarsStrategy,
   SparklesStrategy,
   RingStrategy,
+  AuraSphereStrategy,
+  AuraBurstStrategy,
 } from '@/services/particleService/types/combat-effects';
 
 export class GlobalParticleService {
@@ -34,6 +36,8 @@ export class GlobalParticleService {
     'stun-stars': new StunStarsStrategy(),
     'sparkles': new SparklesStrategy(),
     'ring': new RingStrategy(),
+    'aura-sphere': new AuraSphereStrategy(),
+    'aura-burst': new AuraBurstStrategy(),
   };
 
   // Подменить/добавить стратегию отрисовки (например, для нового эффекта статуса)
@@ -103,6 +107,12 @@ export class GlobalParticleService {
       };
 
     this.emitters.set(config.id, finalEmitter);
+  }
+
+  // Обновить поля живого эмиттера без перезапуска (например, координаты после ресайза окна)
+  updateEmitter(id: string, patch: Partial<EmitterConfig>) {
+    const emitter = this.emitters.get(id);
+    if (emitter) Object.assign(emitter, patch);
   }
 
   /**

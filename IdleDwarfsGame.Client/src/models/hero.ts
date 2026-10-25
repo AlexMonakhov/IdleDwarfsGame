@@ -1,3 +1,4 @@
+import { SpriteColor } from '@/battle/sprites';
 
 export interface HeroModel {
   id: number;
@@ -5,7 +6,8 @@ export interface HeroModel {
   currentHp: number;
   maxHp: number;
   lvl: number;
-  color: 'blue' |  'red' | 'green' | 'yellow';
+  color: SpriteColor;
+  unitType?: string;
   config?: ICharacterConfig;
 }
 

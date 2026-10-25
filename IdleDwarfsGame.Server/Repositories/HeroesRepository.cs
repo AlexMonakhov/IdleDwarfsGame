@@ -37,11 +37,17 @@ public class HeroesRepository : IHeroesRepository
             .OrderBy(h => h.PlaceInSquad)
             .Take(maxSize)
             .ToList();
+        if (squad.Count > 0)
+            return squad;
 
-        return squad.Count > 0
-            ? squad
-            : heroes.OrderBy(h => h.Name).Take(maxSize).ToList();
+        // Герои в экспедиции в запасной отряд не попадают (в настоящий отряд их не пускает SaveSquadAsync)
+        var busy = await BusyHeroIds(heroes.Select(h => h.Id).ToList()).ToListAsync();
+        return heroes.Where(h => !busy.Contains(h.Id)).OrderBy(h => h.Name).Take(maxSize).ToList();
     }
+
+    private IQueryable<Guid> BusyHeroIds(List<Guid> heroIds) => _context.ExpeditionHeroes
+        .Where(h => heroIds.Contains(h.HeroId))
+        .Select(h => h.HeroId);
 
     public async Task CreateAsync(Hero hero)
     {
@@ -84,6 +90,9 @@ public class HeroesRepository : IHeroesRepository
             return;
         }
 
+        if (await BusyHeroIds([heroId]).AnyAsync())
+            throw new InvalidOperationException($"Hero {heroId} is on an expedition");
+
         // Ensure no other hero of the same player occupies that slot
         var existing = await _context.Heroes
             .FirstOrDefaultAsync(h => h.PlayerId == hero.PlayerId && h.PlaceInSquad == placeInSquad && h.Id != heroId);
@@ -99,5 +108,40 @@ public class HeroesRepository : IHeroesRepository
         _context.Heroes.Update(hero);
 
         await _context.SaveChangesAsync();
+    }
+
+    public async Task<List<Hero>> SaveSquadAsync(Guid playerId, IReadOnlyList<Guid?> slots)
+    {
+        if (slots.Count > StarterSquad.Size)
+            throw new InvalidOperationException($"Squad can't have more than {StarterSquad.Size} places");
+
+        var squadIds = slots.Where(id => id != null).Select(id => id!.Value).ToList();
+        if (squadIds.Count == 0)
+            throw new InvalidOperationException("Squad must contain at least one hero");
+        if (squadIds.Distinct().Count() != squadIds.Count)
+            throw new InvalidOperationException("The same hero can't take several places");
+
+        var heroes = await GetByPlayerAsync(playerId);
+        var foreign = squadIds.Except(heroes.Select(h => h.Id)).ToList();
+        if (foreign.Count > 0)
+            throw new InvalidOperationException($"Heroes not found: {string.Join(", ", foreign)}");
+
+        var busy = await BusyHeroIds(squadIds).ToListAsync();
+        if (busy.Count > 0)
+        {
+            var names = heroes.Where(h => busy.Contains(h.Id)).Select(h => h.Name);
+            throw new InvalidOperationException($"Heroes on an expedition can't join the squad: {string.Join(", ", names)}");
+        }
+
+        var places = slots
+            .Select((id, index) => (id, place: index + 1))
+            .Where(s => s.id != null)
+            .ToDictionary(s => s.id!.Value, s => s.place);
+
+        foreach (var hero in heroes)
+            hero.PlaceInSquad = places.TryGetValue(hero.Id, out var place) ? place : null;
+
+        await _context.SaveChangesAsync();
+        return heroes;
     }
 }

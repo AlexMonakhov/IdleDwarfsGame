@@ -2,7 +2,9 @@
 import { useRoute, useRouter } from 'vue-router';
 import GemButton from '@/components/common/GemButton.vue';
 import PanelComponent from '@/components/common/PanelComponent.vue';
+import { useI18n } from 'vue-i18n';
 
+const { t } = useI18n();
 const router = useRouter();
 const route = useRoute();
 </script>
@@ -11,14 +13,12 @@ const route = useRoute();
   <div class="main not-found-page">
     <PanelComponent :header-message="'404'">
       <div class="not-found-code">404</div>
-      <div class="not-found-title">Здесь ещё никто не копал</div>
+      <div class="not-found-title">{{ t('notFound.title') }}</div>
       <div class="not-found-path">{{ route.fullPath }}</div>
 
       <template #panelFooter>
-        <div class="not-found-actions">
-          <GemButton :color="'blue'" @click="router.back()">Назад</GemButton>
-          <GemButton :color="'green'" @click="router.push('/')">На главную</GemButton>
-        </div>
+        <GemButton :color="'blue'" @click="router.back()">{{ t('common.back') }}</GemButton>
+        <GemButton :color="'green'" @click="router.push('/')">{{ t('common.toHome') }}</GemButton>
       </template>
     </PanelComponent>
   </div>
@@ -59,11 +59,5 @@ const route = useRoute();
   opacity: 0.8;
   word-break: break-all;
   text-shadow: 1px 1px 0px rgba(0, 0, 0, 0.6);
-}
-
-.not-found-actions {
-  display: flex;
-  justify-content: center;
-  column-gap: 10px;
 }
 </style>

@@ -440,6 +440,38 @@ export class FlamesStrategy extends ParticleStore {
   }
 }
 
+// Снежинка со свечением рендерится один раз в offscreen-канвас и дальше рисуется через drawImage:
+// shadowBlur на каждом штрихе каждый кадр слишком дорогой и при нескольких замёрзших юнитах роняет FPS
+const FLAKE_RADIUS = 10; // в 2 раза больше максимального размера частицы, чтобы не мылилось
+const FLAKE_BLUR = 12;
+const flakeSprites = new Map<string, HTMLCanvasElement>();
+
+const getFlakeSprite = (color: string) => {
+  let sprite = flakeSprites.get(color);
+  if (sprite) return sprite;
+
+  const half = FLAKE_RADIUS + FLAKE_BLUR;
+  sprite = document.createElement('canvas');
+  sprite.width = sprite.height = half * 2;
+  const ctx = sprite.getContext('2d')!;
+  ctx.translate(half, half);
+  ctx.lineCap = 'round';
+  ctx.lineWidth = 2.6;
+  ctx.strokeStyle = color;
+  ctx.shadowColor = '#7dd3fc';
+  ctx.shadowBlur = FLAKE_BLUR;
+  for (let i = 0; i < 3; i++) {
+    ctx.rotate(Math.PI / 3);
+    ctx.beginPath();
+    ctx.moveTo(-FLAKE_RADIUS, 0);
+    ctx.lineTo(FLAKE_RADIUS, 0);
+    ctx.stroke();
+  }
+
+  flakeSprites.set(color, sprite);
+  return sprite;
+};
+
 /**
  * Холодная аура: падающие снежинки, блики и морозная дымка.
  * args: width, height, rate, color
@@ -491,24 +523,15 @@ export class FrostAuraStrategy extends ParticleStore {
     ctx.arc(emitter.x, emitter.y, width, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.lineCap = 'round';
-    ctx.shadowColor = '#7dd3fc';
-    ctx.shadowBlur = 6;
     for (const p of particles) {
+      const sprite = getFlakeSprite(p.color);
+      const half = (sprite.width / 2) * (p.size / FLAKE_RADIUS);
       // Плавное появление и исчезновение
       ctx.globalAlpha = opacity * Math.sin(Math.PI * clamp01(p.life));
-      ctx.strokeStyle = p.color;
-      ctx.lineWidth = 1.3;
       ctx.save();
       ctx.translate(p.x, p.y);
       ctx.rotate(p.rotation ?? 0);
-      for (let i = 0; i < 3; i++) {
-        ctx.rotate(Math.PI / 3);
-        ctx.beginPath();
-        ctx.moveTo(-p.size, 0);
-        ctx.lineTo(p.size, 0);
-        ctx.stroke();
-      }
+      ctx.drawImage(sprite, -half, -half, half * 2, half * 2);
       ctx.restore();
     }
 
@@ -632,6 +655,423 @@ export class SparklesStrategy extends ParticleStore<{ particles: Particle[]; bur
         ctx.fill();
       }
     }
+    ctx.restore();
+  }
+}
+
+// ===== Ауры героев =====
+
+const rgbCache = new Map<string, string>();
+
+// '#rrggbb' + альфа -> 'rgba(...)' для стопов градиента
+const rgba = (hex: string, alpha: number) => {
+  let rgb = rgbCache.get(hex);
+  if (!rgb) {
+    const n = parseInt(hex.slice(1, 7), 16);
+    rgb = `${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}`;
+    rgbCache.set(hex, rgb);
+  }
+  return `rgba(${rgb}, ${clamp01(alpha)})`;
+};
+
+// Мягкий ореол частицы. Как и снежинка, рендерится один раз: градиент на каждую частицу каждый кадр дорогой.
+const GLOW_RADIUS = 32;
+const glowSprites = new Map<string, HTMLCanvasElement>();
+
+const getGlowSprite = (color: string) => {
+  let sprite = glowSprites.get(color);
+  if (sprite) return sprite;
+
+  sprite = document.createElement('canvas');
+  sprite.width = sprite.height = GLOW_RADIUS * 2;
+  const ctx = sprite.getContext('2d')!;
+  const gradient = ctx.createRadialGradient(GLOW_RADIUS, GLOW_RADIUS, 0, GLOW_RADIUS, GLOW_RADIUS, GLOW_RADIUS);
+  gradient.addColorStop(0, rgba(color, 0.9));
+  gradient.addColorStop(0.25, rgba(color, 0.45));
+  gradient.addColorStop(1, rgba(color, 0));
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, GLOW_RADIUS * 2, GLOW_RADIUS * 2);
+
+  glowSprites.set(color, sprite);
+  return sprite;
+};
+
+export type AuraMote = 'ember' | 'flake' | 'plus' | 'spark' | 'dot';
+
+// Частица ауры: мягкий ореол + форма по стихии
+const drawMote = (ctx: CanvasRenderingContext2D, shape: AuraMote, x: number, y: number, size: number, color: string, accent: string, rotation = 0) => {
+  const halo = size * 3.2;
+  ctx.drawImage(getGlowSprite(color), x - halo, y - halo, halo * 2, halo * 2);
+
+  ctx.fillStyle = accent;
+  switch (shape) {
+    case 'ember':
+      ctx.beginPath();
+      ctx.ellipse(x, y, size * 0.55, size, 0, 0, Math.PI * 2);
+      ctx.fill();
+      break;
+    case 'flake': {
+      const sprite = getFlakeSprite(accent);
+      const half = (sprite.width / 2) * (size / FLAKE_RADIUS) * 1.4;
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(rotation);
+      ctx.drawImage(sprite, -half, -half, half * 2, half * 2);
+      ctx.restore();
+      break;
+    }
+    case 'plus': {
+      const t = size * 0.45;
+      ctx.fillRect(x - size, y - t / 2, size * 2, t);
+      ctx.fillRect(x - t / 2, y - size, t, size * 2);
+      break;
+    }
+    case 'spark':
+      drawStar(ctx, x, y, size * 1.3, size * 0.3, 4, rotation);
+      break;
+    default:
+      ctx.beginPath();
+      ctx.arc(x, y, size * 0.6, 0, Math.PI * 2);
+      ctx.fill();
+  }
+};
+
+// Заливка эллипса радиальным градиентом: рисуем единичный круг в масштабированной системе координат.
+// stops — [смещение 0..1, цвет]
+const fillEllipseGradient = (
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  rx: number,
+  ry: number,
+  stops: [number, string][],
+) => {
+  if (rx <= 0 || ry <= 0) return;
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(rx, ry);
+  const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 1);
+  for (const [offset, color] of stops) gradient.addColorStop(offset, color);
+  ctx.fillStyle = gradient;
+  ctx.beginPath();
+  ctx.arc(0, 0, 1, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+};
+
+// Светящийся обод сферы (эффект Френеля): центр прозрачный, к краю ярче — юнит внутри хорошо видно
+const sphereRim = (color: string, accent: string, alpha: number): [number, string][] => [
+  [0, rgba(color, 0)],
+  [0.62, rgba(color, 0)],
+  [0.86, rgba(color, alpha * 0.45)],
+  [0.96, rgba(accent, alpha)],
+  [1, rgba(color, 0)],
+];
+
+// Орбиты частиц вокруг сферы (доли rx/ry). Нижняя половина эллипса — ближе к зрителю, верхняя — за юнитом.
+const AURA_ORBITS = [
+  { dy: 0.22, rx: 1.12, ry: 0.2, tilt: -0.12, speed: 0.0011, motes: 3 },
+  { dy: -0.28, rx: 0.92, ry: 0.16, tilt: 0.2, speed: -0.0016, motes: 2 },
+];
+
+/**
+ * Аура героя: полупрозрачная пульсирующая сфера вокруг юнита.
+ * Рисуется двумя эмиттерами, чтобы юнит оказался «внутри»:
+ *   part 'back' (фоновый слой) — круг на земле с рябью, дымка внутри сферы, дальние половины орбит;
+ *   part 'front' (передний слой) — обод сферы, блик, волны пульсации, ближние частицы, дрейфующие искры.
+ * Анимация считается от времени и seed, поэтому обе половины синхронны.
+ * args: color, glow, accent, mote, drift (<0 вверх, >0 вниз), rate, period (сек), rx, ry, groundOffset, seed, part
+ */
+export class AuraSphereStrategy extends ParticleStore {
+  update(emitter: EmitterConfig) {
+    const args = emitter.args ?? {};
+    if (args.part !== 'front') return;
+
+    const particles = this.store.get(emitter.id) ?? [];
+    const rx = Number(args.rx ?? 60);
+    const ry = Number(args.ry ?? 80);
+    const drift = Number(args.drift ?? -1);
+
+    if (Math.random() < Number(args.rate ?? 0.25)) {
+      // Поднимающиеся частицы рождаются в нижней части сферы, падающие — в верхней
+      const a = Math.random() * Math.PI * 2;
+      const r = Math.sqrt(Math.random()) * 0.8;
+      particles.push({
+        x: emitter.x + Math.cos(a) * rx * r,
+        y: emitter.y + Math.sin(a) * ry * r * 0.5 - drift * ry * 0.4,
+        vx: rand(-0.15, 0.15),
+        vy: drift * rand(0.35, 0.8),
+        life: 1,
+        maxLife: rand(0.008, 0.014),
+        size: rand(1.8, 3.6),
+        color: args.color ?? '#ffd166',
+        rotation: Math.random() * Math.PI,
+        spin: rand(-0.03, 0.03),
+      });
+    }
+
+    for (const p of particles) {
+      p.vx += Math.sin(performance.now() / 500 + p.size * 3) * 0.008;
+    }
+    this.store.set(emitter.id, stepParticles(particles, 0.995));
+  }
+
+  draw(ctx: CanvasRenderingContext2D, emitter: EmitterConfig) {
+    const args = emitter.args ?? {};
+    const opacity = emitter.opacity ?? 1;
+    if (opacity <= 0) return;
+
+    const color: string = args.color ?? '#ffd166';
+    const glow: string = args.glow ?? color;
+    const accent: string = args.accent ?? '#ffffff';
+    const mote: AuraMote = args.mote ?? 'dot';
+    const rx = Number(args.rx ?? 60);
+    const ry = Number(args.ry ?? 80);
+    const period = Number(args.period ?? 2) * 1000;
+    const time = performance.now() + Number(args.seed ?? 0);
+    // Фаза пульсации 0..1: в начале периода от сферы отходит волна, сама сфера «дышит»
+    const phase = (time % period) / period;
+    const breath = 1 + Math.sin(phase * Math.PI * 2) * 0.035;
+    const front = args.part === 'front';
+
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.globalAlpha = opacity;
+
+    if (front) {
+      this.drawPulse(ctx, emitter.x, emitter.y, rx, ry, color, accent, phase);
+      fillEllipseGradient(ctx, emitter.x, emitter.y, rx * breath, ry * breath, sphereRim(color, accent, 0.42));
+      this.drawHighlight(ctx, emitter.x, emitter.y, rx * breath, ry * breath, accent);
+    } else {
+      this.drawGround(ctx, emitter.x, emitter.y + Number(args.groundOffset ?? ry * 0.75), rx, color, glow, phase, time);
+      // Дымка внутри сферы — за юнитом, поэтому не мешает его разглядеть
+      fillEllipseGradient(ctx, emitter.x, emitter.y, rx * breath, ry * breath, [
+        [0, rgba(glow, 0.1)],
+        [0.6, rgba(glow, 0.14)],
+        [0.92, rgba(color, 0.28)],
+        [1, rgba(color, 0)],
+      ]);
+    }
+
+    this.drawOrbits(ctx, emitter.x, emitter.y, rx * breath, ry * breath, color, accent, mote, time, front);
+
+    if (front) {
+      for (const p of this.store.get(emitter.id) ?? []) {
+        ctx.globalAlpha = opacity * Math.sin(Math.PI * clamp01(p.life)) * 0.9;
+        drawMote(ctx, mote, p.x, p.y, p.size, p.color, accent, p.rotation);
+      }
+    }
+
+    ctx.restore();
+  }
+
+  // Волна-сфера, отходящая от ауры в начале каждого периода
+  private drawPulse(ctx: CanvasRenderingContext2D, x: number, y: number, rx: number, ry: number, color: string, accent: string, phase: number) {
+    const wave = clamp01(phase / 0.7);
+    if (wave >= 1) return;
+    const scale = 1 + easeOut(wave) * 0.45;
+    const alpha = Math.pow(1 - wave, 1.6) * 0.55;
+    fillEllipseGradient(ctx, x, y, rx * scale, ry * scale, sphereRim(color, accent, alpha));
+  }
+
+  // Глянцевый блик слева сверху — именно он делает из свечения «сферу»
+  private drawHighlight(ctx: CanvasRenderingContext2D, x: number, y: number, rx: number, ry: number, accent: string) {
+    ctx.save();
+    ctx.translate(x - rx * 0.42, y - ry * 0.55);
+    ctx.rotate(-0.65);
+    ctx.scale(rx * 0.34, ry * 0.11);
+    const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 1);
+    gradient.addColorStop(0, rgba(accent, 0.38));
+    gradient.addColorStop(1, rgba(accent, 0));
+    ctx.fillStyle = gradient;
+    ctx.beginPath();
+    ctx.arc(0, 0, 1, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    // Тонкий отблеск на противоположном краю
+    ctx.strokeStyle = rgba(accent, 0.22);
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.ellipse(x, y, rx * 0.93, ry * 0.93, 0, 0.15, 0.95);
+    ctx.stroke();
+  }
+
+  // Светящийся круг на земле, вращающиеся руны и рябь от каждой пульсации
+  private drawGround(ctx: CanvasRenderingContext2D, x: number, y: number, rx: number, color: string, glow: string, phase: number, time: number) {
+    const squash = 0.3;
+    const flicker = 0.85 + Math.sin(time / 260) * 0.08;
+    fillEllipseGradient(ctx, x, y, rx * 1.35, rx * 1.35 * squash, [
+      [0, rgba(glow, 0.5 * flicker)],
+      [0.55, rgba(color, 0.22 * flicker)],
+      [1, rgba(color, 0)],
+    ]);
+
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(1, squash);
+    ctx.strokeStyle = color;
+    ctx.lineCap = 'round';
+
+    // Рябь: кольцо расходится по земле вместе с волной сферы
+    const ripple = easeOut(clamp01(phase / 0.8));
+    ctx.save();
+    ctx.globalAlpha *= (1 - ripple) * 0.75;
+    ctx.lineWidth = 4 * (1 - ripple) + 1;
+    ctx.beginPath();
+    ctx.arc(0, 0, rx * (0.55 + ripple * 1.05), 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+
+    // Внешнее кольцо с засечками и пунктирное внутреннее, вращаются в разные стороны
+    ctx.save();
+    ctx.globalAlpha *= 0.55;
+    ctx.rotate(time / 2600);
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(0, 0, rx * 1.02, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.lineWidth = 2.5;
+    for (let i = 0; i < 12; i++) {
+      const a = (i * Math.PI) / 6;
+      ctx.beginPath();
+      ctx.moveTo(Math.cos(a) * rx * 1.02, Math.sin(a) * rx * 1.02);
+      ctx.lineTo(Math.cos(a) * rx * 1.12, Math.sin(a) * rx * 1.12);
+      ctx.stroke();
+    }
+    ctx.rotate(-time / 1300);
+    ctx.setLineDash([rx * 0.18, rx * 0.12]);
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(0, 0, rx * 0.8, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+
+    ctx.restore();
+  }
+
+  // Наклонные орбиты с бегущими по ним частицами; каждая половина рисует свою часть орбиты
+  private drawOrbits(
+    ctx: CanvasRenderingContext2D,
+    x: number,
+    y: number,
+    rx: number,
+    ry: number,
+    color: string,
+    accent: string,
+    mote: AuraMote,
+    time: number,
+    front: boolean,
+  ) {
+    const baseAlpha = ctx.globalAlpha;
+
+    for (const orbit of AURA_ORBITS) {
+      const ox = x;
+      const oy = y + orbit.dy * ry;
+      const orx = orbit.rx * rx;
+      const ory = orbit.ry * ry;
+
+      // Ближняя половина эллипса — углы 0..π (нижняя дуга), дальняя — π..2π
+      ctx.globalAlpha = baseAlpha * (front ? 0.45 : 0.25);
+      ctx.strokeStyle = color;
+      ctx.lineWidth = front ? 1.6 : 1.2;
+      ctx.beginPath();
+      ctx.ellipse(ox, oy, orx, ory, orbit.tilt, front ? 0 : Math.PI, front ? Math.PI : Math.PI * 2);
+      ctx.stroke();
+
+      for (let i = 0; i < orbit.motes; i++) {
+        const a = time * orbit.speed + (i * Math.PI * 2) / orbit.motes;
+        const depth = Math.sin(a); // >0 — перед юнитом
+        if (front !== depth > 0) continue;
+
+        const px = Math.cos(a) * orx;
+        const py = depth * ory;
+        const cos = Math.cos(orbit.tilt);
+        const sin = Math.sin(orbit.tilt);
+        const scale = 0.7 + (depth + 1) * 0.35;
+        ctx.globalAlpha = baseAlpha * (0.45 + (depth + 1) * 0.275);
+        drawMote(ctx, mote, ox + px * cos - py * sin, oy + px * sin + py * cos, 3.2 * scale, color, accent, a);
+      }
+    }
+
+    ctx.globalAlpha = baseAlpha;
+  }
+}
+
+/**
+ * Всплеск ауры в момент срабатывания: от носителя расходятся две сферы-волны и разлетаются частицы.
+ * args: color, glow, accent, colors[] (палитра частиц), mote, rx, ry, reach (радиус волны)
+ */
+export class AuraBurstStrategy extends ParticleStore {
+  update(emitter: EmitterConfig) {
+    const args = emitter.args ?? {};
+    let particles = this.store.get(emitter.id);
+
+    if (!particles) {
+      const palette: string[] = args.colors ?? [args.accent ?? '#ffffff', args.color ?? '#ffd166'];
+      const rx = Number(args.rx ?? 60);
+      const ry = Number(args.ry ?? 80);
+      particles = Array.from({ length: Number(args.count ?? 26) }, () => {
+        const angle = Math.random() * Math.PI * 2;
+        const v = rand(2.5, 6);
+        return {
+          x: emitter.x + Math.cos(angle) * rx * 0.6,
+          y: emitter.y + Math.sin(angle) * ry * 0.6,
+          vx: Math.cos(angle) * v,
+          vy: Math.sin(angle) * v * 0.75,
+          life: 1,
+          maxLife: rand(0.02, 0.035),
+          size: rand(2, 4.5),
+          color: palette[Math.floor(Math.random() * palette.length)],
+          rotation: angle,
+          spin: rand(-0.1, 0.1),
+        };
+      });
+    }
+
+    this.store.set(emitter.id, stepParticles(particles, 0.94, 0, 0.99));
+  }
+
+  draw(ctx: CanvasRenderingContext2D, emitter: EmitterConfig) {
+    const args = emitter.args ?? {};
+    const opacity = emitter.opacity ?? 1;
+    const color: string = args.color ?? '#ffd166';
+    const glow: string = args.glow ?? color;
+    const accent: string = args.accent ?? '#ffffff';
+    const rx = Number(args.rx ?? 60);
+    const ry = Number(args.ry ?? 80);
+    const reach = Number(args.reach ?? 240);
+    const p = progressOf(emitter);
+
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+
+    // Вспышка внутри сферы
+    if (p < 0.35) {
+      ctx.globalAlpha = opacity * (1 - p / 0.35);
+      fillEllipseGradient(ctx, emitter.x, emitter.y, rx * 1.1, ry * 1.1, [
+        [0, rgba(accent, 0.55)],
+        [0.5, rgba(glow, 0.35)],
+        [1, rgba(color, 0)],
+      ]);
+    }
+
+    // Две волны: основная и догоняющая
+    for (const [delay, strength] of [[0, 1], [0.14, 0.6]] as const) {
+      const local = clamp01((p - delay) / (1 - delay));
+      if (local <= 0 || local >= 1) continue;
+      const grow = easeOut(local);
+      const wx = rx + (reach - rx) * grow;
+      const wy = wx * (ry / rx) * (1 - grow * 0.25);
+      ctx.globalAlpha = opacity;
+      fillEllipseGradient(ctx, emitter.x, emitter.y, wx, wy, sphereRim(color, accent, Math.pow(1 - local, 1.3) * 0.7 * strength));
+    }
+
+    for (const s of this.store.get(emitter.id) ?? []) {
+      ctx.globalAlpha = opacity * clamp01(s.life * 1.4);
+      drawMote(ctx, args.mote ?? 'dot', s.x, s.y, s.size, s.color, accent, s.rotation);
+    }
+
     ctx.restore();
   }
 }

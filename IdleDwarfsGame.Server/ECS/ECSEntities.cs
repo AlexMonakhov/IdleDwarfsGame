@@ -99,10 +99,11 @@ public class CombatUnitInfo
     public Guid? HeroId { get; set; }
     public string Name { get; set; } = string.Empty;
     public string UnitType { get; set; } = string.Empty;
-    public string Color { get; set; } = string.Empty;
+    public HeroElement Element { get; set; }
     public int Level { get; set; }
     public int Team { get; set; }
     public int Position { get; set; }
+    public bool IsBoss { get; set; }
     public int MaxHp { get; set; }
     public int Hp { get; set; }
     public int Attack { get; set; }
@@ -112,6 +113,12 @@ public class CombatUnitInfo
     public List<string> Spells { get; set; } = new();
     public List<string> Immunities { get; set; } = new();
     public string? Aura { get; set; }
+
+    // Структурные данные ауры для визуала: имя эффекта (Burn, Frost, Regen...) и на кого она действует
+    public string? AuraEffect { get; set; }
+    public AuraTarget? AuraTarget { get; set; }
+
+    public CombatPowerBreakdown Power { get; set; } = new();
 }
 
 public class CombatResult
@@ -139,6 +146,9 @@ public class CombatContext
     public int CurrentRound { get; set; } = 0;
     public bool IsNewRound { get; set; } = false;
     public int MaxRounds { get; set; } = 15;
+
+    // Источник случайности боя (цели спеллов и т.п.): с одним сидом бой воспроизводится
+    public Random Random { get; init; } = new();
 
     // Текущее действие, к которому привязываются логи.
     public int CurrentActionId { get; private set; }
@@ -191,9 +201,12 @@ public class UnitInfoComponent
     public Guid? HeroId { get; set; }
     public string Name { get; set; } = string.Empty;
     public string UnitType { get; set; } = string.Empty;
-    public string Color { get; set; } = string.Empty;
+    public HeroElement Element { get; set; }
     public int Level { get; set; } = 1;
+    // Уровень, под который BalanceCalculator масштабировал HP/атаку/ауру (у отряда игрока — 1)
+    public int StatLevel { get; set; } = 1;
     public int Position { get; set; }
+    public bool IsBoss { get; set; }
     public bool IsDead { get; set; }
 }
 

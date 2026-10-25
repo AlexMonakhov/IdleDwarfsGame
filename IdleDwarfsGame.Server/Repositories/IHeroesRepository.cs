@@ -19,4 +19,9 @@ public interface IHeroesRepository
     /// Ensures slot uniqueness per player.
     /// </summary>
     Task AssignToSquadAsync(Guid heroId, int? placeInSquad);
+    /// <summary>
+    /// Replaces the whole squad of a player: slots[i] goes to place i + 1, null leaves the slot empty,
+    /// everyone else is removed from the squad. Throws InvalidOperationException on invalid input.
+    /// </summary>
+    Task<List<Hero>> SaveSquadAsync(Guid playerId, IReadOnlyList<Guid?> slots);
 }

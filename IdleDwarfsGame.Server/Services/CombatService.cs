@@ -11,19 +11,30 @@ public class CombatService(
     public async Task<CombatResult> StartTowerFight(Guid playerId, int floor)
     {
         var scenario = scenarios.OfType<TowerFloorScenario>().First();
-        return await ProcessCombat(playerId, floor, scenario);
+        return await ProcessCombat(playerId, floor, scenario, new List<IGlobalEffect> { new LavaArenaEffect() });
     }
 
     public async Task<CombatResult> StartBossFight(Guid playerId, int difficulty)
     {
         var scenario = scenarios.OfType<BossScenario>().First();
-        return await ProcessCombat(playerId, difficulty, scenario);
+        return await ProcessCombat(playerId, difficulty, scenario, new List<IGlobalEffect> { new LavaArenaEffect() });
     }
 
-    private async Task<CombatResult> ProcessCombat(Guid playerId, int level, ICombatScenario scenario)
+    // Эффект арены берётся из БД вместе с уровнем
+    public async Task<CombatResult> StartCampaignFight(Guid playerId, CampaignStage stage)
+    {
+        var scenario = scenarios.OfType<CampaignScenario>().First();
+        var globalEffects = new List<IGlobalEffect>();
+        if (ArenaStatusEffect.FromArena(stage.Arena) is { } arenaEffect)
+            globalEffects.Add(arenaEffect);
+
+        return await ProcessCombat(playerId, stage.Id, scenario, globalEffects);
+    }
+
+    private async Task<CombatResult> ProcessCombat(Guid playerId, int level, ICombatScenario scenario, List<IGlobalEffect> globalEffects)
     {
         // 1. Собираем мир (WorldFactory достаёт героев из БД)
-        var world = await worldFactory.CreateWorldAsync(playerId, scenario, level, new List<IGlobalEffect> { new LavaArenaEffect() });
+        var world = await worldFactory.CreateWorldAsync(playerId, scenario, level, globalEffects);
 
         // 2. Снимок участников до боя — фронт строит сцену по нему
         var units = CombatSnapshot.Units(world);

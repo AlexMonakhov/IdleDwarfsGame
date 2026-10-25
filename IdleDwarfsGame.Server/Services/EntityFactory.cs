@@ -10,8 +10,9 @@ public class EntityFactory : IEntityFactory
             HeroId = hero.Id,
             Name = hero.Name,
             UnitType = hero.UnitType,
-            Color = hero.Color,
+            Element = hero.Element,
             Level = hero.Level,
+            StatLevel = Math.Max(1, level),
             Position = position
         };
 

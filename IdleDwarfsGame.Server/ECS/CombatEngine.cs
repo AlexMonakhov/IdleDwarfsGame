@@ -4,6 +4,7 @@ public class CombatEngine : ICombatEngine
     private const int MaxTurnsPerUnit = 100;
 
     private readonly List<ICombatSystem> _systems;
+    private readonly Random _random;
 
     public CombatEngine() : this(new Random())
     {
@@ -11,6 +12,7 @@ public class CombatEngine : ICombatEngine
 
     public CombatEngine(Random random)
     {
+        _random = random;
         _systems = new List<ICombatSystem>
         {
             new TurnOrderSystem(),
@@ -27,7 +29,7 @@ public class CombatEngine : ICombatEngine
 
     public CombatContext Run(World world)
     {
-        var context = new CombatContext();
+        var context = new CombatContext { Random = _random };
         context.AddLog(new CombatLogEntry
         {
             EventType = CombatEventType.CombatStart,
@@ -68,10 +70,11 @@ public static class CombatSnapshot
                 HeroId = info.HeroId,
                 Name = info.Name,
                 UnitType = info.UnitType,
-                Color = info.Color,
+                Element = info.Element,
                 Level = info.Level,
                 Team = world.Team[e.Id].TeamId,
                 Position = info.Position,
+                IsBoss = info.IsBoss,
                 MaxHp = world.Health[e.Id].Max,
                 Hp = world.Health[e.Id].Current,
                 Attack = world.Attack[e.Id].Damage,
@@ -80,7 +83,10 @@ public static class CombatSnapshot
                 Energy = energy?.Current ?? 0,
                 Spells = world.Spells.GetValueOrDefault(e.Id)?.SpellIds.Select(SpellRegistry.Describe).ToList() ?? new(),
                 Immunities = world.Immunities.GetValueOrDefault(e.Id)?.ImmuneTo.ToList() ?? new(),
-                Aura = aura == null ? null : $"{aura.EffectName} {aura.Power} → {aura.TargetType}"
+                Aura = aura == null ? null : $"{aura.EffectName} {aura.Power} → {aura.TargetType}",
+                AuraEffect = aura?.EffectName,
+                AuraTarget = aura?.TargetType,
+                Power = CombatPower.Of(world, e.Id)
             };
         })
         .OrderBy(u => u.Team)

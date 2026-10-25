@@ -26,8 +26,8 @@ public class BossScenario : ICombatScenario
         world.Health[bossId].Current = world.Health[bossId].Max;
     }
 
-    public Task<RewardEntity> CalculateRewardsAsync(int difficulty, List<CombatLogEntry> logs)
+    public Task<RewardEntity?> CalculateRewardsAsync(int difficulty, List<CombatLogEntry> logs)
     {
-        return Task.FromResult(new RewardEntity { Gold = difficulty * 300, Experience = difficulty * 75 });
+        return Task.FromResult<RewardEntity?>(new RewardEntity { Gold = difficulty * 300, Experience = difficulty * 75 });
     }
 }

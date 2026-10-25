@@ -50,5 +50,13 @@ public class PlayerRepository : IPlayerRepository
             .ToListAsync();
     }
 
-    
+    public async Task<PlayerResources?> GetResourcesAsync(Guid playerId)
+    {
+        // Без трекинга: ресурсы меняются через ExecuteUpdate, отслеживаемая копия игрока могла устареть
+        return await _context.Players
+            .AsNoTracking()
+            .Where(p => p.Id == playerId)
+            .Select(p => new PlayerResources { Gold = p.Gold, Experience = p.Experience })
+            .FirstOrDefaultAsync();
+    }
 }

@@ -10,8 +10,6 @@ public abstract class BaseSpell : ISpell
     public int EnergyCost { get; }
     public virtual DamageType DamageType => DamageType.Magical;
 
-    protected static Random _random = new();
-
     protected BaseSpell(int id, string name, int level, int energyCost)
     {
         Id = id;
@@ -22,7 +20,7 @@ public abstract class BaseSpell : ISpell
 
     public virtual void Execute(World world, int casterId, CombatContext context)
     {
-        var targets = GetTargets(world, casterId)
+        var targets = GetTargets(world, casterId, context.Random)
             .Where(id => id != -1 && world.IsAlive(id))
             .ToList();
         if (targets.Count == 0) return;
@@ -76,8 +74,8 @@ public abstract class BaseSpell : ISpell
         });
     }
 
-    // Каждый спелл решает сам, сколько целей бить
-    protected abstract List<int> GetTargets(World world, int casterId);
+    // Каждый спелл решает сам, сколько целей бить. Случайность берётся из боя — так бой с одним сидом воспроизводим
+    protected abstract List<int> GetTargets(World world, int casterId, Random random);
 
     // Свой урон для каждого спелла
     protected abstract int GetDamage(World world, int casterId, int targetId);
@@ -87,11 +85,13 @@ public abstract class BaseSpell : ISpell
     {
     }
 
+    public abstract SpellEstimate Estimate(int casterAttack, int enemyCount);
+
     // Вспомогательные методы для поиска целей
     protected List<Entity> GetAliveEnemies(World world, int casterId) => world.GetAliveEnemies(casterId);
 
-    protected List<int> GetRandomTargets(List<Entity> availableTargets, int count)
+    protected List<int> GetRandomTargets(List<Entity> availableTargets, int count, Random random)
     {
-        return availableTargets.OrderBy(_ => _random.Next()).Take(count).Select(e => e.Id).ToList();
+        return availableTargets.OrderBy(_ => random.Next()).Take(count).Select(e => e.Id).ToList();
     }
 }

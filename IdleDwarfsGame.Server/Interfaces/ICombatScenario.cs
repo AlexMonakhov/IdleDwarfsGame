@@ -1,4 +1,4 @@
-﻿public enum CombatMode { Boss, Tower }
+﻿public enum CombatMode { Boss, Tower, Campaign }
 
 public interface ICombatScenario
 {
@@ -7,8 +7,8 @@ public interface ICombatScenario
     // Спавн врагов в мир (твоя текущая логика)
     Task PopulateEnemiesAsync(World world, int difficultyOrFloor);
 
-    // Логика выдачи наград в зависимости от режима
-    Task<RewardEntity> CalculateRewardsAsync(int difficultyOrFloor, List<CombatLogEntry> combatResult);
+    // Логика выдачи наград в зависимости от режима. null — режим наград не даёт
+    Task<RewardEntity?> CalculateRewardsAsync(int difficultyOrFloor, List<CombatLogEntry> combatResult);
 }
 
 

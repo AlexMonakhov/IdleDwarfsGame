@@ -41,9 +41,9 @@
 
   <ModalComponent 
     v-model="campaignDialogOpen"
-    :header-message="'campaign'"
+    :header-message="t('campaign.header')"
   >
-    <FightPreviewListContainer :count="6"></FightPreviewListContainer>
+    <FightPreviewListContainer></FightPreviewListContainer>
   </ModalComponent>
 </template>
 
@@ -55,6 +55,9 @@ import campaign from "@/assets/campaign-dark.png";
 import campaignHover from "@/assets/campaign-hover.png";
 import ModalComponent from '@/components/common/ModalComponent.vue';
 import FightPreviewListContainer from '@/components/interface/FightPreviewListContainer.vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 
 // --- НАСТРОЙКИ ---

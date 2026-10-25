@@ -18,9 +18,9 @@ public class TowerFloorScenario : ICombatScenario
         _factory.CreateSquad(world, enemies, teamId: 2, level: floor);
     }
 
-    public Task<RewardEntity> CalculateRewardsAsync(int floor, List<CombatLogEntry> logs)
+    public Task<RewardEntity?> CalculateRewardsAsync(int floor, List<CombatLogEntry> logs)
     {
         // Специфичная логика наград для башни
-        return Task.FromResult(new RewardEntity { Gold = floor * 100, Experience = floor * 25 });
+        return Task.FromResult<RewardEntity?>(new RewardEntity { Gold = floor * 100, Experience = floor * 25 });
     }
 }

@@ -24,9 +24,10 @@ const panelStyle = computed<CSSProperties>(() => ({
     <div class="panel-header"><div class="panel-header-text">{{ props.headerMessage }}</div></div>
     <div class="panel-content">
       <slot />
-    </div>
-    <div v-if="$slots.panelFooter" class="panel-footer">
-      <slot name="panelFooter"></slot>
+      <!-- Кнопки живут внутри контента, в правом нижнем углу -->
+      <div v-if="$slots.panelFooter" class="panel-footer">
+        <slot name="panelFooter"></slot>
+      </div>
     </div>
   </div>
 </template>
@@ -96,6 +97,11 @@ const panelStyle = computed<CSSProperties>(() => ({
 }
 
 .panel-footer {
-  margin-top: 16px;
+  margin-top: auto;
+  padding-top: 16px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  column-gap: 10px;
 }
 </style>

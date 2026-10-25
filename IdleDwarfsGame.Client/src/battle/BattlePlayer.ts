@@ -1,7 +1,10 @@
 import { soundService } from '@/services/soundService/SoundService';
+import { dialogueService } from '@/services/dialogueService/DialogueService';
+import { DamageSource } from '@/services/dialogueService/types';
+import { t } from '@/i18n';
 import { BattleFx } from './BattleFx';
-import { BattleState, BattleUnit, FloatingText, UnitFocus, resetBattleState } from './BattleState';
-import { DAMAGE_COLORS, STATUS_VISUALS, resolveSpellVisual } from './FxRegistry';
+import { BattleState, BattleUnit, FloatingText, UnitFocus, auraEffectOf, resetBattleState } from './BattleState';
+import { DAMAGE_COLORS, STATUS_VISUALS, resolveAuraVisual, resolveSpellVisual } from './FxRegistry';
 import { CombatLogEntry, CombatResult } from './types';
 import { getUnitView } from './UnitRegistry';
 
@@ -31,12 +34,19 @@ const TIMING = {
   death: 500,
   floatingText: 1100,
   actionGap: 400,
+  speech: 2400,
+  auraWave: 300,
+  auraRecover: 450,
 };
+
+// Облачко с репликой не короче этого даже на x4 — иначе не успеть прочитать
+const MIN_SPEECH_MS = 1500;
 
 // Подсветка юнита, чей сейчас ход
 const TURN_COLOR = '#ffe8a3';
 
 let floatingTextId = 0;
+let speechId = 0;
 
 // Проигрывает бой, полностью восстанавливая состояние сцены из серверных логов.
 export class BattlePlayer {
@@ -98,6 +108,18 @@ export class BattlePlayer {
         continue;
       }
 
+      // Аура накладывает статус на всех целей подряд — проигрываем это одним всплеском
+      if (this.isAuraTrigger(log)) {
+        const group = [log];
+        let j = i + 1;
+        while (j < logs.length && logs[j].attackerId === log.attackerId && this.isAuraTrigger(logs[j])) {
+          group.push(logs[j++]);
+        }
+        await this.playAura(log.attackerId, group);
+        i = j;
+        continue;
+      }
+
       await this.playEntry(log);
       // StatusTick без урона ничего не показывает — паузу не делаем
       if (ACTION_EVENTS.has(log.eventType) && !(log.eventType === 'StatusTick' && log.damage <= 0)) {
@@ -155,7 +177,7 @@ export class BattlePlayer {
         break;
 
       case 'Stunned':
-        this.float(log.attackerId, 'Stunned', 'status');
+        this.float(log.attackerId, t('arena.float.stunned'), 'status');
         this.sound(s => s.stun());
         await this.delay(TIMING.stunned);
         this.endTurn();
@@ -240,6 +262,37 @@ export class BattlePlayer {
     this.endTurn();
   }
 
+  // Срабатывание ауры: носитель вспыхивает, от него расходится волна, статусы ложатся на цели вслед за ней
+  private async playAura(bearerId: number, group: CombatLogEntry[]) {
+    const bearer = this.unit(bearerId);
+    const visual = resolveAuraVisual(bearer ? auraEffectOf(bearer) : null, bearer?.auraTarget);
+
+    this.animate(bearerId, v => v.aura?.(visual.color));
+    this.sound(s => s.cast());
+    if (!this.skipping) this.fx.auraBurst(getUnitView(bearerId)?.el?.(), visual);
+    await this.delay(TIMING.auraWave);
+
+    for (const entry of group) {
+      this.show(entry);
+      if (entry.eventType === 'Immune') {
+        this.applyImmune(entry);
+        continue;
+      }
+      this.applyStatus(entry);
+      if (!this.skipping) this.fx.play(visual.hit, getUnitView(entry.targetId)?.el?.());
+    }
+    await this.delay(TIMING.auraRecover);
+  }
+
+  // Статус наложен аурой: источник — её носитель и эффект совпадает с эффектом ауры.
+  // Статусы от заклинаний сюда не попадают — они разбираются раньше, в группе каста.
+  private isAuraTrigger(log: CombatLogEntry) {
+    if (log.eventType !== 'StatusApplied' && log.eventType !== 'Immune') return false;
+    const bearer = this.unit(log.attackerId);
+    const effect = log.appliedEffects[0]?.name;
+    return !!bearer && !!effect && auraEffectOf(bearer) === effect;
+  }
+
   private playVictory(team: number) {
     // Джингл играем и при пропуске боя — это единственный звук в конце
     if (team === 1) soundService.victory();
@@ -265,6 +318,9 @@ export class BattlePlayer {
     // Звук попадания нужен и для silent: взрыв заклинания беззвучный
     this.sound(s => s.hit(log.damageType, crit));
 
+    const source: DamageSource = options.status ? 'status' : log.eventType === 'Attack' ? 'attack' : 'spell';
+    this.maybeSpeak(log, target, source);
+
     if (this.skipping || options.silent) return;
     const targetEl = getUnitView(target.id)?.el?.();
     if (options.status) {
@@ -286,7 +342,7 @@ export class BattlePlayer {
   }
 
   private applyImmune(log: CombatLogEntry) {
-    this.float(log.targetId, 'Immune', 'immune');
+    this.float(log.targetId, t('arena.float.immune'), 'immune');
     this.sound(s => s.block());
   }
 
@@ -380,6 +436,34 @@ export class BattlePlayer {
       const index = unit.floatingTexts.findIndex(t => t.id === entry.id);
       if (index >= 0) unit.floatingTexts.splice(index, 1);
     }, TIMING.floatingText);
+  }
+
+  // Иногда (см. DialogueService.chance) атакующий или цель что-то говорит
+  private maybeSpeak(log: CombatLogEntry, target: BattleUnit, source: DamageSource) {
+    if (this.skipping) return;
+
+    const attacker = log.attackerId !== log.targetId ? this.unit(log.attackerId) : undefined;
+    const line = dialogueService.tryPick({
+      attacker,
+      target,
+      source,
+      damage: log.damage,
+      crit: log.isCritical,
+      killed: target.hp <= 0,
+      log,
+    });
+    if (line) this.say(line.speakerId, line.text);
+  }
+
+  private say(unitId: number, text: string) {
+    const unit = this.unit(unitId);
+    if (!unit) return;
+
+    const speech = { id: ++speechId, text };
+    unit.speech = speech;
+    setTimeout(() => {
+      if (unit.speech?.id === speech.id) unit.speech = null;
+    }, Math.max(MIN_SPEECH_MS, TIMING.speech / this.speed));
   }
 
   private delay(ms: number, ignoreSpeed = false) {

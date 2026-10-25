@@ -326,6 +326,23 @@ const modalStyle = computed<CSSProperties>(() => ({
 
 
 
+.modal-content-with-footer {
+  flex-direction: column;
+}
+
+.modal-body {
+  flex: 1;
+  display: flex;
+}
+
+.modal-footer {
+  padding-top: 12px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  column-gap: 10px;
+}
+
 .modal-content{
 
   scrollbar-width: thin; /* Firefox */
@@ -437,12 +454,16 @@ const modalStyle = computed<CSSProperties>(() => ({
 
           <div class="modal-header"><div class="modal-header-text">{{ props.headerMessage }}</div></div>
 
-          <div class="modal-content">
-            <slot />
-          </div>
+          <!-- С футером контент становится колонкой: тело сверху, кнопки внутри рамки в правом нижнем углу -->
+          <div class="modal-content" :class="{ 'modal-content-with-footer': $slots.modalFooter }">
+            <div v-if="$slots.modalFooter" class="modal-body">
+              <slot />
+            </div>
+            <slot v-else />
 
-          <div v-if="$slots.modalFooter">
-                <slot name="modalFooter"></slot>
+            <div v-if="$slots.modalFooter" class="modal-footer">
+              <slot name="modalFooter"></slot>
+            </div>
           </div>
 
         </div>

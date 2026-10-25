@@ -42,10 +42,10 @@ public static class BalanceCalculator
     {
         if (level <= 1) return baseValue;
 
-        // Формула: base * (multiplier ^ (level - 1))
-        double scaledValue = baseValue * Math.Pow(LevelMultiplier, level - 1);
-
         // Округляем до ближайшего целого
-        return (int)Math.Round(scaledValue);
+        return (int)Math.Round(baseValue * Factor(level));
     }
+
+    // Формула: multiplier ^ (level - 1)
+    public static double Factor(int level) => level <= 1 ? 1 : Math.Pow(LevelMultiplier, level - 1);
 }

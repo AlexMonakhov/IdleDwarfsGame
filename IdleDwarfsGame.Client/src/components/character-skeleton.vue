@@ -2,10 +2,11 @@
     import { ref, onMounted, onUnmounted, watch, defineProps, withDefaults } from "vue";
     import { HeroModel } from "@/models/hero";
     import { SpriteTint } from "@/battle/FxRegistry";
+    import { getSpriteVariants, SpriteAnimation } from "@/battle/sprites";
 
 const props = withDefaults(defineProps<{
   model: HeroModel;
-  animationType?: 'idle' | 'attack' | 'victory';
+  animationType?: SpriteAnimation;
   frameWidth: number;
   frameHeight: number;
   frameCount: number;
@@ -17,6 +18,8 @@ const props = withDefaults(defineProps<{
   tint?: SpriteTint | null;
   // Множитель скорости idle-анимации (0 — заморозка)
   speed?: number;
+  // Полная остановка анимации на текущем кадре (смерть юнита)
+  paused?: boolean;
 }>(), {
   animationType: 'idle',
   padding: 1,
@@ -25,6 +28,7 @@ const props = withDefaults(defineProps<{
   frameCount: 25,
   tint: null,
   speed: 1,
+  paused: false,
 });
 
 // Короткая вспышка силуэта (получение урона, удар, лечение)
@@ -47,28 +51,37 @@ function overlay(color: string, alpha: number) {
 
 /* ===== STATE ===== */
 // Внутреннее состояние анимации (то, что мы реально видим)
-const localAnimType = ref<'idle' | 'attack' | 'victory'>('idle');
+const localAnimType = ref<SpriteAnimation>('idle');
 
 const canvasRef = ref<HTMLCanvasElement | null>(null);
 
 let ctx: CanvasRenderingContext2D | null = null;
 let currentImage = new Image(); // Текущий спрайт-лист
-let spriteIdle = new Image();
-let spriteAttack = new Image();
-let spriteVictory = new Image();
+// Все варианты листов каждой анимации (_1, _2, ...): при каждом запуске анимации берётся случайный
+const sheets: Record<SpriteAnimation, HTMLImageElement[]> = { idle: [], attack: [], victory: [], death: [] };
 
 let currentFrame = 0;
 let lastTime = 0;
 let animationId = 0;
 
+const loadSheets = () => {
+  (Object.keys(sheets) as SpriteAnimation[]).forEach(type => {
+    sheets[type] = getSpriteVariants(type, props.model.color, props.model.lvl, props.model.unitType).map(src => {
+      const image = new Image();
+      image.src = src;
+      return image;
+    });
+  });
+};
+
 /* ===== Вспомогательная функция смены спрайта ===== */
-const updateActiveSprite = (type: 'idle' | 'attack' | 'victory') => {
+// false — листа для такой анимации нет (например, смерть ещё не нарисована)
+const updateActiveSprite = (type: SpriteAnimation): boolean => {
+  const variants = sheets[type];
+  if (!variants.length) return false;
   localAnimType.value = type;
-  switch (type) {
-    case 'idle': currentImage = spriteIdle; break;
-    case 'attack': currentImage = spriteAttack; break;
-    case 'victory': currentImage = spriteVictory; break;
-  }
+  currentImage = variants[Math.floor(Math.random() * variants.length)];
+  return true;
 };
 
 /* ===== DRAW ===== */
@@ -107,7 +120,9 @@ function animate(time: number) {
   // Рассчитываем FPS внутри цикла. 
   // Если нужно "2 удара в секунду", а в спрайте 10 кадров -> ставь fps 20
   // Статусы замедляют только idle: атака/победа доигрываются с обычной скоростью
-  const speed = localAnimType.value === 'idle' ? props.speed : 1;
+  // Смерть доигрывается даже на паузе — пауза как раз и означает, что юнит мёртв
+  const dying = localAnimType.value === 'death';
+  const speed = dying ? 1 : props.paused ? 0 : localAnimType.value === 'idle' ? props.speed : 1;
   const frameDuration = 1000 / (props.fps || 10) / Math.max(speed, 0.0001);
 
   if (speed > 0 && time - lastTime >= frameDuration) {
@@ -115,14 +130,12 @@ function animate(time: number) {
 
     // ПРОВЕРКА ЗАВЕРШЕНИЯ
     if (nextFrame >= props.frameCount) {
-      if (localAnimType.value !== 'idle') {
-        // Если проиграли атаку/победу до конца — возвращаемся в idle
+      if (localAnimType.value === 'attack') {
+        // Если проиграли атаку до конца — возвращаемся в idle
         updateActiveSprite('idle');
-        nextFrame = 0;
-      } else {
-        // Если это был idle — просто зацикливаем
-        nextFrame = 0;
       }
+      // Смерть замирает на последнем кадре, idle и победа зацикливаются
+      nextFrame = dying ? props.frameCount - 1 : 0;
     }
 
     currentFrame = nextFrame;
@@ -134,33 +147,37 @@ function animate(time: number) {
 }
 
 /* ===== LOAD IMAGES ===== */
-const requireContext = require.context('../assets/sprite-lists', true, /\.png$/);
-const getSpriteUrl = (animType: string, color: string, level: number, frame = 1) => {
-  const path = `./dwarf-${animType}/dwarf_${animType}_lvl${level}_${color}_${frame}.png`;
-  try { return requireContext(path); } catch (e) { return ''; }
-};
-
 onMounted(() => {
   ctx = canvasRef.value!.getContext("2d");
   
   // Предзагрузка всех спрайтов
-  spriteIdle.src = getSpriteUrl('idle', props.model.color, props.model.lvl);
-  spriteAttack.src = getSpriteUrl('attack', props.model.color, props.model.lvl, 2);
-  spriteVictory.src = getSpriteUrl('victory', props.model.color, props.model.lvl);
+  loadSheets();
 
   updateActiveSprite('idle'); // Стартуем с idle
-  
-  spriteIdle.onload = () => {
-    animationId = requestAnimationFrame(animate);
-  };
+  // Уже мёртвый юнит сразу лежит на последнем кадре смерти
+  if (props.paused && updateActiveSprite('death')) currentFrame = props.frameCount - 1;
+
+  const firstSheet = sheets[localAnimType.value][0];
+  if (firstSheet) {
+    firstSheet.onload = () => {
+      animationId = requestAnimationFrame(animate);
+    };
+  }
 });
 
 /* ===== WATCHER & METHODS ===== */
-const playAnimation = (type: 'idle' | 'attack' | 'victory') => {
+const playAnimation = (type: SpriteAnimation) => {
+  // Нет листа (например, смерть ещё не нарисована) — остаёмся в текущей анимации
+  if (!updateActiveSprite(type)) return;
   currentFrame = 0;
   lastTime = performance.now(); // Сброс таймера для мгновенного начала
-  updateActiveSprite(type);
 };
+
+// Юнит умер — проигрываем смерть, если она нарисована, иначе просто замираем (см. animate)
+watch(() => props.paused, (paused) => {
+  if (paused) playAnimation('death');
+  else if (localAnimType.value === 'death') playAnimation('idle');
+});
 
 defineExpose({
   playAnimation,

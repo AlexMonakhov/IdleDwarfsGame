@@ -5,6 +5,7 @@ import TownView from '@/views/TownView.vue'
 import LoginView from '@/views/LoginView.vue'
 import RegisterView from '@/views/RegisterView.vue'
 import NotFoundView from '@/views/NotFoundView.vue'
+import InventoryView from '@/views/InventoryView.vue'
 import { useAuth } from '@/composables/UseAuth'
 
 const routes: Array<RouteRecordRaw> = [
@@ -32,6 +33,12 @@ const routes: Array<RouteRecordRaw> = [
     component: TownView
   },
   {
+    path: '/inventory',
+    name: 'inventory',
+    component: InventoryView,
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/login',
     name: 'login',
     component: LoginView,
@@ -56,10 +63,14 @@ const router = createRouter({
   routes
 })
 
-// Уже залогиненного игрока не пускаем обратно на логин/регистрацию
+// Уже залогиненного игрока не пускаем обратно на логин/регистрацию, гостя — на страницы игрока
 router.beforeEach((to) => {
-  if (to.meta.guestOnly && useAuth().isAuthenticated.value) {
+  const { isAuthenticated } = useAuth()
+  if (to.meta.guestOnly && isAuthenticated.value) {
     return { name: 'home' }
+  }
+  if (to.meta.requiresAuth && !isAuthenticated.value) {
+    return { name: 'login', query: { redirect: to.fullPath } }
   }
 })
 

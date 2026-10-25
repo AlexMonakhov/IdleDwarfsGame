@@ -16,6 +16,12 @@ public class GameDbContext : DbContext
     public DbSet<Resourses> Resourses => Set<Resourses>();
     public DbSet<PlayerResourses> PlayerResourses => Set<PlayerResourses>();
     public DbSet<User> Users => Set<User>();
+    public DbSet<Arena> Arenas => Set<Arena>();
+    public DbSet<CampaignStage> CampaignStages => Set<CampaignStage>();
+    public DbSet<CampaignStageEnemy> CampaignStageEnemies => Set<CampaignStageEnemy>();
+    public DbSet<PlayerCampaignProgress> PlayerCampaignProgress => Set<PlayerCampaignProgress>();
+    public DbSet<Expedition> Expeditions => Set<Expedition>();
+    public DbSet<ExpeditionHero> ExpeditionHeroes => Set<ExpeditionHero>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -57,15 +63,18 @@ public class GameDbContext : DbContext
             .Property(h => h.UnitType)
             .HasDefaultValue("Dwarf");
 
+        // Стихию храним строкой ("Fire"), чтобы порядок значений в енаме можно было менять
         modelBuilder.Entity<Hero>()
-            .Property(h => h.Color)
-            .HasDefaultValue("red");
+            .Property(h => h.Element)
+            .HasConversion<string>()
+            .HasMaxLength(16)
+            .HasDefaultValue(HeroElement.Basic);
 
         modelBuilder.Entity<Player>()
-            .HasData(HeroSeedData.Players);
+            .HasData(HeroSeedData.Players.Append(CampaignSeedData.Player).ToArray());
 
         modelBuilder.Entity<Hero>()
-            .HasData(HeroSeedData.Heroes);
+            .HasData(HeroSeedData.Heroes.Concat(CampaignSeedData.Heroes).ToArray());
 
         modelBuilder.Entity<PlayerChest>()
             .HasKey(pc => pc.Id);
@@ -158,5 +167,112 @@ public class GameDbContext : DbContext
             .WithOne()
             .HasForeignKey<User>(u => u.PlayerId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        // ===== Кампания =====
+        modelBuilder.Entity<Arena>()
+            .HasKey(a => a.Id);
+
+        modelBuilder.Entity<Arena>()
+            .HasData(CampaignSeedData.Arenas);
+
+        // Id уровня задаём сами — это его номер в кампании
+        modelBuilder.Entity<CampaignStage>()
+            .Property(s => s.Id)
+            .ValueGeneratedNever();
+
+        modelBuilder.Entity<CampaignStage>()
+            .HasOne(s => s.Arena)
+            .WithMany()
+            .HasForeignKey(s => s.ArenaId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<CampaignStage>()
+            .HasMany(s => s.Enemies)
+            .WithOne()
+            .HasForeignKey(e => e.StageId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<CampaignStage>()
+            .HasData(CampaignSeedData.Stages);
+
+        modelBuilder.Entity<CampaignStageEnemy>()
+            .HasOne(e => e.Hero)
+            .WithMany()
+            .HasForeignKey(e => e.HeroId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<CampaignStageEnemy>()
+            .HasIndex(e => new { e.StageId, e.Position })
+            .IsUnique();
+
+        modelBuilder.Entity<CampaignStageEnemy>()
+            .HasData(CampaignSeedData.StageEnemies);
+
+        modelBuilder.Entity<PlayerCampaignProgress>()
+            .HasKey(p => new { p.PlayerId, p.StageId });
+
+        modelBuilder.Entity<PlayerCampaignProgress>()
+            .Property(p => p.PlayerId)
+            .HasConversion<string>();
+
+        modelBuilder.Entity<PlayerCampaignProgress>()
+            .HasOne<Player>()
+            .WithMany()
+            .HasForeignKey(p => p.PlayerId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<PlayerCampaignProgress>()
+            .HasOne<CampaignStage>()
+            .WithMany()
+            .HasForeignKey(p => p.StageId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // ===== Экспедиции =====
+        modelBuilder.Entity<Expedition>()
+            .HasKey(e => e.Id);
+
+        modelBuilder.Entity<Expedition>()
+            .Property(e => e.PlayerId)
+            .HasConversion<string>();
+
+        modelBuilder.Entity<Expedition>()
+            .Property(e => e.Status)
+            .HasConversion<string>()
+            .HasMaxLength(16);
+
+        modelBuilder.Entity<Expedition>()
+            .Property(e => e.TemplateKey)
+            .HasMaxLength(32);
+
+        modelBuilder.Entity<Expedition>()
+            .HasOne<Player>()
+            .WithMany()
+            .HasForeignKey(e => e.PlayerId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Одна доска — по одному заданию на место; заодно защищает от двойной генерации доски
+        modelBuilder.Entity<Expedition>()
+            .HasIndex(e => new { e.PlayerId, e.BoardStartsAt, e.Slot })
+            .IsUnique();
+
+        modelBuilder.Entity<Expedition>()
+            .HasMany(e => e.Heroes)
+            .WithOne()
+            .HasForeignKey(h => h.ExpeditionId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<ExpeditionHero>()
+            .HasKey(h => new { h.ExpeditionId, h.HeroId });
+
+        modelBuilder.Entity<ExpeditionHero>()
+            .HasOne<Hero>()
+            .WithMany()
+            .HasForeignKey(h => h.HeroId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Герой может быть только в одном задании одновременно — даже при параллельных запросах
+        modelBuilder.Entity<ExpeditionHero>()
+            .HasIndex(h => h.HeroId)
+            .IsUnique();
     }
 }
