@@ -11,7 +11,9 @@ export type EffectType =
   | 'frost-aura'
   | 'stun-stars'
   | 'sparkles'
-  | 'ring';
+  | 'ring'
+  | 'aura-sphere'
+  | 'aura-burst';
 
 export type FadeDirection = 'in' | 'out';
 

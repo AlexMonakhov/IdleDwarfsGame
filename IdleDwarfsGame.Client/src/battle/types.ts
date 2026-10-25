@@ -66,10 +66,11 @@ export interface CombatUnitInfo {
   heroId?: string | null;
   name: string;
   unitType: string;
-  color: string;
+  element: HeroElement;
   level: number;
   team: number;
   position: number;
+  isBoss?: boolean;
   maxHp: number;
   hp: number;
   attack: number;
@@ -79,7 +80,28 @@ export interface CombatUnitInfo {
   spells: string[];
   immunities: string[];
   aura?: string | null;
+  auraEffect?: string | null;
+  auraTarget?: AuraTarget | null;
+  power: CombatPowerBreakdown;
 }
+
+// Боевая мощь (IdleDwarfsGame.Server/ECS/CombatPower.cs): total = stats + level + skills + passives
+export interface CombatPowerBreakdown {
+  total: number;
+  stats: number;
+  level: number;
+  skills: number;
+  passives: number;
+}
+
+export type AuraTarget = 'Allies' | 'Enemies' | 'All';
+
+// Стихия героя (HeroElement.cs). На 1-м уровне у всех Basic
+export type HeroElement = 'Basic' | 'Fire' | 'Frost' | 'Lightning' | 'Nature';
+
+// То, что нужно портрету: подходит и юнит боя, и герой из инвентаря
+export type PortraitUnit = Pick<CombatUnitInfo,
+  'name' | 'unitType' | 'element' | 'level' | 'maxHp' | 'attack' | 'speed' | 'spells' | 'immunities' | 'aura' | 'isBoss' | 'power'>;
 
 export interface CombatRewards {
   gold: number;

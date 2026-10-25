@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { ref, onMounted, onUnmounted, inject, watch } from 'vue';
+import type { Ref } from 'vue';
 import { EffectType } from '@/services/particleService/types/interfaces/canvas-interfaces';
 
 export interface EffectConfig {
@@ -77,6 +78,45 @@ const resolveCenter = (value: unknown) => {
 const effectKey = (e: EffectConfig) =>
   `${e.func}|${e.padding ?? ''}|${e.isUnder ? 1 : 0}|${objectKey(e.from)}|${objectKey(e.to)}`;
 
+const layerOf = (effect: EffectConfig) => (effect.isUnder === false ? 'foreground' : 'background');
+
+// Координаты эффекта в системе канваса его слоя: центр компонента либо from/to-элементы
+const resolvePoints = (effect: EffectConfig, rect: DOMRect) => {
+  const canvasNode = layerOf(effect) === 'foreground' ? particleService?.fgCanvas : particleService?.bgCanvas;
+  const canvasRect = canvasNode?.getBoundingClientRect();
+  const offsetX = canvasRect?.left ?? 0;
+  const offsetY = canvasRect?.top ?? 0;
+
+  const localX = rect.left + rect.width / 2 - offsetX;
+  const localY = rect.top + rect.height / 2 - offsetY;
+
+  const fromPoint = resolveCenter(effect.from ?? effect.args?.from);
+  const toPoint = resolveCenter(effect.to ?? effect.args?.to);
+
+  return {
+    startX: fromPoint ? fromPoint.x - offsetX : localX,
+    startY: fromPoint ? fromPoint.y - offsetY : localY,
+    endX: toPoint ? toPoint.x - offsetX : localX,
+    endY: toPoint ? toPoint.y - offsetY : localY,
+  };
+};
+
+// После ресайза окна/обёртки двигаем уже запущенные эмиттеры, не перезапуская их анимацию
+const repositionEmitters = () => {
+  if (!containerRef.value || !emitterMap.value.size) return;
+  const rect = containerRef.value.getBoundingClientRect();
+
+  (props.effects || []).forEach(effect => {
+    const id = emitterMap.value.get(effectKey(effect));
+    if (!id) return;
+    const points = resolvePoints(effect, rect);
+    particleService?.updateEmitter(id, { ...points, x: points.startX, y: points.startY });
+  });
+};
+
+const layoutVersion = inject<Ref<number> | null>('particleLayoutVersion', null);
+if (layoutVersion) watch(layoutVersion, repositionEmitters);
+
 const registerEmitters = () => {
   const newKeys = new Set((props.effects || []).map(effectKey));
 
@@ -92,31 +132,11 @@ const registerEmitters = () => {
       if (!containerRef.value) return;
 
       const rect = containerRef.value.getBoundingClientRect();
-      const centerX = rect.left + rect.width / 2;
-      const centerY = rect.top + rect.height / 2;
 
       props.effects.forEach(effect => {
         const key = effectKey(effect);
-        const layer = effect.isUnder === false ? 'foreground' : 'background';
-        const canvasNode = layer === 'foreground' ? particleService?.fgCanvas : particleService?.bgCanvas;
-
-        const canvasRect = canvasNode?.getBoundingClientRect();
-
-        let localX = centerX;
-        let localY = centerY;
-
-        if (canvasRect) {
-          localX -= canvasRect.left;
-          localY -= canvasRect.top;
-        }
-
-        const fromPoint = resolveCenter(effect.from ?? effect.args?.from);
-        const toPoint = resolveCenter(effect.to ?? effect.args?.to);
-
-        const startX = fromPoint ? fromPoint.x - (canvasRect?.left ?? 0) : localX;
-        const startY = fromPoint ? fromPoint.y - (canvasRect?.top ?? 0) : localY;
-        const endX = toPoint ? toPoint.x - (canvasRect?.left ?? 0) : localX;
-        const endY = toPoint ? toPoint.y - (canvasRect?.top ?? 0) : localY;
+        const layer = layerOf(effect);
+        const { startX, startY, endX, endY } = resolvePoints(effect, rect);
 
         if (emitterMap.value.has(key)) {
           const id = emitterMap.value.get(key)!;

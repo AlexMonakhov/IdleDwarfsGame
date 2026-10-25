@@ -11,6 +11,8 @@ export interface UnitView {
   cast?: (color?: string) => void;
   hit?: (damageType?: string, options?: UnitHitOptions) => void;
   heal?: () => void;
+  // Сработала аура носителя: вспышка силуэта её цветом
+  aura?: (color: string) => void;
   victory?: () => void;
 }
 

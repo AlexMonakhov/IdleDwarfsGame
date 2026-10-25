@@ -1,5 +1,5 @@
 import { reactive } from 'vue';
-import { CombatLogEntry, CombatResult, CombatUnitInfo } from './types';
+import { AuraTarget, CombatLogEntry, CombatResult, CombatUnitInfo, HeroElement } from './types';
 
 export interface FloatingText {
   id: number;
@@ -7,6 +7,12 @@ export interface FloatingText {
   kind: 'damage' | 'heal' | 'status' | 'immune';
   damageType?: string;
   crit?: boolean;
+}
+
+// Реплика в облачке над персонажем (см. DialogueService)
+export interface Speech {
+  id: number;
+  text: string;
 }
 
 // Роль юнита в текущем действии — по ней подсвечивается, кто кого бьёт
@@ -20,7 +26,7 @@ export interface BattleUnit {
   id: number;
   name: string;
   unitType: string;
-  color: 'red' | 'blue';
+  element: HeroElement;
   level: number;
   team: number;
   position: number;
@@ -32,10 +38,14 @@ export interface BattleUnit {
   spells: string[];
   immunities: string[];
   aura?: string | null;
+  // Эффект ауры (Burn, Frost, Regen...) и её цель — по ним выбирается цвет сферы
+  auraEffect: string | null;
+  auraTarget: AuraTarget | null;
   // Имя статуса -> оставшиеся ходы (несколько стаков одного эффекта объединяются)
   statuses: Record<string, number>;
   floatingTexts: FloatingText[];
   focus: UnitFocus | null;
+  speech: Speech | null;
 }
 
 export interface BattleState {
@@ -47,21 +57,14 @@ export interface BattleState {
   shownLogs: CombatLogEntry[];
 }
 
-const SPRITE_COLORS = ['red', 'blue'] as const;
-const SPRITE_LEVELS = [4];
-
 export function toBattleUnit(info: CombatUnitInfo): BattleUnit {
-  const color = (SPRITE_COLORS as readonly string[]).includes(info.color)
-    ? (info.color as BattleUnit['color'])
-    : info.team === 1 ? 'red' : 'blue';
-
   return {
     id: info.entityId,
     name: info.name,
     unitType: info.unitType,
-    color,
-    // Пока нарисованы спрайты только для одного уровня
-    level: SPRITE_LEVELS.includes(info.level) ? info.level : SPRITE_LEVELS[0],
+    // Если спрайта под стихию/уровень нет, sprites.ts подберёт ближайший
+    element: info.element ?? 'Basic',
+    level: info.level,
     team: info.team,
     position: Math.min(Math.max(info.position, 1), 5),
     maxHp: info.maxHp,
@@ -72,9 +75,12 @@ export function toBattleUnit(info: CombatUnitInfo): BattleUnit {
     spells: info.spells,
     immunities: info.immunities,
     aura: info.aura,
+    auraEffect: info.auraEffect ?? null,
+    auraTarget: info.auraTarget ?? null,
     statuses: {},
     floatingTexts: [],
     focus: null,
+    speech: null,
   };
 }
 
@@ -96,6 +102,11 @@ export function resetBattleState(state: BattleState, result: CombatResult) {
   state.playing = false;
   state.finished = false;
   state.shownLogs = [];
+}
+
+// Эффект ауры юнита. Если сервер не прислал auraEffect, берём имя из строки описания ("Burn 4 → Enemies").
+export function auraEffectOf(unit: BattleUnit): string | null {
+  return unit.auraEffect ?? unit.aura?.split(' ')[0] ?? null;
 }
 
 export function teamUnits(state: BattleState, team: number): BattleUnit[] {

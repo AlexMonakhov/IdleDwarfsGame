@@ -24,122 +24,100 @@
       </div>
 
       <div class="arena-controls">
-        <label class="floor-select">
-          Floor
+        <div v-if="stageId" class="floor-select">{{ t('arena.stage', { id: stageId }) }}</div>
+        <label v-else class="floor-select">
+          {{ t('arena.floor') }}
           <input v-model.number="floor" type="number" min="1" max="50" :disabled="state.playing" />
         </label>
-        <button :disabled="state.playing || loading" @click="startArenaFight()">Start fight</button>
-        <button :disabled="state.playing || loading" @click="startBossFight()">Boss</button>
-        <button :disabled="!state.playing" @click="skipFight()">Skip</button>
+        <button :disabled="state.playing || loading" @click="startArenaFight()">{{ t('arena.startFight') }}</button>
+        <button v-if="!stageId" :disabled="state.playing || loading" @click="startBossFight()">{{ t('arena.boss') }}</button>
+        <button :disabled="!state.playing" @click="skipFight()">{{ t('arena.skip') }}</button>
         <button v-for="value in [1, 2, 4]" :key="value" :class="{ active: speed === value }" @click="setSpeed(value)">x{{ value }}</button>
         <div class="sound-control">
-          <button :title="sound.muted ? 'Unmute' : 'Mute'" @click="soundService.toggleMute()">{{ sound.muted ? '🔇' : '🔊' }}</button>
+          <button :title="sound.muted ? t('arena.unmute') : t('arena.mute')" @click="soundService.toggleMute()">{{ sound.muted ? '🔇' : '🔊' }}</button>
           <input type="range" min="0" max="1" step="0.05" :value="sound.muted ? 0 : sound.volume" @input="onVolumeInput" />
         </div>
       </div>
 
-      <div v-if="state.round" class="round-banner">Round {{ state.round }}</div>
+      <div v-if="state.round" class="round-banner">{{ t('arena.round', { round: state.round }) }}</div>
 
-      <div v-if="error" class="arena-message error">{{ error }}</div>
+      <div v-if="error !== null" class="arena-message error">{{ error || t('arena.startError') }}</div>
 
       <div v-if="state.finished" class="arena-message" :class="playerWon ? 'victory' : 'defeat'">
-        <div class="result-title">{{ playerWon ? 'Victory' : 'Defeat' }}</div>
+        <div class="result-title">{{ playerWon ? t('arena.victory') : t('arena.defeat') }}</div>
         <div v-if="result?.rewards" class="result-rewards">
-          +{{ result.rewards.gold }} gold · +{{ result.rewards.experience }} xp
+          {{ t('arena.rewards', { gold: result.rewards.gold, experience: result.rewards.experience }) }}
         </div>
-        <div class="result-rounds">Rounds: {{ result?.rounds }}</div>
+        <div v-if="campaignResult?.firstClear" class="result-rewards">{{ t('arena.stageCleared', { id: campaignResult.stageId }) }}</div>
+        <div class="result-rounds">{{ t('arena.rounds', { rounds: result?.rounds ?? 0 }) }}</div>
+        <button v-if="nextStageId" class="result-next" @click="goToNextStage()">{{ t('arena.nextStage') }}</button>
       </div>
 
-      <div v-if="visibleLogs.length" class="combat-log-panel">
-        <h3>Combat log</h3>
-        <div class="combat-log-list">
-          <div v-for="log in visibleLogs" :key="log.sequence" class="combat-log-item">
-            <span class="log-round">R{{ log.round }}</span>
-            <span class="log-phase">{{ log.eventType }}</span>
-            <span class="log-text">{{ formatLogText(log) }}</span>
-          </div>
-        </div>
-      </div>
+      <CombatLogFeed v-if="result" :logs="result.logs" :shown-logs="state.shownLogs" :units="state.units" :speed="speed" />
     </CanvasLayer>
   </div>
 </template>
 
 <script lang="ts" setup>
 import { computed, onBeforeUnmount, onMounted, provide, ref } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import arenaBgBlueCrystals from '@/assets/arena_red_crystals.png';
+import arenaBgIce from '@/assets/arena_blue_crystals.png';
 import CharacterComponent from '@/components/character-component.vue';
 import CombatApiService from '@/services/apiServices/CombatApiService';
+import CampaignApiService from '@/services/apiServices/CampaignApiService';
+import { CampaignFightResult } from '@/models/types/Campaign';
 import CanvasComponent from '@/components/canvas/CanvasComponent.vue';
 import CanvasLayer from '@/components/canvas/CanvasLayer.vue';
+import CombatLogFeed from '@/components/interface/CombatLogFeed.vue';
 import { createBattleState, teamUnits } from '@/battle/BattleState';
 import { BattlePlayer } from '@/battle/BattlePlayer';
 import { BATTLE_FX_KEY, BattleFx } from '@/battle/BattleFx';
-import { CombatLogEntry, CombatResult } from '@/battle/types';
+import { CombatResult } from '@/battle/types';
 import { soundService } from '@/services/soundService/SoundService';
+import { useI18n } from 'vue-i18n';
 
-// Логи, которые не стоит показывать в панели (их слишком много и они без смысла для игрока)
-const HIDDEN_LOG_EVENTS = new Set(['CombatStart', 'StatusApplied', 'StatusExpired']);
+const { t } = useI18n();
 
 const bgImage = ref('arena_blue_crystals');
 const layerRef = ref<InstanceType<typeof CanvasLayer> | null>(null);
 const floor = ref(2);
 const speed = ref(1);
 const loading = ref(false);
-const error = ref('');
+// null — ошибки нет; '' — своя ошибка (переводится в шаблоне); иначе текст ошибки с сервера
+const error = ref<string | null>(null);
 const result = ref<CombatResult | null>(null);
+
+// Режим кампании: /arena?stage=3 — бьёмся за уровень, а не за этаж башни
+const route = useRoute();
+const router = useRouter();
+const stageId = computed(() => Number(route.query.stage) || null);
+const campaignResult = ref<CampaignFightResult | null>(null);
+const nextStageId = computed(() => {
+  const next = campaignResult.value?.currentStageId;
+  return state.finished && next && next !== campaignResult.value?.stageId ? next : null;
+});
 
 const state = createBattleState();
 const fx = new BattleFx(() => layerRef.value?.particleService ?? null, () => speed.value);
 const player = new BattlePlayer(state, fx);
 provide(BATTLE_FX_KEY, fx);
 
+// Ключи lava/ice приходят с сервера (Arena.Background)
 const bgMap: Record<string, string> = {
   arena_blue_crystals: arenaBgBlueCrystals,
+  lava: arenaBgBlueCrystals,
+  ice: arenaBgIce,
 };
 
 const teamA = computed(() => teamUnits(state, 1));
 const teamB = computed(() => teamUnits(state, 2));
 const playerWon = computed(() => state.winningTeam === 1);
-const visibleLogs = computed(() =>
-  state.shownLogs.filter(l => !HIDDEN_LOG_EVENTS.has(l.eventType)).slice(-15).reverse()
-);
 
 const bgStyle = computed(() => ({
-  backgroundImage: `url('${bgMap[bgImage.value]}')`,
+  backgroundImage: `url('${bgMap[bgImage.value] ?? arenaBgBlueCrystals}')`,
   backgroundRepeat: 'round',
 }));
-
-const nameOf = (id: number) => state.units[id]?.name ?? (id > 0 ? `#${id}` : '—');
-
-const formatLogText = (log: CombatLogEntry) => {
-  const attacker = nameOf(log.attackerId);
-  const target = nameOf(log.targetId);
-
-  switch (log.eventType) {
-    case 'RoundStart':
-      return `Round ${log.round} started`;
-    case 'Attack':
-      return `${attacker} hits ${target} for ${log.damage}`;
-    case 'SkillCast':
-      return `${attacker} casts ${log.skillName}`;
-    case 'Damage':
-      return `${log.skillName || 'Damage'}: ${target} takes ${log.damage} ${log.damageType}`;
-    case 'StatusTick':
-      return `${target} takes ${log.damage} from ${log.skillName || log.actionType}`;
-    case 'Heal':
-      return `${target} healed for ${log.heal}${log.skillName ? ` (${log.skillName})` : ''}`;
-    case 'Stunned':
-      return `${attacker} is stunned and skips the turn`;
-    case 'Immune':
-      return `${target} is immune to ${log.appliedEffects[0]?.name ?? 'effect'}`;
-    case 'Death':
-      return `${target} was defeated`;
-    case 'CombatEnd':
-      return log.winningTeam === 1 ? 'Your squad wins!' : log.text ?? 'Enemies win';
-    default:
-      return log.text ?? `${log.actionType || log.eventType}: ${attacker} -> ${target}`;
-  }
-};
 
 const setSpeed = (value: number) => {
   speed.value = value;
@@ -154,13 +132,15 @@ const onVolumeInput = (event: Event) => {
 const playFight = async (load: () => Promise<CombatResult>) => {
   if (state.playing || loading.value) return;
   loading.value = true;
-  error.value = '';
+  error.value = null;
 
   try {
     result.value = await load();
   } catch (e) {
     console.error('Ошибка запуска боя:', e);
-    error.value = 'Failed to start the fight. Is the server running?';
+    // Сервер отвечает 400 с текстом, например "Campaign stage 3 is locked"
+    const message = (e as { response?: { data?: unknown } }).response?.data;
+    error.value = typeof message === 'string' ? message : '';
     return;
   } finally {
     loading.value = false;
@@ -169,8 +149,24 @@ const playFight = async (load: () => Promise<CombatResult>) => {
   await player.play(result.value);
 };
 
-const startArenaFight = () => playFight(() => CombatApiService.start({ floor: floor.value }));
+const startCampaignFight = (id: number) => playFight(async () => {
+  campaignResult.value = null;
+  const fight = await CampaignApiService.fight(id);
+  campaignResult.value = fight;
+  bgImage.value = fight.arena.background;
+  return fight.combat;
+});
+
+const startArenaFight = () => stageId.value
+  ? startCampaignFight(stageId.value)
+  : playFight(() => CombatApiService.start({ floor: floor.value }));
 const startBossFight = () => playFight(() => CombatApiService.startBoss(undefined, floor.value));
+
+const goToNextStage = async () => {
+  if (!nextStageId.value) return;
+  await router.replace({ query: { stage: nextStageId.value } });
+  startArenaFight();
+};
 const skipFight = () => player.skip();
 
 onMounted(() => {
@@ -342,59 +338,13 @@ onBeforeUnmount(() => player.stop());
   color: #e2e8f0;
 }
 
-.combat-log-panel {
-  position: absolute;
-  right: 20px;
-  top: 20px;
-  width: 360px;
-  max-height: 70vh;
-  overflow: auto;
-  background: rgba(10, 15, 24, 0.82);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 12px;
-  padding: 12px;
-  color: white;
-  z-index: 12;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
-}
-
-.combat-log-panel h3 {
-  margin: 0 0 12px 0;
-  font-size: 18px;
-}
-
-.combat-log-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.combat-log-item {
-  display: flex;
-  gap: 8px;
-  align-items: flex-start;
-  background: rgba(255, 255, 255, 0.04);
-  border-radius: 8px;
-  padding: 8px 10px;
-  font-size: 12px;
-  line-height: 1.4;
-}
-
-.log-round {
+.result-next {
+  margin-top: 12px;
+  border: 1px solid #ffd166;
+  background: rgba(14, 19, 34, 0.7);
   color: #ffd166;
-  font-weight: 700;
-  min-width: 36px;
-}
-
-.log-phase {
-  color: #7dd3fc;
-  min-width: 50px;
-  text-transform: uppercase;
-  font-size: 10px;
-}
-
-.log-text {
-  flex: 1;
-  color: #edf2f7;
+  border-radius: 8px;
+  padding: 8px 16px;
+  cursor: pointer;
 }
 </style>

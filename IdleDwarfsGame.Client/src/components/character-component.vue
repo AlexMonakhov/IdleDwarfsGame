@@ -3,11 +3,14 @@ import { ref, defineProps, computed, onMounted, onBeforeUnmount, inject, watch }
 import CharacterSkeleton from './character-skeleton.vue';
 import CharacterStats from './character-stats.vue';
 import { HeroModel } from '@/models/hero';
-import { BattleUnit } from '@/battle/BattleState';
+import { BattleUnit, auraEffectOf } from '@/battle/BattleState';
+import { elementColor } from '@/battle/sprites';
 import { BATTLE_FX_KEY } from '@/battle/BattleFx';
-import { DAMAGE_COLORS, combineStatusVisuals } from '@/battle/FxRegistry';
+import { DAMAGE_COLORS, combineStatusVisuals, resolveAuraVisual } from '@/battle/FxRegistry';
 import { registerUnitView, unregisterUnitView, UnitView } from '@/battle/UnitRegistry';
 import { STATUS_ICONS } from './icons/status';
+import DialogueBubble from './DialogueBubble.vue';
+import { statusLabel } from '@/i18n';
 
 const props = defineProps<{
   unit: BattleUnit;
@@ -23,7 +26,6 @@ const rootRef = ref<HTMLElement | null>(null);
 const spriteRef = ref<HTMLElement | null>(null);
 const skeletonRef = ref<InstanceType<typeof CharacterSkeleton> | null>(null);
 const fxClass = ref('');
-const aura = computed(() => !!props.unit.aura && props.unit.alive);
 const hasStatuses = computed(() => Object.keys(props.unit.statuses ?? {}).length > 0);
 
 // Скелету нужна модель старого формата (цвет/уровень для выбора спрайта)
@@ -33,7 +35,8 @@ const model = computed<HeroModel>(() => ({
   currentHp: props.unit.hp,
   maxHp: props.unit.maxHp,
   lvl: props.unit.level,
-  color: props.unit.color,
+  color: elementColor(props.unit.element),
+  unitType: props.unit.unitType,
 }));
 
 const getSkeletonStyle = computed(() => {
@@ -86,6 +89,22 @@ const clearAuras = () => {
 
 watch(() => statusNames.value.join('|'), syncAuras, { flush: 'post' });
 
+// Аура героя: пульсирующая сфера цвета её эффекта, пока носитель жив
+const auraEffect = computed(() => auraEffectOf(props.unit));
+const heroAuraKey = computed(() =>
+  props.unit.alive && auraEffect.value ? `${props.unit.id}|${auraEffect.value}|${props.unit.auraTarget}` : '');
+let heroAuraIds: string[] = [];
+const syncHeroAura = () => {
+  if (!fx) return;
+  fx.stopAura(heroAuraIds);
+  heroAuraIds = [];
+  if (heroAuraKey.value && spriteRef.value) {
+    heroAuraIds = fx.startHeroAura(spriteRef.value, resolveAuraVisual(auraEffect.value, props.unit.auraTarget));
+  }
+};
+
+watch(heroAuraKey, syncHeroAura, { flush: 'post' });
+
 const floatingStyle = (kind: string, damageType?: string) => ({
   color: kind === 'heal'
     ? DAMAGE_COLORS.Heal
@@ -124,6 +143,10 @@ const view: UnitView = {
     flash('fx-heal', 700);
     skeletonRef.value?.flash(DAMAGE_COLORS.Heal, 0.45, 600);
   },
+  aura: (color: string) => {
+    flash('fx-aura', 600);
+    skeletonRef.value?.flash(color, 0.5, 550);
+  },
   victory: () => skeletonRef.value?.playAnimation('victory'),
 };
 
@@ -136,10 +159,12 @@ watch(() => props.unit.id, (id, oldId) => {
 onMounted(() => {
   registerUnitView(props.unit.id, view);
   syncAuras();
+  syncHeroAura();
 });
 onBeforeUnmount(() => {
   unregisterUnitView(props.unit.id, view);
   clearAuras();
+  fx?.stopAura(heroAuraIds);
 });
 
 defineExpose(view);
@@ -147,13 +172,17 @@ defineExpose(view);
 
 <template>
     <div ref="rootRef" class="character-wrapper" :class="wrapperClasses" :style="wrapperStyle">
-        <div v-if="aura" class="back-area"></div>
-        <div v-if="aura" class="front-area"></div>
+        <!-- Реплика висит над панелью эффектов; key перезапускает анимацию на каждой новой фразе -->
+        <Transition name="speech">
+          <div v-if="unit.speech" :key="unit.speech.id" class="character-speech">
+            <DialogueBubble :text="unit.speech.text" />
+          </div>
+        </Transition>
         <div class="character-header">
           <!-- Панель эффектов висит над именем и не сдвигает шапку, когда появляется -->
           <div v-if="hasStatuses" class="status-panel">
             <div class="status-panel-inner">
-              <span v-for="(stacks, name) in unit.statuses" :key="name" class="status-icon" :title="`${name} x${stacks}`">
+              <span v-for="(stacks, name) in unit.statuses" :key="name" class="status-icon" :title="`${statusLabel(String(name))} x${stacks}`">
                 <component v-if="STATUS_ICONS[name]" :is="STATUS_ICONS[name]" size="16px" />
                 <template v-else>{{ name[0] }}</template>
                 <sub v-if="stacks > 1">{{ stacks }}</sub>
@@ -195,7 +224,8 @@ defineExpose(view);
                   :scale="props.scale ?? 0.65"
                   :padding="1.1"
                   :tint="spriteTint"
-                  :speed="statusVisual.animSpeed"></CharacterSkeleton>
+                  :speed="statusVisual.animSpeed"
+                  :paused="!unit.alive"></CharacterSkeleton>
           </div>
         </div>
     </div>
@@ -213,6 +243,21 @@ defineExpose(view);
     width: 50%;
     z-index: 2;
     text-align: center;
+  }
+  /* Над панелью статусов (она выше шапки примерно на 30px) */
+  .character-speech{
+    position: absolute;
+    top: -34px;
+    left: 50%;
+    transform: translate(-50%, -100%);
+    z-index: 4;
+    pointer-events: none;
+  }
+  .speech-leave-active{
+    transition: opacity 0.25s ease;
+  }
+  .speech-leave-to{
+    opacity: 0;
   }
   .character-name{
     color: #f8fafc;
@@ -398,22 +443,13 @@ defineExpose(view);
   .status-frozen canvas{
     filter: saturate(0.4) brightness(1.15) drop-shadow(0 0 6px #bae6fd);
   }
-  .back-area{
-    position: absolute;
-    height: 60%;
-    width: 50%;
-    transform: translate(50%, 40%);
-    border-radius: 50%;
-    box-shadow: inset 0 0 40px 2px red, inset 0 0 50px 5px yellow, 0 0 40px 2px red, inset 0 0 50px 5px yellow, inset 0 0 50px 5px yellow, inset 0 0 30px 5px red;
-    z-index: -1;
+
+  /* Срабатывание ауры: носитель на миг «вдыхает» силу (сама сфера рисуется на канвасе, см. AuraSphereStrategy) */
+  .fx-aura .unit-body{
+    animation: aura-swell 0.6s ease-out;
   }
-  .front-area{
-    position: absolute;
-    height: 60%;
-    width: 50%;
-    transform: translate(50%, 40%);
-    border-radius: 50%;
-    box-shadow: inset 0 0 40px 2px red, inset 0 0 50px 5px yellow, 0 0 40px 2px red, inset 0 0 50px 5px yellow, inset 0 0 50px 5px yellow, inset 0 0 30px 5px red;
-    z-index: 1;
+  @keyframes aura-swell {
+    0%, 100% { transform: scale(1); }
+    35% { transform: scale(1.08); }
   }
 </style>

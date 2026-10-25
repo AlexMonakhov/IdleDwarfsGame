@@ -1,4 +1,6 @@
 import { EffectType } from '@/services/particleService/types/interfaces/canvas-interfaces';
+import type { AuraMote } from '@/services/particleService/types/combat-effects';
+import type { AuraTarget } from './types';
 
 // Описания боевых визуалов. Чтобы добавить новый эффект (статус, заклинание, тип урона),
 // достаточно дописать запись сюда; при необходимости — новую canvas-стратегию в particleService.
@@ -218,6 +220,61 @@ export const STATUS_VISUALS: Record<string, StatusVisual> = {
     tickFlash: '#dc2626',
   },
 };
+
+export interface AuraVisual {
+  // Обод сферы, волны, вспышка носителя при срабатывании
+  color: string;
+  // Дымка внутри сферы и круг на земле
+  glow: string;
+  // Блик и ядра частиц
+  accent: string;
+  // Частицы всплеска при срабатывании
+  palette: string[];
+  mote: AuraMote;
+  // Дрейф частиц: <0 поднимаются (угольки, плюсики), >0 опускаются (снежинки)
+  drift: number;
+  // Секунд между пульсациями
+  period: number;
+  // Эффект на цели, до которой дошла волна
+  hit: FxSpec[];
+}
+
+const auraHit = (color: string, shape: 'plus' | 'star' | 'dot'): FxSpec[] => [
+  groundPulse(color, 50, 600),
+  { type: 'sparkles', duration: 700, args: { color, burst: 8, rate: 0.4, once: true, width: 50, height: 80, shape } },
+];
+
+const aura = (visual: Omit<AuraVisual, 'hit'>, hitShape: 'plus' | 'star' | 'dot'): AuraVisual => ({
+  ...visual,
+  hit: auraHit(visual.color, hitShape),
+});
+
+const AURA_FIRE = aura({ color: '#ff7a1a', glow: '#ffb347', accent: '#fff1a8', palette: FIRE, mote: 'ember', drift: -1.2, period: 1.6 }, 'dot');
+const AURA_FROST = aura({ color: '#38bdf8', glow: '#7dd3fc', accent: '#e0f6ff', palette: ICE, mote: 'flake', drift: 0.6, period: 2.6 }, 'star');
+const AURA_HEAL = aura({ color: '#22c55e', glow: '#4ade80', accent: '#dcfce7', palette: ['#f0fdf4', '#bbf7d0', '#4ade80', '#16a34a'], mote: 'plus', drift: -0.9, period: 2.2 }, 'plus');
+const AURA_LIGHTNING = aura({ color: '#38bdf8', glow: '#9be7ff', accent: '#ffffff', palette: ELECTRIC, mote: 'spark', drift: -0.5, period: 1.2 }, 'star');
+const AURA_ARCANE = aura({ color: '#a855f7', glow: '#c084fc', accent: '#f5d0fe', palette: ARCANE, mote: 'spark', drift: -0.6, period: 2 }, 'star');
+const AURA_POISON = aura({ color: '#65a30d', glow: '#a3e635', accent: '#ecfccb', palette: POISON, mote: 'dot', drift: -0.5, period: 2.4 }, 'dot');
+const AURA_DAMAGE = aura({ color: '#dc2626', glow: '#f87171', accent: '#fecaca', palette: BLOOD, mote: 'ember', drift: -0.7, period: 1.8 }, 'dot');
+const AURA_BUFF = aura({ color: '#f59e0b', glow: '#ffd166', accent: '#fff7d6', palette: ['#fffbe0', '#ffe27a', '#ffd166', '#f59e0b'], mote: 'spark', drift: -0.7, period: 2.2 }, 'star');
+
+// Ключ — имя эффекта ауры с сервера (Hero.AuraEffect)
+export const AURA_VISUALS: Record<string, AuraVisual> = {
+  Burn: AURA_FIRE,
+  Frost: AURA_FROST,
+  Freeze: AURA_FROST,
+  Regen: AURA_HEAL,
+  Heal: AURA_HEAL,
+  Stun: AURA_LIGHTNING,
+  Shock: AURA_LIGHTNING,
+  Poison: AURA_POISON,
+  Bleed: AURA_DAMAGE,
+  Arcane: AURA_ARCANE,
+};
+
+// Неизвестный эффект: на врагов — «вредная» красная аура, на союзников — золотой бафф
+export const resolveAuraVisual = (effect?: string | null, target?: AuraTarget | null): AuraVisual =>
+  (effect && AURA_VISUALS[effect]) || (target === 'Allies' ? AURA_BUFF : AURA_DAMAGE);
 
 // Сводный визуал нескольких статусов: окраска самого приоритетного, самая медленная анимация, все классы
 export function combineStatusVisuals(names: string[]) {

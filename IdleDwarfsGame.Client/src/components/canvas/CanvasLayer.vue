@@ -10,7 +10,12 @@ const particleService = new GlobalParticleService();
 provide('particleService', particleService);
 defineExpose({ particleService });
 
+// Счётчик изменений раскладки: CanvasComponent пересчитывает по нему координаты своих эмиттеров
+const layoutVersion = ref(0);
+provide('particleLayoutVersion', layoutVersion);
+
 let resizeObserver: ResizeObserver | null = null;
+let resizeFrame = 0;
 
 interface Props { // Теперь всё передается только сюда
   page?: boolean;
@@ -23,31 +28,43 @@ const props = withDefaults(defineProps<Props>(), {
 const handleResize = () => {
   // Теперь мы берем размеры не всего окна, а конкретно этой обертки
   if (wrapperRef.value && bgCanvasRef.value && fgCanvasRef.value) {
-    console.log(wrapperRef.value);
     const rect = wrapperRef.value.getBoundingClientRect();
-    bgCanvasRef.value.width = rect.width * 2;
-    bgCanvasRef.value.height = rect.height * 2;
-    fgCanvasRef.value.width = rect.width * 2;
-    fgCanvasRef.value.height = rect.height * 2;
+    const width = Math.round(rect.width * 2);
+    const height = Math.round(rect.height * 2);
+    // Присваивание width/height очищает канвас, поэтому трогаем только при реальном изменении
+    for (const canvas of [bgCanvasRef.value, fgCanvasRef.value]) {
+      if (canvas.width !== width) canvas.width = width;
+      if (canvas.height !== height) canvas.height = height;
+    }
   }
+  layoutVersion.value++;
+};
+
+// Не чаще раза за кадр: при перетаскивании края окна resize приходит пачками
+const scheduleResize = () => {
+  cancelAnimationFrame(resizeFrame);
+  resizeFrame = requestAnimationFrame(handleResize);
 };
 
 onMounted(() => {
   if (wrapperRef.value && bgCanvasRef.value && fgCanvasRef.value) {
     particleService.init(bgCanvasRef.value, fgCanvasRef.value);
-    
-    // Используем ResizeObserver вместо window.addEventListener('resize')
-    // Он будет реагировать даже если модалка плавно меняет размер при открытии
-    // resizeObserver = new ResizeObserver(handleResize);
-    // resizeObserver.observe(wrapperRef.value);
-    
+
+    // ResizeObserver ловит изменение размера самой обёртки (в т.ч. в модалке),
+    // window resize — сдвиги содержимого, когда размер обёртки не поменялся
+    resizeObserver = new ResizeObserver(scheduleResize);
+    resizeObserver.observe(wrapperRef.value);
+    window.addEventListener('resize', scheduleResize);
+
     handleResize(); // Задаем начальный размер
   }
 });
 
 onUnmounted(() => {
   particleService.destroy();
-  // if (resizeObserver) resizeObserver.disconnect();
+  cancelAnimationFrame(resizeFrame);
+  resizeObserver?.disconnect();
+  window.removeEventListener('resize', scheduleResize);
 });
 </script>
 

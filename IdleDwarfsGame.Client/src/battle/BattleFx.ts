@@ -3,6 +3,7 @@ import { GlobalParticleService } from '@/services/particleService/ParticleSystem
 import { Point } from '@/services/particleService/types/interfaces/canvas-interfaces';
 import {
   Anchor,
+  AuraVisual,
   DAMAGE_COLORS,
   FxSpec,
   HEAL_VISUAL,
@@ -131,12 +132,61 @@ export class BattleFx {
 
   // Постоянные эффекты статуса, следующие за юнитом. Возвращает id эмиттеров для stopAura.
   startAura(el: UnitEl, statusName: string): string[] {
-    const service = this.service();
-    const aura = STATUS_VISUALS[statusName]?.aura;
-    if (!service || !el || !aura) return [];
+    return this.attach(el, STATUS_VISUALS[statusName]?.aura, `aura-${statusName}`);
+  }
 
-    return aura.map(spec => {
-      const id = `aura-${statusName}-${++emitterSequence}`;
+  // Аура героя: пульсирующая сфера цвета его эффекта. Две половины — за юнитом и перед ним.
+  startHeroAura(el: UnitEl, visual: AuraVisual): string[] {
+    if (!el) return [];
+    const args = {
+      ...this.auraArgs(el, visual),
+      // Случайный сдвиг фазы, чтобы ауры разных героев не пульсировали в унисон
+      seed: Math.random() * visual.period * 1000,
+    };
+    return this.attach(el, [
+      { type: 'aura-sphere', duration: 0, layer: 'background', padding: 120, args: { ...args, part: 'back' } },
+      { type: 'aura-sphere', duration: 0, layer: 'foreground', padding: 120, args: { ...args, part: 'front' } },
+    ], 'hero-aura');
+  }
+
+  // Срабатывание ауры: волна от носителя и круг по земле
+  auraBurst(el: UnitEl, visual: AuraVisual) {
+    if (!el) return;
+    const args = this.auraArgs(el, visual);
+    this.play([
+      { type: 'aura-burst', duration: 900, padding: 260, args: { ...args, colors: visual.palette, reach: args.rx * 3.6 } },
+      { type: 'ring', anchor: 'feet', layer: 'background', duration: 800, args: { color: visual.color, radius: args.rx * 2.6, mode: 'pulse', width: 6 } },
+    ], el);
+  }
+
+  stopAura(ids: string[]) {
+    const service = this.service();
+    ids.forEach(id => service?.removeEmitter(id, 300));
+  }
+
+  // Размеры сферы — от высоты кадра юнита (босс крупнее — и сфера больше)
+  private auraArgs(el: HTMLElement, visual: AuraVisual) {
+    const height = el.getBoundingClientRect().height || 290;
+    return {
+      color: visual.color,
+      glow: visual.glow,
+      accent: visual.accent,
+      mote: visual.mote,
+      drift: visual.drift,
+      period: visual.period,
+      rx: height * 0.2,
+      ry: height * 0.27,
+      groundOffset: height * (UNIT_ANCHORS.feet - UNIT_ANCHORS.center),
+    };
+  }
+
+  // Эмиттеры, следующие за юнитом, пока их не остановят через stopAura
+  private attach(el: UnitEl, specs: FxSpec[] | undefined, prefix: string): string[] {
+    const service = this.service();
+    if (!service || !el || !specs) return [];
+
+    return specs.map(spec => {
+      const id = `${prefix}-${++emitterSequence}`;
       const at = this.point(el, spec.anchor, spec.layer) ?? { x: 0, y: 0 };
       service.addEmitter({
         id,
@@ -150,10 +200,5 @@ export class BattleFx {
       });
       return id;
     });
-  }
-
-  stopAura(ids: string[]) {
-    const service = this.service();
-    ids.forEach(id => service?.removeEmitter(id, 300));
   }
 }
