@@ -16,6 +16,538 @@ namespace IdleDwarfsGame.Server.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.13");
 
+            modelBuilder.Entity("Arena", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Background")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("EffectDuration")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("EffectName")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("EffectPower")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Arenas");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Background = "lava",
+                            Description = "Molten stone burns every fighter at the start of each round.",
+                            EffectDuration = 1,
+                            EffectName = "Burn",
+                            EffectPower = 5,
+                            Name = "Lava Arena"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Background = "ice",
+                            Description = "Icy wind wounds every fighter and drains their energy at the start of each round.",
+                            EffectDuration = 1,
+                            EffectName = "Frost",
+                            EffectPower = 3,
+                            Name = "Ice Arena"
+                        });
+                });
+
+            modelBuilder.Entity("CampaignStage", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ArenaId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("EnemyLevel")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ArenaId");
+
+                    b.ToTable("CampaignStages");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            ArenaId = 1,
+                            Description = "Goblins guard the entrance to the fire caves.",
+                            EnemyLevel = 1,
+                            Name = "Ember Gate",
+                            Type = 0
+                        },
+                        new
+                        {
+                            Id = 2,
+                            ArenaId = 1,
+                            Description = "An orc leads scouts through the smouldering tunnels.",
+                            EnemyLevel = 1,
+                            Name = "Smouldering Tunnels",
+                            Type = 0
+                        },
+                        new
+                        {
+                            Id = 3,
+                            ArenaId = 1,
+                            Description = "A skeleton mage has joined the orcs in the hall of ash.",
+                            EnemyLevel = 2,
+                            Name = "Cinder Hall",
+                            Type = 0
+                        },
+                        new
+                        {
+                            Id = 4,
+                            ArenaId = 1,
+                            Description = "The orc warlord's camp. His aura sets everything ablaze.",
+                            EnemyLevel = 2,
+                            Name = "Warlord's Camp",
+                            Type = 0
+                        },
+                        new
+                        {
+                            Id = 5,
+                            ArenaId = 1,
+                            Description = "Gorrak the Molten guards the heart of the forge.",
+                            EnemyLevel = 2,
+                            Name = "Heart of the Forge",
+                            Type = 1
+                        },
+                        new
+                        {
+                            Id = 6,
+                            ArenaId = 2,
+                            Description = "Frost goblins lie in ambush at the pass.",
+                            EnemyLevel = 3,
+                            Name = "Frozen Pass",
+                            Type = 0
+                        },
+                        new
+                        {
+                            Id = 7,
+                            ArenaId = 2,
+                            Description = "The rime caverns are crawling with undead.",
+                            EnemyLevel = 3,
+                            Name = "Rime Caverns",
+                            Type = 0
+                        },
+                        new
+                        {
+                            Id = 8,
+                            ArenaId = 2,
+                            Description = "A mixed warband holds the bridge across the glacier.",
+                            EnemyLevel = 3,
+                            Name = "Glacier Bridge",
+                            Type = 0
+                        },
+                        new
+                        {
+                            Id = 9,
+                            ArenaId = 2,
+                            Description = "The last line of defence before the frost lord's lair.",
+                            EnemyLevel = 3,
+                            Name = "Hall of Whispers",
+                            Type = 0
+                        },
+                        new
+                        {
+                            Id = 10,
+                            ArenaId = 2,
+                            Description = "Hrimgar the Frostbound awaits on his throne of ice.",
+                            EnemyLevel = 3,
+                            Name = "Throne of Frost",
+                            Type = 1
+                        });
+                });
+
+            modelBuilder.Entity("CampaignStageEnemy", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<Guid>("HeroId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<double>("HpMultiplier")
+                        .HasColumnType("REAL");
+
+                    b.Property<bool>("IsBoss")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Position")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("StageId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HeroId");
+
+                    b.HasIndex("StageId", "Position")
+                        .IsUnique();
+
+                    b.ToTable("CampaignStageEnemies");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 101,
+                            HeroId = new Guid("22222222-0000-4000-8000-000000000002"),
+                            HpMultiplier = 1.0,
+                            IsBoss = false,
+                            Position = 1,
+                            StageId = 1
+                        },
+                        new
+                        {
+                            Id = 102,
+                            HeroId = new Guid("22222222-0000-4000-8000-000000000003"),
+                            HpMultiplier = 1.0,
+                            IsBoss = false,
+                            Position = 2,
+                            StageId = 1
+                        },
+                        new
+                        {
+                            Id = 201,
+                            HeroId = new Guid("22222222-0000-4000-8000-000000000001"),
+                            HpMultiplier = 1.0,
+                            IsBoss = false,
+                            Position = 1,
+                            StageId = 2
+                        },
+                        new
+                        {
+                            Id = 202,
+                            HeroId = new Guid("22222222-0000-4000-8000-000000000002"),
+                            HpMultiplier = 1.0,
+                            IsBoss = false,
+                            Position = 2,
+                            StageId = 2
+                        },
+                        new
+                        {
+                            Id = 203,
+                            HeroId = new Guid("22222222-0000-4000-8000-000000000003"),
+                            HpMultiplier = 1.0,
+                            IsBoss = false,
+                            Position = 3,
+                            StageId = 2
+                        },
+                        new
+                        {
+                            Id = 301,
+                            HeroId = new Guid("22222222-0000-4000-8000-000000000001"),
+                            HpMultiplier = 1.0,
+                            IsBoss = false,
+                            Position = 1,
+                            StageId = 3
+                        },
+                        new
+                        {
+                            Id = 302,
+                            HeroId = new Guid("22222222-0000-4000-8000-000000000002"),
+                            HpMultiplier = 1.0,
+                            IsBoss = false,
+                            Position = 2,
+                            StageId = 3
+                        },
+                        new
+                        {
+                            Id = 303,
+                            HeroId = new Guid("22222222-0000-4000-8000-000000000003"),
+                            HpMultiplier = 1.0,
+                            IsBoss = false,
+                            Position = 3,
+                            StageId = 3
+                        },
+                        new
+                        {
+                            Id = 304,
+                            HeroId = new Guid("22222222-0000-4000-8000-000000000005"),
+                            HpMultiplier = 1.0,
+                            IsBoss = false,
+                            Position = 4,
+                            StageId = 3
+                        },
+                        new
+                        {
+                            Id = 401,
+                            HeroId = new Guid("22222222-0000-4000-8000-000000000001"),
+                            HpMultiplier = 1.0,
+                            IsBoss = false,
+                            Position = 1,
+                            StageId = 4
+                        },
+                        new
+                        {
+                            Id = 402,
+                            HeroId = new Guid("22222222-0000-4000-8000-000000000002"),
+                            HpMultiplier = 1.0,
+                            IsBoss = false,
+                            Position = 2,
+                            StageId = 4
+                        },
+                        new
+                        {
+                            Id = 403,
+                            HeroId = new Guid("22222222-0000-4000-8000-000000000003"),
+                            HpMultiplier = 1.0,
+                            IsBoss = false,
+                            Position = 3,
+                            StageId = 4
+                        },
+                        new
+                        {
+                            Id = 404,
+                            HeroId = new Guid("22222222-0000-4000-8000-000000000004"),
+                            HpMultiplier = 1.0,
+                            IsBoss = false,
+                            Position = 4,
+                            StageId = 4
+                        },
+                        new
+                        {
+                            Id = 405,
+                            HeroId = new Guid("22222222-0000-4000-8000-000000000005"),
+                            HpMultiplier = 1.0,
+                            IsBoss = false,
+                            Position = 5,
+                            StageId = 4
+                        },
+                        new
+                        {
+                            Id = 501,
+                            HeroId = new Guid("22222222-0000-4000-8000-000000000001"),
+                            HpMultiplier = 1.0,
+                            IsBoss = false,
+                            Position = 1,
+                            StageId = 5
+                        },
+                        new
+                        {
+                            Id = 502,
+                            HeroId = new Guid("33333333-0000-4000-8000-000000000101"),
+                            HpMultiplier = 2.0,
+                            IsBoss = true,
+                            Position = 2,
+                            StageId = 5
+                        },
+                        new
+                        {
+                            Id = 503,
+                            HeroId = new Guid("22222222-0000-4000-8000-000000000003"),
+                            HpMultiplier = 1.0,
+                            IsBoss = false,
+                            Position = 3,
+                            StageId = 5
+                        },
+                        new
+                        {
+                            Id = 601,
+                            HeroId = new Guid("33333333-0000-4000-8000-000000000001"),
+                            HpMultiplier = 1.0,
+                            IsBoss = false,
+                            Position = 1,
+                            StageId = 6
+                        },
+                        new
+                        {
+                            Id = 602,
+                            HeroId = new Guid("33333333-0000-4000-8000-000000000002"),
+                            HpMultiplier = 1.0,
+                            IsBoss = false,
+                            Position = 2,
+                            StageId = 6
+                        },
+                        new
+                        {
+                            Id = 603,
+                            HeroId = new Guid("22222222-0000-4000-8000-000000000002"),
+                            HpMultiplier = 1.0,
+                            IsBoss = false,
+                            Position = 3,
+                            StageId = 6
+                        },
+                        new
+                        {
+                            Id = 701,
+                            HeroId = new Guid("22222222-0000-4000-8000-000000000001"),
+                            HpMultiplier = 1.0,
+                            IsBoss = false,
+                            Position = 1,
+                            StageId = 7
+                        },
+                        new
+                        {
+                            Id = 702,
+                            HeroId = new Guid("33333333-0000-4000-8000-000000000001"),
+                            HpMultiplier = 1.0,
+                            IsBoss = false,
+                            Position = 2,
+                            StageId = 7
+                        },
+                        new
+                        {
+                            Id = 703,
+                            HeroId = new Guid("33333333-0000-4000-8000-000000000002"),
+                            HpMultiplier = 1.0,
+                            IsBoss = false,
+                            Position = 3,
+                            StageId = 7
+                        },
+                        new
+                        {
+                            Id = 704,
+                            HeroId = new Guid("22222222-0000-4000-8000-000000000005"),
+                            HpMultiplier = 1.0,
+                            IsBoss = false,
+                            Position = 4,
+                            StageId = 7
+                        },
+                        new
+                        {
+                            Id = 801,
+                            HeroId = new Guid("22222222-0000-4000-8000-000000000001"),
+                            HpMultiplier = 1.0,
+                            IsBoss = false,
+                            Position = 1,
+                            StageId = 8
+                        },
+                        new
+                        {
+                            Id = 802,
+                            HeroId = new Guid("33333333-0000-4000-8000-000000000001"),
+                            HpMultiplier = 1.0,
+                            IsBoss = false,
+                            Position = 2,
+                            StageId = 8
+                        },
+                        new
+                        {
+                            Id = 803,
+                            HeroId = new Guid("33333333-0000-4000-8000-000000000002"),
+                            HpMultiplier = 1.0,
+                            IsBoss = false,
+                            Position = 3,
+                            StageId = 8
+                        },
+                        new
+                        {
+                            Id = 804,
+                            HeroId = new Guid("22222222-0000-4000-8000-000000000005"),
+                            HpMultiplier = 1.0,
+                            IsBoss = false,
+                            Position = 4,
+                            StageId = 8
+                        },
+                        new
+                        {
+                            Id = 805,
+                            HeroId = new Guid("22222222-0000-4000-8000-000000000003"),
+                            HpMultiplier = 1.0,
+                            IsBoss = false,
+                            Position = 5,
+                            StageId = 8
+                        },
+                        new
+                        {
+                            Id = 901,
+                            HeroId = new Guid("22222222-0000-4000-8000-000000000001"),
+                            HpMultiplier = 1.0,
+                            IsBoss = false,
+                            Position = 1,
+                            StageId = 9
+                        },
+                        new
+                        {
+                            Id = 902,
+                            HeroId = new Guid("33333333-0000-4000-8000-000000000001"),
+                            HpMultiplier = 1.0,
+                            IsBoss = false,
+                            Position = 2,
+                            StageId = 9
+                        },
+                        new
+                        {
+                            Id = 903,
+                            HeroId = new Guid("33333333-0000-4000-8000-000000000002"),
+                            HpMultiplier = 1.0,
+                            IsBoss = false,
+                            Position = 3,
+                            StageId = 9
+                        },
+                        new
+                        {
+                            Id = 904,
+                            HeroId = new Guid("22222222-0000-4000-8000-000000000002"),
+                            HpMultiplier = 1.0,
+                            IsBoss = false,
+                            Position = 4,
+                            StageId = 9
+                        },
+                        new
+                        {
+                            Id = 905,
+                            HeroId = new Guid("22222222-0000-4000-8000-000000000005"),
+                            HpMultiplier = 1.0,
+                            IsBoss = false,
+                            Position = 5,
+                            StageId = 9
+                        },
+                        new
+                        {
+                            Id = 1001,
+                            HeroId = new Guid("22222222-0000-4000-8000-000000000001"),
+                            HpMultiplier = 1.0,
+                            IsBoss = false,
+                            Position = 1,
+                            StageId = 10
+                        },
+                        new
+                        {
+                            Id = 1002,
+                            HeroId = new Guid("33333333-0000-4000-8000-000000000102"),
+                            HpMultiplier = 1.75,
+                            IsBoss = true,
+                            Position = 2,
+                            StageId = 10
+                        });
+                });
+
             modelBuilder.Entity("ChestDropTable", b =>
                 {
                     b.Property<string>("Id")
@@ -31,6 +563,80 @@ namespace IdleDwarfsGame.Server.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("ChestDropTables");
+                });
+
+            modelBuilder.Entity("Expedition", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("BoardStartsAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("ClaimedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("DurationHours")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("EndsAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Experience")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Gold")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("PlayerId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Power")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Slot")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("StartedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("TemplateKey")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PlayerId", "BoardStartsAt", "Slot")
+                        .IsUnique();
+
+                    b.ToTable("Expeditions");
+                });
+
+            modelBuilder.Entity("ExpeditionHero", b =>
+                {
+                    b.Property<Guid>("ExpeditionId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("HeroId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Slot")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("ExpeditionId", "HeroId");
+
+                    b.HasIndex("HeroId")
+                        .IsUnique();
+
+                    b.ToTable("ExpeditionHeroes");
                 });
 
             modelBuilder.Entity("Hero", b =>
@@ -57,11 +663,12 @@ namespace IdleDwarfsGame.Server.Migrations
                     b.Property<int>("AuraTrigger")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("Color")
+                    b.Property<string>("Element")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
+                        .HasMaxLength(16)
                         .HasColumnType("TEXT")
-                        .HasDefaultValue("red");
+                        .HasDefaultValue("Basic");
 
                     b.Property<int>("EnergyPerAttack")
                         .HasColumnType("INTEGER");
@@ -121,7 +728,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             AuraPower = 4,
                             AuraTarget = 0,
                             AuraTrigger = 1,
-                            Color = "red",
+                            Element = "Fire",
                             EnergyPerAttack = 20,
                             Immunities = "Stun",
                             Level = 4,
@@ -143,7 +750,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             AuraPower = 0,
                             AuraTarget = 0,
                             AuraTrigger = 1,
-                            Color = "red",
+                            Element = "Fire",
                             EnergyPerAttack = 20,
                             Immunities = "Burn",
                             Level = 4,
@@ -165,7 +772,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             AuraPower = 0,
                             AuraTarget = 0,
                             AuraTrigger = 1,
-                            Color = "blue",
+                            Element = "Frost",
                             EnergyPerAttack = 25,
                             Immunities = "",
                             Level = 4,
@@ -187,7 +794,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             AuraPower = 0,
                             AuraTarget = 0,
                             AuraTrigger = 1,
-                            Color = "red",
+                            Element = "Fire",
                             EnergyPerAttack = 20,
                             Immunities = "",
                             Level = 4,
@@ -209,7 +816,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             AuraPower = 0,
                             AuraTarget = 0,
                             AuraTrigger = 1,
-                            Color = "blue",
+                            Element = "Frost",
                             EnergyPerAttack = 20,
                             Immunities = "",
                             Level = 4,
@@ -231,7 +838,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             AuraPower = 0,
                             AuraTarget = 0,
                             AuraTrigger = 1,
-                            Color = "blue",
+                            Element = "Frost",
                             EnergyPerAttack = 20,
                             Immunities = "",
                             Level = 4,
@@ -252,7 +859,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             AuraPower = 0,
                             AuraTarget = 0,
                             AuraTrigger = 1,
-                            Color = "blue",
+                            Element = "Frost",
                             EnergyPerAttack = 20,
                             Immunities = "Stun",
                             Level = 4,
@@ -274,7 +881,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             AuraPower = 0,
                             AuraTarget = 0,
                             AuraTrigger = 1,
-                            Color = "blue",
+                            Element = "Frost",
                             EnergyPerAttack = 20,
                             Immunities = "",
                             Level = 4,
@@ -296,7 +903,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             AuraPower = 0,
                             AuraTarget = 0,
                             AuraTrigger = 1,
-                            Color = "blue",
+                            Element = "Frost",
                             EnergyPerAttack = 20,
                             Immunities = "",
                             Level = 4,
@@ -319,7 +926,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             AuraPower = 3,
                             AuraTarget = 1,
                             AuraTrigger = 1,
-                            Color = "blue",
+                            Element = "Frost",
                             EnergyPerAttack = 20,
                             Immunities = "Burn",
                             Level = 4,
@@ -341,7 +948,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             AuraPower = 0,
                             AuraTarget = 0,
                             AuraTrigger = 1,
-                            Color = "blue",
+                            Element = "Frost",
                             EnergyPerAttack = 25,
                             Immunities = "Frost",
                             Level = 4,
@@ -353,6 +960,92 @@ namespace IdleDwarfsGame.Server.Migrations
                             Speed = 6,
                             SpellIds = "5",
                             StartEnergy = 0,
+                            UnitType = "Skeleton"
+                        },
+                        new
+                        {
+                            Id = new Guid("33333333-0000-4000-8000-000000000001"),
+                            Attack = 11,
+                            AuraDuration = 1,
+                            AuraPower = 0,
+                            AuraTarget = 0,
+                            AuraTrigger = 1,
+                            Element = "Frost",
+                            EnergyPerAttack = 20,
+                            Immunities = "Frost",
+                            Level = 4,
+                            MaxEnergy = 100,
+                            MaxHp = 95,
+                            Name = "Frost Goblin",
+                            PlayerId = new Guid("c0c0c0c0-0000-4000-8000-000000000003"),
+                            Speed = 8,
+                            SpellIds = "",
+                            StartEnergy = 0,
+                            UnitType = "Goblin"
+                        },
+                        new
+                        {
+                            Id = new Guid("33333333-0000-4000-8000-000000000002"),
+                            Attack = 12,
+                            AuraDuration = 1,
+                            AuraPower = 0,
+                            AuraTarget = 0,
+                            AuraTrigger = 1,
+                            Element = "Frost",
+                            EnergyPerAttack = 20,
+                            Immunities = "Frost",
+                            Level = 4,
+                            MaxEnergy = 100,
+                            MaxHp = 120,
+                            Name = "Rime Skeleton",
+                            PlayerId = new Guid("c0c0c0c0-0000-4000-8000-000000000003"),
+                            Speed = 5,
+                            SpellIds = "4",
+                            StartEnergy = 20,
+                            UnitType = "Skeleton"
+                        },
+                        new
+                        {
+                            Id = new Guid("33333333-0000-4000-8000-000000000101"),
+                            Attack = 16,
+                            AuraDuration = 1,
+                            AuraEffect = "Burn",
+                            AuraPower = 4,
+                            AuraTarget = 1,
+                            AuraTrigger = 1,
+                            Element = "Fire",
+                            EnergyPerAttack = 20,
+                            Immunities = "Burn,Stun",
+                            Level = 4,
+                            MaxEnergy = 100,
+                            MaxHp = 260,
+                            Name = "Gorrak the Molten",
+                            PlayerId = new Guid("c0c0c0c0-0000-4000-8000-000000000003"),
+                            Speed = 5,
+                            SpellIds = "2",
+                            StartEnergy = 20,
+                            UnitType = "Orc"
+                        },
+                        new
+                        {
+                            Id = new Guid("33333333-0000-4000-8000-000000000102"),
+                            Attack = 15,
+                            AuraDuration = 1,
+                            AuraEffect = "Frost",
+                            AuraPower = 3,
+                            AuraTarget = 1,
+                            AuraTrigger = 1,
+                            Element = "Frost",
+                            EnergyPerAttack = 25,
+                            Immunities = "Frost,Stun",
+                            Level = 4,
+                            MaxEnergy = 100,
+                            MaxHp = 240,
+                            Name = "Hrimgar the Frostbound",
+                            PlayerId = new Guid("c0c0c0c0-0000-4000-8000-000000000003"),
+                            Speed = 6,
+                            SpellIds = "6",
+                            StartEnergy = 20,
                             UnitType = "Skeleton"
                         });
                 });
@@ -389,6 +1082,12 @@ namespace IdleDwarfsGame.Server.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
+                    b.Property<long>("Experience")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("Gold")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -404,15 +1103,45 @@ namespace IdleDwarfsGame.Server.Migrations
                         new
                         {
                             Id = "a1d2f3e4-0000-4000-8000-000000000001",
+                            Experience = 0L,
+                            Gold = 0L,
                             Name = "Demo Player",
                             Rating = 0
                         },
                         new
                         {
                             Id = "e0e0e0e0-0000-4000-8000-000000000002",
+                            Experience = 0L,
+                            Gold = 0L,
                             Name = "Tower Monsters",
                             Rating = 0
+                        },
+                        new
+                        {
+                            Id = "c0c0c0c0-0000-4000-8000-000000000003",
+                            Experience = 0L,
+                            Gold = 0L,
+                            Name = "Campaign Monsters",
+                            Rating = 0
                         });
+                });
+
+            modelBuilder.Entity("PlayerCampaignProgress", b =>
+                {
+                    b.Property<string>("PlayerId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("StageId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("ClearedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("PlayerId", "StageId");
+
+                    b.HasIndex("StageId");
+
+                    b.ToTable("PlayerCampaignProgress");
                 });
 
             modelBuilder.Entity("PlayerResourses", b =>
@@ -507,6 +1236,34 @@ namespace IdleDwarfsGame.Server.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("CampaignStage", b =>
+                {
+                    b.HasOne("Arena", "Arena")
+                        .WithMany()
+                        .HasForeignKey("ArenaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Arena");
+                });
+
+            modelBuilder.Entity("CampaignStageEnemy", b =>
+                {
+                    b.HasOne("Hero", "Hero")
+                        .WithMany()
+                        .HasForeignKey("HeroId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CampaignStage", null)
+                        .WithMany("Enemies")
+                        .HasForeignKey("StageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Hero");
+                });
+
             modelBuilder.Entity("ChestDropTable", b =>
                 {
                     b.OwnsMany("DropEntry", "Entries", b1 =>
@@ -554,6 +1311,30 @@ namespace IdleDwarfsGame.Server.Migrations
                     b.Navigation("Entries");
                 });
 
+            modelBuilder.Entity("Expedition", b =>
+                {
+                    b.HasOne("Player", null)
+                        .WithMany()
+                        .HasForeignKey("PlayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ExpeditionHero", b =>
+                {
+                    b.HasOne("Expedition", null)
+                        .WithMany("Heroes")
+                        .HasForeignKey("ExpeditionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Hero", null)
+                        .WithMany()
+                        .HasForeignKey("HeroId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("IdleDwarfsGame.Server.Entities.GameEntities.PlayerChest", b =>
                 {
                     b.HasOne("ChestDropTable", "ChestDropTable")
@@ -573,6 +1354,21 @@ namespace IdleDwarfsGame.Server.Migrations
                     b.Navigation("Player");
                 });
 
+            modelBuilder.Entity("PlayerCampaignProgress", b =>
+                {
+                    b.HasOne("Player", null)
+                        .WithMany()
+                        .HasForeignKey("PlayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("CampaignStage", null)
+                        .WithMany()
+                        .HasForeignKey("StageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("User", b =>
                 {
                     b.HasOne("Player", "Player")
@@ -582,6 +1378,16 @@ namespace IdleDwarfsGame.Server.Migrations
                         .IsRequired();
 
                     b.Navigation("Player");
+                });
+
+            modelBuilder.Entity("CampaignStage", b =>
+                {
+                    b.Navigation("Enemies");
+                });
+
+            modelBuilder.Entity("Expedition", b =>
+                {
+                    b.Navigation("Heroes");
                 });
 #pragma warning restore 612, 618
         }
