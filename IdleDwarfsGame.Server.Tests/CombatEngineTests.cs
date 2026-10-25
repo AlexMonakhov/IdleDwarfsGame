@@ -69,7 +69,7 @@ public class CombatEngineTests
     }
 
     // Проигрываем бой только по логам, как это делает фронт, и сверяем HP с тем, что прислал сервер
-    private static void AssertLogsReplay(List<CombatUnitInfo> units, List<CombatLogEntry> logs)
+    internal static void AssertLogsReplay(List<CombatUnitInfo> units, List<CombatLogEntry> logs)
     {
         var hp = units.ToDictionary(u => u.EntityId, u => u.Hp);
         var maxHp = units.ToDictionary(u => u.EntityId, u => u.MaxHp);
