@@ -6,7 +6,9 @@ import InputComponent from '@/components/common/InputComponent.vue';
 import PanelComponent from '@/components/common/PanelComponent.vue';
 import { useAuth } from '@/composables/UseAuth';
 import { AuthApiError } from '@/services/apiServices/AuthApiService';
+import { useI18n } from 'vue-i18n';
 
+const { t } = useI18n();
 const router = useRouter();
 const route = useRoute();
 const { login } = useAuth();
@@ -18,8 +20,8 @@ const loading = ref(false);
 
 const validate = (): boolean => {
   const errors: Record<string, string> = {};
-  if (!form.login.trim()) errors.login = 'Введите имя или почту';
-  if (!form.password) errors.password = 'Введите пароль';
+  if (!form.login.trim()) errors.login = t('auth.errors.enterLogin');
+  if (!form.password) errors.password = t('auth.errors.enterPassword');
   fieldErrors.value = errors;
   return Object.keys(errors).length === 0;
 };
@@ -38,7 +40,7 @@ const onSubmit = async () => {
       errorMessage.value = error.message;
       fieldErrors.value = error.fieldErrors;
     } else {
-      errorMessage.value = 'Что-то пошло не так';
+      errorMessage.value = t('common.somethingWrong');
     }
   } finally {
     loading.value = false;
@@ -48,18 +50,18 @@ const onSubmit = async () => {
 
 <template>
   <div class="main auth-page">
-    <PanelComponent :header-message="'login'">
+    <PanelComponent :header-message="t('auth.loginHeader')">
       <form class="auth-form" novalidate @submit.prevent="onSubmit">
         <InputComponent
           v-model="form.login"
-          label="Имя или почта"
+          :label="t('auth.loginField')"
           autocomplete="username"
           :error="fieldErrors.login"
           :disabled="loading"
         />
         <InputComponent
           v-model="form.password"
-          label="Пароль"
+          :label="t('auth.password')"
           type="password"
           autocomplete="current-password"
           :error="fieldErrors.password"
@@ -69,13 +71,13 @@ const onSubmit = async () => {
         <div class="auth-error">{{ errorMessage ?? '' }}</div>
 
         <GemButton type="submit" :color="'green'" width="100%" :disabled="loading">
-          {{ loading ? 'Входим...' : 'Войти' }}
+          {{ loading ? t('auth.signingIn') : t('auth.signIn') }}
         </GemButton>
       </form>
 
       <div class="auth-switch">
-        Нет аккаунта?
-        <router-link to="/register" class="auth-link">Регистрация</router-link>
+        {{ t('auth.noAccount') }}
+        <router-link to="/register" class="auth-link">{{ t('auth.toRegister') }}</router-link>
       </div>
     </PanelComponent>
   </div>

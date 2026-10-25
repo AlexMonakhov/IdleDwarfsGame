@@ -24,13 +24,13 @@
           <!-- Контент тултипа, лежащий поверх подложки -->
           <div class="tooltip-content">
             <div class="tooltip-title">
-                <slot name="title">Default Title</slot>
+                <slot name="title">{{ t('tooltip.defaultTitle') }}</slot>
             </div>
             <div class="tooltip-desc">
-                <slot name="description">Default Description</slot>
+                <slot name="description">{{ t('tooltip.defaultDescription') }}</slot>
             </div>
             <div class="tooltip-stats" v-if="$slots.stats">
-                <slot name="stats">Default Stats</slot>
+                <slot name="stats">{{ t('tooltip.defaultStats') }}</slot>
             </div>
           </div>
         </div>
@@ -41,6 +41,9 @@
 
 <script setup lang="ts">
 import { nextTick, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 // interface Props {
   

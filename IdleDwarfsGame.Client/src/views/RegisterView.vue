@@ -6,7 +6,9 @@ import InputComponent from '@/components/common/InputComponent.vue';
 import PanelComponent from '@/components/common/PanelComponent.vue';
 import { useAuth } from '@/composables/UseAuth';
 import { AuthApiError } from '@/services/apiServices/AuthApiService';
+import { useI18n } from 'vue-i18n';
 
+const { t } = useI18n();
 const router = useRouter();
 const { register } = useAuth();
 
@@ -23,17 +25,17 @@ const validate = (): boolean => {
   const errors: Record<string, string> = {};
   const username = form.username.trim();
 
-  if (!username) errors.username = 'Введите имя';
-  else if (username.length < 3 || username.length > 24) errors.username = 'Имя должно быть от 3 до 24 символов';
-  else if (!USERNAME_REGEX.test(username)) errors.username = 'Только латиница, цифры, _ и -';
+  if (!username) errors.username = t('auth.errors.enterUsername');
+  else if (username.length < 3 || username.length > 24) errors.username = t('auth.errors.usernameLength');
+  else if (!USERNAME_REGEX.test(username)) errors.username = t('auth.errors.usernameChars');
 
-  if (!form.email.trim()) errors.email = 'Введите почту';
-  else if (!EMAIL_REGEX.test(form.email.trim())) errors.email = 'Некорректная почта';
+  if (!form.email.trim()) errors.email = t('auth.errors.enterEmail');
+  else if (!EMAIL_REGEX.test(form.email.trim())) errors.email = t('auth.errors.invalidEmail');
 
-  if (!form.password) errors.password = 'Введите пароль';
-  else if (form.password.length < 6) errors.password = 'Пароль должен быть не короче 6 символов';
+  if (!form.password) errors.password = t('auth.errors.enterPassword');
+  else if (form.password.length < 6) errors.password = t('auth.errors.passwordLength');
 
-  if (form.confirmPassword !== form.password) errors.confirmPassword = 'Пароли не совпадают';
+  if (form.confirmPassword !== form.password) errors.confirmPassword = t('auth.errors.passwordsMismatch');
 
   fieldErrors.value = errors;
   return Object.keys(errors).length === 0;
@@ -56,7 +58,7 @@ const onSubmit = async () => {
       errorMessage.value = error.message;
       fieldErrors.value = error.fieldErrors;
     } else {
-      errorMessage.value = 'Что-то пошло не так';
+      errorMessage.value = t('common.somethingWrong');
     }
   } finally {
     loading.value = false;
@@ -66,18 +68,18 @@ const onSubmit = async () => {
 
 <template>
   <div class="main auth-page">
-    <PanelComponent :header-message="'register'">
+    <PanelComponent :header-message="t('auth.registerHeader')">
       <form class="auth-form" novalidate @submit.prevent="onSubmit">
         <InputComponent
           v-model="form.username"
-          label="Имя"
+          :label="t('auth.username')"
           autocomplete="username"
           :error="fieldErrors.username"
           :disabled="loading"
         />
         <InputComponent
           v-model="form.email"
-          label="Почта"
+          :label="t('auth.email')"
           type="email"
           autocomplete="email"
           :error="fieldErrors.email"
@@ -85,7 +87,7 @@ const onSubmit = async () => {
         />
         <InputComponent
           v-model="form.password"
-          label="Пароль"
+          :label="t('auth.password')"
           type="password"
           autocomplete="new-password"
           :error="fieldErrors.password"
@@ -93,7 +95,7 @@ const onSubmit = async () => {
         />
         <InputComponent
           v-model="form.confirmPassword"
-          label="Повторите пароль"
+          :label="t('auth.confirmPassword')"
           type="password"
           autocomplete="new-password"
           :error="fieldErrors.confirmPassword"
@@ -103,13 +105,13 @@ const onSubmit = async () => {
         <div class="auth-error">{{ errorMessage ?? '' }}</div>
 
         <GemButton type="submit" :color="'green'" width="100%" :disabled="loading">
-          {{ loading ? 'Создаём...' : 'Создать аккаунт' }}
+          {{ loading ? t('auth.creatingAccount') : t('auth.createAccount') }}
         </GemButton>
       </form>
 
       <div class="auth-switch">
-        Уже есть аккаунт?
-        <router-link to="/login" class="auth-link">Войти</router-link>
+        {{ t('auth.haveAccount') }}
+        <router-link to="/login" class="auth-link">{{ t('auth.toLogin') }}</router-link>
       </div>
     </PanelComponent>
   </div>

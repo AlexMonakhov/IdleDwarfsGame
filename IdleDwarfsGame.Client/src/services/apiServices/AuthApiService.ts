@@ -1,4 +1,5 @@
 import axios, { AxiosError } from 'axios';
+import { t } from '@/i18n';
 
 export interface AuthUser {
     id: string;
@@ -52,7 +53,7 @@ const toAuthError = (error: unknown): AuthApiError => {
         Object.entries(data.errors).forEach(([key, messages]) => {
             fieldErrors[toFieldName(key)] = messages[0];
         });
-        return new AuthApiError('Проверьте введённые данные', fieldErrors);
+        return new AuthApiError(t('auth.errors.checkInput'), fieldErrors);
     }
 
     if (data?.message) {
@@ -60,10 +61,10 @@ const toAuthError = (error: unknown): AuthApiError => {
     }
 
     if (!axiosError.response) {
-        return new AuthApiError('Сервер недоступен, попробуйте позже');
+        return new AuthApiError(t('auth.errors.serverUnavailable'));
     }
 
-    return new AuthApiError('Что-то пошло не так');
+    return new AuthApiError(t('common.somethingWrong'));
 };
 
 class AuthApiService {

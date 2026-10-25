@@ -1,7 +1,7 @@
 <template>
   <div class="town">
     <CanvasLayer>
-      <h1>{{ aboutMessage }}</h1>
+      <h1>{{ t('town.title') }}</h1>
     <TimelineGorizontal></TimelineGorizontal>
     <CanvasComponent 
       :effects="animationObject2"
@@ -10,16 +10,16 @@
         <IconHelm size="60px" primary-color="rgb(217 215 178)" secondary-color="rgb(64 255 251)"></IconHelm>
       </IconButton>
     </CanvasComponent>
-    <GemButton :color="'pink'" @click="open = !open" :width="'70px'" height="44px">compaign</GemButton>
-    <GemButton :color="'green'" @click="open = !open" :badge-count="helmBadge">hello</GemButton>
-    <GemButton :color="'blue'" @click="open = !open" :badge-count="armorBadge" height="60px" width="60px" round>hi</GemButton>
+    <GemButton :color="'pink'" @click="open = !open" :width="'70px'" height="44px">{{ t('town.campaign') }}</GemButton>
+    <GemButton :color="'green'" @click="open = !open" :badge-count="helmBadge">{{ t('town.hello') }}</GemButton>
+    <GemButton :color="'blue'" @click="open = !open" :badge-count="armorBadge" height="60px" width="60px" round>{{ t('town.hi') }}</GemButton>
     <TooltipComponent>
-      <GemButton :color="'yellow'">yes?</GemButton>
+      <GemButton :color="'yellow'">{{ t('town.yes') }}</GemButton>
     </TooltipComponent>
 
-    <ModalComponent 
+    <ModalComponent
         v-model="open"
-        :header-message="'campaign'">
+        :header-message="t('campaign.header')">
           <ul class="company-list">
             <CanvasLayer>
             <CanvasComponent 
@@ -84,8 +84,9 @@ import CanvasLayer from '@/components/canvas/CanvasLayer.vue';
 import CardComponent from '@/components/card/CardComponent.vue';
 import InfoComponent from '@/components/common/InfoComponent.vue';
 import TooltipComponent from '@/components/common/TooltipComponent.vue';
+import { useI18n } from 'vue-i18n';
 
-const aboutMessage = ref("about message");
+const { t } = useI18n();
 const open = ref(false);
 const open1 = ref(false);
 const animationvalue = ref(false);
