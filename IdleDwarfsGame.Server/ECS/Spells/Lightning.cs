@@ -4,37 +4,33 @@ public class Lightning : BaseSpell
 
     public override DamageType DamageType => DamageType.Lightning;
 
-    protected override List<int> GetTargets(World world, int casterId)
-    {
-        var enemies = GetAliveEnemies(world, casterId);
+    // 1 — одна цель, 2 и 3 — две
+    private int TargetCount => Level == 1 ? 1 : 2;
 
-        return Level switch
-        {
-            1 => GetRandomTargets(enemies, 1), // 1 цель
-            2 => GetRandomTargets(enemies, 2), // 2 цели
-            3 => GetRandomTargets(enemies, 2), // 2 цели
-            _ => new List<int>()
-        };
-    }
+    // На 3 уровне урон как на 2-м, но со станом
+    private double DamageMultiplier => Level == 1 ? 1.3 : 0.9;
 
-    protected override int GetDamage(World world, int casterId, int targetId)
-    {
-        int baseDamage = world.Attack[casterId].Damage;
-        return Level switch
-        {
-            1 => (int)(baseDamage * 1.3),
-            2 => (int)(baseDamage * 0.9),
-            3 => (int)(baseDamage * 0.9), // Урон как на 2 уровне, но со станом
-            _ => baseDamage
-        };
-    }
+    private bool Stuns => Level == 3;
+
+    protected override List<int> GetTargets(World world, int casterId, Random random) =>
+        GetRandomTargets(GetAliveEnemies(world, casterId), TargetCount, random);
+
+    protected override int GetDamage(World world, int casterId, int targetId) =>
+        (int)(world.Attack[casterId].Damage * DamageMultiplier);
 
     protected override void ApplyEffects(World world, int casterId, int targetId, CombatContext context)
     {
-        // Стан накладывается только на 3-м уровне
-        if (Level == 3)
+        if (Stuns)
         {
             new StunEffect(turns: 1).ApplyEffect(world, targetId, context, casterId);
         }
+    }
+
+    public override SpellEstimate Estimate(int casterAttack, int enemyCount)
+    {
+        int targets = Math.Min(TargetCount, enemyCount);
+        return new SpellEstimate(
+            Damage: targets * (int)(casterAttack * DamageMultiplier),
+            StunnedTurns: Stuns ? targets : 0);
     }
 }
