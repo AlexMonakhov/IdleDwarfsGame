@@ -3,14 +3,15 @@ public static class StarterSquad
 {
     public const int Size = 5;
 
-    private static readonly string[] Names =
+    // Имена и роли берёт и HeroGenerator для героев из сундуков
+    internal static readonly string[] Names =
     [
         "Borin", "Durgan", "Thrain", "Hilda", "Gorim", "Kili", "Balin", "Brynja",
         "Nori", "Dwalin", "Astrid", "Fundin", "Groa", "Torvin", "Sigrun", "Bofur"
     ];
 
     // Роли по слотам: впереди крепкий защитник, сзади быстрый разведчик
-    private static readonly (int MaxHp, int Attack, int Speed)[] Roles =
+    internal static readonly (int MaxHp, int Attack, int Speed)[] Roles =
     [
         (140, 8, 3),  // защитник
         (110, 11, 5), // воин

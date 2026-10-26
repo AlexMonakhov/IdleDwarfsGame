@@ -30,6 +30,9 @@ public class CampaignOverview
 {
     // null — кампания пройдена целиком
     public int? CurrentStageId { get; set; }
+    // Незабранная награда за пройденный уровень: пока она есть, вместо боя — кнопка «Забрать награды».
+    // Что в ней — фронт узнаёт только из ответа на получение
+    public Guid? PendingRewardId { get; set; }
     public int ClearedCount { get; set; }
     public int TotalStages { get; set; }
     // Отряд игрока один на все уровни, поэтому отдаётся один раз
@@ -41,7 +44,7 @@ public class CampaignOverview
 public class CampaignFightResult
 {
     public int StageId { get; set; }
-    // Уровень пройден впервые именно этим боем
+    // Уровень пройден впервые именно этим боем — за это выдана награда, её забирают в кампании
     public bool FirstClear { get; set; }
     // Уровень, доступный после боя (null — кампания пройдена)
     public int? CurrentStageId { get; set; }

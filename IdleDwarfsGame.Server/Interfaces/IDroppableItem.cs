@@ -1,22 +1,12 @@
 using IdleDwarfsGame.Server.Enums;
 
-public interface ILootItem
-{
-    Guid Id { get; }
-    string Name { get; }
-    ItemType ItemType { get; }
-    string SubType { get; }
-    Rarity Rarity { get; }
-    int Level { get; }
-}
-
 public interface IChestDropTable
 {
     int ChestLevel { get; }
     ChestType ChestType { get; }
+    int Rolls { get; }
     IReadOnlyCollection<DropEntry> Entries { get; }
 }
 
-
-
-
+// Что выпало из сундука: Amount одинаковых штук (гемы складываются в стопку, героев создаётся Amount)
+public record LootDrop(ItemType ItemType, string SubType, Rarity Rarity, int Level, int Amount);

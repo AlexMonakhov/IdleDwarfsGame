@@ -1,7 +1,9 @@
 public class DropEntry
 {
     public Guid Id { get; init; } = Guid.NewGuid();
-    public double Probability { get; init; }      // 0.8 = 80%
+    // Шанс записи за один бросок своей группы: 0.2 = 20%. Остаток до 1 — «ничего не выпало»,
+    // если сумма по группе больше 1 — шансы делятся на сумму
+    public double Probability { get; init; }
     public int MinAmount { get; init; }
     public int MaxAmount { get; init; }
 

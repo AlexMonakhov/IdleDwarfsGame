@@ -1,8 +1,11 @@
+// В DropEntry хранится числом — значения не переставлять
 public enum ItemType
 {
-    Equipment,
-    Material,
-    Crystal
+    Equipment = 0,
+    Material = 1,
+    Gem = 2,
+    // Герой из сундука: ItemLevel — ранг (Hero.Level), SubType — стихия или пусто (случайная)
+    Hero = 3
 }
 
 public enum EquipmentSubType
@@ -20,13 +23,15 @@ public enum MaterialSubType
     Dust
 }
 
-public enum CrystalSubType
+// Камни стихий (HeroElement): рубин — огонь, сапфир — мороз, топаз — молния, изумруд — природа
+public enum GemType
 {
     Ruby,
     Emerald,
     Sapphire,
     Diamond,
-    Amethyst
+    Amethyst,
+    Topaz
 }
 
 public enum Rarity

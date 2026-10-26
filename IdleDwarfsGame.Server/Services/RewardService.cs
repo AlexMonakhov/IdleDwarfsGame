@@ -1,14 +1,15 @@
-using System;
-using System.Threading.Tasks;
-
-public class RewardService(GameDbContext dbContext) : IRewardService
+// Получение наград, выданных за бои (PlayerRewards): до этого момента их нет ни на аккаунте, ни в UI
+public class RewardService(IRewardRepository rewards, IPlayerRepository players, TimeProvider time)
 {
-    public async Task<RewardEntity> GenerateAndSaveRewards(Guid playerId, ICombatScenario scenario, int level)
+    public async Task<RewardClaimResult> ClaimAsync(Guid playerId, Guid rewardId)
     {
-        // TODO: Implement reward generation logic based on scenario and level
-        var rewards = new RewardEntity();
-        
-        // await dbContext.SaveChangesAsync();
-        return await Task.FromResult(rewards);
+        var reward = await rewards.ClaimAsync(playerId, rewardId, time.GetUtcNow().UtcDateTime)
+            ?? throw new InvalidOperationException("Reward not found or already claimed");
+
+        return new RewardClaimResult
+        {
+            Reward = RewardInfo.From(reward),
+            Resources = await players.GetResourcesAsync(playerId) ?? new PlayerResources()
+        };
     }
 }
