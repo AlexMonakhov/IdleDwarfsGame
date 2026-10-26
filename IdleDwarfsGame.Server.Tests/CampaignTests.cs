@@ -116,14 +116,30 @@ public class CampaignTests
         .OrderBy(h => h.PlaceInSquad)
         .ToList();
 
-    private static CampaignService CreateService(ICampaignRepository repository)
+    [Fact]
+    public async Task Fight_BlockedUntilRewardIsClaimed()
+    {
+        var rewards = new Mock<IRewardRepository>();
+        rewards.Setup(r => r.GetUnclaimedAsync(HeroSeedData.DemoPlayerId, RewardSource.Campaign))
+            .ReturnsAsync(new PlayerReward { Id = Guid.NewGuid(), PlayerId = HeroSeedData.DemoPlayerId });
+        var service = CreateService(new SeedCampaignRepository(), rewards.Object);
+
+        var error = await Assert.ThrowsAsync<InvalidOperationException>(() => service.FightAsync(HeroSeedData.DemoPlayerId, 1));
+        Assert.Contains("Claim", error.Message);
+
+        var overview = await service.GetOverviewAsync(HeroSeedData.DemoPlayerId);
+        Assert.NotNull(overview.PendingRewardId);
+    }
+
+    private static CampaignService CreateService(ICampaignRepository repository, IRewardRepository? rewards = null)
     {
         var heroes = new Mock<IHeroesRepository>();
         heroes.Setup(h => h.GetSquadAsync(It.IsAny<Guid>(), It.IsAny<int>())).ReturnsAsync(DemoSquad());
 
         var scenarios = new ICombatScenario[] { new CampaignScenario(repository, Factory) };
-        var combatService = new CombatService(Mock.Of<IWorldFactory>(), Mock.Of<ICombatEngine>(), scenarios, Mock.Of<IRewardService>());
-        return new CampaignService(repository, heroes.Object, Factory, scenarios, combatService);
+        var combatService = new CombatService(Mock.Of<IWorldFactory>(), Mock.Of<ICombatEngine>(), scenarios);
+        return new CampaignService(repository, heroes.Object, Factory, scenarios, combatService,
+            rewards ?? Mock.Of<IRewardRepository>(), new Random(0), TimeProvider.System);
     }
 
     // Кампания из сидов в памяти, без БД
@@ -159,6 +175,7 @@ public class CampaignTests
         public Task<HashSet<int>> GetClearedStageIdsAsync(Guid playerId) =>
             Task.FromResult(_cleared.Where(c => c.Item1 == playerId).Select(c => c.Item2).ToHashSet());
 
-        public Task<bool> MarkClearedAsync(Guid playerId, int stageId) => Task.FromResult(_cleared.Add((playerId, stageId)));
+        public Task<bool> MarkClearedAsync(Guid playerId, int stageId, PlayerReward? reward = null) =>
+            Task.FromResult(_cleared.Add((playerId, stageId)));
     }
 }
