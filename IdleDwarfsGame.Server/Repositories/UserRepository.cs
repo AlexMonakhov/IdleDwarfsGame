@@ -20,6 +20,15 @@ public class UserRepository(GameDbContext context) : IUserRepository
             .FirstOrDefaultAsync(u => u.NormalizedUsername == normalized || u.NormalizedEmail == normalized);
     }
 
+    // Только по имени: почту другого игрока знать не нужно (и светить её через поиск тоже)
+    public async Task<User?> GetByUsernameAsync(string username)
+    {
+        var normalized = Normalize(username);
+        return await context.Users
+            .AsNoTracking()
+            .FirstOrDefaultAsync(u => u.NormalizedUsername == normalized);
+    }
+
     public async Task<bool> UsernameExistsAsync(string username)
     {
         var normalized = Normalize(username);
