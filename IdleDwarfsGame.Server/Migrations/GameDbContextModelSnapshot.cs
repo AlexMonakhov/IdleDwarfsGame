@@ -560,9 +560,61 @@ namespace IdleDwarfsGame.Server.Migrations
                     b.Property<int>("ChestType")
                         .HasColumnType("INTEGER");
 
+                    b.Property<int>("Rolls")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(1);
+
                     b.HasKey("Id");
 
+                    b.HasIndex("ChestType", "ChestLevel")
+                        .IsUnique();
+
                     b.ToTable("ChestDropTables");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = "c4e50000-0000-4000-8000-000000000001",
+                            ChestLevel = 1,
+                            ChestType = 0,
+                            Rolls = 1
+                        },
+                        new
+                        {
+                            Id = "c4e50000-0000-4000-8000-000000000002",
+                            ChestLevel = 2,
+                            ChestType = 0,
+                            Rolls = 1
+                        },
+                        new
+                        {
+                            Id = "c4e50000-0000-4000-8000-000000000003",
+                            ChestLevel = 3,
+                            ChestType = 0,
+                            Rolls = 1
+                        },
+                        new
+                        {
+                            Id = "c4e50000-0000-4000-8000-000001000001",
+                            ChestLevel = 1,
+                            ChestType = 1,
+                            Rolls = 2
+                        },
+                        new
+                        {
+                            Id = "c4e50000-0000-4000-8000-000001000002",
+                            ChestLevel = 2,
+                            ChestType = 1,
+                            Rolls = 3
+                        },
+                        new
+                        {
+                            Id = "c4e50000-0000-4000-8000-000001000003",
+                            ChestLevel = 3,
+                            ChestType = 1,
+                            Rolls = 3
+                        });
                 });
 
             modelBuilder.Entity("Expedition", b =>
@@ -639,6 +691,42 @@ namespace IdleDwarfsGame.Server.Migrations
                     b.ToTable("ExpeditionHeroes");
                 });
 
+            modelBuilder.Entity("FriendRequest", b =>
+                {
+                    b.Property<string>("FromUserId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ToUserId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("FromUserId", "ToUserId");
+
+                    b.HasIndex("ToUserId");
+
+                    b.ToTable("FriendRequests");
+                });
+
+            modelBuilder.Entity("Friendship", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("FriendId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("UserId", "FriendId");
+
+                    b.HasIndex("FriendId");
+
+                    b.ToTable("Friendships");
+                });
+
             modelBuilder.Entity("Hero", b =>
                 {
                     b.Property<Guid>("Id")
@@ -712,6 +800,11 @@ namespace IdleDwarfsGame.Server.Migrations
                         .HasColumnType("TEXT")
                         .HasDefaultValue("Dwarf");
 
+                    b.Property<int>("UpgradeLevel")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(1);
+
                     b.HasKey("Id");
 
                     b.HasIndex("PlayerId");
@@ -740,7 +833,8 @@ namespace IdleDwarfsGame.Server.Migrations
                             Speed = 4,
                             SpellIds = "",
                             StartEnergy = 0,
-                            UnitType = "Dwarf"
+                            UnitType = "Dwarf",
+                            UpgradeLevel = 1
                         },
                         new
                         {
@@ -762,7 +856,8 @@ namespace IdleDwarfsGame.Server.Migrations
                             Speed = 7,
                             SpellIds = "2",
                             StartEnergy = 20,
-                            UnitType = "Dwarf"
+                            UnitType = "Dwarf",
+                            UpgradeLevel = 1
                         },
                         new
                         {
@@ -784,7 +879,8 @@ namespace IdleDwarfsGame.Server.Migrations
                             Speed = 6,
                             SpellIds = "4,6",
                             StartEnergy = 0,
-                            UnitType = "Dwarf"
+                            UnitType = "Dwarf",
+                            UpgradeLevel = 1
                         },
                         new
                         {
@@ -806,7 +902,8 @@ namespace IdleDwarfsGame.Server.Migrations
                             Speed = 5,
                             SpellIds = "",
                             StartEnergy = 0,
-                            UnitType = "Dwarf"
+                            UnitType = "Dwarf",
+                            UpgradeLevel = 1
                         },
                         new
                         {
@@ -828,7 +925,8 @@ namespace IdleDwarfsGame.Server.Migrations
                             Speed = 8,
                             SpellIds = "7",
                             StartEnergy = 40,
-                            UnitType = "Dwarf"
+                            UnitType = "Dwarf",
+                            UpgradeLevel = 1
                         },
                         new
                         {
@@ -849,7 +947,8 @@ namespace IdleDwarfsGame.Server.Migrations
                             Speed = 5,
                             SpellIds = "1",
                             StartEnergy = 0,
-                            UnitType = "Dwarf"
+                            UnitType = "Dwarf",
+                            UpgradeLevel = 1
                         },
                         new
                         {
@@ -871,7 +970,8 @@ namespace IdleDwarfsGame.Server.Migrations
                             Speed = 3,
                             SpellIds = "",
                             StartEnergy = 0,
-                            UnitType = "Orc"
+                            UnitType = "Orc",
+                            UpgradeLevel = 1
                         },
                         new
                         {
@@ -893,7 +993,8 @@ namespace IdleDwarfsGame.Server.Migrations
                             Speed = 9,
                             SpellIds = "",
                             StartEnergy = 0,
-                            UnitType = "Goblin"
+                            UnitType = "Goblin",
+                            UpgradeLevel = 1
                         },
                         new
                         {
@@ -915,7 +1016,8 @@ namespace IdleDwarfsGame.Server.Migrations
                             Speed = 7,
                             SpellIds = "1",
                             StartEnergy = 20,
-                            UnitType = "Goblin"
+                            UnitType = "Goblin",
+                            UpgradeLevel = 1
                         },
                         new
                         {
@@ -938,7 +1040,8 @@ namespace IdleDwarfsGame.Server.Migrations
                             Speed = 4,
                             SpellIds = "",
                             StartEnergy = 0,
-                            UnitType = "Orc"
+                            UnitType = "Orc",
+                            UpgradeLevel = 1
                         },
                         new
                         {
@@ -960,7 +1063,8 @@ namespace IdleDwarfsGame.Server.Migrations
                             Speed = 6,
                             SpellIds = "5",
                             StartEnergy = 0,
-                            UnitType = "Skeleton"
+                            UnitType = "Skeleton",
+                            UpgradeLevel = 1
                         },
                         new
                         {
@@ -981,7 +1085,8 @@ namespace IdleDwarfsGame.Server.Migrations
                             Speed = 8,
                             SpellIds = "",
                             StartEnergy = 0,
-                            UnitType = "Goblin"
+                            UnitType = "Goblin",
+                            UpgradeLevel = 1
                         },
                         new
                         {
@@ -1002,7 +1107,8 @@ namespace IdleDwarfsGame.Server.Migrations
                             Speed = 5,
                             SpellIds = "4",
                             StartEnergy = 20,
-                            UnitType = "Skeleton"
+                            UnitType = "Skeleton",
+                            UpgradeLevel = 1
                         },
                         new
                         {
@@ -1024,7 +1130,8 @@ namespace IdleDwarfsGame.Server.Migrations
                             Speed = 5,
                             SpellIds = "2",
                             StartEnergy = 20,
-                            UnitType = "Orc"
+                            UnitType = "Orc",
+                            UpgradeLevel = 1
                         },
                         new
                         {
@@ -1046,7 +1153,8 @@ namespace IdleDwarfsGame.Server.Migrations
                             Speed = 6,
                             SpellIds = "6",
                             StartEnergy = 20,
-                            UnitType = "Skeleton"
+                            UnitType = "Skeleton",
+                            UpgradeLevel = 1
                         });
                 });
 
@@ -1144,6 +1252,45 @@ namespace IdleDwarfsGame.Server.Migrations
                     b.ToTable("PlayerCampaignProgress");
                 });
 
+            modelBuilder.Entity("PlayerItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ItemType")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Level")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("PlayerId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Rarity")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("SubType")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PlayerId", "ItemType", "SubType", "Rarity", "Level")
+                        .IsUnique();
+
+                    b.ToTable("PlayerItems");
+                });
+
             modelBuilder.Entity("PlayerResourses", b =>
                 {
                     b.Property<string>("Id")
@@ -1167,6 +1314,67 @@ namespace IdleDwarfsGame.Server.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("PlayerResourses");
+                });
+
+            modelBuilder.Entity("PlayerReward", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("ClaimedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Experience")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Gold")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("PlayerId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("SourceId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PlayerId", "Source", "ClaimedAt");
+
+                    b.ToTable("PlayerRewards");
+                });
+
+            modelBuilder.Entity("PlayerRewardChest", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("ChestLevel")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("ChestType")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("RewardId")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RewardId");
+
+                    b.ToTable("PlayerRewardChests");
                 });
 
             modelBuilder.Entity("Resourses", b =>
@@ -1234,6 +1442,36 @@ namespace IdleDwarfsGame.Server.Migrations
                         .IsUnique();
 
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("UserSession", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("EndedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("LastSeenAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("StartedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("UserAgent")
+                        .HasMaxLength(256)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "LastSeenAt");
+
+                    b.ToTable("UserSessions");
                 });
 
             modelBuilder.Entity("CampaignStage", b =>
@@ -1306,6 +1544,392 @@ namespace IdleDwarfsGame.Server.Migrations
 
                             b1.WithOwner()
                                 .HasForeignKey("ChestDropTableId");
+
+                            b1.HasData(
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000000010000"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000000000001",
+                                    ItemLevel = 1,
+                                    ItemType = 3,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.80000000000000004,
+                                    Rarity = 0,
+                                    SubType = ""
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000000010001"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000000000001",
+                                    ItemLevel = 2,
+                                    ItemType = 3,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.20000000000000001,
+                                    Rarity = 1,
+                                    SubType = ""
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000000020000"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000000000002",
+                                    ItemLevel = 1,
+                                    ItemType = 3,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.5,
+                                    Rarity = 0,
+                                    SubType = ""
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000000020001"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000000000002",
+                                    ItemLevel = 2,
+                                    ItemType = 3,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.40000000000000002,
+                                    Rarity = 1,
+                                    SubType = ""
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000000020002"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000000000002",
+                                    ItemLevel = 3,
+                                    ItemType = 3,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.10000000000000001,
+                                    Rarity = 2,
+                                    SubType = ""
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000000030000"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000000000003",
+                                    ItemLevel = 2,
+                                    ItemType = 3,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.5,
+                                    Rarity = 1,
+                                    SubType = ""
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000000030001"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000000000003",
+                                    ItemLevel = 3,
+                                    ItemType = 3,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.40000000000000002,
+                                    Rarity = 2,
+                                    SubType = ""
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000000030002"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000000000003",
+                                    ItemLevel = 4,
+                                    ItemType = 3,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.10000000000000001,
+                                    Rarity = 3,
+                                    SubType = ""
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000100010000"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000001000001",
+                                    ItemLevel = 1,
+                                    ItemType = 2,
+                                    MaxAmount = 4,
+                                    MinAmount = 2,
+                                    Probability = 0.22,
+                                    Rarity = 0,
+                                    SubType = "Ruby"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000100010001"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000001000001",
+                                    ItemLevel = 1,
+                                    ItemType = 2,
+                                    MaxAmount = 4,
+                                    MinAmount = 2,
+                                    Probability = 0.22,
+                                    Rarity = 0,
+                                    SubType = "Sapphire"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000100010002"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000001000001",
+                                    ItemLevel = 1,
+                                    ItemType = 2,
+                                    MaxAmount = 4,
+                                    MinAmount = 2,
+                                    Probability = 0.22,
+                                    Rarity = 0,
+                                    SubType = "Topaz"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000100010003"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000001000001",
+                                    ItemLevel = 1,
+                                    ItemType = 2,
+                                    MaxAmount = 4,
+                                    MinAmount = 2,
+                                    Probability = 0.22,
+                                    Rarity = 0,
+                                    SubType = "Emerald"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000100010004"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000001000001",
+                                    ItemLevel = 1,
+                                    ItemType = 2,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.050000000000000003,
+                                    Rarity = 2,
+                                    SubType = "Diamond"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000100020000"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000001000002",
+                                    ItemLevel = 1,
+                                    ItemType = 2,
+                                    MaxAmount = 6,
+                                    MinAmount = 3,
+                                    Probability = 0.17999999999999999,
+                                    Rarity = 0,
+                                    SubType = "Ruby"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000100020001"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000001000002",
+                                    ItemLevel = 1,
+                                    ItemType = 2,
+                                    MaxAmount = 6,
+                                    MinAmount = 3,
+                                    Probability = 0.17999999999999999,
+                                    Rarity = 0,
+                                    SubType = "Sapphire"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000100020002"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000001000002",
+                                    ItemLevel = 1,
+                                    ItemType = 2,
+                                    MaxAmount = 6,
+                                    MinAmount = 3,
+                                    Probability = 0.17999999999999999,
+                                    Rarity = 0,
+                                    SubType = "Topaz"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000100020003"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000001000002",
+                                    ItemLevel = 1,
+                                    ItemType = 2,
+                                    MaxAmount = 6,
+                                    MinAmount = 3,
+                                    Probability = 0.17999999999999999,
+                                    Rarity = 0,
+                                    SubType = "Emerald"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000100020004"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000001000002",
+                                    ItemLevel = 1,
+                                    ItemType = 2,
+                                    MaxAmount = 2,
+                                    MinAmount = 1,
+                                    Probability = 0.050000000000000003,
+                                    Rarity = 1,
+                                    SubType = "Ruby"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000100020005"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000001000002",
+                                    ItemLevel = 1,
+                                    ItemType = 2,
+                                    MaxAmount = 2,
+                                    MinAmount = 1,
+                                    Probability = 0.050000000000000003,
+                                    Rarity = 1,
+                                    SubType = "Sapphire"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000100020006"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000001000002",
+                                    ItemLevel = 1,
+                                    ItemType = 2,
+                                    MaxAmount = 2,
+                                    MinAmount = 1,
+                                    Probability = 0.050000000000000003,
+                                    Rarity = 1,
+                                    SubType = "Topaz"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000100020007"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000001000002",
+                                    ItemLevel = 1,
+                                    ItemType = 2,
+                                    MaxAmount = 2,
+                                    MinAmount = 1,
+                                    Probability = 0.050000000000000003,
+                                    Rarity = 1,
+                                    SubType = "Emerald"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000100020008"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000001000002",
+                                    ItemLevel = 1,
+                                    ItemType = 2,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.059999999999999998,
+                                    Rarity = 2,
+                                    SubType = "Diamond"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000100030000"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000001000003",
+                                    ItemLevel = 1,
+                                    ItemType = 2,
+                                    MaxAmount = 8,
+                                    MinAmount = 4,
+                                    Probability = 0.12,
+                                    Rarity = 0,
+                                    SubType = "Ruby"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000100030001"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000001000003",
+                                    ItemLevel = 1,
+                                    ItemType = 2,
+                                    MaxAmount = 8,
+                                    MinAmount = 4,
+                                    Probability = 0.12,
+                                    Rarity = 0,
+                                    SubType = "Sapphire"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000100030002"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000001000003",
+                                    ItemLevel = 1,
+                                    ItemType = 2,
+                                    MaxAmount = 8,
+                                    MinAmount = 4,
+                                    Probability = 0.12,
+                                    Rarity = 0,
+                                    SubType = "Topaz"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000100030003"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000001000003",
+                                    ItemLevel = 1,
+                                    ItemType = 2,
+                                    MaxAmount = 8,
+                                    MinAmount = 4,
+                                    Probability = 0.12,
+                                    Rarity = 0,
+                                    SubType = "Emerald"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000100030004"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000001000003",
+                                    ItemLevel = 1,
+                                    ItemType = 2,
+                                    MaxAmount = 3,
+                                    MinAmount = 2,
+                                    Probability = 0.089999999999999997,
+                                    Rarity = 1,
+                                    SubType = "Ruby"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000100030005"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000001000003",
+                                    ItemLevel = 1,
+                                    ItemType = 2,
+                                    MaxAmount = 3,
+                                    MinAmount = 2,
+                                    Probability = 0.089999999999999997,
+                                    Rarity = 1,
+                                    SubType = "Sapphire"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000100030006"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000001000003",
+                                    ItemLevel = 1,
+                                    ItemType = 2,
+                                    MaxAmount = 3,
+                                    MinAmount = 2,
+                                    Probability = 0.089999999999999997,
+                                    Rarity = 1,
+                                    SubType = "Topaz"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000100030007"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000001000003",
+                                    ItemLevel = 1,
+                                    ItemType = 2,
+                                    MaxAmount = 3,
+                                    MinAmount = 2,
+                                    Probability = 0.089999999999999997,
+                                    Rarity = 1,
+                                    SubType = "Emerald"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000100030008"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000001000003",
+                                    ItemLevel = 1,
+                                    ItemType = 2,
+                                    MaxAmount = 2,
+                                    MinAmount = 1,
+                                    Probability = 0.12,
+                                    Rarity = 2,
+                                    SubType = "Diamond"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000100030009"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000001000003",
+                                    ItemLevel = 1,
+                                    ItemType = 2,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.040000000000000001,
+                                    Rarity = 3,
+                                    SubType = "Diamond"
+                                });
                         });
 
                     b.Navigation("Entries");
@@ -1333,6 +1957,42 @@ namespace IdleDwarfsGame.Server.Migrations
                         .HasForeignKey("HeroId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("FriendRequest", b =>
+                {
+                    b.HasOne("User", "From")
+                        .WithMany()
+                        .HasForeignKey("FromUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("User", "To")
+                        .WithMany()
+                        .HasForeignKey("ToUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("From");
+
+                    b.Navigation("To");
+                });
+
+            modelBuilder.Entity("Friendship", b =>
+                {
+                    b.HasOne("User", "Friend")
+                        .WithMany()
+                        .HasForeignKey("FriendId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Friend");
                 });
 
             modelBuilder.Entity("IdleDwarfsGame.Server.Entities.GameEntities.PlayerChest", b =>
@@ -1369,6 +2029,33 @@ namespace IdleDwarfsGame.Server.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("PlayerItem", b =>
+                {
+                    b.HasOne("Player", null)
+                        .WithMany()
+                        .HasForeignKey("PlayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("PlayerReward", b =>
+                {
+                    b.HasOne("Player", null)
+                        .WithMany()
+                        .HasForeignKey("PlayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("PlayerRewardChest", b =>
+                {
+                    b.HasOne("PlayerReward", null)
+                        .WithMany("Chests")
+                        .HasForeignKey("RewardId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("User", b =>
                 {
                     b.HasOne("Player", "Player")
@@ -1380,6 +2067,15 @@ namespace IdleDwarfsGame.Server.Migrations
                     b.Navigation("Player");
                 });
 
+            modelBuilder.Entity("UserSession", b =>
+                {
+                    b.HasOne("User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("CampaignStage", b =>
                 {
                     b.Navigation("Enemies");
@@ -1388,6 +2084,11 @@ namespace IdleDwarfsGame.Server.Migrations
             modelBuilder.Entity("Expedition", b =>
                 {
                     b.Navigation("Heroes");
+                });
+
+            modelBuilder.Entity("PlayerReward", b =>
+                {
+                    b.Navigation("Chests");
                 });
 #pragma warning restore 612, 618
         }

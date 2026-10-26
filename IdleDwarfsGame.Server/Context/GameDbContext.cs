@@ -22,6 +22,12 @@ public class GameDbContext : DbContext
     public DbSet<PlayerCampaignProgress> PlayerCampaignProgress => Set<PlayerCampaignProgress>();
     public DbSet<Expedition> Expeditions => Set<Expedition>();
     public DbSet<ExpeditionHero> ExpeditionHeroes => Set<ExpeditionHero>();
+    public DbSet<FriendRequest> FriendRequests => Set<FriendRequest>();
+    public DbSet<Friendship> Friendships => Set<Friendship>();
+    public DbSet<UserSession> UserSessions => Set<UserSession>();
+    public DbSet<PlayerItem> PlayerItems => Set<PlayerItem>();
+    public DbSet<PlayerReward> PlayerRewards => Set<PlayerReward>();
+    public DbSet<PlayerRewardChest> PlayerRewardChests => Set<PlayerRewardChest>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -62,6 +68,11 @@ public class GameDbContext : DbContext
         modelBuilder.Entity<Hero>()
             .Property(h => h.UnitType)
             .HasDefaultValue("Dwarf");
+
+        // Уже существующие герои начинают прокачку с первого уровня
+        modelBuilder.Entity<Hero>()
+            .Property(h => h.UpgradeLevel)
+            .HasDefaultValue(HeroUpgradeService.MinLevel);
 
         // Стихию храним строкой ("Fire"), чтобы порядок значений в енаме можно было менять
         modelBuilder.Entity<Hero>()
@@ -106,11 +117,24 @@ public class GameDbContext : DbContext
             .OwnsMany(cdt => cdt.Entries, owned =>
             {
                 owned.HasKey(e => e.Id);
+                owned.HasData(LootSeedData.Entries);
             });
 
         modelBuilder.Entity<ChestDropTable>()
             .Property(p => p.Id)
             .HasConversion<string>();
+
+        modelBuilder.Entity<ChestDropTable>()
+            .Property(t => t.Rolls)
+            .HasDefaultValue(1);
+
+        // Сундук определяется типом и уровнем — по ним награда находит таблицу
+        modelBuilder.Entity<ChestDropTable>()
+            .HasIndex(t => new { t.ChestType, t.ChestLevel })
+            .IsUnique();
+
+        modelBuilder.Entity<ChestDropTable>()
+            .HasData(LootSeedData.Tables);
 
         modelBuilder.Entity<Resourses>()
             .HasKey(r => r.Id);
@@ -274,5 +298,149 @@ public class GameDbContext : DbContext
         modelBuilder.Entity<ExpeditionHero>()
             .HasIndex(h => h.HeroId)
             .IsUnique();
+
+        // ===== Друзья =====
+        modelBuilder.Entity<FriendRequest>()
+            .HasKey(r => new { r.FromUserId, r.ToUserId });
+
+        modelBuilder.Entity<FriendRequest>()
+            .Property(r => r.FromUserId)
+            .HasConversion<string>();
+
+        modelBuilder.Entity<FriendRequest>()
+            .Property(r => r.ToUserId)
+            .HasConversion<string>();
+
+        modelBuilder.Entity<FriendRequest>()
+            .HasOne(r => r.From)
+            .WithMany()
+            .HasForeignKey(r => r.FromUserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<FriendRequest>()
+            .HasOne(r => r.To)
+            .WithMany()
+            .HasForeignKey(r => r.ToUserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Входящие заявки игрока
+        modelBuilder.Entity<FriendRequest>()
+            .HasIndex(r => r.ToUserId);
+
+        modelBuilder.Entity<Friendship>()
+            .HasKey(f => new { f.UserId, f.FriendId });
+
+        modelBuilder.Entity<Friendship>()
+            .Property(f => f.UserId)
+            .HasConversion<string>();
+
+        modelBuilder.Entity<Friendship>()
+            .Property(f => f.FriendId)
+            .HasConversion<string>();
+
+        modelBuilder.Entity<Friendship>()
+            .HasOne<User>()
+            .WithMany()
+            .HasForeignKey(f => f.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Friendship>()
+            .HasOne(f => f.Friend)
+            .WithMany()
+            .HasForeignKey(f => f.FriendId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // ===== Сессии =====
+        modelBuilder.Entity<UserSession>()
+            .HasKey(s => s.Id);
+
+        modelBuilder.Entity<UserSession>()
+            .Property(s => s.UserId)
+            .HasConversion<string>();
+
+        modelBuilder.Entity<UserSession>()
+            .Property(s => s.UserAgent)
+            .HasMaxLength(SessionService.MaxUserAgentLength);
+
+        modelBuilder.Entity<UserSession>()
+            .HasOne<User>()
+            .WithMany()
+            .HasForeignKey(s => s.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // «Когда игрок был в сети» — последняя по LastSeenAt сессия
+        modelBuilder.Entity<UserSession>()
+            .HasIndex(s => new { s.UserId, s.LastSeenAt });
+
+        // ===== Инвентарь =====
+        modelBuilder.Entity<PlayerItem>()
+            .HasKey(i => i.Id);
+
+        modelBuilder.Entity<PlayerItem>()
+            .Property(i => i.PlayerId)
+            .HasConversion<string>();
+
+        // Енамы строкой, чтобы порядок значений можно было менять
+        modelBuilder.Entity<PlayerItem>()
+            .Property(i => i.ItemType)
+            .HasConversion<string>()
+            .HasMaxLength(16);
+
+        modelBuilder.Entity<PlayerItem>()
+            .Property(i => i.Rarity)
+            .HasConversion<string>()
+            .HasMaxLength(16);
+
+        modelBuilder.Entity<PlayerItem>()
+            .Property(i => i.SubType)
+            .HasMaxLength(32);
+
+        modelBuilder.Entity<PlayerItem>()
+            .HasOne<Player>()
+            .WithMany()
+            .HasForeignKey(i => i.PlayerId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Одна стопка на вид предмета
+        modelBuilder.Entity<PlayerItem>()
+            .HasIndex(i => new { i.PlayerId, i.ItemType, i.SubType, i.Rarity, i.Level })
+            .IsUnique();
+
+        // ===== Награды =====
+        modelBuilder.Entity<PlayerReward>()
+            .HasKey(r => r.Id);
+
+        modelBuilder.Entity<PlayerReward>()
+            .Property(r => r.PlayerId)
+            .HasConversion<string>();
+
+        modelBuilder.Entity<PlayerReward>()
+            .Property(r => r.Source)
+            .HasConversion<string>()
+            .HasMaxLength(16);
+
+        modelBuilder.Entity<PlayerReward>()
+            .HasOne<Player>()
+            .WithMany()
+            .HasForeignKey(r => r.PlayerId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<PlayerReward>()
+            .HasMany(r => r.Chests)
+            .WithOne()
+            .HasForeignKey(c => c.RewardId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Незабранные награды игрока
+        modelBuilder.Entity<PlayerReward>()
+            .HasIndex(r => new { r.PlayerId, r.Source, r.ClaimedAt });
+
+        modelBuilder.Entity<PlayerRewardChest>()
+            .HasKey(c => c.Id);
+
+        modelBuilder.Entity<PlayerRewardChest>()
+            .Property(c => c.ChestType)
+            .HasConversion<string>()
+            .HasMaxLength(16);
     }
 }
