@@ -7,7 +7,8 @@ using Microsoft.AspNetCore.Mvc;
 public class HeroesController(
     IHeroesRepository heroesRepository,
     IExpeditionRepository expeditionRepository,
-    IEntityFactory entityFactory) : ControllerBase
+    IEntityFactory entityFactory,
+    HeroUpgradeService heroUpgradeService) : ControllerBase
 {
     // Инвентарь залогиненного игрока: все его герои, у тех что в отряде заполнен PlaceInSquad
     [Authorize]
@@ -48,6 +49,24 @@ public class HeroesController(
         }
     }
 
+    // Поднять уровень прокачки героя на 1 за золото и опыт аккаунта
+    [Authorize]
+    [HttpPost("me/{heroId:guid}/upgrade")]
+    public async Task<ActionResult<HeroUpgradeResult>> UpgradeMyHero(Guid heroId)
+    {
+        if (CurrentPlayerId() is not { } playerId)
+            return Unauthorized();
+
+        try
+        {
+            return Ok(await heroUpgradeService.UpgradeAsync(playerId, heroId));
+        }
+        catch (HeroUpgradeException ex)
+        {
+            return BadRequest(new { code = ex.Code.ToString(), message = ex.Message });
+        }
+    }
+
     [HttpGet("{playerId:guid}")]
     public async Task<IActionResult> GetHeroes(Guid playerId)
     {
@@ -64,6 +83,7 @@ public class HeroesController(
     public async Task<IActionResult> AddHero([FromBody] Hero hero)
     {
         hero.Level = Math.Clamp(hero.Level, HeroLevels.Min, HeroLevels.Max);
+        hero.UpgradeLevel = HeroUpgradeService.ClampLevel(hero.UpgradeLevel);
         hero.Element = HeroLevels.NormalizeElement(hero.Level, hero.Element);
         await heroesRepository.CreateAsync(hero);
         return Ok(hero);
@@ -80,7 +100,7 @@ public class HeroesController(
     {
         var busy = await expeditionRepository.GetBusyHeroIdsAsync(playerId);
         return heroes
-            .Select(hero => HeroInfo.From(hero, CombatPower.OfHero(entityFactory, hero), busy.Contains(hero.Id)))
+            .Select(hero => HeroInfo.From(entityFactory, hero, busy.Contains(hero.Id)))
             .ToList();
     }
 

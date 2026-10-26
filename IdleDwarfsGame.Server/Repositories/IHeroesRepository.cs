@@ -24,4 +24,10 @@ public interface IHeroesRepository
     /// everyone else is removed from the squad. Throws InvalidOperationException on invalid input.
     /// </summary>
     Task<List<Hero>> SaveSquadAsync(Guid playerId, IReadOnlyList<Guid?> slots);
+    /// <summary>
+    /// In one transaction: raises hero.UpgradeLevel by one (only if it is still the same in the database)
+    /// and takes the cost from the owner's gold and experience (only if they have enough).
+    /// On success the passed hero is reloaded with the new level; otherwise nothing changes.
+    /// </summary>
+    Task<HeroUpgradeOutcome> UpgradeAsync(Hero hero, HeroUpgradeCost cost);
 }
