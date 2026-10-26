@@ -6,6 +6,12 @@ import ru from './locales/ru';
 export const SUPPORTED_LOCALES = ['en', 'ru'] as const;
 export type AppLocale = typeof SUPPORTED_LOCALES[number];
 
+// Название языка на нём самом — в настройках его должен узнать и тот, кто не понимает текущий язык
+export const LOCALE_NAMES: Record<AppLocale, string> = {
+  en: 'English',
+  ru: 'Русский',
+};
+
 const STORAGE_KEY = 'locale';
 const DEFAULT_LOCALE: AppLocale = 'en';
 
@@ -47,11 +53,6 @@ export function setLocale(locale: AppLocale) {
   } catch {
     // см. detectLocale
   }
-}
-
-export function toggleLocale() {
-  const index = SUPPORTED_LOCALES.indexOf(currentLocale());
-  setLocale(SUPPORTED_LOCALES[(index + 1) % SUPPORTED_LOCALES.length]);
 }
 
 // Имена статусов приходят с сервера по-английски; неизвестные показываем как есть
