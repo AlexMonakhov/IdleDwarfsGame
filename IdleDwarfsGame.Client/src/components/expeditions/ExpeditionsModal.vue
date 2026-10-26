@@ -289,6 +289,7 @@ const footerText = computed(() => {
                             :hero="hero"
                             selectable
                             :disabled="hero.onExpedition"
+                            :selected="isInParty(hero.id)"
                             :class="{ 'hero-picked': isInParty(hero.id) }"
                             @click="toggleHero(hero)"
                         />
@@ -519,8 +520,8 @@ const footerText = computed(() => {
 .party-slot {
     position: relative;
     box-sizing: border-box;
-    width: 124px;
-    min-height: 136px;
+    width: 148px;
+    min-height: 196px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -560,14 +561,14 @@ const footerText = computed(() => {
 .reserve-grid {
     display: flex;
     flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
     gap: 10px;
     padding: 4px;
 }
 
-/* Герой уже в ячейке — подсвечиваем его в списке */
+/* Герой уже в ячейке: в списке он выбран (кайма — у самой карточки) и приглушён */
 .hero-picked {
-    outline: 3px solid var(--yellow-gem-color);
-    outline-offset: 2px;
     opacity: 0.6;
 }
 

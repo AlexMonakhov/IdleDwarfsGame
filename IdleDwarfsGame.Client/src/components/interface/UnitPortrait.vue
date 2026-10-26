@@ -13,10 +13,13 @@ const { t } = useI18n();
 interface Props {
     unit: PortraitUnit;
     size?: number;
+    // Цифра ранга на портрете; карточка героя показывает ранг звёздами и прячет её
+    showLevel?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
-    size: 48
+    size: 48,
+    showLevel: true
 });
 
 // "статы 520 · умения 140 · пассивки 60" — откуда взялась мощь
@@ -27,7 +30,7 @@ const powerDetails = computed(() => powerParts(props.unit.power)
 
 <template>
     <TooltipComponent>
-        <UnitAvatar :unit="unit" :size="size" />
+        <UnitAvatar :unit="unit" :size="size" :show-level="showLevel" />
 
         <template #title>{{ unit.name }}<template v-if="unit.isBoss"> · {{ t('unit.boss') }}</template></template>
         <template #description>

@@ -1,67 +1,84 @@
 <script lang="ts" setup>
 import GemButton from '@/components/common/GemButton.vue';
-import IconButton from '@/components/common/IconButton.vue';
-import IconHelm from '@/components/icons/IconHelm.vue';
 import ExpeditionsModal from '@/components/expeditions/ExpeditionsModal.vue';
-import { onMounted, ref, watch } from 'vue';
+import FriendsModal from '@/components/friends/FriendsModal.vue';
+import CollectionModal from '@/components/collection/CollectionModal.vue';
+import HeroUpgradeModal from '@/components/upgrade/HeroUpgradeModal.vue';
+import SquadModal from '@/components/inventory/SquadModal.vue';
+import AccountButton from '@/components/account/AccountButton.vue';
+import AccountModal from '@/components/account/AccountModal.vue';
+import { ref, watch, watchEffect } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import backgroundMusic from "@/assets/sounds/Beneath_The_Marble_Dome.mp3";
 import { useAuth } from '@/composables/UseAuth';
 import { useResources } from '@/composables/UseResources';
+import { usePresence } from '@/composables/UsePresence';
+import { soundService } from '@/services/soundService/SoundService';
 import { useI18n } from 'vue-i18n';
-import { toggleLocale } from '@/i18n';
 
 const { t, locale } = useI18n();
 const router = useRouter();
 const route = useRoute();
 const { isAuthenticated, logout } = useAuth();
 const { resources, refresh: refreshResources, clear: clearResources } = useResources();
+const { incomingFriendRequests, start: startPresence, stop: stopPresence } = usePresence();
 
 const expeditionsOpen = ref(false);
+const friendsOpen = ref(false);
+const collectionOpen = ref(false);
+const upgradeOpen = ref(false);
+const squadOpen = ref(false);
+const accountOpen = ref(false);
 
-// Ресурсы аккаунта подтягиваем при входе и сбрасываем при выходе
+// Ресурсы аккаунта подтягиваем при входе и сбрасываем при выходе; там же открываем и закрываем сессию вкладки
 watch(isAuthenticated, authenticated => {
-    if (authenticated) refreshResources();
-    else clearResources();
+    if (authenticated) {
+        refreshResources();
+        startPresence();
+    } else {
+        clearResources();
+        stopPresence();
+    }
 }, { immediate: true });
 
 const onLogout = () => {
     expeditionsOpen.value = false;
+    friendsOpen.value = false;
+    collectionOpen.value = false;
+    upgradeOpen.value = false;
+    squadOpen.value = false;
+    accountOpen.value = false;
+    // Пока токен ещё есть — им закрывается сессия
+    stopPresence();
     logout();
     router.push('/login');
 };
-const mute  = ref<boolean>(false);
+
+// Фоновая музыка: громкость и mute — из настроек звука
 const audioRef = ref<HTMLAudioElement | null>(null);
 
-const volumeChange = (delta: number) => {
-    // 2. Access the element using .value
+watchEffect(() => {
     const audio = audioRef.value;
-    
-    // 3. Add a null check to ensure the element is mounted
-    if (audio) {
-        // Use Math.round to avoid floating point math errors (e.g., 0.30000000000000004)
-        const newVolume = Math.min(1, Math.max(0, audio.volume + delta));
-        audio.volume = parseFloat(newVolume.toFixed(2));
-    }
-}
-
-onMounted(() => {
-    if (audioRef.value) {
-        audioRef.value.volume = 0.01; // Set initial volume to 50%
-    }
+    if (!audio) return;
+    audio.volume = soundService.musicGain;
+    // Браузер мог не дать автозапуск до первого действия — включение музыки в настройках и есть такое действие
+    if (soundService.musicGain > 0 && audio.paused) audio.play().catch(() => undefined);
 });
 </script>
 
 <template>
-    <audio ref="audioRef" :src="backgroundMusic" autoplay loop :muted="mute"></audio>
+    <audio ref="audioRef" :src="backgroundMusic" autoplay loop :muted="soundService.settings.musicMuted"></audio>
     <div class="interface-view" >
         <div  class="nav-menu">
             <GemButton @click="router.push('/')" :color="'blue'">{{ t('nav.home') }}</GemButton>
             <GemButton @click="router.push('about')" :color="'blue'">{{ t('nav.about') }}</GemButton>
             <GemButton v-if="route.name != 'arena'" @click="router.push('arena')" :color="'blue'">{{ t('nav.arena') }}</GemButton>
             <GemButton @click="router.push('town')" :color="'blue'">{{ t('nav.town') }}</GemButton>
-            <GemButton v-if="isAuthenticated && route.name != 'inventory'" @click="router.push('/inventory')" :color="'pink'">{{ t('nav.inventory') }}</GemButton>
+            <GemButton v-if="isAuthenticated" @click="squadOpen = true" :color="'pink'">{{ t('nav.inventory') }}</GemButton>
+            <GemButton v-if="isAuthenticated" @click="collectionOpen = true" :color="'pink'">{{ t('nav.collection') }}</GemButton>
+            <GemButton v-if="isAuthenticated" @click="upgradeOpen = true" :color="'green'">{{ t('nav.upgrade') }}</GemButton>
             <GemButton v-if="isAuthenticated" @click="expeditionsOpen = true" :color="'yellow'">{{ t('nav.expeditions') }}</GemButton>
+            <GemButton v-if="isAuthenticated" @click="friendsOpen = true" :color="'green'" :badge-count="incomingFriendRequests">{{ t('nav.friends') }}</GemButton>
             <template v-if="!isAuthenticated">
                 <GemButton v-if="route.name != 'login'" @click="router.push('/login')" :color="'green'">{{ t('nav.login') }}</GemButton>
                 <GemButton v-if="route.name != 'register'" @click="router.push('/register')" :color="'yellow'">{{ t('nav.register') }}</GemButton>
@@ -73,13 +90,15 @@ onMounted(() => {
                 <span class="resource resource-gold" :title="t('resources.gold')">🪙 {{ resources.gold.toLocaleString(locale) }}</span>
                 <span class="resource resource-experience" :title="t('resources.experience')">✦ {{ resources.experience.toLocaleString(locale) }}</span>
             </div>
-            <GemButton :title="t('nav.language')" :color="'yellow'" round @click="toggleLocale">{{ locale.toUpperCase() }}</GemButton>
-            <i class="button" @click="volumeChange(0.1)">+</i>
-            <i class="button" @click="volumeChange(-0.1)">-</i>
-            <IconButton @click="mute = !mute"><IconHelm size="60px" ></IconHelm></IconButton>
+            <AccountButton @click="accountOpen = true" />
         </div>
     </div>
+    <AccountModal v-model="accountOpen" />
     <ExpeditionsModal v-if="isAuthenticated" v-model="expeditionsOpen" />
+    <FriendsModal v-if="isAuthenticated" v-model="friendsOpen" />
+    <CollectionModal v-if="isAuthenticated" v-model="collectionOpen" />
+    <HeroUpgradeModal v-if="isAuthenticated" v-model="upgradeOpen" />
+    <SquadModal v-if="isAuthenticated" v-model="squadOpen" />
 </template>
 
 <style scoped>
@@ -106,14 +125,6 @@ onMounted(() => {
   align-items: flex-start;
   padding: 20px;
 }
-.button {
-  height: 40px;
-  width: 40px;
-  background: red;
-  text-align: center;
-  margin: 5px;
-}
-
 /* Ресурсы аккаунта: табличка в стиле шапки модалки */
 .resources {
   display: flex;

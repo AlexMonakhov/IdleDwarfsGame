@@ -49,8 +49,11 @@
           {{ t('arena.rewards', { gold: result.rewards.gold, experience: result.rewards.experience }) }}
         </div>
         <div v-if="campaignResult?.firstClear" class="result-rewards">{{ t('arena.stageCleared', { id: campaignResult.stageId }) }}</div>
+        <div v-if="campaignResult?.firstClear" class="result-rewards">{{ t('arena.rewardWaiting') }}</div>
         <div class="result-rounds">{{ t('arena.rounds', { rounds: result?.rounds ?? 0 }) }}</div>
-        <button v-if="nextStageId" class="result-next" @click="goToNextStage()">{{ t('arena.nextStage') }}</button>
+        <!-- Следующий бой кампании начнётся только после получения награды за этот уровень -->
+        <button v-if="state.finished && campaignResult?.firstClear" class="result-next" @click="goToCampaign()">{{ t('arena.toCampaign') }}</button>
+        <button v-else-if="nextStageId" class="result-next" @click="goToNextStage()">{{ t('arena.nextStage') }}</button>
       </div>
 
       <CombatLogFeed v-if="result" :logs="result.logs" :shown-logs="state.shownLogs" :units="state.units" :speed="speed" />
@@ -167,6 +170,8 @@ const goToNextStage = async () => {
   await router.replace({ query: { stage: nextStageId.value } });
   startArenaFight();
 };
+// Список кампании (и кнопка получения награды) — на странице «О игре»
+const goToCampaign = () => router.push({ name: 'about' });
 const skipFight = () => player.skip();
 
 onMounted(() => {

@@ -14,7 +14,7 @@
       class="parallax-bg" 
       :style="{ transform: `translateX(${-bgOffset}px)` }"
     >
-      <img :src="backgroundsky" class="wide-image-bg" @load="scrollToCenter" />
+      <img :src="isNight ? backgroundskynight : backgroundsky" class="wide-image-bg" @load="onSkyLoad" />
     </div>
 
     <div class="about-content">
@@ -39,9 +39,12 @@
     </div>
   </div>
 
-  <ModalComponent 
+  <!-- Ширина — под строку уровня: два отряда по 5 портретов, арена и кнопка боя без переноса -->
+  <ModalComponent
     v-model="campaignDialogOpen"
     :header-message="t('campaign.header')"
+    width="min(980px, 94vw)"
+    height="min(760px, 86vh)"
   >
     <FightPreviewListContainer></FightPreviewListContainer>
   </ModalComponent>
@@ -51,6 +54,7 @@
 import { ref, onMounted, onUnmounted, nextTick } from 'vue';
 import background from "@/assets/background4.png";
 import backgroundsky from "@/assets/backgroundsky.png";
+import backgroundskynight from "@/assets/backgroundskynight.jpg";
 import campaign from "@/assets/campaign-dark.png";
 import campaignHover from "@/assets/campaign-hover.png";
 import ModalComponent from '@/components/common/ModalComponent.vue';
@@ -64,6 +68,12 @@ const { t } = useI18n();
 const PARALLAX_SPEED = 0.3; // Чем меньше число, тем медленнее движется фон (глубже эффект)
 const EDGE_THRESHOLD = 0.01; 
 const MAX_SPEED = 10;
+// Дневное небо по GMT: с DAY_START_HOUR (включительно) до DAY_END_HOUR (не включительно)
+const DAY_START_HOUR = 6;
+const DAY_END_HOUR = 20;
+const SKY_CHECK_INTERVAL_MS = 60_000;
+// Пока смена дня и ночи отключена — всегда день. Поставить false, чтобы включить.
+const ALWAYS_DAY = true;
 
 // --- СОСТОЯНИЕ ---
 const slider = ref<HTMLElement | null>(null);
@@ -77,6 +87,23 @@ const campaignHovered = ref(false);
 
 // Параллакс смещение
 const bgOffset = ref(0);
+
+// --- ДЕНЬ / НОЧЬ ---
+const isNightNow = () => {
+  if (ALWAYS_DAY) return false;
+  const hour = new Date().getUTCHours();
+  return hour < DAY_START_HOUR || hour >= DAY_END_HOUR;
+};
+const isNight = ref(isNightNow());
+let skyIntervalId = 0;
+let skyLoadedOnce = false;
+
+// Центрируем только при первой загрузке, чтобы смена неба не сбрасывала скролл игрока
+const onSkyLoad = () => {
+  if (skyLoadedOnce) return;
+  skyLoadedOnce = true;
+  scrollToCenter();
+};
 
 // Данные для Edge Scroll
 const mouseX = ref(-1);
@@ -162,6 +189,9 @@ const scrollToCenter = async () => {
 
 onMounted(() => {
   edgeScrollLoop();
+  skyIntervalId = window.setInterval(() => {
+    isNight.value = isNightNow();
+  }, SKY_CHECK_INTERVAL_MS);
   if (imageRef.value && imageRef.value.complete) {
     scrollToCenter();
   }
@@ -169,6 +199,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   cancelAnimationFrame(animationFrameId);
+  clearInterval(skyIntervalId);
 });
 
 const onStageClick = (n: number) => {

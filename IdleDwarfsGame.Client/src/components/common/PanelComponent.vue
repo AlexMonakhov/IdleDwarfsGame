@@ -88,7 +88,8 @@ const panelStyle = computed<CSSProperties>(() => ({
   border-radius: 15px;
   border: 2px solid #333;
   padding: 20px 24px;
-  background: radial-gradient(#e1e8eb, #4c6a8d);
+  /* Тот же тёмный центр, что у ModalComponent: белый текст читается, панели и модалки выглядят одинаково */
+  background: radial-gradient(ellipse at 50% 35%, #5b7798 0%, #3f5a7a 45%, #1f2d42 100%);
   box-shadow: 0 0 0 4px rgb(157, 173, 175),
               0 0 0 6px #333,
               inset 0px 0px 6px black, inset 0px 0px 20px #333;

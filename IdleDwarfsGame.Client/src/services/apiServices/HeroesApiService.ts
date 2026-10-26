@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { useAuth } from '@/composables/UseAuth';
-import { HeroInfo } from '@/models/types/Heroes';
+import { HeroInfo, HeroUpgradeResult } from '@/models/types/Heroes';
 
 const apiClient = axios.create({
     baseURL: 'https://localhost:7232',
@@ -38,6 +38,17 @@ class HeroesApiService {
             return response.data;
         } catch (error) {
             console.error('Ошибка при сохранении отряда:', error);
+            throw error;
+        }
+    }
+
+    // +1 уровень прокачки героя. Возвращает обновлённого героя и остаток ресурсов
+    async upgrade(heroId: string): Promise<HeroUpgradeResult> {
+        try {
+            const response = await apiClient.post<HeroUpgradeResult>(`/heroes/me/${heroId}/upgrade`);
+            return response.data;
+        } catch (error) {
+            console.error('Ошибка при прокачке героя:', error);
             throw error;
         }
     }
