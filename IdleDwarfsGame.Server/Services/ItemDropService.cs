@@ -1,97 +1,54 @@
-using System;
-using System.Linq;
-using IdleDwarfsGame.Server.Enums;
-
-public class ItemDropService(IPlayerChestRepository tableRepository, IItemFactory itemFactory) : IItemDropService
+// Р‘СЂРѕСЃРѕРє С‚Р°Р±Р»РёС†С‹ РґСЂРѕРїР° СЃСѓРЅРґСѓРєР°.
+// Р—Р°РїРёСЃРё РґРµР»СЏС‚СЃСЏ РЅР° РіСЂСѓРїРїС‹ РїРѕ ItemType (РіРµРјС‹ РѕС‚РґРµР»СЊРЅРѕ, РіРµСЂРѕРё РѕС‚РґРµР»СЊРЅРѕ), РєР°Р¶РґР°СЏ РіСЂСѓРїРїР° Р±СЂРѕСЃР°РµС‚СЃСЏ table.Rolls СЂР°Р·.
+// Р—Р° Р±СЂРѕСЃРѕРє РіСЂСѓРїРїС‹ РІС‹РїР°РґР°РµС‚ РЅРµ Р±РѕР»СЊС€Рµ РѕРґРЅРѕР№ Р·Р°РїРёСЃРё: С€Р°РЅСЃ Р·Р°РїРёСЃРё вЂ” РµС‘ Probability,
+// РѕСЃС‚Р°С‚РѕРє РґРѕ 1 вЂ” РїСѓСЃС‚РѕР№ Р±СЂРѕСЃРѕРє. Р•СЃР»Рё СЃСѓРјРјР° С€Р°РЅСЃРѕРІ РіСЂСѓРїРїС‹ Р±РѕР»СЊС€Рµ 1, РѕРЅРё РґРµР»СЏС‚СЃСЏ РЅР° СЃСѓРјРјСѓ (С‚РѕРіРґР° РїСѓСЃС‚С‹С… Р±СЂРѕСЃРєРѕРІ РЅРµС‚)
+public class ItemDropService(Random random)
 {
-    private readonly Random random = new();
-
-    public async Task<IReadOnlyCollection<ILootItem>> OpenChestAsync(int chestLevel, ChestType chestType)
+    public List<LootDrop> Roll(IChestDropTable table)
     {
-        var table = await tableRepository.GetChestDropTableByLevelAndTypeAsync(chestLevel, chestType);
-        
-        if (table == null)
-            throw new InvalidOperationException($"Chest drop table for level {chestLevel} and type {chestType} not found.");
-        var result = new List<ILootItem>();
+        var groups = table.Entries
+            .GroupBy(e => e.ItemType)
+            .Select(g => g.ToList())
+            .ToList();
 
-        // Группируем entries по ItemType
-        var groupedByType = table.Entries.GroupBy(e => e.ItemType).ToList();
-
-        // Для каждого типа предмета выбираем по одному entry
-        foreach (var typeGroup in groupedByType)
+        var drops = new List<LootDrop>();
+        for (int roll = 0; roll < Math.Max(1, table.Rolls); roll++)
         {
-            var selectedEntry = SelectEntryByProbability(typeGroup.ToList());
-
-            if (selectedEntry != null)
+            foreach (var group in groups)
             {
-                int amount = random.Next(selectedEntry.MinAmount, selectedEntry.MaxAmount + 1);
+                if (Pick(group, random.NextDouble()) is not { } entry)
+                    continue;
 
-                for (int i = 0; i < amount; i++)
-                {
-                    var item = itemFactory.Create(
-                        selectedEntry.ItemType,
-                        selectedEntry.Rarity,
-                        selectedEntry.ItemLevel,
-                        selectedEntry.SubType);
-
-                    result.Add(item);
-                }
+                int amount = random.Next(entry.MinAmount, Math.Max(entry.MinAmount, entry.MaxAmount) + 1);
+                if (amount > 0)
+                    drops.Add(new LootDrop(entry.ItemType, entry.SubType, entry.Rarity, entry.ItemLevel, amount));
             }
         }
 
-        return result;
+        // РћРґРёРЅР°РєРѕРІРѕРµ РёР· СЂР°Р·РЅС‹С… Р±СЂРѕСЃРєРѕРІ СЃРєР»Р°РґС‹РІР°РµРј РІ РѕРґРЅСѓ СЃС‚РѕРїРєСѓ
+        return drops
+            .GroupBy(d => d with { Amount = 0 })
+            .Select(g => g.Key with { Amount = g.Sum(d => d.Amount) })
+            .ToList();
     }
 
-
-    private DropEntry? SelectEntryByProbability(IReadOnlyCollection<DropEntry> entries)
+    // roll вЂ” СЃР»СѓС‡Р°Р№РЅРѕРµ С‡РёСЃР»Рѕ РёР· [0, 1)
+    public static DropEntry? Pick(IReadOnlyList<DropEntry> entries, double roll)
     {
-        if (!entries.Any())
+        double total = entries.Sum(e => Math.Max(0, e.Probability));
+        if (total <= 0)
             return null;
 
-        // Вычисляем сумму всех вероятностей
-        double totalProbability = entries.Sum(e => e.Probability);
-
-        // Если сумма вероятностей не равна 1.0, нормализуем
-        bool needsNormalization = Math.Abs(totalProbability - 1.0) > 0.001;
-
-        // Группируем entries по вероятности
-        var groupedByProbability = entries
-            .GroupBy(e => e.Probability)
-            .OrderByDescending(g => g.Key)
-            .ToList();
-
-        // Создаём список групп с нормализованными вероятностями
-        var probabilityGroups = groupedByProbability
-            .Select(g => new
-            {
-                Probability = g.Key,
-                NormalizedProb = needsNormalization ? g.Key / totalProbability : g.Key,
-                Entries = g.ToList()
-            })
-            .ToList();
-
-        // Метод "колеса фортуны": выбираем группу вероятности
-        double roll = random.NextDouble();
+        double scale = Math.Max(1, total);
         double cumulative = 0;
-
-        foreach (var group in probabilityGroups)
+        foreach (var entry in entries)
         {
-            cumulative += group.NormalizedProb;
-            if (roll <= cumulative)
-            {
-                // Группа выбрана! Выбираем случайный entry из этой группы
-                return group.Entries[random.Next(group.Entries.Count)];
-            }
+            cumulative += Math.Max(0, entry.Probability) / scale;
+            if (roll < cumulative)
+                return entry;
         }
 
-        // Гарантия: если ничего не выбралось, выбираем случайный entry
-        // из первой (самой вероятной) группы
-        var firstGroup = probabilityGroups.First();
-        return firstGroup.Entries[random.Next(firstGroup.Entries.Count)];
+        // РќРѕСЂРјР°Р»РёР·РѕРІР°РЅРЅС‹Рµ С€Р°РЅСЃС‹ РІ СЃСѓРјРјРµ РґР°СЋС‚ 1, РЅРѕ РёР·-Р·Р° РѕРєСЂСѓРіР»РµРЅРёСЏ roll РјРѕРі С‡СѓС‚СЊ-С‡СѓС‚СЊ РЅРµ РїРѕРїР°СЃС‚СЊ
+        return total > 1 ? entries.Last(e => e.Probability > 0) : null;
     }
 }
-
-
-
-
-

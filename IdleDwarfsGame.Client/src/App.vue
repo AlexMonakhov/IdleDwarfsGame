@@ -91,4 +91,32 @@ body {
   margin: 0;
   padding: 0;
 }
+
+/* v-drag-scroll (src/directives/dragScroll.ts): прокрутка без полосы — колесом и перетаскиванием мыши */
+.drag-scroll {
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Рука подсказывает, что список можно тянуть; у карточек и кнопок курсор свой */
+.drag-scroll-scrollable {
+  cursor: grab;
+}
+
+.drag-scroll-active,
+.drag-scroll-active * {
+  cursor: grabbing !important;
+  user-select: none;
+}
+
+/* Край гаснет на столько, сколько за ним осталось прокрутить (до 28px) */
+.drag-scroll-fade {
+  --fade-top: 0px;
+  --fade-bottom: 0px;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 var(--fade-top), #000 calc(100% - var(--fade-bottom)), transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0, #000 var(--fade-top), #000 calc(100% - var(--fade-bottom)), transparent 100%);
+}
 </style>

@@ -144,4 +144,31 @@ public class HeroesRepository : IHeroesRepository
         await _context.SaveChangesAsync();
         return heroes;
     }
+
+    public async Task<HeroUpgradeOutcome> UpgradeAsync(Hero hero, HeroUpgradeCost cost)
+    {
+        await using var transaction = await _context.Database.BeginTransactionAsync();
+
+        // Условные апдейты: из двух одновременных кликов пройдёт только первый, и в минус ресурсы не уйдут.
+        // Без коммита транзакция откатывается при выходе, так что неудача второго апдейта отменяет первый
+        int raised = await _context.Heroes
+            .Where(h => h.Id == hero.Id && h.PlayerId == hero.PlayerId && h.UpgradeLevel == hero.UpgradeLevel)
+            .ExecuteUpdateAsync(s => s.SetProperty(h => h.UpgradeLevel, h => h.UpgradeLevel + 1));
+        if (raised == 0)
+            return HeroUpgradeOutcome.LevelChanged;
+
+        int paid = await _context.Players
+            .Where(p => p.Id == hero.PlayerId && p.Gold >= cost.Gold && p.Experience >= cost.Experience)
+            .ExecuteUpdateAsync(s => s
+                .SetProperty(p => p.Gold, p => p.Gold - cost.Gold)
+                .SetProperty(p => p.Experience, p => p.Experience - cost.Experience));
+        if (paid == 0)
+            return HeroUpgradeOutcome.NotEnoughResources;
+
+        await transaction.CommitAsync();
+
+        // ExecuteUpdate идёт мимо трекинга — подтягиваем новый уровень в отслеживаемую копию
+        await _context.Entry(hero).ReloadAsync();
+        return HeroUpgradeOutcome.Upgraded;
+    }
 }

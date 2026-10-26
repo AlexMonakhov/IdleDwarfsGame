@@ -3,8 +3,7 @@ using System.Linq;
 public class CombatService(
     IWorldFactory worldFactory,
     ICombatEngine combatEngine,
-    IEnumerable<ICombatScenario> scenarios,
-    IRewardService rewardService
+    IEnumerable<ICombatScenario> scenarios
 )
 {
 
@@ -42,13 +41,11 @@ public class CombatService(
         // 3. Проводим бой
         var context = combatEngine.Run(world);
 
-        // 4. Начисляем награды, если победа
+        // 4. Награды режима для показа после боя. Кампания их не показывает: она выдаёт награду сама (CampaignRewards),
+        //    и игрок забирает её отдельно
         RewardEntity? rewards = null;
         if (context.Win)
-        {
-            await rewardService.GenerateAndSaveRewards(playerId, scenario, level);
             rewards = await scenario.CalculateRewardsAsync(level, context.Logs);
-        }
 
         return new CombatResult
         {

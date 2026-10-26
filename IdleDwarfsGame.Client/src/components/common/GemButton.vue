@@ -52,8 +52,15 @@ const buttonClasses = computed<string[]>(() => {
   min-width: 40px;
 }
 
+/* Недоступная кнопка: тусклая и без реакции на нажатие */
+.gem-button:disabled,
+.gem-button:disabled:hover {
+  cursor: not-allowed;
+  filter: grayscale(0.7) brightness(0.7);
+}
+
 .gem-button-bevel {
-    border-radius: 8px; 
+    border-radius: 8px;
     corner-shape: bevel;
 }
 

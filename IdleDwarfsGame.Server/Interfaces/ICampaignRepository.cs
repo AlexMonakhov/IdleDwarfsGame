@@ -11,7 +11,8 @@ public interface ICampaignRepository
     Task<CampaignStage?> GetStageAsync(int stageId);
     Task<HashSet<int>> GetClearedStageIdsAsync(Guid playerId);
     /// <summary>
-    /// Saves the stage as cleared. Returns false if it was cleared before.
+    /// Saves the stage as cleared together with its first-clear reward (unclaimed).
+    /// Returns false if it was cleared before — then the reward is not saved.
     /// </summary>
-    Task<bool> MarkClearedAsync(Guid playerId, int stageId);
+    Task<bool> MarkClearedAsync(Guid playerId, int stageId, PlayerReward? reward = null);
 }

@@ -205,6 +205,8 @@ public class UnitInfoComponent
     public int Level { get; set; } = 1;
     // Уровень, под который BalanceCalculator масштабировал HP/атаку/ауру (у отряда игрока — 1)
     public int StatLevel { get; set; } = 1;
+    // Уровень прокачки героя: его бонус уже вшит в HP/атаку (см. HeroUpgradeService.ScaleStat)
+    public int UpgradeLevel { get; set; } = 1;
     public int Position { get; set; }
     public bool IsBoss { get; set; }
     public bool IsDead { get; set; }

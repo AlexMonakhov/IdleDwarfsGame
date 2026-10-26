@@ -7,13 +7,16 @@ const STORAGE_KEY = 'sound-settings';
 // Один и тот же звук не чаще раза в N мс (AoE-касты бьют несколько целей одновременно)
 const THROTTLE_MS = 40;
 
+// volume/muted — звуки боя, music* — фоновая музыка
 export interface SoundSettings {
   volume: number;
   muted: boolean;
+  musicVolume: number;
+  musicMuted: boolean;
 }
 
 function loadSettings(): SoundSettings {
-  const defaults: SoundSettings = { volume: 0.6, muted: false };
+  const defaults: SoundSettings = { volume: 0.6, muted: false, musicVolume: 0.1, musicMuted: false };
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? 'null');
     return { ...defaults, ...saved };
@@ -51,6 +54,22 @@ class SoundService {
 
   toggleMute() {
     this.setMuted(!this.settings.muted);
+  }
+
+  setMusicVolume(volume: number) {
+    this.settings.musicVolume = Math.min(1, Math.max(0, volume));
+    if (this.settings.musicVolume > 0) this.settings.musicMuted = false;
+    this.saveSettings();
+  }
+
+  setMusicMuted(muted: boolean) {
+    this.settings.musicMuted = muted;
+    this.saveSettings();
+  }
+
+  // Громкость для <audio> с музыкой — по той же квадратичной шкале, что и звуки
+  get musicGain(): number {
+    return this.settings.musicMuted ? 0 : this.settings.musicVolume ** 2;
   }
 
   // ===== Звуки =====
@@ -128,12 +147,16 @@ class SoundService {
     return this.ctx;
   }
 
-  private applySettings() {
+  private saveSettings() {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(this.settings));
     } catch {
       // приватный режим / storage отключён — просто не сохраняем
     }
+  }
+
+  private applySettings() {
+    this.saveSettings();
 
     if (!this.ctx || !this.master) return;
     // Квадрат даёт более естественную шкалу громкости на слух

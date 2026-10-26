@@ -35,7 +35,7 @@ public class CampaignScenario : ICombatScenario
 
     public Task<RewardEntity?> CalculateRewardsAsync(int stageId, List<CombatLogEntry> logs)
     {
-        // Награды за уровни кампании появятся позже
+        // Награду за уровень выдаёт CampaignService (CampaignRewards), в ответе боя её нет — игрок забирает её в кампании
         return Task.FromResult<RewardEntity?>(null);
     }
 }

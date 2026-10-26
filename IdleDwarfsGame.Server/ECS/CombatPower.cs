@@ -45,7 +45,9 @@ public static class CombatPower
         var noPassives = full with { Immunities = [], Aura = null };
         var noSkills = noPassives with { Spells = [] };
 
-        double levelFactor = BalanceCalculator.Factor(world.Info.GetValueOrDefault(entityId)?.StatLevel ?? 1);
+        // Уровень боя и прокачка героя вместе дают слой Level
+        var info = world.Info.GetValueOrDefault(entityId);
+        double levelFactor = BalanceCalculator.Factor(info?.StatLevel ?? 1) * HeroUpgradeService.StatFactor(info?.UpgradeLevel ?? 1);
         var baseStats = noSkills with { MaxHp = noSkills.MaxHp / levelFactor, Attack = noSkills.Attack / levelFactor };
 
         int stats = Power(baseStats);
@@ -197,7 +199,7 @@ public class CombatPowerBreakdown
     public int Total { get; set; }
     // Базовые HP / атака / скорость
     public int Stats { get; set; }
-    // Прибавка от масштабирования статов уровнем
+    // Прибавка от масштабирования статов уровнем боя и прокачкой героя
     public int Level { get; set; }
     // Заклинания (с учётом того, как часто на них хватает энергии)
     public int Skills { get; set; }

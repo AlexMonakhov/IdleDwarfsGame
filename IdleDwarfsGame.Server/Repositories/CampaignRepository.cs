@@ -39,7 +39,7 @@ public class CampaignRepository(GameDbContext context) : ICampaignRepository
         return ids.ToHashSet();
     }
 
-    public async Task<bool> MarkClearedAsync(Guid playerId, int stageId)
+    public async Task<bool> MarkClearedAsync(Guid playerId, int stageId, PlayerReward? reward = null)
     {
         var alreadyCleared = await context.PlayerCampaignProgress
             .AnyAsync(p => p.PlayerId == playerId && p.StageId == stageId);
@@ -52,7 +52,20 @@ public class CampaignRepository(GameDbContext context) : ICampaignRepository
             StageId = stageId,
             ClearedAt = DateTime.UtcNow
         });
-        await context.SaveChangesAsync();
-        return true;
+        // Одним SaveChanges с прогрессом: награда не потеряется и не выдастся дважды
+        if (reward != null)
+            await context.PlayerRewards.AddAsync(reward);
+
+        try
+        {
+            await context.SaveChangesAsync();
+            return true;
+        }
+        catch (DbUpdateException)
+        {
+            // Уровень только что засчитал параллельный бой (ключ PlayerId + StageId)
+            context.ChangeTracker.Clear();
+            return false;
+        }
     }
 }

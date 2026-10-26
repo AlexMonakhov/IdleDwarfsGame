@@ -7,6 +7,7 @@ import PanelComponent from '@/components/common/PanelComponent.vue';
 import HeroCard from '@/components/inventory/HeroCard.vue';
 import HeroesApiService from '@/services/apiServices/HeroesApiService';
 import { HeroInfo, SQUAD_SIZE } from '@/models/types/Heroes';
+import { vDragScroll } from '@/directives/dragScroll';
 
 const { t } = useI18n();
 
@@ -105,6 +106,32 @@ const dropOnReserve = () => {
     slots.value = next;
 };
 
+/* ===== Клики — то же без перетаскивания ===== */
+// Герой из отряда уходит обратно в список
+const removeFromSquad = (index: number) => {
+    if (!slots.value[index]) return;
+    const next = [...slots.value];
+    next[index] = null;
+    slots.value = next;
+    errorMessage.value = null;
+    notice.value = null;
+};
+
+// Герой из списка встаёт в первый свободный слот
+const addToSquad = (hero: HeroInfo) => {
+    if (hero.onExpedition) return;
+    notice.value = null;
+    const free = slots.value.indexOf(null);
+    if (free === -1) {
+        errorMessage.value = t('inventory.squadFull');
+        return;
+    }
+    const next = [...slots.value];
+    next[free] = hero.id;
+    slots.value = next;
+    errorMessage.value = null;
+};
+
 /* ===== Сохранение ===== */
 const reset = () => {
     slots.value = [...savedSlots.value];
@@ -139,7 +166,8 @@ const statusText = computed(() => {
 
 <template>
     <div class="main inventory-page">
-        <PanelComponent :header-message="t('inventory.header')" width="760px">
+        <!-- Ширина — под 5 слотов в один ряд: 5 × 148 + зазоры, поля секции и панели -->
+        <PanelComponent :header-message="t('inventory.header')" width="920px">
             <div v-if="loading" class="inventory-hint">{{ t('common.loading') }}</div>
 
             <template v-else-if="heroes.length">
@@ -166,6 +194,7 @@ const statusText = computed(() => {
                                 :dragging="drag?.heroId === hero.id"
                                 @dragstart="onDragStart($event, hero.id, index)"
                                 @dragend="onDragEnd"
+                                @click="removeFromSquad(index)"
                             />
                             <span v-else class="squad-slot-placeholder">{{ t('inventory.emptySlot') }}</span>
                         </div>
@@ -181,7 +210,7 @@ const statusText = computed(() => {
                 >
                     <h3 class="inventory-title">{{ t('inventory.heroes') }}</h3>
                     <div class="inventory-hint">{{ t('inventory.heroesHint') }}</div>
-                    <div class="reserve-grid">
+                    <div v-drag-scroll class="reserve-grid">
                         <HeroCard
                             v-for="hero in reserve"
                             :key="hero.id"
@@ -190,6 +219,7 @@ const statusText = computed(() => {
                             :disabled="hero.onExpedition"
                             @dragstart="onDragStart($event, hero.id, null)"
                             @dragend="onDragEnd"
+                            @click="addToSquad(hero)"
                         />
                         <div v-if="!reserve.length" class="inventory-hint">{{ t('inventory.noReserve') }}</div>
                     </div>
@@ -253,18 +283,19 @@ const statusText = computed(() => {
     text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.6);
 }
 
+/* Все 5 слотов всегда в одну линию — порядок слотов это порядок строя */
 .squad-row {
     display: flex;
     justify-content: center;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     gap: 10px;
 }
 
 .squad-slot {
     position: relative;
     box-sizing: border-box;
-    width: 124px;
-    min-height: 136px;
+    width: 148px;
+    min-height: 196px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -317,10 +348,14 @@ const statusText = computed(() => {
 .reserve-grid {
     display: flex;
     flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
     gap: 10px;
     max-height: 300px;
+    overflow-x: hidden;
     overflow-y: auto;
-    padding: 4px;
+    /* Сверху место под звёзды ранга — список их не обрезает */
+    padding: 10px 4px 4px;
 }
 
 .inventory-footer {

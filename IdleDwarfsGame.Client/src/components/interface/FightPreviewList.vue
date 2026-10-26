@@ -148,6 +148,8 @@ const backgroundStyle = `url(${background}) center / cover no-repeat, radial-gra
 
 .list-middle{
     flex:0.99;
+    /* Можно уже содержимого: на узком окне портреты переносятся, а не выталкивают строку вбок */
+    min-width: 0;
     box-shadow: inset 0px 0px 6px black, inset 0px 0px 20px #333;
 }
 
@@ -189,6 +191,7 @@ const backgroundStyle = `url(${background}) center / cover no-repeat, radial-gra
 }
 
 .preview-team {
+    min-width: 0;
     display: flex;
     flex-wrap: wrap;
     gap: 8px;

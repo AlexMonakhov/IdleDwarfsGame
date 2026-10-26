@@ -3,7 +3,10 @@ public class CampaignService(
     IHeroesRepository heroes,
     IEntityFactory entityFactory,
     IEnumerable<ICombatScenario> scenarios,
-    CombatService combatService
+    CombatService combatService,
+    IRewardRepository rewards,
+    Random random,
+    TimeProvider time
 )
 {
     // Сколько заблокированных уровней показываем после текущего
@@ -27,9 +30,12 @@ public class CampaignService(
         var squadWorld = new World();
         entityFactory.CreateSquad(squadWorld, squad, teamId: 1);
 
+        var pendingReward = await rewards.GetUnclaimedAsync(playerId, RewardSource.Campaign);
+
         return new CampaignOverview
         {
             CurrentStageId = currentStageId,
+            PendingRewardId = pendingReward?.Id,
             ClearedCount = stageIds.Count(cleared.Contains),
             TotalStages = stageIds.Count,
             Squad = CombatSnapshot.Units(squadWorld),
@@ -48,15 +54,22 @@ public class CampaignService(
         var cleared = await campaign.GetClearedStageIdsAsync(playerId);
 
         // Перепроходить можно уже пройденные уровни, вперёд текущего — нельзя
-        if (!cleared.Contains(stageId) && FindCurrentStage(stageIds, cleared) != stageId)
+        bool alreadyCleared = cleared.Contains(stageId);
+        if (!alreadyCleared && FindCurrentStage(stageIds, cleared) != stageId)
             throw new InvalidOperationException($"Campaign stage {stageId} is locked");
+
+        // Кнопка боя в кампании заменяется на «Забрать награды», пока награду не заберут
+        if (await rewards.GetUnclaimedAsync(playerId, RewardSource.Campaign) != null)
+            throw new InvalidOperationException("Claim the reward for the cleared stage first");
 
         var combat = await combatService.StartCampaignFight(playerId, stage);
 
         bool firstClear = false;
         if (combat.WinningTeam == 1)
         {
-            firstClear = await campaign.MarkClearedAsync(playerId, stageId);
+            // Награда только за первое прохождение. Пишется вместе с прогрессом, но на аккаунт попадёт лишь при получении
+            var reward = alreadyCleared ? null : CampaignRewards.Roll(playerId, stage, random, time.GetUtcNow().UtcDateTime);
+            firstClear = await campaign.MarkClearedAsync(playerId, stageId, reward);
             cleared.Add(stageId);
         }
 

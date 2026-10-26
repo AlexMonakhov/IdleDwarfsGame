@@ -9,6 +9,9 @@ public class Hero
     public HeroElement Element { get; set; } = HeroElement.Basic;
     // HeroLevels.Min..HeroLevels.Max
     public int Level { get; set; } = 1;
+    // Внутренний уровень прокачки за золото и опыт: 1..HeroUpgradeService.MaxLevel, растит HP и атаку.
+    // Не путать с Level: тот меняет вид и способности, а этот сбрасывается при повышении Level
+    public int UpgradeLevel { get; set; } = 1;
 
     // HealthComponent / AttackComponent / SpeedComponent
     public int MaxHp { get; set; }
@@ -35,4 +38,12 @@ public class Hero
     public TriggerPhase AuraTrigger { get; set; } = TriggerPhase.OnRoundStart;
     public int AuraPower { get; set; }
     public int AuraDuration { get; set; } = 1;
+
+    // Копия для расчётов «а что будет на другом уровне прокачки»; в БД не попадает
+    public Hero WithUpgradeLevel(int upgradeLevel)
+    {
+        var copy = (Hero)MemberwiseClone();
+        copy.UpgradeLevel = upgradeLevel;
+        return copy;
+    }
 }

@@ -5,7 +5,6 @@ import TownView from '@/views/TownView.vue'
 import LoginView from '@/views/LoginView.vue'
 import RegisterView from '@/views/RegisterView.vue'
 import NotFoundView from '@/views/NotFoundView.vue'
-import InventoryView from '@/views/InventoryView.vue'
 import { useAuth } from '@/composables/UseAuth'
 
 const routes: Array<RouteRecordRaw> = [
@@ -31,12 +30,6 @@ const routes: Array<RouteRecordRaw> = [
     path: '/town',
     name: 'town',
     component: TownView
-  },
-  {
-    path: '/inventory',
-    name: 'inventory',
-    component: InventoryView,
-    meta: { requiresAuth: true }
   },
   {
     path: '/login',

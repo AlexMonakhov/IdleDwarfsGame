@@ -39,6 +39,8 @@ export interface BattleForecast {
 export interface CampaignOverview {
     // null — кампания пройдена целиком
     currentStageId: number | null;
+    // Незабранная награда за пройденный уровень: пока она есть, вместо кнопки боя — «Забрать награды»
+    pendingRewardId: string | null;
     clearedCount: number;
     totalStages: number;
     squad: CombatUnitInfo[];
@@ -47,6 +49,7 @@ export interface CampaignOverview {
 
 export interface CampaignFightResult {
     stageId: number;
+    // Первое прохождение: за него выдана награда, её забирают в кампании
     firstClear: boolean;
     currentStageId: number | null;
     arena: ArenaInfo;
