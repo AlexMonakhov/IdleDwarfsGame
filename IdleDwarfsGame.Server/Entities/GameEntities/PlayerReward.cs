@@ -1,6 +1,6 @@
 using IdleDwarfsGame.Server.Enums;
 
-public enum RewardSource { Campaign }
+public enum RewardSource { Campaign, GuildBoss }
 
 // Награда, выданная на сервере, но ещё не забранная игроком.
 // Создаётся вместе с результатом боя; золото, опыт и сундуки попадают на аккаунт только при ClaimedAt
@@ -10,7 +10,7 @@ public class PlayerReward
     public Guid PlayerId { get; set; }
 
     public RewardSource Source { get; set; }
-    // Откуда награда: для кампании — номер уровня
+    // Откуда награда: для кампании — номер уровня, для босса гильдии — GuildBossTier
     public int SourceId { get; set; }
 
     public int Gold { get; set; }

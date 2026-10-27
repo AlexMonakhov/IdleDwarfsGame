@@ -55,6 +55,15 @@ export type HeroUpgradeError = 'HeroNotFound' | 'MaxLevel' | 'NotEnoughGold' | '
 
 export const SQUAD_SIZE = 5;
 
+// Состав отряда по слотам: [i] — id героя на месте i + 1, null — место пустое
+export const squadSlotIds = (heroes: HeroInfo[]): (string | null)[] => {
+    const slots: (string | null)[] = Array(SQUAD_SIZE).fill(null);
+    heroes.forEach(h => {
+        if (h.placeInSquad && h.placeInSquad <= SQUAD_SIZE) slots[h.placeInSquad - 1] = h.id;
+    });
+    return slots;
+};
+
 export type HeroInformation = {
     icon: string,
     name: string,

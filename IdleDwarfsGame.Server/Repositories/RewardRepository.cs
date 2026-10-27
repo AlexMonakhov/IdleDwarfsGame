@@ -31,6 +31,19 @@ public class RewardRepository(GameDbContext context) : IRewardRepository
         if (claimed == 0)
             return null;
 
+        await RewardGrant.ApplyAsync(context, playerId, reward);
+
+        await transaction.CommitAsync();
+        reward.ClaimedAt = now;
+        return reward;
+    }
+}
+
+// Начисление награды на аккаунт; вызывается внутри транзакции того, кто отмечает награду полученной
+public static class RewardGrant
+{
+    public static async Task ApplyAsync(GameDbContext context, Guid playerId, PlayerReward reward)
+    {
         await context.Players
             .Where(p => p.Id == playerId)
             .ExecuteUpdateAsync(s => s
@@ -55,9 +68,5 @@ public class RewardRepository(GameDbContext context) : IRewardRepository
             });
         }
         await context.SaveChangesAsync();
-
-        await transaction.CommitAsync();
-        reward.ClaimedAt = now;
-        return reward;
     }
 }

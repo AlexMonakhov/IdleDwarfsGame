@@ -24,13 +24,15 @@
       </div>
 
       <div class="arena-controls">
-        <div v-if="stageId" class="floor-select">{{ t('arena.stage', { id: stageId }) }}</div>
+        <div v-if="guildBossTier" class="floor-select">{{ t('arena.guildBoss', { tier: t(`guild.bosses.tiers.${guildBossTier}`) }) }}</div>
+        <div v-else-if="stageId" class="floor-select">{{ t('arena.stage', { id: stageId }) }}</div>
         <label v-else class="floor-select">
           {{ t('arena.floor') }}
           <input v-model.number="floor" type="number" min="1" max="50" :disabled="state.playing" />
         </label>
-        <button :disabled="state.playing || loading" @click="startArenaFight()">{{ t('arena.startFight') }}</button>
-        <button v-if="!stageId" :disabled="state.playing || loading" @click="startBossFight()">{{ t('arena.boss') }}</button>
+        <!-- По боссу гильдии бьют раз в час из окна гильдии, повтора здесь нет -->
+        <button v-if="!guildBossTier" :disabled="state.playing || loading" @click="startArenaFight()">{{ t('arena.startFight') }}</button>
+        <button v-if="!stageId && !guildBossTier" :disabled="state.playing || loading" @click="startBossFight()">{{ t('arena.boss') }}</button>
         <button :disabled="!state.playing" @click="skipFight()">{{ t('arena.skip') }}</button>
         <button v-for="value in [1, 2, 4]" :key="value" :class="{ active: speed === value }" @click="setSpeed(value)">x{{ value }}</button>
         <div class="sound-control">
@@ -41,9 +43,24 @@
 
       <div v-if="state.round" class="round-banner">{{ t('arena.round', { round: state.round }) }}</div>
 
-      <div v-if="error !== null" class="arena-message error">{{ error || t('arena.startError') }}</div>
+      <div v-if="error !== null" class="arena-message error">
+        {{ error || t('arena.startError') }}
+        <button v-if="guildBossTier" class="result-next" @click="goToGuild()">{{ t('arena.toGuild') }}</button>
+      </div>
 
-      <div v-if="state.finished" class="arena-message" :class="playerWon ? 'victory' : 'defeat'">
+      <!-- Босса гильдии за один бой обычно не убить: вместо победы/поражения — нанесённый урон -->
+      <div v-if="state.finished && guildResult" class="arena-message" :class="guildResult.killed ? 'victory' : 'guild-hit'">
+        <div class="result-title">{{ guildResult.killed ? t('arena.guildBossKilled') : t('arena.guildBossHit') }}</div>
+        <div class="result-rewards">{{ t('arena.guildBossDamage', { damage: guildResult.damage.toLocaleString(locale) }) }}</div>
+        <div class="result-rewards">
+          {{ t('arena.guildBossHp', { hp: guildResult.bossHp.toLocaleString(locale), max: guildResult.maxHp.toLocaleString(locale) }) }}
+        </div>
+        <div v-if="guildResult.killed" class="result-rewards">{{ t('arena.guildRewardWaiting') }}</div>
+        <div class="result-rounds">{{ t('arena.rounds', { rounds: result?.rounds ?? 0 }) }}</div>
+        <button class="result-next" @click="goToGuild()">{{ t('arena.toGuild') }}</button>
+      </div>
+
+      <div v-else-if="state.finished" class="arena-message" :class="playerWon ? 'victory' : 'defeat'">
         <div class="result-title">{{ playerWon ? t('arena.victory') : t('arena.defeat') }}</div>
         <div v-if="result?.rewards" class="result-rewards">
           {{ t('arena.rewards', { gold: result.rewards.gold, experience: result.rewards.experience }) }}
@@ -62,14 +79,17 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, onBeforeUnmount, onMounted, provide, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, provide, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import arenaBgBlueCrystals from '@/assets/arena_red_crystals.png';
-import arenaBgIce from '@/assets/arena_blue_crystals.png';
+import { arenaBackground } from '@/battle/arenaBackgrounds';
 import CharacterComponent from '@/components/character-component.vue';
 import CombatApiService from '@/services/apiServices/CombatApiService';
 import CampaignApiService from '@/services/apiServices/CampaignApiService';
 import { CampaignFightResult } from '@/models/types/Campaign';
+import GuildApiService from '@/services/apiServices/GuildApiService';
+import { GuildBossAttackResult, GuildBossTier } from '@/models/types/Guild';
+import { guildErrorText } from '@/components/guild/guildShared';
+import { useGuild } from '@/composables/UseGuild';
 import CanvasComponent from '@/components/canvas/CanvasComponent.vue';
 import CanvasLayer from '@/components/canvas/CanvasLayer.vue';
 import CombatLogFeed from '@/components/interface/CombatLogFeed.vue';
@@ -80,7 +100,7 @@ import { CombatResult } from '@/battle/types';
 import { soundService } from '@/services/soundService/SoundService';
 import { useI18n } from 'vue-i18n';
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 
 const bgImage = ref('arena_blue_crystals');
 const layerRef = ref<InstanceType<typeof CanvasLayer> | null>(null);
@@ -101,24 +121,27 @@ const nextStageId = computed(() => {
   return state.finished && next && next !== campaignResult.value?.stageId ? next : null;
 });
 
+// Режим босса гильдии: /arena?guildBoss=Easy&attack=<метка> — удар по общему боссу гильдии
+const GUILD_BOSS_TIERS: GuildBossTier[] = ['Easy', 'Medium', 'Hard'];
+const guildBossTier = computed(() => {
+  const tier = route.query.guildBoss as GuildBossTier;
+  return GUILD_BOSS_TIERS.includes(tier) ? tier : null;
+});
+const guildResult = ref<GuildBossAttackResult | null>(null);
+const { guildOpen } = useGuild();
+
 const state = createBattleState();
 const fx = new BattleFx(() => layerRef.value?.particleService ?? null, () => speed.value);
 const player = new BattlePlayer(state, fx);
 provide(BATTLE_FX_KEY, fx);
-
-// Ключи lava/ice приходят с сервера (Arena.Background)
-const bgMap: Record<string, string> = {
-  arena_blue_crystals: arenaBgBlueCrystals,
-  lava: arenaBgBlueCrystals,
-  ice: arenaBgIce,
-};
 
 const teamA = computed(() => teamUnits(state, 1));
 const teamB = computed(() => teamUnits(state, 2));
 const playerWon = computed(() => state.winningTeam === 1);
 
 const bgStyle = computed(() => ({
-  backgroundImage: `url('${bgMap[bgImage.value] ?? arenaBgBlueCrystals}')`,
+  // Ключи lava/ice приходят с сервера (Arena.Background, фон босса гильдии)
+  backgroundImage: `url('${arenaBackground(bgImage.value)}')`,
   backgroundRepeat: 'round',
 }));
 
@@ -141,9 +164,9 @@ const playFight = async (load: () => Promise<CombatResult>) => {
     result.value = await load();
   } catch (e) {
     console.error('Ошибка запуска боя:', e);
-    // Сервер отвечает 400 с текстом, например "Campaign stage 3 is locked"
+    // Сервер отвечает 400 с текстом, например "Campaign stage 3 is locked"; гильдия — { code, message }
     const message = (e as { response?: { data?: unknown } }).response?.data;
-    error.value = typeof message === 'string' ? message : '';
+    error.value = typeof message === 'string' ? message : guildBossTier.value ? guildErrorText(e, '') : '';
     return;
   } finally {
     loading.value = false;
@@ -160,9 +183,32 @@ const startCampaignFight = (id: number) => playFight(async () => {
   return fight.combat;
 });
 
-const startArenaFight = () => stageId.value
-  ? startCampaignFight(stageId.value)
-  : playFight(() => CombatApiService.start({ floor: floor.value }));
+const startGuildBossFight = (tier: GuildBossTier) => playFight(async () => {
+  // Метку удара убираем сразу: перезагрузка страницы не должна бить босса ещё раз
+  router.replace({ query: { guildBoss: tier } });
+  campaignResult.value = null;
+  guildResult.value = null;
+  const attack = await GuildApiService.attack(tier);
+  guildResult.value = attack;
+  bgImage.value = attack.background;
+  return attack.combat;
+});
+
+const startArenaFight = () => {
+  if (guildBossTier.value) return startGuildBossFight(guildBossTier.value);
+  return stageId.value
+    ? startCampaignFight(stageId.value)
+    : playFight(() => CombatApiService.start({ floor: floor.value }));
+};
+
+// Новый удар из окна гильдии, когда арена уже открыта: компонент тот же, меняется только метка attack
+watch(() => route.query.attack, (attack, previous) => {
+  if (attack && attack !== previous && guildBossTier.value) startArenaFight();
+});
+
+const goToGuild = () => {
+  guildOpen.value = true;
+};
 const startBossFight = () => playFight(() => CombatApiService.startBoss(undefined, floor.value));
 
 const goToNextStage = async () => {
@@ -175,6 +221,11 @@ const goToCampaign = () => router.push({ name: 'about' });
 const skipFight = () => player.skip();
 
 onMounted(() => {
+  // Арена босса гильдии без метки удара (например, после перезагрузки) — возвращаем в окно гильдии
+  if (guildBossTier.value && !route.query.attack) {
+    guildOpen.value = true;
+    return;
+  }
   startArenaFight();
 });
 
@@ -329,6 +380,15 @@ onBeforeUnmount(() => player.stop());
 
 .arena-message.defeat .result-title {
   color: #f87171;
+}
+
+.arena-message.guild-hit .result-title {
+  color: #fca5a5;
+}
+
+.arena-message.error .result-next {
+  display: block;
+  margin: 12px auto 0;
 }
 
 .result-title {

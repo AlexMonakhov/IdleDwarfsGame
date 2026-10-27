@@ -30,6 +30,12 @@ public class CombatService(
         return await ProcessCombat(playerId, stage.Id, scenario, globalEffects);
     }
 
+    // Сценарий создаётся под бой (у него общий остаток HP босса); после боя сценарий знает, сколько HP осталось
+    public async Task<CombatResult> StartGuildBossFight(Guid playerId, GuildBossScenario scenario)
+    {
+        return await ProcessCombat(playerId, scenario.Definition.Level, scenario, new List<IGlobalEffect>());
+    }
+
     private async Task<CombatResult> ProcessCombat(Guid playerId, int level, ICombatScenario scenario, List<IGlobalEffect> globalEffects)
     {
         // 1. Собираем мир (WorldFactory достаёт героев из БД)
