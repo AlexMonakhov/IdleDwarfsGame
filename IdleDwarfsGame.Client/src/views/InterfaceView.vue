@@ -2,6 +2,7 @@
 import GemButton from '@/components/common/GemButton.vue';
 import ExpeditionsModal from '@/components/expeditions/ExpeditionsModal.vue';
 import FriendsModal from '@/components/friends/FriendsModal.vue';
+import GuildModal from '@/components/guild/GuildModal.vue';
 import CollectionModal from '@/components/collection/CollectionModal.vue';
 import HeroUpgradeModal from '@/components/upgrade/HeroUpgradeModal.vue';
 import SquadModal from '@/components/inventory/SquadModal.vue';
@@ -13,6 +14,8 @@ import backgroundMusic from "@/assets/sounds/Beneath_The_Marble_Dome.mp3";
 import { useAuth } from '@/composables/UseAuth';
 import { useResources } from '@/composables/UseResources';
 import { usePresence } from '@/composables/UsePresence';
+import { useGuild } from '@/composables/UseGuild';
+import { useSquadModal } from '@/composables/UseSquadModal';
 import { soundService } from '@/services/soundService/SoundService';
 import { useI18n } from 'vue-i18n';
 
@@ -25,9 +28,10 @@ const { incomingFriendRequests, start: startPresence, stop: stopPresence } = use
 
 const expeditionsOpen = ref(false);
 const friendsOpen = ref(false);
+const { guildOpen } = useGuild();
 const collectionOpen = ref(false);
 const upgradeOpen = ref(false);
-const squadOpen = ref(false);
+const { squadOpen } = useSquadModal();
 const accountOpen = ref(false);
 
 // Ресурсы аккаунта подтягиваем при входе и сбрасываем при выходе; там же открываем и закрываем сессию вкладки
@@ -44,6 +48,7 @@ watch(isAuthenticated, authenticated => {
 const onLogout = () => {
     expeditionsOpen.value = false;
     friendsOpen.value = false;
+    guildOpen.value = false;
     collectionOpen.value = false;
     upgradeOpen.value = false;
     squadOpen.value = false;
@@ -79,6 +84,7 @@ watchEffect(() => {
             <GemButton v-if="isAuthenticated" @click="upgradeOpen = true" :color="'green'">{{ t('nav.upgrade') }}</GemButton>
             <GemButton v-if="isAuthenticated" @click="expeditionsOpen = true" :color="'yellow'">{{ t('nav.expeditions') }}</GemButton>
             <GemButton v-if="isAuthenticated" @click="friendsOpen = true" :color="'green'" :badge-count="incomingFriendRequests">{{ t('nav.friends') }}</GemButton>
+            <GemButton v-if="isAuthenticated" @click="guildOpen = true" :color="'blue'">{{ t('nav.guild') }}</GemButton>
             <template v-if="!isAuthenticated">
                 <GemButton v-if="route.name != 'login'" @click="router.push('/login')" :color="'green'">{{ t('nav.login') }}</GemButton>
                 <GemButton v-if="route.name != 'register'" @click="router.push('/register')" :color="'yellow'">{{ t('nav.register') }}</GemButton>
@@ -96,6 +102,7 @@ watchEffect(() => {
     <AccountModal v-model="accountOpen" />
     <ExpeditionsModal v-if="isAuthenticated" v-model="expeditionsOpen" />
     <FriendsModal v-if="isAuthenticated" v-model="friendsOpen" />
+    <GuildModal v-if="isAuthenticated" v-model="guildOpen" />
     <CollectionModal v-if="isAuthenticated" v-model="collectionOpen" />
     <HeroUpgradeModal v-if="isAuthenticated" v-model="upgradeOpen" />
     <SquadModal v-if="isAuthenticated" v-model="squadOpen" />

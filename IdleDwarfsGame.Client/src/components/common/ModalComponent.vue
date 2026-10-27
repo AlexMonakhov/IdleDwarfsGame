@@ -127,13 +127,14 @@ const windowSize = ref<{ width: number, height: number } | null>(null)
 
 let resizeObserver: ResizeObserver | null = null
 
-watch(windowEl, el => {
+// Вкладки могут появиться уже после открытия (окно гильдии получает их после загрузки)
+watch([windowEl, () => !!props.tabs?.length], ([el, hasTabs]) => {
 
   resizeObserver?.disconnect()
 
   resizeObserver = null
 
-  if (!el || !props.tabs?.length) return
+  if (!el || !hasTabs) return
 
   resizeObserver = new ResizeObserver(() => {
 

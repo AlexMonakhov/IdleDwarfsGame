@@ -1,0 +1,105 @@
+/* Общие стили окна гильдии: подключаются в каждый компонент как <style scoped src="./guild.css">.
+   Строки и списки — как в окне друзей */
+.guild-page {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    padding: 6px;
+    font-family: 'Arial', sans-serif;
+    text-align: left;
+}
+
+.guild-hint {
+    margin: 6px 0 10px;
+    color: #cbd5e1;
+    font-size: 13px;
+    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.6);
+}
+
+.guild-section {
+    margin-bottom: 14px;
+}
+
+.guild-subtitle {
+    margin: 0 0 6px;
+    color: #f8fafc;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.8);
+}
+
+.guild-list {
+    display: flex;
+    flex-direction: column;
+    row-gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.guild-row {
+    display: flex;
+    align-items: center;
+    column-gap: 12px;
+    min-height: 56px;
+    padding: 6px 12px;
+    box-sizing: border-box;
+    border-radius: 10px;
+    border: 2px solid rgba(157, 173, 175, 0.5);
+    background: rgba(15, 23, 32, 0.7);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.45);
+}
+
+.guild-row-main {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    row-gap: 2px;
+}
+
+.guild-row-name {
+    overflow: hidden;
+    color: #f8fafc;
+    font-size: 16px;
+    font-weight: bold;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.8);
+}
+
+.guild-row-status {
+    color: #cbd5e1;
+    font-size: 12px;
+}
+
+.guild-row-actions {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    column-gap: 8px;
+}
+
+.guild-row-actions :deep(.gem-text) {
+    font-size: 13px;
+}
+
+.guild-confirm {
+    color: #ffd166;
+    font-size: 13px;
+    font-weight: bold;
+}
+
+/* Поле и кнопка в одну строку; высота кнопки — как у поля (38px + металлическая рамка) */
+.guild-form {
+    display: flex;
+    align-items: flex-start;
+    column-gap: 10px;
+}
+
+.guild-form > .gem-button {
+    flex-shrink: 0;
+    height: 46px;
+}
