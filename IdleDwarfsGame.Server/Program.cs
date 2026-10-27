@@ -84,6 +84,8 @@ builder.Services.AddScoped<IUserSessionRepository, UserSessionRepository>();
 builder.Services.AddScoped<SessionService>();
 builder.Services.AddScoped<IFriendRepository, FriendRepository>();
 builder.Services.AddScoped<FriendService>();
+builder.Services.AddScoped<IGuildRepository, GuildRepository>();
+builder.Services.AddScoped<GuildService>();
 builder.Services.AddScoped<IWorldFactory, WorldFactory>();
 builder.Services.AddScoped<ICombatEngine, CombatEngine>();
 builder.Services.AddScoped<CombatService>();

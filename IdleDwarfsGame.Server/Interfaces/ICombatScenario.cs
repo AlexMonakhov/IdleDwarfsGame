@@ -1,4 +1,4 @@
-﻿public enum CombatMode { Boss, Tower, Campaign }
+﻿public enum CombatMode { Boss, Tower, Campaign, GuildBoss }
 
 public interface ICombatScenario
 {

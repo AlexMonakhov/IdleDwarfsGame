@@ -28,6 +28,13 @@ public class GameDbContext : DbContext
     public DbSet<PlayerItem> PlayerItems => Set<PlayerItem>();
     public DbSet<PlayerReward> PlayerRewards => Set<PlayerReward>();
     public DbSet<PlayerRewardChest> PlayerRewardChests => Set<PlayerRewardChest>();
+    public DbSet<Guild> Guilds => Set<Guild>();
+    public DbSet<GuildMember> GuildMembers => Set<GuildMember>();
+    public DbSet<GuildJoinRequest> GuildJoinRequests => Set<GuildJoinRequest>();
+    public DbSet<GuildBoss> GuildBosses => Set<GuildBoss>();
+    public DbSet<GuildBossAttack> GuildBossAttacks => Set<GuildBossAttack>();
+    public DbSet<GuildBossCooldown> GuildBossCooldowns => Set<GuildBossCooldown>();
+    public DbSet<GuildBossRewardClaim> GuildBossRewardClaims => Set<GuildBossRewardClaim>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -442,5 +449,192 @@ public class GameDbContext : DbContext
             .Property(c => c.ChestType)
             .HasConversion<string>()
             .HasMaxLength(16);
+
+        // ===== Гильдии =====
+        modelBuilder.Entity<Guild>()
+            .HasKey(g => g.Id);
+
+        modelBuilder.Entity<Guild>()
+            .Property(g => g.Id)
+            .HasConversion<string>();
+
+        modelBuilder.Entity<Guild>()
+            .Property(g => g.Name)
+            .HasMaxLength(GuildService.MaxNameLength);
+
+        modelBuilder.Entity<Guild>()
+            .Property(g => g.NormalizedName)
+            .HasMaxLength(GuildService.MaxNameLength);
+
+        modelBuilder.Entity<Guild>()
+            .HasIndex(g => g.NormalizedName)
+            .IsUnique();
+
+        modelBuilder.Entity<GuildMember>()
+            .HasKey(m => m.UserId);
+
+        modelBuilder.Entity<GuildMember>()
+            .Property(m => m.UserId)
+            .HasConversion<string>();
+
+        modelBuilder.Entity<GuildMember>()
+            .Property(m => m.GuildId)
+            .HasConversion<string>();
+
+        modelBuilder.Entity<GuildMember>()
+            .Property(m => m.Role)
+            .HasConversion<string>()
+            .HasMaxLength(16);
+
+        modelBuilder.Entity<GuildMember>()
+            .HasOne(m => m.User)
+            .WithMany()
+            .HasForeignKey(m => m.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<GuildMember>()
+            .HasOne(m => m.Guild)
+            .WithMany()
+            .HasForeignKey(m => m.GuildId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<GuildMember>()
+            .HasIndex(m => m.GuildId);
+
+        modelBuilder.Entity<GuildJoinRequest>()
+            .HasKey(r => new { r.UserId, r.GuildId });
+
+        modelBuilder.Entity<GuildJoinRequest>()
+            .Property(r => r.UserId)
+            .HasConversion<string>();
+
+        modelBuilder.Entity<GuildJoinRequest>()
+            .Property(r => r.GuildId)
+            .HasConversion<string>();
+
+        modelBuilder.Entity<GuildJoinRequest>()
+            .HasOne(r => r.User)
+            .WithMany()
+            .HasForeignKey(r => r.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<GuildJoinRequest>()
+            .HasOne(r => r.Guild)
+            .WithMany()
+            .HasForeignKey(r => r.GuildId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Заявки в гильдию — для главы
+        modelBuilder.Entity<GuildJoinRequest>()
+            .HasIndex(r => r.GuildId);
+
+        modelBuilder.Entity<GuildBoss>()
+            .HasKey(b => b.Id);
+
+        modelBuilder.Entity<GuildBoss>()
+            .Property(b => b.Id)
+            .HasConversion<string>();
+
+        modelBuilder.Entity<GuildBoss>()
+            .Property(b => b.GuildId)
+            .HasConversion<string>();
+
+        modelBuilder.Entity<GuildBoss>()
+            .Property(b => b.KilledByUserId)
+            .HasConversion<string>();
+
+        modelBuilder.Entity<GuildBoss>()
+            .Property(b => b.Tier)
+            .HasConversion<string>()
+            .HasMaxLength(16);
+
+        modelBuilder.Entity<GuildBoss>()
+            .HasOne<Guild>()
+            .WithMany()
+            .HasForeignKey(b => b.GuildId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Один босс каждого уровня на гильдию в сутки — заодно защищает от двойного создания
+        modelBuilder.Entity<GuildBoss>()
+            .HasIndex(b => new { b.GuildId, b.Day, b.Tier })
+            .IsUnique();
+
+        modelBuilder.Entity<GuildBossAttack>()
+            .HasKey(a => a.Id);
+
+        modelBuilder.Entity<GuildBossAttack>()
+            .Property(a => a.Id)
+            .HasConversion<string>();
+
+        modelBuilder.Entity<GuildBossAttack>()
+            .Property(a => a.BossId)
+            .HasConversion<string>();
+
+        modelBuilder.Entity<GuildBossAttack>()
+            .Property(a => a.UserId)
+            .HasConversion<string>();
+
+        modelBuilder.Entity<GuildBossAttack>()
+            .HasOne<GuildBoss>()
+            .WithMany()
+            .HasForeignKey(a => a.BossId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<GuildBossAttack>()
+            .HasOne<User>()
+            .WithMany()
+            .HasForeignKey(a => a.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<GuildBossAttack>()
+            .HasIndex(a => a.BossId);
+
+        modelBuilder.Entity<GuildBossCooldown>()
+            .HasKey(c => new { c.UserId, c.Tier });
+
+        modelBuilder.Entity<GuildBossCooldown>()
+            .Property(c => c.UserId)
+            .HasConversion<string>();
+
+        modelBuilder.Entity<GuildBossCooldown>()
+            .Property(c => c.Tier)
+            .HasConversion<string>()
+            .HasMaxLength(16);
+
+        modelBuilder.Entity<GuildBossCooldown>()
+            .HasOne<User>()
+            .WithMany()
+            .HasForeignKey(c => c.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<GuildBossRewardClaim>()
+            .HasKey(c => new { c.UserId, c.Tier, c.Day });
+
+        modelBuilder.Entity<GuildBossRewardClaim>()
+            .Property(c => c.UserId)
+            .HasConversion<string>();
+
+        modelBuilder.Entity<GuildBossRewardClaim>()
+            .Property(c => c.Tier)
+            .HasConversion<string>()
+            .HasMaxLength(16);
+
+        modelBuilder.Entity<GuildBossRewardClaim>()
+            .Property(c => c.GuildId)
+            .HasConversion<string>();
+
+        modelBuilder.Entity<GuildBossRewardClaim>()
+            .Property(c => c.BossId)
+            .HasConversion<string>();
+
+        modelBuilder.Entity<GuildBossRewardClaim>()
+            .Property(c => c.RewardId)
+            .HasConversion<string>();
+
+        modelBuilder.Entity<GuildBossRewardClaim>()
+            .HasOne<User>()
+            .WithMany()
+            .HasForeignKey(c => c.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }
