@@ -58,15 +58,42 @@
     </CanvasComponent>
     </TooltipComponent>
 
-    <CardComponent :color="'grey'"></CardComponent>
-    <CardComponent :color="'yellow'"></CardComponent>
+    <CardComponent :color="'grey'" :back="{ variant: 'large' }"></CardComponent>
+    <CardComponent :color="'yellow'" :back="{ variant: 'crystal' }"></CardComponent>
     <TooltipComponent>
       <template #description>lorem ipsum dolor sit amet consectetur adipisicing elit some long description lorem ipsum dolor sit amet consectetur adipisicing elit some long description</template>
-      <CardComponent :color="'blue'"></CardComponent>
+      <CardComponent :color="'blue'" :back="{ variant: 'cracked' }"></CardComponent>
     </TooltipComponent>
-    <CardComponent :color="'green'"></CardComponent>
+    <CardComponent :color="'red'" :back="{ variant: 'emerald' }"></CardComponent>
     <InfoComponent></InfoComponent>
     </CanvasLayer>
+
+    <!-- Тест параметров ледяной кромки (прокрутить вниз) -->
+    <div class="card-lab">
+      <div v-for="sample in frameSamples" :key="sample.name" class="card-lab-item">
+        <CardComponent :color="sample.color" :back="sample.back"></CardComponent>
+        <div class="card-lab-label">
+          <b>{{ sample.name }}</b>
+          <span>{{ describeBack(sample.back) }}</span>
+          <span class="card-lab-download">
+            скачать:
+            <a href="#" @click.prevent="download(sample, 'svg')">svg</a>
+            <a href="#" @click.prevent="download(sample, 'webp')">webp</a>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Готовые картинки из assets/card-backs (back.image), с перекраской и без -->
+    <div class="card-lab">
+      <div v-for="sample in imageSamples" :key="sample.name + sample.color" class="card-lab-item">
+        <CardComponent :color="sample.color" :back="sample.back"></CardComponent>
+        <div class="card-lab-label">
+          <b>{{ sample.name }}</b>
+          <span>{{ sample.back.tint ? 'tint: true' : 'без tint' }}</span>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -82,6 +109,11 @@ import { ref, onMounted, provide, nextTick, computed } from 'vue';
 import CanvasComponent from '@/components/canvas/CanvasComponent.vue';
 import CanvasLayer from '@/components/canvas/CanvasLayer.vue';
 import CardComponent from '@/components/card/CardComponent.vue';
+import { downloadCardBack } from '@/components/card/cardBackArt';
+import type { CardBackOptions } from '@/components/card/cardBackArt';
+import crystalLarge from '@/assets/card-backs/crystal-large.webp';
+import crystalCracked from '@/assets/card-backs/crystal-cracked.webp';
+import crystalEmerald from '@/assets/card-backs/crystal-emerald.webp';
 import InfoComponent from '@/components/common/InfoComponent.vue';
 import TooltipComponent from '@/components/common/TooltipComponent.vue';
 import { useI18n } from 'vue-i18n';
@@ -103,6 +135,44 @@ const animationObject = computed(() => {
   else return ([])
 })
 
+type CardColor = 'pink' | 'green' | 'blue' | 'yellow' | 'red' | 'grey';
+
+// Варианты рубашки для сравнения (не указанные параметры — по умолчанию, см. components/card/README.md)
+const frameSamples: { name: string; color: CardColor; back: CardBackOptions }[] = [
+  { name: '1. По умолчанию', color: 'grey', back: {} },
+  { name: '2. Тонкая', color: 'blue', back: { frame: { depth: 8, depthJitter: 3 } } },
+  { name: '3. Толстая', color: 'green', back: { frame: { depth: 24, depthJitter: 8 } } },
+  { name: '4. Мелкие куски', color: 'pink', back: { frame: { step: 10 } } },
+  { name: '5. Крупные куски', color: 'yellow', back: { frame: { step: 38 } } },
+  { name: '6. Много торчит наружу', color: 'grey', back: { frame: { protrudeChance: 0.7 } } },
+  { name: '7. Ровный внешний край', color: 'blue', back: { frame: { protrudeChance: 0 } } },
+  { name: '8. Много шипов внутрь', color: 'green', back: { frame: { spikeChance: 0.5 } } },
+  { name: '9. Длинные шипы', color: 'pink', back: { frame: { spikeChance: 0.3, spikeLength: 38 } } },
+  { name: '10. Аккуратная', color: 'yellow', back: { frame: { step: 30, depthJitter: 2, protrudeChance: 0, spikeChance: 0 } } },
+  { name: '11. Хаос', color: 'red', back: { frame: { step: 16, depthJitter: 18, protrudeChance: 0.5, spikeChance: 0.35, spikeLength: 30 } } },
+  { name: '12. Монолит', color: 'blue', back: { variant: 'cracked', frame: { step: 45, depth: 18, depthJitter: 12, protrudeChance: 0.4, spikeChance: 0.2 } } },
+];
+
+// Цвет редкости как его видит карта (переменные из App.vue; у grey переменной нет)
+const resolveColor = (color: CardColor) =>
+  getComputedStyle(document.documentElement).getPropertyValue(`--${color}-gem-color`).trim() || '#9aa3ad';
+
+const download = (sample: { name: string; color: CardColor; back: CardBackOptions }, format: 'svg' | 'webp') =>
+  downloadCardBack(resolveColor(sample.color), sample.back, `card-back-${sample.name.split('.')[0]}-${sample.color}`, format);
+
+const imageSamples: { name: string; color: CardColor; back: CardBackOptions }[] = [
+  { name: 'crystal-large.webp', color: 'grey', back: { image: crystalLarge } },
+  { name: 'crystal-large.webp', color: 'blue', back: { image: crystalLarge, tint: true } },
+  { name: 'crystal-cracked.webp', color: 'yellow', back: { image: crystalCracked, tint: true } },
+  { name: 'crystal-emerald.webp', color: 'pink', back: { image: crystalEmerald, tint: true } },
+];
+
+const describeBack = (back: CardBackOptions) => {
+  const { frame = {}, ...rest } = back;
+  const entries = [...Object.entries(rest), ...Object.entries(frame)];
+  return entries.length ? entries.map(([k, v]) => `${k}: ${v}`).join(', ') : 'всё по умолчанию';
+};
+
 const animationObject2 = computed(() => {
   if(animationvalue.value) return ([{ func: 'particles', padding: 100, isUnder: false }])
   else return ([{ func: 'particles', padding: 100, isUnder: true, args: { speed: '2', color: '#0ff' } }])
@@ -115,6 +185,39 @@ const animationObject2 = computed(() => {
     height: 100vh;
     position: fixed;
     background-color: darkcyan;
+    overflow-y: auto;
+}
+
+.card-lab {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 32px 16px;
+    padding: 40px 24px 80px;
+}
+
+.card-lab-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.card-lab-label {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    max-width: 230px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.45);
+    color: #fff;
+    font-size: 12px;
+    font-family: monospace;
+}
+
+.card-lab-download a {
+    color: #7dd3fc;
+    margin-left: 6px;
 }
 .company-list-row{
     border: 1px solid white;

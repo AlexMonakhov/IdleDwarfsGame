@@ -1,0 +1,26 @@
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='-8 -8 216 316' preserveAspectRatio='none' width='454' height='664'>
+    <defs>
+      <clipPath id='sil'><rect width='200' height='300' rx='10' /></clipPath>
+      <radialGradient id='core' cx='0.5' cy='0.5' r='0.35'>
+        <stop offset='0' stop-color='#fff' stop-opacity='0.55'/>
+        <stop offset='0.4' stop-color='#e1e3e6' stop-opacity='0.25'/>
+        <stop offset='1' stop-color='#9aa3ad' stop-opacity='0'/>
+      </radialGradient>
+      <linearGradient id='gloss' x1='0' y1='0' x2='1' y2='1'>
+        <stop offset='0' stop-color='#fff' stop-opacity='0.28'/>
+        <stop offset='0.35' stop-color='#fff' stop-opacity='0'/>
+        <stop offset='0.6' stop-color='#fff' stop-opacity='0'/>
+        <stop offset='0.75' stop-color='#fff' stop-opacity='0.12'/>
+        <stop offset='1' stop-color='#fff' stop-opacity='0'/>
+      </linearGradient>
+    </defs>
+    <g clip-path='url(#sil)'>
+      <rect x='-8' y='-8' width='216' height='316' fill='#535a67'/>
+      <g stroke='#fff' stroke-opacity='0.3' stroke-width='0.5' stroke-linejoin='round'>
+        <polygon points='0.0,0.0 30.0,0.0 0.0,30.0' fill='#e1e3e6' /><polygon points='200.0,0.0 200.0,30.0 170.0,0.0' fill='#b1b8c0' /><polygon points='200.0,300.0 170.0,300.0 200.0,270.0' fill='#636b77' /><polygon points='0.0,300.0 0.0,270.0 30.0,300.0' fill='#9ea6af' /><polygon points='30.0,0.0 170.0,0.0 158.8,15.0 41.3,15.0' fill='#e1e3e6' /><polygon points='170.0,0.0 200.0,30.0 185.0,41.3 158.8,15.0' fill='#c7ccd1' /><polygon points='200.0,30.0 200.0,270.0 185.0,258.8 185.0,41.3' fill='#9da5ae' /><polygon points='200.0,270.0 170.0,300.0 158.8,285.0 185.0,258.8' fill='#78808b' /><polygon points='170.0,300.0 30.0,300.0 41.3,285.0 158.8,285.0' fill='#78808b' /><polygon points='30.0,300.0 0.0,270.0 15.0,258.8 41.3,285.0' fill='#969ea8' /><polygon points='0.0,270.0 0.0,30.0 15.0,41.3 15.0,258.8' fill='#cdd1d6' /><polygon points='0.0,30.0 30.0,0.0 41.3,15.0 15.0,41.3' fill='#e1e3e6' /><polygon points='41.3,15.0 158.8,15.0 146.8,31.0 53.3,31.0' fill='#ced2d7' /><polygon points='158.8,15.0 185.0,41.3 169.0,53.3 146.8,31.0' fill='#adb4bc' /><polygon points='185.0,41.3 185.0,258.8 169.0,246.8 169.0,53.3' fill='#7a828d' /><polygon points='185.0,258.8 158.8,285.0 146.8,269.0 169.0,246.8' fill='#535a67' /><polygon points='158.8,285.0 41.3,285.0 53.3,269.0 146.8,269.0' fill='#535a67' /><polygon points='41.3,285.0 15.0,258.8 31.0,246.8 53.3,269.0' fill='#717884' /><polygon points='15.0,258.8 15.0,41.3 31.0,53.3 31.0,246.8' fill='#b3bac1' /><polygon points='15.0,41.3 41.3,15.0 53.3,31.0 31.0,53.3' fill='#c4c9cf' /><polygon points='53.3,31.0 146.8,31.0 134.0,48.0 66.0,48.0' fill='#e1e3e6' /><polygon points='146.8,31.0 169.0,53.3 152.0,66.0 134.0,48.0' fill='#c9ced3' /><polygon points='169.0,53.3 169.0,246.8 152.0,234.0 152.0,66.0' fill='#a7afb7' /><polygon points='169.0,246.8 146.8,269.0 134.0,252.0 152.0,234.0' fill='#838a95' /><polygon points='146.8,269.0 53.3,269.0 66.0,252.0 134.0,252.0' fill='#7b828d' /><polygon points='53.3,269.0 31.0,246.8 48.0,234.0 66.0,252.0' fill='#a3abb5' /><polygon points='31.0,246.8 31.0,53.3 48.0,66.0 48.0,234.0' fill='#d0d4d8' /><polygon points='31.0,53.3 53.3,31.0 66.0,48.0 48.0,66.0' fill='#e1e3e6' /><polygon points='66.0,48.0 134.0,48.0 120.5,66.0 79.5,66.0' fill='#d4d8dc' /><polygon points='134.0,48.0 152.0,66.0 134.0,79.5 120.5,66.0' fill='#b1b8c0' /><polygon points='152.0,66.0 152.0,234.0 134.0,220.5 134.0,79.5' fill='#878f99' /><polygon points='152.0,234.0 134.0,252.0 120.5,234.0 134.0,220.5' fill='#626976' /><polygon points='134.0,252.0 66.0,252.0 79.5,234.0 120.5,234.0' fill='#575e6b' /><polygon points='66.0,252.0 48.0,234.0 66.0,220.5 79.5,234.0' fill='#7b838e' /><polygon points='48.0,234.0 48.0,66.0 66.0,79.5 66.0,220.5' fill='#b3b9c1' /><polygon points='48.0,66.0 66.0,48.0 79.5,66.0 66.0,79.5' fill='#c8ccd2' /><polygon points='100.0,150.0 79.5,66.0 120.5,66.0' fill='#b8bec5' /><polygon points='100.0,150.0 120.5,66.0 134.0,79.5' fill='#bec4ca' /><polygon points='100.0,150.0 134.0,79.5 134.0,220.5' fill='#c8cdd2' /><polygon points='100.0,150.0 134.0,220.5 120.5,234.0' fill='#d2d5da' /><polygon points='100.0,150.0 120.5,234.0 79.5,234.0' fill='#d1d5d9' /><polygon points='100.0,150.0 79.5,234.0 66.0,220.5' fill='#cdd1d6' /><polygon points='100.0,150.0 66.0,220.5 66.0,79.5' fill='#c3c8ce' /><polygon points='100.0,150.0 66.0,79.5 79.5,66.0' fill='#b8bec6' />
+      </g>
+      <rect width='200' height='300' fill='url(#core)' style='mix-blend-mode:screen'/>
+      <rect x='-8' y='-8' width='216' height='316' fill='url(#gloss)'/>
+      
+    </g>
+    <rect width='200' height='300' rx='10' fill='none' stroke='#535a67' stroke-width='1.4' stroke-linejoin='round'/></svg>
