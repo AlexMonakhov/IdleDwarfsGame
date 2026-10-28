@@ -30,10 +30,21 @@ public class CombatService(
         return await ProcessCombat(playerId, stage.Id, scenario, globalEffects);
     }
 
-    // Сценарий создаётся под бой (у него общий остаток HP босса); после боя сценарий знает, сколько HP осталось
-    public async Task<CombatResult> StartGuildBossFight(Guid playerId, GuildBossScenario scenario)
+    // Сценарий создаётся под бой (у него общий остаток HP босса); после боя сценарий знает, сколько HP осталось.
+    // Бой идёт на арене босса — с её эффектом
+    public async Task<CombatResult> StartGuildBossFight(Guid playerId, GuildBossScenario scenario, Arena arena)
     {
-        return await ProcessCombat(playerId, scenario.Definition.Level, scenario, new List<IGlobalEffect>());
+        var globalEffects = new List<IGlobalEffect>();
+        if (ArenaStatusEffect.FromArena(arena) is { } arenaEffect)
+            globalEffects.Add(arenaEffect);
+
+        return await ProcessCombat(playerId, scenario.Definition.Level, scenario, globalEffects);
+    }
+
+    // Отряд игрока против сохранённого отряда другого игрока на арене PvP
+    public async Task<CombatResult> StartPvpFight(Guid playerId, PvpScenario scenario)
+    {
+        return await ProcessCombat(playerId, 1, scenario, new List<IGlobalEffect> { new RisingFuryArenaEffect() });
     }
 
     private async Task<CombatResult> ProcessCombat(Guid playerId, int level, ICombatScenario scenario, List<IGlobalEffect> globalEffects)
@@ -45,7 +56,7 @@ public class CombatService(
         var units = CombatSnapshot.Units(world);
 
         // 3. Проводим бой
-        var context = combatEngine.Run(world);
+        var context = combatEngine.Run(world, scenario.MaxRounds);
 
         // 4. Награды режима для показа после боя. Кампания их не показывает: она выдаёт награду сама (CampaignRewards),
         //    и игрок забирает её отдельно
