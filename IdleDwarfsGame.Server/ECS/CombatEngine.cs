@@ -1,7 +1,7 @@
 public class CombatEngine : ICombatEngine
 {
     // Страховка от зацикливания: ходов не может быть больше, чем раундов * участников (+ запас)
-    private const int MaxTurnsPerUnit = 100;
+    private const int SpareRounds = 3;
 
     private readonly List<ICombatSystem> _systems;
     private readonly Random _random;
@@ -27,9 +27,9 @@ public class CombatEngine : ICombatEngine
         };
     }
 
-    public CombatContext Run(World world)
+    public CombatContext Run(World world, int maxRounds = CombatContext.DefaultMaxRounds)
     {
-        var context = new CombatContext { Random = _random };
+        var context = new CombatContext { Random = _random, MaxRounds = maxRounds };
         context.AddLog(new CombatLogEntry
         {
             EventType = CombatEventType.CombatStart,
@@ -37,7 +37,7 @@ public class CombatEngine : ICombatEngine
             ActionType = "CombatStart"
         });
 
-        int turnsLeft = Math.Max(1, world.Entities.Count) * MaxTurnsPerUnit;
+        int turnsLeft = Math.Max(1, world.Entities.Count) * (maxRounds + SpareRounds);
 
         while (!context.CombatEnded && turnsLeft-- > 0)
         {

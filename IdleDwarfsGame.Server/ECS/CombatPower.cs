@@ -33,8 +33,13 @@ public static class CombatPower
     private static readonly Dictionary<string, double> ImmunityValue = new()
     {
         ["Stun"] = 0.08,
+        ["Freeze"] = 0.06,
         ["Burn"] = 0.04,
-        ["Frost"] = 0.04
+        ["Frost"] = 0.04,
+        ["Poison"] = 0.04,
+        ["Curse"] = 0.04,
+        ["Shock"] = 0.04,
+        ["Bleed"] = 0.04
     };
 
     public static CombatPowerBreakdown Of(World world, int entityId)
@@ -141,21 +146,22 @@ public static class CombatPower
         return Math.Min(1, regular + opening);
     }
 
-    // Аура срабатывает раз в раунд, а каждый наложенный эффект тикает Duration ходов —
-    // в среднем это Power × Duration на цель за раунд
+    // Аура срабатывает раз в Interval раундов, а каждый наложенный эффект тикает Duration ходов (не больше StackLimit) —
+    // в среднем это Power × Duration / Interval на цель за раунд
     private static SpellEstimate AuraPerRound(AuraComponent aura)
     {
         // Аура на всех задевает и своих — в среднем бою это ноль пользы
-        int hostile = aura.TargetType == AuraTarget.Enemies ? ReferenceTargets : 0;
-        int friendly = aura.TargetType == AuraTarget.Allies ? ReferenceTargets : 0;
-        int ticks = aura.Power * aura.Duration;
+        double rate = 1.0 / Math.Max(1, aura.Interval);
+        double hostile = (aura.TargetType == AuraTarget.Enemies ? ReferenceTargets : 0) * rate;
+        double friendly = (aura.TargetType == AuraTarget.Allies ? ReferenceTargets : 0) * rate;
+        int ticks = aura.Power * Math.Min(aura.Duration, AuraComponent.StackLimit);
 
         return aura.EffectName switch
         {
-            "Burn" or "Frost" => new SpellEstimate(Damage: hostile * ticks),
+            "Burn" or "Poison" or "Curse" or "Shock" or "Bleed" => new SpellEstimate(Damage: hostile * ticks),
             "Regen" => new SpellEstimate(Healing: friendly * ticks),
             // Больше одного хода за раунд стан не отнимет
-            "Stun" => new SpellEstimate(StunnedTurns: hostile),
+            "Stun" or "Freeze" => new SpellEstimate(StunnedTurns: hostile),
             _ => default
         };
     }

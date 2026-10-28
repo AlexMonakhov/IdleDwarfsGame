@@ -121,14 +121,5 @@ public class CampaignService(
         };
     }
 
-    private static ArenaInfo ToArenaInfo(Arena arena) => new()
-    {
-        Id = arena.Id,
-        Name = arena.Name,
-        Description = arena.Description,
-        Background = arena.Background,
-        EffectName = arena.EffectName,
-        EffectPower = arena.EffectPower,
-        EffectDuration = arena.EffectDuration
-    };
+    private static ArenaInfo ToArenaInfo(Arena arena) => ArenaInfo.From(arena);
 }

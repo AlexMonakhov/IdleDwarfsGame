@@ -5,8 +5,13 @@ public static class CampaignSeedData
 {
     public static readonly Guid CampaignPlayerId = Guid.Parse("c0c0c0c0-0000-4000-8000-000000000003");
 
+    // По арене на каждую стихию. Кампания пока идёт на лаве и льду, остальные — арены боссов гильдии (GuildBosses)
     public const int LavaArenaId = 1;
     public const int IceArenaId = 2;
+    public const int StormArenaId = 3;
+    public const int MarshArenaId = 4;
+    public const int CryptArenaId = 5;
+    public const int SanctumArenaId = 6;
 
     // Шаблоны врагов башни
     private static readonly Guid OrcBrute = Guid.Parse("22222222-0000-4000-8000-000000000001");
@@ -72,15 +77,39 @@ public static class CampaignSeedData
     [
         new Arena
         {
-            Id = LavaArenaId, Name = "Lava Arena", Background = "lava",
+            Id = LavaArenaId, Name = "Lava Arena", Background = "lava", Element = HeroElement.Fire,
             Description = "Molten stone burns every fighter at the start of each round.",
             EffectName = "Burn", EffectPower = 5, EffectDuration = 1
         },
         new Arena
         {
-            Id = IceArenaId, Name = "Ice Arena", Background = "ice",
+            Id = IceArenaId, Name = "Ice Arena", Background = "ice", Element = HeroElement.Frost,
             Description = "Icy wind wounds every fighter and drains their energy at the start of each round.",
             EffectName = "Frost", EffectPower = 3, EffectDuration = 1
+        },
+        new Arena
+        {
+            Id = StormArenaId, Name = "Storm Peak", Background = "storm", Element = HeroElement.Lightning,
+            Description = "Lightning strikes the summit and shocks every fighter at the start of each round.",
+            EffectName = "Shock", EffectPower = 4, EffectDuration = 1
+        },
+        new Arena
+        {
+            Id = MarshArenaId, Name = "Venom Marsh", Background = "marsh", Element = HeroElement.Nature,
+            Description = "Toxic fumes rise from the bog and poison every fighter at the start of each round.",
+            EffectName = "Poison", EffectPower = 4, EffectDuration = 1
+        },
+        new Arena
+        {
+            Id = CryptArenaId, Name = "Shadow Crypt", Background = "crypt", Element = HeroElement.Dark,
+            Description = "Amethyst shadows curse every fighter at the start of each round, draining life and energy.",
+            EffectName = "Curse", EffectPower = 4, EffectDuration = 1
+        },
+        new Arena
+        {
+            Id = SanctumArenaId, Name = "Crystal Sanctum", Background = "sanctum", Element = HeroElement.Radiance,
+            Description = "Diamond light mends the wounds of every fighter — friend and foe — at the start of each round.",
+            EffectName = "Regen", EffectPower = 6, EffectDuration = 1
         }
     ];
 

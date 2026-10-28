@@ -6,9 +6,22 @@ public class ArenaInfo
     public string Name { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public string Background { get; set; } = string.Empty;
+    public HeroElement Element { get; set; }
     public string? EffectName { get; set; }
     public int EffectPower { get; set; }
     public int EffectDuration { get; set; }
+
+    public static ArenaInfo From(Arena arena) => new()
+    {
+        Id = arena.Id,
+        Name = arena.Name,
+        Description = arena.Description,
+        Background = arena.Background,
+        Element = arena.Element,
+        EffectName = arena.EffectName,
+        EffectPower = arena.EffectPower,
+        EffectDuration = arena.EffectDuration
+    };
 }
 
 public class CampaignStageInfo

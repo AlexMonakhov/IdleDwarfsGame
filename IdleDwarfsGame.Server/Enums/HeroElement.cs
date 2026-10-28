@@ -6,7 +6,9 @@ public enum HeroElement
     Fire,      // рубин, красный
     Frost,     // сапфир, синий
     Lightning, // топаз, жёлтый
-    Nature     // изумруд, зелёный
+    Nature,    // изумруд, зелёный
+    Dark,      // аметист, фиолетовый
+    Radiance   // бриллиант, радужный
 }
 
 public static class HeroLevels

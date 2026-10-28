@@ -16,14 +16,15 @@ public class DamageSystem : ICombatSystem
         if (target == null) return;
 
         // 1. Наносим урон
-        int damage = world.Attack[attacker].Damage;
+        int damage = world.ScaleDamage(world.Attack[attacker].Damage);
         int hpLeft = world.ApplyDamage(target.Id, damage);
 
-        // 2. Начисляем энергию за удар
+        // 2. Начисляем энергию за удар; мороз урезает прирост на свой процент
         if (world.Energy.ContainsKey(attacker))
         {
             var energy = world.Energy[attacker];
-            energy.Current = Math.Min(energy.Max, energy.Current + energy.GainPerAttack);
+            int gain = energy.GainPerAttack * (100 - FrostSlowPercent(world, attacker)) / 100;
+            energy.Current = Math.Min(energy.Max, energy.Current + gain);
         }
 
         state.ActionCompleted = true;
@@ -43,4 +44,9 @@ public class DamageSystem : ICombatSystem
             AttackerEnergy = world.GetEnergy(attacker)
         });
     }
+
+    private static int FrostSlowPercent(World world, int entityId) =>
+        world.StatusEffects.TryGetValue(entityId, out var statuses)
+            ? statuses.ActiveEffects.OfType<FrostEffect>().FirstOrDefault()?.EnergySlowPercent ?? 0
+            : 0;
 }

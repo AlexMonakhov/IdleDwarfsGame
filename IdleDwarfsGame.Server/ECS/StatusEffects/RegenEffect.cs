@@ -1,5 +1,5 @@
-// Регенерация: лечит в начале хода носителя
-public class RegenEffect : StatusEffectBase
+// Регенерация: лечит в начале хода носителя, наложения — независимые слои
+public class RegenEffect : LayeredStatusEffect
 {
     public override string EffectName => "Regen";
 
@@ -9,16 +9,18 @@ public class RegenEffect : StatusEffectBase
 
     public override void OnTurnStart(World world, int targetId, CombatContext context)
     {
-        RemainingTurns--;
+        int heal = Power;
+        PassTurn();
         if (!world.IsAlive(targetId)) return;
 
-        int healed = world.ApplyHeal(targetId, Power);
-        if (healed <= 0) return;
-
+        // Лог пишем и без лечения (полное HP) — по нему фронт обновляет оставшиеся ходы
+        int healed = world.ApplyHeal(targetId, heal);
         var log = TickLog(world, targetId);
-        log.EventType = CombatEventType.Heal;
-        log.Heal = healed;
-        log.TargetRemainingHp = world.Health[targetId].Current;
+        if (healed > 0)
+        {
+            log.EventType = CombatEventType.Heal;
+            log.Heal = healed;
+        }
         context.AddLog(log);
     }
 }
