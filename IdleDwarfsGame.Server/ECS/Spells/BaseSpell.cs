@@ -31,7 +31,7 @@ public abstract class BaseSpell : ISpell
         foreach (var targetId in targets)
         {
             // 2. Считаем и наносим урон
-            int damage = GetDamage(world, casterId, targetId);
+            int damage = world.ScaleDamage(GetDamage(world, casterId, targetId));
             int hpLeft = world.ApplyDamage(targetId, damage);
 
             // 3. Пишем лог попадания
@@ -53,7 +53,30 @@ public abstract class BaseSpell : ISpell
             // 4. Накладываем дополнительные эффекты (огонь, оглушение и т.д.)
             if (world.IsAlive(targetId))
                 ApplyEffects(world, casterId, targetId, context);
+
+            // 5. То, что зависит от нанесённого урона и срабатывает даже по убитой цели (вампиризм)
+            AfterHit(world, casterId, targetId, damage, context);
         }
+    }
+
+    // Лечение с логом: фронт показывает его в той же группе, что и каст. Возвращает восстановленное HP
+    protected int HealTarget(World world, int casterId, int targetId, int amount, CombatContext context)
+    {
+        int healed = world.ApplyHeal(targetId, amount);
+        context.AddLog(new CombatLogEntry
+        {
+            EventType = CombatEventType.Heal,
+            AttackerId = casterId,
+            TargetId = targetId,
+            AttackerTeam = world.Team[casterId].TeamId,
+            TargetTeam = world.Team[targetId].TeamId,
+            ActionType = $"{Name} (Lvl {Level})",
+            SkillId = Id,
+            SkillName = Name,
+            Heal = healed,
+            TargetRemainingHp = world.Health[targetId].Current
+        });
+        return healed;
     }
 
     protected void LogCast(World world, int casterId, CombatContext context, List<int> targets)
@@ -68,6 +91,7 @@ public abstract class BaseSpell : ISpell
             ActionType = $"{Name} (Lvl {Level})",
             SkillId = Id,
             SkillName = Name,
+            SkillLevel = Level,
             DamageType = DamageType,
             AttackerEnergy = world.GetEnergy(casterId),
             Text = $"{Name} → {targets.Count} target(s)"
@@ -85,6 +109,10 @@ public abstract class BaseSpell : ISpell
     {
     }
 
+    protected virtual void AfterHit(World world, int casterId, int targetId, int damage, CombatContext context)
+    {
+    }
+
     public abstract SpellEstimate Estimate(int casterAttack, int enemyCount);
 
     // Вспомогательные методы для поиска целей
@@ -94,4 +122,11 @@ public abstract class BaseSpell : ISpell
     {
         return availableTargets.OrderBy(_ => random.Next()).Take(count).Select(e => e.Id).ToList();
     }
+
+    // Первые count врагов от передней линии; null — все враги
+    protected List<int> GetFrontTargets(World world, int casterId, int? count) =>
+        GetAliveEnemies(world, casterId).Take(count ?? int.MaxValue).Select(e => e.Id).ToList();
+
+    protected int ScaledDamage(World world, int casterId, double multiplier) =>
+        (int)(world.Attack[casterId].Damage * multiplier);
 }

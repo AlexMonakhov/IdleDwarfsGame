@@ -1,28 +1,27 @@
-// Мороз: небольшой урон холодом в начале хода и сжигание части энергии
-public class FrostEffect : StatusEffectBase
+// Мороз: урона не наносит — на Power % замедляет накопление энергии за удар, пока висит.
+// Проценты складываются слоями, как урон горения (не больше 100%).
+// Ход отсчитывается в конце хода носителя, иначе мороз на 1 ход снимался бы до его удара
+public class FrostEffect : LayeredStatusEffect
 {
     public override string EffectName => "Frost";
-    protected override DamageType? EffectDamageType => DamageType.Frost;
 
-    public FrostEffect(int turns = 2, int damagePerTurn = 0) : base(turns, damagePerTurn)
+    public FrostEffect(int turns = 2, int slowPercent = 20) : base(turns, slowPercent)
     {
     }
 
+    public int EnergySlowPercent => Math.Clamp(Power, 0, 100);
+
     public override void OnTurnStart(World world, int targetId, CombatContext context)
     {
-        RemainingTurns--;
+    }
+
+    public override void OnTurnEnd(World world, int targetId, CombatContext context)
+    {
+        PassTurn();
         if (!world.IsAlive(targetId)) return;
 
-        int hpLeft = world.ApplyDamage(targetId, Power);
-        if (world.Energy.TryGetValue(targetId, out var energy))
-        {
-            energy.Current = Math.Max(0, energy.Current - 10);
-        }
-
         var log = TickLog(world, targetId);
-        log.Damage = Power;
-        log.DamageType = DamageType.Frost;
-        log.TargetRemainingHp = hpLeft;
+        log.Phase = "TurnEnd";
         context.AddLog(log);
     }
 }

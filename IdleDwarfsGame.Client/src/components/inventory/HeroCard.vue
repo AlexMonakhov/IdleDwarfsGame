@@ -3,6 +3,8 @@ import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import UnitPortrait from '@/components/interface/UnitPortrait.vue';
 import GlassButton from '@/components/common/GlassButton.vue';
+import CssAuraEffect from '@/components/effects/CssAuraEffect.vue';
+import { AURA_MIN_RANK, elementAura } from '@/components/effects/elementAura';
 import { HeroInfo } from '@/models/types/Heroes';
 import { elementColor } from '@/battle/sprites';
 
@@ -21,6 +23,9 @@ const props = defineProps<{
 }>();
 
 const color = computed(() => elementColor(props.hero.element));
+
+// Герой высшего ранга: портрет в ауре своей стихии (как у боссов гильдии), по кромке карточки бежит отблеск
+const aura = computed(() => (props.hero.level >= AURA_MIN_RANK ? elementAura(props.hero.element) : 'none'));
 
 // Уровень прокачки — звёздами: 5 звёзд на ступень, следующая ступень перекрашивает их по одной.
 // Например, 7 = две звезды второй ступени и три первой. Значение у звезды — её ступень, 0 — пустая
@@ -43,6 +48,7 @@ const upgradeStars = computed<number[]>(() => {
             'hero-card-disabled': disabled,
             'hero-card-selectable': selectable && !disabled,
             'hero-card-selected': selected,
+            'hero-card-prestige': aura !== 'none',
         }]"
         :draggable="!disabled && !selectable"
     >
@@ -56,10 +62,12 @@ const upgradeStars = computed<number[]>(() => {
             <span v-if="hero.upgrade" class="hero-card-upgrade" :title="t('heroUpgrade.level', { level: hero.upgrade.level, max: hero.upgrade.maxLevel })">
                 <span v-for="(tier, index) in upgradeStars" :key="index" class="hero-card-upgrade-star" :class="`hero-card-upgrade-star-${tier}`">★</span>
             </span>
-            <UnitPortrait :unit="hero" :size="72" :show-level="false" />
+            <CssAuraEffect :effect="aura" :size="72">
+                <UnitPortrait :unit="hero" :size="72" :show-level="false" />
+            </CssAuraEffect>
             <div class="hero-card-name" :title="hero.name">{{ hero.name }}</div>
             <div class="hero-card-power" :title="t('power.value', { power: hero.power.total })">⚔ {{ hero.power.total }}</div>
-            <div v-if="hero.onExpedition" class="hero-card-busy">{{ t('inventory.onExpedition') }}</div>
+            <div v-if="hero.onExpedition" class="hero-card-busy">{{ t('squad.onExpedition') }}</div>
         </GlassButton>
     </div>
 </template>
@@ -225,6 +233,104 @@ const upgradeStars = computed<number[]>(() => {
 .hero-card-blue { --card-accent: var(--blue-gem-color); }
 .hero-card-yellow { --card-accent: var(--yellow-gem-color); }
 .hero-card-green { --card-accent: var(--green-gem-color); }
+.hero-card-purple { --card-accent: var(--purple-gem-color); }
+
+/* Бриллиант — почти бесцветное стекло, цвет ему даёт радужный перелив */
+.hero-card-white {
+    --card-accent: var(--white-gem-color);
+    --glass-top: #c9d6e3;
+    --glass-mid: #7d8fa3;
+    --glass-bottom: #2a3340;
+}
+
+/* ===== Высший ранг: отблеск бежит по кромке оправы, вокруг карточки дышит свечение стихии ===== */
+@property --prestige-angle {
+    syntax: '<angle>';
+    initial-value: 0deg;
+    inherits: false;
+}
+
+/* Своё наложение слоёв: свечение (z-index -1) остаётся под карточкой, но над фоном окна */
+.hero-card-prestige {
+    isolation: isolate;
+}
+
+.hero-card-prestige::before,
+.hero-card-prestige::after {
+    content: '';
+    position: absolute;
+    border-radius: inherit;
+    pointer-events: none;
+}
+
+/* Кольцо толщиной в 3px по краю оправы */
+.hero-card-prestige::before {
+    inset: -1px;
+    z-index: 2;
+    padding: 3px;
+    background: conic-gradient(
+        from var(--prestige-angle),
+        transparent 0deg,
+        transparent 220deg,
+        var(--card-accent) 290deg,
+        #fff 325deg,
+        var(--card-accent) 345deg,
+        transparent 360deg
+    );
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    animation: hero-prestige-spin 3.2s linear infinite;
+}
+
+.hero-card-prestige::after {
+    inset: 0;
+    z-index: -1;
+    box-shadow: 0 0 14px 2px color-mix(in srgb, var(--card-accent) 70%, transparent);
+    animation: hero-prestige-pulse 2.6s ease-in-out infinite;
+}
+
+/* Бриллиант: вместо одного цвета по кромке бежит весь спектр, и он же переливается в свечении */
+.hero-card-prestige.hero-card-white::before {
+    background: conic-gradient(from var(--prestige-angle), #ff6b6b, #ffd166, #6bff95, #6bd5ff, #a78bfa, #ff7ad9, #ff6b6b);
+    animation-duration: 4s;
+}
+
+.hero-card-prestige.hero-card-white::after {
+    box-shadow: 0 0 16px 3px rgba(255, 122, 217, 0.6);
+    animation: hero-prestige-pulse 2.6s ease-in-out infinite, hero-prestige-rainbow 5s linear infinite;
+}
+
+/* Тьма: кольцо крутится медленно и в обратную сторону, свечение глубокое */
+.hero-card-prestige.hero-card-purple::before {
+    animation-duration: 5s;
+    animation-direction: reverse;
+}
+
+.hero-card-prestige.hero-card-purple::after {
+    box-shadow: 0 0 16px 4px rgba(126, 34, 206, 0.75);
+}
+
+@keyframes hero-prestige-spin {
+    to { --prestige-angle: 360deg; }
+}
+
+@keyframes hero-prestige-pulse {
+    0%, 100% { opacity: 0.45; }
+    50% { opacity: 1; }
+}
+
+@keyframes hero-prestige-rainbow {
+    to { filter: hue-rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .hero-card-prestige::before,
+    .hero-card-prestige::after {
+        animation: none !important;
+    }
+}
 
 /* Без стихии — мутное дымчато-серое стекло, без синевы вкладок */
 .hero-card-basic {

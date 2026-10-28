@@ -183,9 +183,26 @@ export class GodRaysRadianceStrategy implements EffectStrategy {
   }
 }
 
-// Ломаная молния между startX/startY и endX/endY, перестраивается каждые несколько кадров
+export type BoltPath = { x: number; y: number }[];
+
+// Ломаная между двумя точками со случайным смещением узлов
+export const jaggedPath = (sx: number, sy: number, ex: number, ey: number, segments: number, jitter: number): BoltPath => {
+  const points = [{ x: sx, y: sy }];
+  for (let i = 1; i < segments; i++) {
+    const t = i / segments;
+    points.push({
+      x: sx + (ex - sx) * t + (Math.random() - 0.5) * jitter * 2,
+      y: sy + (ey - sy) * t + (Math.random() - 0.5) * jitter * 2,
+    });
+  }
+  points.push({ x: ex, y: ey });
+  return points;
+};
+
+// Ломаная молния между startX/startY и endX/endY, перестраивается каждые несколько кадров.
+// args: color, jitter, width (толщина свечения), branches (сколько коротких отростков)
 export class LightningStrategy implements EffectStrategy {
-  private bolts = new Map<string, { points: { x: number; y: number }[]; frame: number }>();
+  private bolts = new Map<string, { points: BoltPath; forks: BoltPath[]; frame: number }>();
 
   update(emitter: EmitterConfig) {
     const bolt = this.bolts.get(emitter.id);
@@ -195,20 +212,19 @@ export class LightningStrategy implements EffectStrategy {
     const sy = emitter.startY ?? emitter.y;
     const ex = emitter.endX ?? emitter.x;
     const ey = emitter.endY ?? emitter.y;
-    const segments = 12;
     const jitter = Number(emitter.args?.jitter ?? 18);
+    const points = jaggedPath(sx, sy, ex, ey, 12, jitter);
 
-    const points = [{ x: sx, y: sy }];
-    for (let i = 1; i < segments; i++) {
-      const t = i / segments;
-      points.push({
-        x: sx + (ex - sx) * t + (Math.random() - 0.5) * jitter * 2,
-        y: sy + (ey - sy) * t + (Math.random() - 0.5) * jitter * 2,
-      });
-    }
-    points.push({ x: ex, y: ey });
+    // Отростки отходят от случайных узлов под углом к основному разряду
+    const length = Math.hypot(ex - sx, ey - sy);
+    const forks = Array.from({ length: Number(emitter.args?.branches ?? 0) }, () => {
+      const from = points[1 + Math.floor(Math.random() * (points.length - 3))];
+      const angle = Math.atan2(ey - sy, ex - sx) + (Math.random() < 0.5 ? -1 : 1) * (0.4 + Math.random() * 0.6);
+      const reach = length * (0.12 + Math.random() * 0.15);
+      return jaggedPath(from.x, from.y, from.x + Math.cos(angle) * reach, from.y + Math.sin(angle) * reach, 4, jitter * 0.4);
+    });
 
-    this.bolts.set(emitter.id, { points, frame: (bolt?.frame ?? 0) + 1 });
+    this.bolts.set(emitter.id, { points, forks, frame: (bolt?.frame ?? 0) + 1 });
   }
 
   draw(ctx: CanvasRenderingContext2D, emitter: EmitterConfig) {
@@ -216,20 +232,27 @@ export class LightningStrategy implements EffectStrategy {
     if (!bolt) return;
 
     const color = emitter.args?.color ?? '#9be7ff';
+    const glow = Number(emitter.args?.width ?? 10);
     ctx.save();
     ctx.globalCompositeOperation = 'lighter';
     ctx.globalAlpha = emitter.opacity ?? 1;
     ctx.lineJoin = 'round';
 
-    // Широкое свечение + тонкое ядро
-    for (const [width, style] of [[10, color], [3, '#ffffff']] as const) {
-      ctx.lineWidth = width;
+    const stroke = (path: BoltPath) => {
+      ctx.beginPath();
+      path.forEach((p, i) => (i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y)));
+      ctx.stroke();
+    };
+
+    // Широкое свечение + тонкое ядро; отростки вдвое тоньше
+    for (const [width, style] of [[glow, color], [glow * 0.3, '#ffffff']] as const) {
       ctx.strokeStyle = style;
       ctx.shadowColor = color;
       ctx.shadowBlur = width * 2;
-      ctx.beginPath();
-      bolt.points.forEach((p, i) => (i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y)));
-      ctx.stroke();
+      ctx.lineWidth = width;
+      stroke(bolt.points);
+      ctx.lineWidth = width * 0.45;
+      bolt.forks.forEach(stroke);
     }
     ctx.restore();
   }

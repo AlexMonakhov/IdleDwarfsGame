@@ -13,7 +13,9 @@ export type CombatEventType =
   | 'Stunned'
   | 'Immune'
   | 'Death'
-  | 'CombatEnd';
+  | 'CombatEnd'
+  // Арена изменила бой целиком: новая прибавка ко всему урону (damageBonusPercent)
+  | 'ArenaBuff';
 
 export type DamageType =
   | 'Physical'
@@ -23,13 +25,18 @@ export type DamageType =
   | 'Lightning'
   | 'Poison'
   | 'Bleed'
-  | 'True';
+  | 'True'
+  | 'Dark'
+  | 'Radiant';
 
 export interface StatusEffectLogData {
   effectId: string;
   name: string;
+  // Состояние статуса на цели после этого события: сколько ходов осталось, сколько наложений
   duration: number;
   stacks: number;
+  // Сила за ход всех наложений вместе: урон, лечение или процент замедления (мороз)
+  power?: number;
   tickDamage?: number | null;
   damageType?: DamageType | null;
   description?: string | null;
@@ -48,6 +55,8 @@ export interface CombatLogEntry {
   phase: string;
   skillId?: number | null;
   skillName: string;
+  // Уровень спелла 1..3, есть у записи SkillCast
+  skillLevel?: number | null;
   damageType: DamageType;
   damage: number;
   heal: number;
@@ -56,6 +65,8 @@ export interface CombatLogEntry {
   attackerEnergy?: number | null;
   isCritical: boolean;
   winningTeam?: number | null;
+  // Для ArenaBuff: прибавка ко всему урону с этого раунда, в процентах
+  damageBonusPercent?: number | null;
   text?: string | null;
   appliedEffects: StatusEffectLogData[];
   activeEffects: StatusEffectLogData[];
@@ -97,7 +108,7 @@ export interface CombatPowerBreakdown {
 export type AuraTarget = 'Allies' | 'Enemies' | 'All';
 
 // Стихия героя (HeroElement.cs). На 1-м уровне у всех Basic
-export type HeroElement = 'Basic' | 'Fire' | 'Frost' | 'Lightning' | 'Nature';
+export type HeroElement = 'Basic' | 'Fire' | 'Frost' | 'Lightning' | 'Nature' | 'Dark' | 'Radiance';
 
 // То, что нужно портрету: подходит и юнит боя, и герой из инвентаря
 export type PortraitUnit = Pick<CombatUnitInfo,

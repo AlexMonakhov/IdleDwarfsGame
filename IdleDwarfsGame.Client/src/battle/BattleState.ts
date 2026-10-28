@@ -21,6 +21,15 @@ export interface UnitFocus {
   color?: string;
 }
 
+// Статус на юните (StatusEffectLogData с сервера): цифры на его иконке
+export interface UnitStatus {
+  // Сколько ходов ещё висит
+  turns: number;
+  // Сила за ход всех наложений: урон, лечение или процент замедления
+  power: number;
+  stacks: number;
+}
+
 // Состояние юнита на сцене. Меняется только BattlePlayer'ом по мере проигрывания логов.
 export interface BattleUnit {
   id: number;
@@ -41,8 +50,8 @@ export interface BattleUnit {
   // Эффект ауры (Burn, Frost, Regen...) и её цель — по ним выбирается цвет сферы
   auraEffect: string | null;
   auraTarget: AuraTarget | null;
-  // Имя статуса -> оставшиеся ходы (несколько стаков одного эффекта объединяются)
-  statuses: Record<string, number>;
+  // Имя статуса -> его состояние: сервер держит на юните по одному статусу каждого вида, наложения складываются
+  statuses: Record<string, UnitStatus>;
   floatingTexts: FloatingText[];
   focus: UnitFocus | null;
   speech: Speech | null;
@@ -51,6 +60,8 @@ export interface BattleUnit {
 export interface BattleState {
   units: Record<number, BattleUnit>;
   round: number;
+  // Прибавка ко всему урону от арены (PvP), в процентах; 0 — нет
+  damageBonus: number;
   winningTeam: number | null;
   playing: boolean;
   finished: boolean;
@@ -88,6 +99,7 @@ export function createBattleState(): BattleState {
   return reactive<BattleState>({
     units: {},
     round: 0,
+    damageBonus: 0,
     winningTeam: null,
     playing: false,
     finished: false,
@@ -98,6 +110,7 @@ export function createBattleState(): BattleState {
 export function resetBattleState(state: BattleState, result: CombatResult) {
   state.units = Object.fromEntries(result.units.map(u => [u.entityId, toBattleUnit(u)]));
   state.round = 0;
+  state.damageBonus = 0;
   state.winningTeam = null;
   state.playing = false;
   state.finished = false;

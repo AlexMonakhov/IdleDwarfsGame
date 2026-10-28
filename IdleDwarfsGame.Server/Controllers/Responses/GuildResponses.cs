@@ -75,6 +75,8 @@ public class GuildBossInfo
     public int Level { get; set; }
     // Фон арены боя (ключ как у Arena.Background)
     public string Background { get; set; } = string.Empty;
+    // Арена боя целиком: стихия (цвет карточки) и эффект
+    public ArenaInfo Arena { get; set; } = new();
     public int MaxHp { get; set; }
     public int CurrentHp { get; set; }
     public DateTime? DefeatedAt { get; set; }
@@ -110,5 +112,6 @@ public class GuildBossAttackResult
     public DateTime NextAttackAt { get; set; }
     // Фон арены боя (ключ как у Arena.Background)
     public string Background { get; set; } = string.Empty;
+    public ArenaInfo Arena { get; set; } = new();
     public CombatResult Combat { get; set; } = new();
 }

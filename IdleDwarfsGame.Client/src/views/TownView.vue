@@ -84,6 +84,16 @@
       </div>
     </div>
 
+    <!-- Карточки героев высшего ранга: аура каждой стихии (у реальных аккаунтов таких героев пока нет) -->
+    <div class="card-lab">
+      <div v-for="hero in auraSamples" :key="hero.id" class="card-lab-item">
+        <HeroCard :hero="hero" selectable />
+        <div class="card-lab-label">
+          <b>{{ t(`elements.${hero.element}`) }}</b>
+        </div>
+      </div>
+    </div>
+
     <!-- Готовые картинки из assets/card-backs (back.image), с перекраской и без -->
     <div class="card-lab">
       <div v-for="sample in imageSamples" :key="sample.name + sample.color" class="card-lab-item">
@@ -116,6 +126,10 @@ import crystalCracked from '@/assets/card-backs/crystal-cracked.webp';
 import crystalEmerald from '@/assets/card-backs/crystal-emerald.webp';
 import InfoComponent from '@/components/common/InfoComponent.vue';
 import TooltipComponent from '@/components/common/TooltipComponent.vue';
+import HeroCard from '@/components/inventory/HeroCard.vue';
+import { AURA_MIN_RANK } from '@/components/effects/elementAura';
+import type { HeroElement } from '@/battle/types';
+import type { HeroInfo } from '@/models/types/Heroes';
 import { useI18n } from 'vue-i18n';
 
 const { t } = useI18n();
@@ -166,6 +180,26 @@ const imageSamples: { name: string; color: CardColor; back: CardBackOptions }[] 
   { name: 'crystal-cracked.webp', color: 'yellow', back: { image: crystalCracked, tint: true } },
   { name: 'crystal-emerald.webp', color: 'pink', back: { image: crystalEmerald, tint: true } },
 ];
+
+// Герой-заглушка каждой стихии на ранге, с которого карточка получает ауру
+const AURA_ELEMENTS: HeroElement[] = ['Fire', 'Frost', 'Lightning', 'Nature', 'Dark', 'Radiance'];
+const auraSamples: HeroInfo[] = AURA_ELEMENTS.map(element => ({
+  id: `aura-${element}`,
+  name: element,
+  unitType: 'Dwarf',
+  element,
+  level: AURA_MIN_RANK,
+  placeInSquad: null,
+  onExpedition: false,
+  maxHp: 200,
+  attack: 20,
+  speed: 6,
+  maxEnergy: 100,
+  spells: [],
+  immunities: [],
+  power: { total: 1000, stats: 600, level: 200, skills: 200, passives: 0 },
+  upgrade: { level: 20, maxLevel: 20, cost: null, next: null },
+}));
 
 const describeBack = (back: CardBackOptions) => {
   const { frame = {}, ...rest } = back;

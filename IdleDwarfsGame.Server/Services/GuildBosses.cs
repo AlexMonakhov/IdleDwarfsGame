@@ -1,12 +1,18 @@
 using IdleDwarfsGame.Server.Enums;
 
-// Боссы гильдии: по одному каждого уровня. Внешность и умения — шаблон врага башни (HeroSeedData),
+// Боссы гильдии: по одному каждого уровня. Внешность и умения — шаблон из GuildBossSeedData,
 // атака масштабируется уровнем, а HP задаётся отдельно и намного больше, чем у обычных боссов:
-// одним отрядом за бой (CombatContext.MaxRounds раундов) его не убить, бьёт вся гильдия.
-// Стартовый отряд наносит за бой ~730 урона лёгкому, ~480 среднему и ~400 сложному боссу,
-// то есть стартовым отрядам нужно ~27, ~85 и ~250 ударов
+// одним отрядом за бой (FightRounds раундов) его не убить, бьёт вся гильдия.
+// У каждого уровня несколько вариантов «босс + арена его стихии», они сменяют друг друга по суткам.
+// Бой идёт на арене варианта — с её эффектом.
+// Стартовый отряд (TmpGuildBalance) наносит за бой ~700 урона лёгкому, ~490–540 среднему и ~340–390 сложному боссу,
+// то есть стартовым отрядам нужно ~28, ~75–82 и ~260–290 ударов
 public static class GuildBosses
 {
+    // Сколько раундов длится один бой с боссом. Обычные бои идут до CombatContext.DefaultMaxRounds,
+    // но урон по боссу за попытку рассчитан на этот лимит
+    public const int FightRounds = 15;
+
     // Боссы обновляются каждые сутки в 00:00 UTC
     public static readonly TimeSpan Lifetime = TimeSpan.FromDays(1);
 
@@ -16,20 +22,29 @@ public static class GuildBosses
     public static readonly GuildBossDefinition[] All =
     [
         new(GuildBossTier.Easy,
-            TemplateHeroId: Guid.Parse("22222222-0000-4000-8000-000000000001"), // Orc Brute
-            Background: "ice",
+            Variants:
+            [
+                new(GuildBossSeedData.MossbackTroll, CampaignSeedData.MarshArenaId),
+                new(GuildBossSeedData.RimehornYeti, CampaignSeedData.IceArenaId)
+            ],
             Level: 2, MaxHp: 20_000,
             Gold: 400, Experience: 200,
             Chests: [(ChestType.Gem, 1)]),
         new(GuildBossTier.Medium,
-            TemplateHeroId: Guid.Parse("22222222-0000-4000-8000-000000000004"), // Orc Warlord
-            Background: "lava",
+            Variants:
+            [
+                new(GuildBossSeedData.AshmawWarlord, CampaignSeedData.LavaArenaId),
+                new(GuildBossSeedData.GrukkStormcaller, CampaignSeedData.StormArenaId)
+            ],
             Level: 5, MaxHp: 40_000,
             Gold: 1200, Experience: 600,
             Chests: [(ChestType.Gem, 2), (ChestType.Hero, 1)]),
         new(GuildBossTier.Hard,
-            TemplateHeroId: Guid.Parse("22222222-0000-4000-8000-000000000005"), // Skeleton Mage
-            Background: "ice",
+            Variants:
+            [
+                new(GuildBossSeedData.NyxaraHollowQueen, CampaignSeedData.CryptArenaId),
+                new(GuildBossSeedData.SeraphelShatteredLight, CampaignSeedData.SanctumArenaId)
+            ],
             Level: 8, MaxHp: 100_000,
             Gold: 3000, Experience: 1500,
             Chests: [(ChestType.Gem, 3), (ChestType.Hero, 2)])
@@ -39,6 +54,9 @@ public static class GuildBosses
 
     // Сутки, в которые попадает момент времени (00:00 UTC)
     public static DateTime DayOf(DateTime utc) => new(utc.Ticks - utc.Ticks % Lifetime.Ticks, DateTimeKind.Utc);
+
+    // Арены лежат в сидах вместе с кампанией; в БД — те же строки
+    public static Arena ArenaOf(GuildBossVariant variant) => CampaignSeedData.Arenas.First(a => a.Id == variant.ArenaId);
 
     public static PlayerReward RewardFor(GuildBossTier tier, Guid playerId, DateTime now)
     {
@@ -62,12 +80,18 @@ public static class GuildBosses
 
 public record GuildBossDefinition(
     GuildBossTier Tier,
-    Guid TemplateHeroId,
-    // Фон арены, на которой идёт бой (ключ как у Arena.Background: картинку по нему выбирает фронт)
-    string Background,
+    GuildBossVariant[] Variants,
     int Level,
     int MaxHp,
     int Gold,
     int Experience,
     (ChestType Type, int Level)[] Chests
-);
+)
+{
+    // Вариант на сутки day: варианты идут по кругу, каждые сутки — следующий
+    public GuildBossVariant VariantOn(DateTime day) =>
+        Variants[(int)(GuildBosses.DayOf(day).Ticks / GuildBosses.Lifetime.Ticks % Variants.Length)];
+}
+
+// Кто выходит на бой и где: шаблон из GuildBossSeedData и арена (CampaignSeedData.Arenas)
+public record GuildBossVariant(Guid TemplateHeroId, int ArenaId);

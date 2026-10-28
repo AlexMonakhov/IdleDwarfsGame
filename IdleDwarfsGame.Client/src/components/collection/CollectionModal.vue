@@ -1,12 +1,13 @@
 <script lang="ts" setup>
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import ModalComponent from '@/components/common/ModalComponent.vue';import type { ModalTab } from '@/models/types/Modal';
+import ModalComponent from '@/components/common/ModalComponent.vue';
+import type { ModalTab } from '@/models/types/Modal';
 import CollectionHeroes from './CollectionHeroes.vue';
-import CollectionGems from './CollectionGems.vue';
-import CollectionChests from './CollectionChests.vue';
-import CollectionPlaceholder from './CollectionPlaceholder.vue';
+import CollectionAuras from './CollectionAuras.vue';
+import CollectionEffects from './CollectionEffects.vue';
 
+// Справочник: все герои с их заклинаниями, ауры и эффекты — с превью, как они выглядят в бою
 const props = defineProps<{ modelValue: boolean }>();
 const emit = defineEmits<{ (e: 'update:modelValue', value: boolean): void }>();
 
@@ -17,19 +18,15 @@ const open = computed({
     set: value => emit('update:modelValue', value),
 });
 
-type CollectionTab = 'heroes' | 'gems' | 'chests' | 'artifacts';
+type CollectionTab = 'heroes' | 'auras' | 'effects';
 
 const ICONS: Record<CollectionTab, string> = {
     heroes: '⚔',
-    gems: '💎',
-    chests: '🎁',
-    artifacts: '🏺',
+    auras: '✺',
+    effects: '🔥',
 };
 
 const tab = ref<CollectionTab>('heroes');
-
-// Вкладки живут в KeepAlive и сами не перезагружаются: после открытия сундука просим героев и гемы перечитаться
-const lootVersion = ref(0);
 
 const tabs = computed<ModalTab[]>(() => (Object.keys(ICONS) as CollectionTab[]).map(key => ({
     key,
@@ -49,21 +46,12 @@ const activeTab = computed({
         v-model:active-tab="activeTab"
         :tabs="tabs"
         :header-message="t(`collection.tabs.${tab}`)"
-        width="min(860px, calc(94vw - 140px))"
-        height="min(640px, 84vh)"
+        width="min(1280px, calc(94vw - 140px))"
+        height="min(780px, 90vh)"
     >
-        <!-- KeepAlive — чтобы при переключении вкладок не перезагружать героев -->
-        <KeepAlive>
-            <CollectionHeroes v-if="tab === 'heroes'" :refresh-token="lootVersion" />
-            <CollectionGems v-else-if="tab === 'gems'" :refresh-token="lootVersion" />
-            <CollectionChests v-else-if="tab === 'chests'" @opened="lootVersion++" />
-            <CollectionPlaceholder
-                v-else
-                :key="'artifacts'"
-                :icon="ICONS.artifacts"
-                :title="t('collection.tabs.artifacts')"
-                :hint="t('collection.artifactsHint')"
-            />
-        </KeepAlive>
+        <!-- Без KeepAlive: скрытая вкладка не должна крутить сцену превью со звуком -->
+        <CollectionHeroes v-if="tab === 'heroes'" />
+        <CollectionAuras v-else-if="tab === 'auras'" />
+        <CollectionEffects v-else />
     </ModalComponent>
 </template>

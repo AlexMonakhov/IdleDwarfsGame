@@ -5,17 +5,21 @@ import { useI18n } from 'vue-i18n';
 import GemButton from '@/components/common/GemButton.vue';
 import UnitPortrait from '@/components/interface/UnitPortrait.vue';
 import CssAuraEffect from '@/components/effects/CssAuraEffect.vue';
-import type { FrameEffect } from '@/models/types/Account';
+import TooltipComponent from '@/components/common/TooltipComponent.vue';
+import { type AuraEffect, elementAura } from '@/components/effects/elementAura';
+import { STATUS_ICONS } from '@/components/icons/status';
+import { elementColor } from '@/battle/sprites';
+import { statusLabel } from '@/i18n';
 import SquadRow from '@/components/inventory/SquadRow.vue';
 import GuildApiService from '@/services/apiServices/GuildApiService';
 import HeroesApiService from '@/services/apiServices/HeroesApiService';
 import { HeroInfo, squadSlotIds } from '@/models/types/Heroes';
 import { useResources } from '@/composables/UseResources';
 import { useSquadModal } from '@/composables/UseSquadModal';
-import { GuildBossesOverview, GuildBossInfo, GuildBossTier } from '@/models/types/Guild';
+import { GuildBossesOverview, GuildBossInfo } from '@/models/types/Guild';
 import { RewardInfo } from '@/models/types/Inventory';
 import { GuildRun, formatTime } from './guildShared';
-import { arenaBackground } from '@/battle/arenaBackgrounds';
+import { arenaBackground, arenaBackgroundFilter } from '@/battle/arenaBackgrounds';
 
 // Боссы гильдии: общее на гильдию HP, удар раз в час, награда за убитого босса — раз в сутки на аккаунт
 const props = defineProps<{
@@ -106,15 +110,12 @@ const chestsText = (reward: RewardInfo) => reward.chests
 
 const topDamage = (boss: GuildBossInfo) => boss.damage.slice(0, TOP_DAMAGE);
 
-// Аура портрета под стать боссу: орк-громила — мороз, вождь с аурой жара — угли, маг — руны.
-// У поверженного босса ауры нет
-const AURAS: Record<GuildBossTier, FrameEffect> = {
-    Easy: 'snow',
-    Medium: 'embers',
-    Hard: 'runes',
-};
+// Аура портрета — стихия босса, та же, что у героев высшего ранга на карточках. У поверженного босса ауры нет
+const auraOf = (boss: GuildBossInfo): AuraEffect => (isDefeated(boss) ? 'none' : elementAura(boss.unit.element));
 
-const auraOf = (boss: GuildBossInfo): FrameEffect => (isDefeated(boss) ? 'none' : AURAS[boss.tier]);
+// Цвет карточки — стихия арены (у боссов она совпадает со стихией самого босса).
+// Старый сервер арену не присылает — тогда по стихии босса
+const arenaColor = (boss: GuildBossInfo) => elementColor(boss.arena?.element ?? boss.unit.element);
 
 // Состояние карточки для свечения: можно бить — рамка горит ярче, можно забрать награду — светится золотом
 const cardState = (boss: GuildBossInfo) => {
@@ -172,11 +173,14 @@ const claim = async (boss: GuildBossInfo) => {
                 v-for="boss in bosses"
                 :key="boss.tier"
                 class="boss-card"
-                :class="[`boss-card-${boss.tier}`, cardState(boss), { 'boss-card-defeated': isDefeated(boss) }]"
+                :class="[`boss-card-${arenaColor(boss)}`, cardState(boss), { 'boss-card-defeated': isDefeated(boss) }]"
             >
                 <!-- Фон — арена, на которой будет бой с этим боссом -->
                 <div class="boss-card-arena" aria-hidden="true">
-                    <div class="boss-card-arena-image" :style="{ backgroundImage: `url(${arenaBackground(boss.background)})` }"></div>
+                    <div
+                        class="boss-card-arena-image"
+                        :style="{ backgroundImage: `url(${arenaBackground(boss.background)})`, filter: arenaBackgroundFilter(boss.background) }"
+                    ></div>
                 </div>
                 <div class="boss-card-top">
                     <span class="boss-tier">{{ t(`guild.bosses.tiers.${boss.tier}`) }}</span>
@@ -185,6 +189,21 @@ const claim = async (boss: GuildBossInfo) => {
                     </CssAuraEffect>
                     <span class="boss-name">{{ boss.unit.name }}</span>
                     <span class="boss-level">{{ t('guild.bosses.level', { level: boss.level }) }}</span>
+                    <!-- Арена и её эффект: бой с боссом идёт под ним -->
+                    <TooltipComponent v-if="boss.arena">
+                        <span class="boss-arena">
+                            <component
+                                v-if="boss.arena.effectName && STATUS_ICONS[boss.arena.effectName]"
+                                :is="STATUS_ICONS[boss.arena.effectName]"
+                                size="16px" />
+                            {{ t('guild.bosses.arena', { name: boss.arena.name }) }}
+                        </span>
+                        <template #title>{{ boss.arena.name }}</template>
+                        <template #description>{{ boss.arena.description }}</template>
+                        <template v-if="boss.arena.effectName" #stats>
+                            {{ t('campaign.arenaEffect', { effect: statusLabel(boss.arena.effectName), power: boss.arena.effectPower }) }}
+                        </template>
+                    </TooltipComponent>
                 </div>
 
                 <div class="boss-hp" :title="`${format(boss.currentHp)} / ${format(boss.maxHp)}`">
@@ -316,10 +335,10 @@ const claim = async (boss: GuildBossInfo) => {
     padding: 14px;
 }
 
-/* Карточка — как у экспедиций; цвет рамки и свечения — уровень босса.
+/* Карточка — как у экспедиций; цвет рамки и свечения — стихия арены (и босса на ней).
    Свечение в два слоя: ::before — блик, бегущий по рамке, ::after — пульсирующий ореол вокруг карточки */
 .boss-card {
-    --tier-color: var(--green-gem-color);
+    --arena-color: #9ca3af;
     /* Скорость блика и пульса: живой босс, по которому можно бить, горит ярче и быстрее */
     --spin-duration: 4s;
     --pulse-duration: 2.4s;
@@ -331,7 +350,7 @@ const claim = async (boss: GuildBossInfo) => {
     row-gap: 10px;
     padding: 12px;
     border-radius: 12px;
-    border: 2px solid color-mix(in srgb, var(--tier-color) 70%, transparent);
+    border: 2px solid color-mix(in srgb, var(--arena-color) 70%, transparent);
     background: rgb(15, 23, 32);
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
     transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
@@ -342,7 +361,7 @@ const claim = async (boss: GuildBossInfo) => {
     --glow-strength: 1.6;
     --spin-duration: 1.6s;
     transform: translateY(-4px);
-    border-color: var(--tier-color);
+    border-color: var(--arena-color);
     box-shadow: 0 8px 18px rgba(0, 0, 0, 0.65);
 }
 
@@ -368,13 +387,13 @@ const claim = async (boss: GuildBossInfo) => {
     transition: transform 0.4s ease, filter 0.3s ease;
 }
 
-/* Сверху светлее — арену видно за портретом, книзу темнее — под текстом; плюс подсветка цветом уровня */
+/* Сверху светлее — арену видно за портретом, книзу темнее — под текстом; плюс подсветка цветом арены */
 .boss-card-arena::after {
     content: '';
     position: absolute;
     inset: 0;
     background:
-        radial-gradient(ellipse 80% 45% at 50% 0%, color-mix(in srgb, var(--tier-color) 30%, transparent), transparent),
+        radial-gradient(ellipse 80% 45% at 50% 0%, color-mix(in srgb, var(--arena-color) 30%, transparent), transparent),
         linear-gradient(to bottom, rgba(15, 23, 32, 0.35) 0%, rgba(15, 23, 32, 0.75) 45%, rgba(15, 23, 32, 0.92) 100%);
 }
 
@@ -391,12 +410,37 @@ const claim = async (boss: GuildBossInfo) => {
     border-color: rgba(157, 173, 175, 0.9);
 }
 
-.boss-card-Medium {
-    --tier-color: var(--yellow-gem-color);
+.boss-card-red { --arena-color: var(--red-gem-color); }
+.boss-card-blue { --arena-color: var(--blue-gem-color); }
+.boss-card-yellow { --arena-color: var(--yellow-gem-color); }
+.boss-card-green { --arena-color: var(--green-gem-color); }
+.boss-card-purple { --arena-color: var(--purple-gem-color); }
+.boss-card-white { --arena-color: var(--white-gem-color); }
+
+/* Бриллиант: по рамке бежит весь спектр, ореол переливается радугой */
+.boss-card-white:not(.boss-card-defeated)::before {
+    background: conic-gradient(from var(--boss-angle), #ff6b6b, #ffd166, #6bff95, #6bd5ff, #a78bfa, #ff7ad9, #ff6b6b);
 }
 
-.boss-card-Hard {
-    --tier-color: var(--red-gem-color);
+.boss-card-white:not(.boss-card-defeated)::after {
+    box-shadow:
+        0 0 14px 2px rgba(255, 122, 217, 0.8),
+        0 0 28px 6px rgba(107, 213, 255, 0.45);
+    animation: boss-glow-pulse var(--pulse-duration) ease-in-out infinite, boss-rainbow 5s linear infinite;
+}
+
+.boss-card-white .boss-tier {
+    background: linear-gradient(90deg, #ff6b6b, #ffd166, #6bff95, #6bd5ff, #a78bfa, #ff7ad9);
+    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.9);
+}
+
+/* Тьма: блик по рамке идёт в обратную сторону */
+.boss-card-purple::before {
+    animation-direction: reverse;
+}
+
+@keyframes boss-rainbow {
+    to { filter: hue-rotate(360deg); }
 }
 
 /* Угол блика анимируется как число — для этого его нужно объявить */
@@ -418,9 +462,9 @@ const claim = async (boss: GuildBossInfo) => {
         from var(--boss-angle),
         transparent 0deg,
         transparent 250deg,
-        var(--tier-color) 300deg,
+        var(--arena-color) 300deg,
         #fff 330deg,
-        var(--tier-color) 345deg,
+        var(--arena-color) 345deg,
         transparent 360deg
     );
     /* Остаётся только кольцо толщиной в рамку */
@@ -440,8 +484,8 @@ const claim = async (boss: GuildBossInfo) => {
     border-radius: inherit;
     pointer-events: none;
     box-shadow:
-        0 0 14px 2px var(--tier-color),
-        0 0 28px 6px color-mix(in srgb, var(--tier-color) 45%, transparent);
+        0 0 14px 2px var(--arena-color),
+        0 0 28px 6px color-mix(in srgb, var(--arena-color) 45%, transparent);
     opacity: calc(0.55 * var(--glow-strength));
     animation: boss-glow-pulse var(--pulse-duration) ease-in-out infinite;
 }
@@ -460,7 +504,7 @@ const claim = async (boss: GuildBossInfo) => {
 
 /* Босс повержен, награда ждёт — карточка светится золотом */
 .boss-card-claimable {
-    --tier-color: #ffd166;
+    --arena-color: #ffd166;
     --spin-duration: 2.2s;
     --pulse-duration: 1.4s;
 }
@@ -504,7 +548,7 @@ const claim = async (boss: GuildBossInfo) => {
 .boss-tier {
     padding: 2px 10px;
     border-radius: 8px;
-    background: var(--tier-color);
+    background: var(--arena-color);
     color: #fff;
     font-size: 12px;
     font-weight: bold;
@@ -526,6 +570,20 @@ const claim = async (boss: GuildBossInfo) => {
 .boss-level {
     color: #cbd5e1;
     font-size: 12px;
+}
+
+.boss-arena {
+    display: inline-flex;
+    align-items: center;
+    column-gap: 4px;
+    padding: 1px 8px;
+    border-radius: 8px;
+    border: 1px solid color-mix(in srgb, var(--arena-color) 60%, transparent);
+    background: rgba(0, 0, 0, 0.55);
+    color: #e2e8f0;
+    font-size: 11px;
+    font-weight: bold;
+    cursor: help;
 }
 
 .boss-hp {

@@ -68,7 +68,8 @@ public class EntityFactory : IEntityFactory
                 TargetType = hero.AuraTarget,
                 Trigger = hero.AuraTrigger,
                 Power = BalanceCalculator.ScaleStat(hero.AuraPower, level),
-                Duration = Math.Max(1, hero.AuraDuration)
+                Duration = Math.Max(1, hero.AuraDuration),
+                Interval = Math.Max(1, hero.AuraInterval)
             };
         }
 

@@ -1,6 +1,7 @@
 // Гильдии (IdleDwarfsGame.Server/Controllers/Responses/GuildResponses.cs)
 import { CombatResult, CombatUnitInfo } from '@/battle/types';
 import { RewardInfo } from '@/models/types/Inventory';
+import { ArenaInfo } from '@/models/types/Campaign';
 
 export type GuildRole = 'Member' | 'Leader';
 export type GuildBossTier = 'Easy' | 'Medium' | 'Hard';
@@ -74,6 +75,8 @@ export interface GuildBossInfo {
     level: number;
     // Фон арены боя (ключ, картинка — arenaBackground)
     background: string;
+    // Арена боя: стихия (цвет карточки) и эффект. Боссы и арены сменяются по суткам
+    arena: ArenaInfo;
     maxHp: number;
     currentHp: number;
     defeatedAt: string | null;
@@ -106,5 +109,6 @@ export interface GuildBossAttackResult {
     nextAttackAt: string;
     // Фон арены боя (ключ, картинка — arenaBackground)
     background: string;
+    arena: ArenaInfo;
     combat: CombatResult;
 }

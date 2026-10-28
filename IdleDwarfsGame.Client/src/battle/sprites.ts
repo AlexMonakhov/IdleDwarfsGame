@@ -2,8 +2,8 @@ import { HeroElement } from './types';
 
 export type SpriteAnimation = 'idle' | 'attack' | 'victory' | 'death';
 
-// Цвет в имени файла спрайта. Basic — герои 1-го уровня без стихии
-export type SpriteColor = 'basic' | 'red' | 'blue' | 'yellow' | 'green';
+// Цвет в имени файла спрайта. Basic — герои 1-го уровня без стихии, white — бриллиант (сияние)
+export type SpriteColor = 'basic' | 'red' | 'blue' | 'yellow' | 'green' | 'purple' | 'white';
 
 export const ELEMENT_COLORS: Record<HeroElement, SpriteColor> = {
   Basic: 'basic',
@@ -11,6 +11,8 @@ export const ELEMENT_COLORS: Record<HeroElement, SpriteColor> = {
   Frost: 'blue',
   Lightning: 'yellow',
   Nature: 'green',
+  Dark: 'purple',
+  Radiance: 'white',
 };
 
 export const elementColor = (element?: string | null): SpriteColor =>

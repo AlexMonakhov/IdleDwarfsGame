@@ -65,6 +65,25 @@ public static class HeroSeedData
             MaxEnergy = 100, StartEnergy = 0, EnergyPerAttack = 20,
             SpellIds = [1]
         },
+        // Запасные герои 5-го ранга новых стихий: полная книга заклинаний (ElementSpellBook)
+        new Hero
+        {
+            Id = Guid.Parse("11111111-0000-4000-8000-000000000007"), PlayerId = DemoPlayerId,
+            Name = "Morgra Duskvein", UnitType = "Dwarf", Element = HeroElement.Dark, Level = 5, PlaceInSquad = null,
+            MaxHp = 150, Attack = 19, Speed = 6,
+            MaxEnergy = 100, StartEnergy = 20, EnergyPerAttack = 20,
+            SpellIds = [39, 42, 45], // Shadow Bolt 3, Life Drain 3, Hex 3
+            Immunities = ["Curse"]
+        },
+        new Hero
+        {
+            Id = Guid.Parse("11111111-0000-4000-8000-000000000008"), PlayerId = DemoPlayerId,
+            Name = "Elda Brightfacet", UnitType = "Dwarf", Element = HeroElement.Radiance, Level = 5, PlaceInSquad = null,
+            MaxHp = 160, Attack = 17, Speed = 7,
+            MaxEnergy = 100, StartEnergy = 20, EnergyPerAttack = 20,
+            SpellIds = [48, 51, 54], // Prism Ray 3, Radiant Nova 3, Dawnlight 3
+            Immunities = ["Stun"]
+        },
 
         // ===== Враги башни (статы базовые, масштабируются этажом) =====
         new Hero

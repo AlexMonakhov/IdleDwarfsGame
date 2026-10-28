@@ -6,6 +6,12 @@ public class StunEffect : StatusEffectBase
     {
     }
 
+    // Повторное оглушение не копится, а продлевает до большей длительности
+    protected override void Absorb(StatusEffectBase added)
+    {
+        RemainingTurns = Math.Max(RemainingTurns, added.RemainingTurns);
+    }
+
     public override void OnTurnStart(World world, int targetId, CombatContext context)
     {
         RemainingTurns--;

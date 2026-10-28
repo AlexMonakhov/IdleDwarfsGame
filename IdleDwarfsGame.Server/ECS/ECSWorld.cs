@@ -5,6 +5,9 @@ public class World
     public List<Entity> Entities = new();
     public List<IGlobalEffect> GlobalEffects { get; set; } = new();
 
+    // Прибавка ко всему урону в бою, в процентах (арена PvP наращивает её по ходу боя)
+    public int DamageBonusPercent { get; set; }
+
     public Dictionary<int, HealthComponent> Health = new();
     public Dictionary<int, AttackComponent> Attack = new();
     public Dictionary<int, SpeedComponent> Speed = new();
@@ -56,6 +59,10 @@ public class World
             .OrderBy(e => GetPosition(e.Id))
             .ToList();
     }
+
+    // Урон с учётом DamageBonusPercent. Считается до ApplyDamage, чтобы в лог шла та же цифра, что сняла HP
+    public int ScaleDamage(int amount) =>
+        DamageBonusPercent == 0 ? amount : (int)Math.Round(amount * (100 + DamageBonusPercent) / 100.0, MidpointRounding.AwayFromZero);
 
     // Наносит урон и возвращает фактический остаток HP (не ниже 0)
     public int ApplyDamage(int targetId, int amount)

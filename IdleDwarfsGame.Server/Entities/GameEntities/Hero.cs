@@ -38,6 +38,8 @@ public class Hero
     public TriggerPhase AuraTrigger { get; set; } = TriggerPhase.OnRoundStart;
     public int AuraPower { get; set; }
     public int AuraDuration { get; set; } = 1;
+    // Аура срабатывает раз в столько своих триггеров (раундов или ходов носителя): 1 — каждый, 2 — через один
+    public int AuraInterval { get; set; } = 1;
 
     // Копия для расчётов «а что будет на другом уровне прокачки»; в БД не попадает
     public Hero WithUpgradeLevel(int upgradeLevel)

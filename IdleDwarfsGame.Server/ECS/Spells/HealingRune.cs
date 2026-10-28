@@ -18,21 +18,7 @@ public class HealingRune : BaseSpell
 
         LogCast(world, casterId, context, new List<int> { target.Id });
 
-        int healed = world.ApplyHeal(target.Id, HealAmount(world.Attack[casterId].Damage));
-
-        context.AddLog(new CombatLogEntry
-        {
-            EventType = CombatEventType.Heal,
-            AttackerId = casterId,
-            TargetId = target.Id,
-            AttackerTeam = world.Team[casterId].TeamId,
-            TargetTeam = world.Team[target.Id].TeamId,
-            ActionType = $"{Name} (Lvl {Level})",
-            SkillId = Id,
-            SkillName = Name,
-            Heal = healed,
-            TargetRemainingHp = world.Health[target.Id].Current
-        });
+        HealTarget(world, casterId, target.Id, HealAmount(world.Attack[casterId].Damage), context);
 
         new RegenEffect(turns: RegenTurns, healPerTurn: RegenPerTurn).ApplyEffect(world, target.Id, context, casterId);
     }

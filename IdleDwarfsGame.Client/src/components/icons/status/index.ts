@@ -4,6 +4,10 @@ import IconFrost from './IconFrost.vue';
 import IconStun from './IconStun.vue';
 import IconBleed from './IconBleed.vue';
 import IconHeal from './IconHeal.vue';
+import IconPoison from './IconPoison.vue';
+import IconCurse from './IconCurse.vue';
+import IconShock from './IconShock.vue';
+import IconFreeze from './IconFreeze.vue';
 
 // Имя статуса с сервера (StatusEffectBase.EffectName) -> иконка
 export const STATUS_ICONS: Record<string, Component> = {
@@ -12,6 +16,10 @@ export const STATUS_ICONS: Record<string, Component> = {
   Stun: IconStun,
   Bleed: IconBleed,
   Regen: IconHeal,
+  Poison: IconPoison,
+  Curse: IconCurse,
+  Shock: IconShock,
+  Freeze: IconFreeze,
 };
 
-export { IconBurn, IconFrost, IconStun, IconBleed, IconHeal };
+export { IconBurn, IconFrost, IconStun, IconBleed, IconHeal, IconPoison, IconCurse, IconShock, IconFreeze };

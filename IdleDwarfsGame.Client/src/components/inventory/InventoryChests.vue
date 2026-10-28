@@ -37,7 +37,7 @@ const load = async () => {
     try {
         chests.value = (await InventoryApiService.getMyInventory()).chests;
     } catch {
-        errorMessage.value = t('collection.loadError');
+        errorMessage.value = t('inventory.loadError');
     } finally {
         loading.value = false;
     }
@@ -62,26 +62,26 @@ onMounted(load);
 </script>
 
 <template>
-    <div class="collection-chests">
-        <div v-if="loading" class="collection-hint">{{ t('common.loading') }}</div>
+    <div class="inventory-chests">
+        <div v-if="loading" class="inventory-hint">{{ t('common.loading') }}</div>
         <template v-else>
-            <div v-if="errorMessage" class="collection-hint collection-hint-error">{{ errorMessage }}</div>
+            <div v-if="errorMessage" class="inventory-hint inventory-hint-error">{{ errorMessage }}</div>
 
             <section v-if="opened" class="chest-result">
                 <div class="chest-result-title">
                     {{ CHEST_ICONS[opened.chest.type] }} {{ t('chests.name', { type: t(`chests.types.${opened.chest.type}`), level: opened.chest.level }) }}
                     — {{ opened.items.length || opened.heroes.length ? t('chests.dropped') : t('chests.nothing') }}
                 </div>
-                <div class="collection-grid">
+                <div class="inventory-grid">
                     <GemTile v-for="item in opened.items" :key="`${item.subType}-${item.rarity}`" :item="item" />
                     <HeroCard v-for="hero in opened.heroes" :key="hero.id" :hero="hero" selectable />
                 </div>
             </section>
 
-            <div class="collection-hint">
-                {{ chests.length ? t('collection.chestsCount', { count: chests.length }) : t('collection.noChests') }}
+            <div class="inventory-hint">
+                {{ chests.length ? t('inventory.chestsCount', { count: chests.length }) : t('inventory.noChests') }}
             </div>
-            <div class="collection-grid">
+            <div class="inventory-grid">
                 <div v-for="group in groups" :key="group.key" class="chest-card">
                     <span class="chest-card-icon">{{ CHEST_ICONS[group.type] }}</span>
                     <span class="chest-card-name">{{ t(`chests.types.${group.type}`) }}</span>
@@ -97,14 +97,14 @@ onMounted(load);
 </template>
 
 <style scoped>
-.collection-chests {
+.inventory-chests {
     flex: 1;
     min-width: 0;
     display: flex;
     flex-direction: column;
 }
 
-.collection-hint {
+.inventory-hint {
     margin-bottom: 10px;
     text-align: center;
     color: #cbd5e1;
@@ -113,11 +113,11 @@ onMounted(load);
     text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.6);
 }
 
-.collection-hint-error {
+.inventory-hint-error {
     color: #ffb4b4;
 }
 
-.collection-grid {
+.inventory-grid {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;

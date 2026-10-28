@@ -233,7 +233,7 @@ public class GuildService(
         var cooldowns = await guilds.GetCooldownsAsync(userId);
         var claimed = await guilds.GetClaimedTiersAsync(userId, day);
         var damage = await guilds.GetDamageAsync(bosses.Select(b => b.Id).ToList());
-        var templates = (await heroes.GetByPlayerAsync(HeroSeedData.EnemyPlayerId)).ToDictionary(h => h.Id);
+        var templates = (await heroes.GetByPlayerAsync(GuildBossSeedData.PlayerId)).ToDictionary(h => h.Id);
 
         return new GuildBossesOverview
         {
@@ -249,13 +249,16 @@ public class GuildService(
                         .OrderByDescending(d => d.Damage)
                         .ToList();
                     var readyAt = cooldowns.TryGetValue(definition.Tier, out var ready) && ready > now ? AsUtc(ready) : (DateTime?)null;
+                    var variant = definition.VariantOn(day);
+                    var arena = GuildBosses.ArenaOf(variant);
 
                     return new GuildBossInfo
                     {
                         Tier = definition.Tier,
-                        Unit = BossUnit(templates[definition.TemplateHeroId], definition, boss.CurrentHp),
+                        Unit = BossUnit(templates[variant.TemplateHeroId], definition, boss.CurrentHp),
                         Level = definition.Level,
-                        Background = definition.Background,
+                        Background = arena.Background,
+                        Arena = ArenaInfo.From(arena),
                         MaxHp = boss.MaxHp,
                         CurrentHp = boss.CurrentHp,
                         DefeatedAt = boss.DefeatedAt is { } defeatedAt ? AsUtc(defeatedAt) : null,
@@ -278,8 +281,11 @@ public class GuildService(
         var now = Now;
         var membership = await RequireMembershipAsync(userId);
         var definition = GuildBosses.Get(tier);
+        var day = GuildBosses.DayOf(now);
+        var variant = definition.VariantOn(day);
+        var arena = GuildBosses.ArenaOf(variant);
 
-        var boss = (await EnsureBossesAsync(membership.GuildId, GuildBosses.DayOf(now))).First(b => b.Tier == tier);
+        var boss = (await EnsureBossesAsync(membership.GuildId, day)).First(b => b.Tier == tier);
         if (boss.DefeatedAt != null || boss.CurrentHp <= 0)
             throw new GuildException(GuildError.BossDefeated, "The boss is already defeated");
 
@@ -288,15 +294,15 @@ public class GuildService(
         // Без отряда бой не начнётся — проверяем до отката, чтобы не сжечь удар впустую
         if ((await heroes.GetSquadAsync(user.PlayerId)).Count == 0)
             throw new GuildException(GuildError.NoSquad, "Your squad is empty");
-        var template = await heroes.GetByIdAsync(definition.TemplateHeroId)
-            ?? throw new InvalidOperationException($"Guild boss template {definition.TemplateHeroId} not found");
+        var template = await heroes.GetByIdAsync(variant.TemplateHeroId)
+            ?? throw new InvalidOperationException($"Guild boss template {variant.TemplateHeroId} not found");
 
         var readyAt = now + GuildBosses.AttackCooldown;
         if (await guilds.TryStartCooldownAsync(userId, tier, now, readyAt) is { } blockedUntil)
             throw new GuildException(GuildError.OnCooldown, $"You can attack this boss again at {AsUtc(blockedUntil):HH:mm} UTC");
 
         var scenario = new GuildBossScenario(entityFactory, template, definition, boss.CurrentHp);
-        var combat = await combatService.StartGuildBossFight(user.PlayerId, scenario);
+        var combat = await combatService.StartGuildBossFight(user.PlayerId, scenario, arena);
         var result = await guilds.ApplyDamageAsync(boss.Id, userId, boss.CurrentHp - scenario.BossHpLeft, now);
 
         return new GuildBossAttackResult
@@ -307,7 +313,8 @@ public class GuildService(
             BossHp = result.CurrentHp,
             MaxHp = boss.MaxHp,
             NextAttackAt = readyAt,
-            Background = definition.Background,
+            Background = arena.Background,
+            Arena = ArenaInfo.From(arena),
             Combat = combat
         };
     }

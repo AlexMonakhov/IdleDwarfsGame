@@ -1,5 +1,5 @@
 // Контракт с сервером (IdleDwarfsGame.Server/Controllers/Responses/CampaignResponses.cs)
-import { CombatResult, CombatUnitInfo } from '@/battle/types';
+import { CombatResult, CombatUnitInfo, HeroElement } from '@/battle/types';
 
 export type StageType = 'Mobs' | 'Boss';
 export type StageStatus = 'Available' | 'Locked';
@@ -10,6 +10,8 @@ export interface ArenaInfo {
     description: string;
     // Ключ фона арены ("lava", "ice")
     background: string;
+    // Стихия арены — по ней красятся карточки боссов гильдии
+    element: HeroElement;
     // Имя статуса ("Burn", "Frost"), который арена вешает на всех в начале раунда
     effectName?: string | null;
     effectPower: number;

@@ -35,10 +35,11 @@ public class ArenaStatusEffect : IGlobalEffect
             .Where(e => world.IsAlive(e.Id))
             .ToList();
 
-        // Новый экземпляр на каждую цель, иначе все делили бы один RemainingTurns
+        // Новый экземпляр на каждую цель, иначе все делили бы один RemainingTurns.
+        // Арена бьёт каждый раунд, как аура, — и копится с тем же потолком
         foreach (var entity in aliveEntities)
         {
-            StatusEffectFactory.Create(EffectName, Power, Duration).ApplyEffect(world, entity.Id, context);
+            StatusEffectFactory.Create(EffectName, Power, Duration).ApplyEffect(world, entity.Id, context, stackLimit: AuraComponent.StackLimit);
         }
     }
 }

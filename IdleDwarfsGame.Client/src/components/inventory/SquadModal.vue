@@ -60,7 +60,7 @@ const load = async () => {
     try {
         applyHeroes(await HeroesApiService.getMyHeroes());
     } catch {
-        errorMessage.value = t('inventory.loadError');
+        errorMessage.value = t('squad.loadError');
     } finally {
         loading.value = false;
     }
@@ -139,7 +139,7 @@ const addToSquad = (hero: HeroInfo) => {
     notice.value = null;
     const free = slots.value.indexOf(null);
     if (free === -1) {
-        errorMessage.value = t('inventory.squadFull');
+        errorMessage.value = t('squad.squadFull');
         return;
     }
     const next = [...slots.value];
@@ -163,10 +163,10 @@ const save = async () => {
     notice.value = null;
     try {
         applyHeroes(await HeroesApiService.saveSquad(slots.value));
-        notice.value = t('inventory.saved');
+        notice.value = t('squad.saved');
     } catch (error) {
         const message = (error as AxiosError<{ message?: string }>).response?.data?.message;
-        errorMessage.value = message ?? t('inventory.saveError');
+        errorMessage.value = message ?? t('squad.saveError');
     } finally {
         saving.value = false;
     }
@@ -175,8 +175,8 @@ const save = async () => {
 const statusText = computed(() => {
     if (errorMessage.value) return errorMessage.value;
     if (loading.value) return '';
-    if (!hasHero.value) return t('inventory.needOneHero');
-    if (dirty.value) return t('inventory.unsaved');
+    if (!hasHero.value) return t('squad.needOneHero');
+    if (dirty.value) return t('squad.unsaved');
     return notice.value ?? '';
 });
 </script>
@@ -185,7 +185,7 @@ const statusText = computed(() => {
     <!-- Ширина — под 5 слотов в один ряд: 5 × 148 + зазоры, поля секции и тела модалки -->
     <ModalComponent
         v-model="open"
-        :header-message="t('inventory.header')"
+        :header-message="t('squad.header')"
         width="min(960px, 94vw)"
         height="min(800px, 90vh)"
     >
@@ -195,10 +195,10 @@ const statusText = computed(() => {
             <template v-else-if="heroes.length">
                 <section class="inventory-section">
                     <div class="inventory-heading">
-                        <h3 class="inventory-title">{{ t('inventory.squad') }}</h3>
+                        <h3 class="inventory-title">{{ t('squad.squad') }}</h3>
                         <span class="squad-power">⚔ {{ t('power.squad', { power: squadPower }) }}</span>
                     </div>
-                    <div class="inventory-hint">{{ t('inventory.squadHint') }}</div>
+                    <div class="inventory-hint">{{ t('squad.squadHint') }}</div>
                     <SquadRow
                         :heroes="slotHeroes"
                         :hover-slot="hoverSlot"
@@ -219,8 +219,8 @@ const statusText = computed(() => {
                     @dragleave="hoverReserve = false"
                     @drop.prevent="dropOnReserve"
                 >
-                    <h3 class="inventory-title">{{ t('inventory.heroes') }}</h3>
-                    <div class="inventory-hint">{{ t('inventory.heroesHint') }}</div>
+                    <h3 class="inventory-title">{{ t('squad.heroes') }}</h3>
+                    <div class="inventory-hint">{{ t('squad.heroesHint') }}</div>
                     <div v-drag-scroll class="reserve-grid">
                         <HeroCard
                             v-for="hero in reserve"
@@ -232,7 +232,7 @@ const statusText = computed(() => {
                             @dragend="onDragEnd"
                             @click="addToSquad(hero)"
                         />
-                        <div v-if="!reserve.length" class="inventory-hint">{{ t('inventory.noReserve') }}</div>
+                        <div v-if="!reserve.length" class="inventory-hint">{{ t('squad.noReserve') }}</div>
                     </div>
                 </section>
             </template>
@@ -241,9 +241,9 @@ const statusText = computed(() => {
         <template #modalFooter>
             <div class="inventory-footer">
                 <span class="inventory-status" :class="{ 'inventory-status-error': errorMessage || (!loading && !hasHero) }">{{ statusText }}</span>
-                <GemButton :color="'blue'" :disabled="!dirty || saving" @click="reset">{{ t('inventory.reset') }}</GemButton>
+                <GemButton :color="'blue'" :disabled="!dirty || saving" @click="reset">{{ t('squad.reset') }}</GemButton>
                 <GemButton :color="'green'" :disabled="!dirty || !hasHero || saving" @click="save">
-                    {{ saving ? t('inventory.saving') : t('inventory.save') }}
+                    {{ saving ? t('squad.saving') : t('squad.save') }}
                 </GemButton>
             </div>
         </template>

@@ -140,7 +140,7 @@ const hint = computed(() => {
                 <div class="upgrade-stage-tags">
                     <span class="upgrade-tag">{{ t('heroUpgrade.rank', { rank: hero.level }) }}</span>
                     <span class="upgrade-tag" :class="`upgrade-tag-${color}`">{{ t(`elements.${hero.element}`) }}</span>
-                    <span v-if="hero.onExpedition" class="upgrade-tag upgrade-tag-busy">{{ t('inventory.onExpedition') }}</span>
+                    <span v-if="hero.onExpedition" class="upgrade-tag upgrade-tag-busy">{{ t('squad.onExpedition') }}</span>
                 </div>
             </div>
 
@@ -301,6 +301,8 @@ const hint = computed(() => {
 .upgrade-tag-blue { color: var(--blue-gem-color); }
 .upgrade-tag-yellow { color: var(--yellow-gem-color); }
 .upgrade-tag-green { color: var(--green-gem-color); }
+.upgrade-tag-purple { color: #c084fc; }
+.upgrade-tag-white { color: var(--white-gem-color); }
 .upgrade-tag-busy { color: #fde68a; }
 
 .upgrade-stage-unit {

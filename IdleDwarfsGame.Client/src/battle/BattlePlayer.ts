@@ -5,7 +5,7 @@ import { t } from '@/i18n';
 import { BattleFx } from './BattleFx';
 import { BattleState, BattleUnit, FloatingText, UnitFocus, auraEffectOf, resetBattleState } from './BattleState';
 import { DAMAGE_COLORS, STATUS_VISUALS, resolveAuraVisual, resolveSpellVisual } from './FxRegistry';
-import { CombatLogEntry, CombatResult } from './types';
+import { CombatLogEntry, CombatResult, StatusEffectLogData } from './types';
 import { getUnitView } from './UnitRegistry';
 
 interface DamageOptions {
@@ -17,6 +17,9 @@ interface DamageOptions {
 
 // Записи, которые входят в группу каста (идут после SkillCast с тем же ActionId)
 const CAST_GROUP_EVENTS = new Set(['Damage', 'Heal', 'StatusApplied', 'Immune']);
+
+// События срабатывания статуса: по их ActiveEffects обновляются цифры на иконке
+const STATUS_TICK_EVENTS = new Set(['StatusTick', 'Heal', 'Stunned']);
 
 // События-действия, после которых делаем паузу, чтобы анимации не сливались
 const ACTION_EVENTS = new Set(['Attack', 'Damage', 'StatusTick', 'Heal', 'Stunned']);
@@ -138,11 +141,22 @@ export class BattlePlayer {
 
   private async playEntry(log: CombatLogEntry) {
     this.show(log);
+    if (STATUS_TICK_EVENTS.has(log.eventType)) this.syncStatus(log);
 
     switch (log.eventType) {
       case 'RoundStart':
         this.endTurn();
         this.state.round = log.round;
+        await this.delay(TIMING.roundBanner);
+        break;
+
+      case 'ArenaBuff':
+        // Арена усилила весь урон: баннер раунда показывает новую прибавку, все бойцы вспыхивают
+        this.state.damageBonus = log.damageBonusPercent ?? 0;
+        this.sound(s => s.cast());
+        Object.values(this.state.units)
+          .filter(u => u.alive)
+          .forEach(u => this.float(u.id, t('arena.float.fury', { bonus: this.state.damageBonus }), 'status'));
         await this.delay(TIMING.roundBanner);
         break;
 
@@ -219,8 +233,10 @@ export class BattlePlayer {
     const caster = this.unit(cast.attackerId);
     if (caster && cast.attackerEnergy != null) caster.energy = cast.attackerEnergy;
 
-    const isHealCast = group.some(e => e.eventType === 'Heal');
-    const color = isHealCast ? DAMAGE_COLORS.Heal : resolveSpellVisual(cast.skillName, cast.damageType).color;
+    // Лечащий каст — тот, что никого не ранит: у вампиризма и сияющей вспышки лечение идёт вместе с уроном
+    const visual = resolveSpellVisual(cast.skillName, cast.damageType, cast.skillLevel);
+    const isHealCast = group.some(e => e.eventType === 'Heal') && !group.some(e => e.eventType === 'Damage');
+    const color = isHealCast && !visual.support ? DAMAGE_COLORS.Heal : visual.color;
 
     this.setFocus(cast.attackerId, { role: 'caster', color });
     if (!isHealCast) {
@@ -235,7 +251,7 @@ export class BattlePlayer {
     }
     await this.delay(TIMING.castWindup);
 
-    // Записи группируем по цели: снаряд прилетает — применяем всё, что относится к этой цели
+    // Записи группируем по цели: заклинание до неё дошло — применяем всё, что к ней относится
     const byTarget = new Map<number, CombatLogEntry[]>();
     for (const entry of group) {
       const entries = byTarget.get(entry.targetId) ?? [];
@@ -243,23 +259,35 @@ export class BattlePlayer {
       byTarget.set(entry.targetId, entries);
     }
 
-    await Promise.all([...byTarget.entries()].map(async ([targetId, entries]) => {
-      const isHeal = entries.some(e => e.eventType === 'Heal');
-      if (!this.skipping && !isHeal) {
-        await this.fx.spell(getUnitView(cast.attackerId)?.el?.(), getUnitView(targetId)?.el?.(), cast.skillName, cast.damageType);
-      }
+    // Визуал заклинания идёт в тех, кого оно ранит, а у лечащих со своим визуалом (Рассвет) — в лечимых союзников.
+    // Остальное (вампиризм кастера, подлечивание союзников вспышкой) срабатывает после попаданий
+    const isStruck = (entries: CombatLogEntry[]) => (isHealCast ? !!visual.support : !entries.some(e => e.eventType === 'Heal'));
+    const struck = [...byTarget.entries()].filter(([, entries]) => isStruck(entries));
+    const rest = [...byTarget.entries()].filter(([, entries]) => !isStruck(entries));
 
-      for (const entry of entries) {
-        this.show(entry);
-        if (entry.eventType === 'Damage') this.applyDamage(entry, { silent: true });
-        else if (entry.eventType === 'Heal') this.applyHeal(entry);
-        else if (entry.eventType === 'StatusApplied') this.applyStatus(entry);
-        else if (entry.eventType === 'Immune') this.applyImmune(entry);
-      }
+    const hits = this.skipping
+      ? []
+      : this.fx.spell(getUnitView(cast.attackerId)?.el?.(), struck.map(([id]) => getUnitView(id)?.el?.()), visual);
+    await Promise.all(struck.map(async ([, entries], i) => {
+      await hits[i];
+      this.applyCastEntries(entries);
     }));
+
+    if (struck.length && rest.length) await this.delay(visual.healDelay ?? 0);
+    rest.forEach(([, entries]) => this.applyCastEntries(entries));
 
     await this.delay(TIMING.castRecover);
     this.endTurn();
+  }
+
+  private applyCastEntries(entries: CombatLogEntry[]) {
+    for (const entry of entries) {
+      this.show(entry);
+      if (entry.eventType === 'Damage') this.applyDamage(entry, { silent: true });
+      else if (entry.eventType === 'Heal') this.applyHeal(entry);
+      else if (entry.eventType === 'StatusApplied') this.applyStatus(entry);
+      else if (entry.eventType === 'Immune') this.applyImmune(entry);
+    }
   }
 
   // Срабатывание ауры: носитель вспыхивает, от него расходится волна, статусы ложатся на цели вслед за ней
@@ -346,19 +374,33 @@ export class BattlePlayer {
     this.sound(s => s.block());
   }
 
+  // Сервер держит на юните один статус каждого вида и пишет в лог его итоговое состояние
+  // после наложения: его и показываем, ничего не складывая на клиенте
   private applyStatus(log: CombatLogEntry) {
     const target = this.unit(log.targetId);
-    const name = log.appliedEffects[0]?.name ?? log.actionType;
     if (!target || !target.alive) return;
-    target.statuses[name] = (target.statuses[name] ?? 0) + 1;
+    this.setStatus(target, log.appliedEffects[0], log.actionType);
+  }
+
+  // Тик статуса (урон, лечение, пропуск хода): в ActiveEffects — сколько осталось после него
+  private syncStatus(log: CombatLogEntry) {
+    const target = this.unit(log.targetId);
+    const data = log.activeEffects[0];
+    if (!target || !target.alive || !data || !target.statuses[data.name]) return;
+    this.setStatus(target, data, data.name);
+  }
+
+  private setStatus(target: BattleUnit, data: StatusEffectLogData | undefined, fallbackName: string) {
+    target.statuses[data?.name ?? fallbackName] = {
+      turns: data?.duration ?? 1,
+      power: data?.power ?? 0,
+      stacks: data?.stacks ?? 1,
+    };
   }
 
   private removeStatus(log: CombatLogEntry) {
     const target = this.unit(log.targetId);
-    const name = log.activeEffects[0]?.name ?? log.actionType;
-    if (!target || !target.statuses[name]) return;
-    target.statuses[name]--;
-    if (target.statuses[name] <= 0) delete target.statuses[name];
+    if (target) delete target.statuses[log.activeEffects[0]?.name ?? log.actionType];
   }
 
   private applyDeath(log: CombatLogEntry) {

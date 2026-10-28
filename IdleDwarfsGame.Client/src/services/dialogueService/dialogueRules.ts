@@ -18,7 +18,7 @@ export const isType = (unit: BattleUnit | undefined, ...types: string[]): boolea
 
 // Висит ли на юните статус (имена с сервера: Stun, Burn, Frost, Regen, Bleed...)
 export const hasStatus = (unit: BattleUnit | undefined, name: string): boolean =>
-  !!unit && (unit.statuses[name] ?? 0) > 0;
+  !!unit && !!unit.statuses[name];
 
 // Есть ли на юните хоть какой-то статус
 export const hasAnyStatus = (unit: BattleUnit | undefined): boolean =>

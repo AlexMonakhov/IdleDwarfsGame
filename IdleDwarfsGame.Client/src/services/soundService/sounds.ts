@@ -119,6 +119,19 @@ const HIT_SOUNDS: Record<string, (s: SynthContext) => void> = {
     thump(s, 0.6);
     tone(s, { type: 'square', freq: vary(1200), freqEnd: 900, dur: 0.12, gain: 0.08 });
   },
+  // Глухой провал вниз и шипение тьмы
+  Dark: s => {
+    thump(s, 0.5);
+    tone(s, { type: 'sawtooth', freq: vary(220), freqEnd: 70, dur: 0.35, gain: 0.12 });
+    noise(s, { filter: 'lowpass', freq: 900, freqEnd: 200, dur: 0.3, gain: 0.3 });
+  },
+  // Хрустальный звон: несколько высоких нот разом
+  Radiant: s => {
+    thump(s, 0.3);
+    [1, 1.5, 2].forEach((ratio, i) => {
+      tone(s, { type: 'sine', freq: vary(1320) * ratio, at: i * 0.02, dur: 0.4, gain: 0.1 });
+    });
+  },
 };
 
 // Металлический звон поверх крита

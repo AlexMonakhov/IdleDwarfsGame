@@ -35,6 +35,8 @@ public class GameDbContext : DbContext
     public DbSet<GuildBossAttack> GuildBossAttacks => Set<GuildBossAttack>();
     public DbSet<GuildBossCooldown> GuildBossCooldowns => Set<GuildBossCooldown>();
     public DbSet<GuildBossRewardClaim> GuildBossRewardClaims => Set<GuildBossRewardClaim>();
+    public DbSet<PvpBattle> PvpBattles => Set<PvpBattle>();
+    public DbSet<PvpSeasonScore> PvpSeasonScores => Set<PvpSeasonScore>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -89,10 +91,10 @@ public class GameDbContext : DbContext
             .HasDefaultValue(HeroElement.Basic);
 
         modelBuilder.Entity<Player>()
-            .HasData(HeroSeedData.Players.Append(CampaignSeedData.Player).ToArray());
+            .HasData(HeroSeedData.Players.Append(CampaignSeedData.Player).Append(GuildBossSeedData.Player).ToArray());
 
         modelBuilder.Entity<Hero>()
-            .HasData(HeroSeedData.Heroes.Concat(CampaignSeedData.Heroes).ToArray());
+            .HasData(HeroSeedData.Heroes.Concat(CampaignSeedData.Heroes).Concat(GuildBossSeedData.Heroes).ToArray());
 
         modelBuilder.Entity<PlayerChest>()
             .HasKey(pc => pc.Id);
@@ -202,6 +204,12 @@ public class GameDbContext : DbContext
         // ===== Кампания =====
         modelBuilder.Entity<Arena>()
             .HasKey(a => a.Id);
+
+        modelBuilder.Entity<Arena>()
+            .Property(a => a.Element)
+            .HasConversion<string>()
+            .HasMaxLength(16)
+            .HasDefaultValue(HeroElement.Basic);
 
         modelBuilder.Entity<Arena>()
             .HasData(CampaignSeedData.Arenas);
@@ -636,5 +644,68 @@ public class GameDbContext : DbContext
             .WithMany()
             .HasForeignKey(c => c.UserId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        // ===== PvP =====
+        modelBuilder.Entity<PvpBattle>()
+            .HasKey(b => b.Id);
+
+        modelBuilder.Entity<PvpBattle>()
+            .Property(b => b.Id)
+            .HasConversion<string>();
+
+        modelBuilder.Entity<PvpBattle>()
+            .Property(b => b.AttackerUserId)
+            .HasConversion<string>();
+
+        modelBuilder.Entity<PvpBattle>()
+            .Property(b => b.DefenderUserId)
+            .HasConversion<string>();
+
+        modelBuilder.Entity<PvpBattle>()
+            .HasOne<User>()
+            .WithMany()
+            .HasForeignKey(b => b.AttackerUserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<PvpBattle>()
+            .HasOne<User>()
+            .WithMany()
+            .HasForeignKey(b => b.DefenderUserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Побеждённого сегодня соперника нельзя победить ещё раз — даже двумя одновременными боями
+        modelBuilder.Entity<PvpBattle>()
+            .HasIndex(b => new { b.AttackerUserId, b.DefenderUserId, b.Day })
+            .IsUnique()
+            .HasFilter("\"AttackerWon\" = 1");
+
+        // История боёв игрока: нападения и защиты
+        modelBuilder.Entity<PvpBattle>()
+            .HasIndex(b => new { b.AttackerUserId, b.FoughtAt });
+
+        modelBuilder.Entity<PvpBattle>()
+            .HasIndex(b => new { b.DefenderUserId, b.FoughtAt });
+
+        modelBuilder.Entity<PvpSeasonScore>()
+            .HasKey(s => new { s.UserId, s.Type, s.Start });
+
+        modelBuilder.Entity<PvpSeasonScore>()
+            .Property(s => s.UserId)
+            .HasConversion<string>();
+
+        modelBuilder.Entity<PvpSeasonScore>()
+            .Property(s => s.Type)
+            .HasConversion<string>()
+            .HasMaxLength(16);
+
+        modelBuilder.Entity<PvpSeasonScore>()
+            .HasOne<User>()
+            .WithMany()
+            .HasForeignKey(s => s.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Таблица лидеров сезона
+        modelBuilder.Entity<PvpSeasonScore>()
+            .HasIndex(s => new { s.Type, s.Start, s.Points });
     }
 }

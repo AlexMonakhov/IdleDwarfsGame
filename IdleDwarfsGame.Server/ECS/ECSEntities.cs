@@ -22,7 +22,8 @@ public enum CombatEventType
     Stunned,      // персонаж пропускает ход
     Immune,       // эффект не наложился из-за иммунитета
     Death,
-    CombatEnd
+    CombatEnd,
+    ArenaBuff     // арена изменила бой целиком: новая прибавка ко всему урону в DamageBonusPercent
 }
 
 public enum DamageType
@@ -34,7 +35,9 @@ public enum DamageType
     Lightning,
     Poison,
     Bleed,
-    True
+    True,
+    Dark,
+    Radiant
 }
 
 public class StatusEffectLogData
@@ -43,6 +46,8 @@ public class StatusEffectLogData
     public string Name { get; set; } = string.Empty;
     public int Duration { get; set; }
     public int Stacks { get; set; }
+    // Сила за ход всех наложений вместе: урон, лечение или процент замедления (мороз)
+    public int Power { get; set; }
     public int? TickDamage { get; set; }
     public DamageType? DamageType { get; set; }
     public string? Description { get; set; }
@@ -70,6 +75,8 @@ public class CombatLogEntry
     public string Phase { get; set; } = "Action";
     public int? SkillId { get; set; }
     public string SkillName { get; set; } = string.Empty;
+    // Уровень спелла 1..3 (в записи каста): фронт по нему выбирает вариант анимации
+    public int? SkillLevel { get; set; }
     public DamageType DamageType { get; set; } = DamageType.Physical;
     public int Damage { get; set; }
     public int Heal { get; set; }
@@ -83,6 +90,9 @@ public class CombatLogEntry
 
     // Для CombatEnd.
     public int? WinningTeam { get; set; }
+
+    // Для ArenaBuff: прибавка ко всему урону с этого раунда, в процентах
+    public int? DamageBonusPercent { get; set; }
 
     // Для UI удобно иметь уже подготовленный текст, но не использовать его как единственный источник данных.
     public string? Text { get; set; }
@@ -145,7 +155,9 @@ public class CombatContext
     public int WinningTeam;
     public int CurrentRound { get; set; } = 0;
     public bool IsNewRound { get; set; } = false;
-    public int MaxRounds { get; set; } = 15;
+    // Сколько раундов длится бой; если и на следующем раунде никто не победил — поражение игрока (RoundStartSystem)
+    public const int DefaultMaxRounds = 99;
+    public int MaxRounds { get; set; } = DefaultMaxRounds;
 
     // Источник случайности боя (цели спеллов и т.п.): с одним сидом бой воспроизводится
     public Random Random { get; init; } = new();
@@ -256,5 +268,15 @@ public class AuraComponent
     public int Power { get; set; }
     public int Duration { get; set; } = 1;
 
+    // Срабатывает раз в Interval триггеров: первый — сразу, дальше через Interval - 1 пропущенных
+    public int Interval { get; set; } = 1;
+    private int _triggers;
+
+    // Статус от ауры не копится на цели дольше этого: не больше StackLimit стаков и ходов (StatusEffectBase.ApplyEffect)
+    public const int StackLimit = 3;
+
     public IStatusEffect CreateEffect() => StatusEffectFactory.Create(EffectName, Power, Duration);
+
+    // Наступил триггер ауры: сработает ли она на нём
+    public bool Fires() => _triggers++ % Math.Max(1, Interval) == 0;
 }

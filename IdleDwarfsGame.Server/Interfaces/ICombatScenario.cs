@@ -1,8 +1,11 @@
-﻿public enum CombatMode { Boss, Tower, Campaign, GuildBoss }
+﻿public enum CombatMode { Boss, Tower, Campaign, GuildBoss, Pvp }
 
 public interface ICombatScenario
 {
     CombatMode Mode { get; }
+
+    // Лимит раундов боя: на следующем раунде — поражение игрока
+    int MaxRounds => CombatContext.DefaultMaxRounds;
 
     // Спавн врагов в мир (твоя текущая логика)
     Task PopulateEnemiesAsync(World world, int difficultyOrFloor);

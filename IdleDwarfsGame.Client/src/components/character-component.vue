@@ -3,14 +3,14 @@ import { ref, defineProps, computed, onMounted, onBeforeUnmount, inject, watch }
 import CharacterSkeleton from './character-skeleton.vue';
 import CharacterStats from './character-stats.vue';
 import { HeroModel } from '@/models/hero';
-import { BattleUnit, auraEffectOf } from '@/battle/BattleState';
+import { BattleUnit, UnitStatus, auraEffectOf } from '@/battle/BattleState';
 import { elementColor } from '@/battle/sprites';
 import { BATTLE_FX_KEY } from '@/battle/BattleFx';
 import { DAMAGE_COLORS, combineStatusVisuals, resolveAuraVisual } from '@/battle/FxRegistry';
 import { registerUnitView, unregisterUnitView, UnitView } from '@/battle/UnitRegistry';
 import { STATUS_ICONS } from './icons/status';
 import DialogueBubble from './DialogueBubble.vue';
-import { statusLabel } from '@/i18n';
+import { statusLabel, t } from '@/i18n';
 
 const props = defineProps<{
   unit: BattleUnit;
@@ -50,6 +50,20 @@ const fx = inject(BATTLE_FX_KEY, null);
 // Визуал активных статусов: окраска, замедление анимации, CSS-классы
 const statusNames = computed(() => (props.unit.alive ? Object.keys(props.unit.statuses ?? {}) : []));
 const statusVisual = computed(() => combineStatusVisuals(statusNames.value));
+
+// Что значит сила статуса на иконке: урон за ход (по умолчанию), лечение или процент замедления энергии.
+// У оглушения силы нет — на иконке только ходы
+const STATUS_POWER_KIND: Record<string, 'damage' | 'heal' | 'slow'> = { Regen: 'heal', Frost: 'slow' };
+const powerKind = (name: string) => STATUS_POWER_KIND[name] ?? 'damage';
+const powerText = (name: string, status: UnitStatus) => (powerKind(name) === 'slow' ? `${status.power}%` : String(status.power));
+
+const statusTitle = (name: string, status: UnitStatus) =>
+  [
+    statusLabel(name),
+    status.power > 0 ? t(`statusInfo.${powerKind(name)}`, { power: status.power }) : null,
+    t('statusInfo.turns', { turns: status.turns }),
+    status.stacks > 1 ? t('statusInfo.stacks', { stacks: status.stacks }) : null,
+  ].filter(Boolean).join(' · ');
 
 // Пока юнит — цель удара, его силуэт пульсирует красным поверх окраски статусов
 const TARGET_TINT = { color: '#ff1a1a', alpha: 0.35, pulse: 2.5 };
@@ -182,10 +196,14 @@ defineExpose(view);
           <!-- Панель эффектов висит над именем и не сдвигает шапку, когда появляется -->
           <div v-if="hasStatuses" class="status-panel">
             <div class="status-panel-inner">
-              <span v-for="(stacks, name) in unit.statuses" :key="name" class="status-icon" :title="`${statusLabel(String(name))} x${stacks}`">
+              <span v-for="(status, name) in unit.statuses" :key="name" class="status-icon" :title="statusTitle(String(name), status)">
                 <component v-if="STATUS_ICONS[name]" :is="STATUS_ICONS[name]" size="16px" />
                 <template v-else>{{ name[0] }}</template>
-                <sub v-if="stacks > 1">{{ stacks }}</sub>
+                <!-- Сверху сила за ход всех наложений, снизу оставшиеся ходы -->
+                <span class="status-numbers">
+                  <span v-if="status.power > 0" class="status-power" :class="`status-power-${powerKind(String(name))}`">{{ powerText(String(name), status) }}</span>
+                  <span class="status-turns">{{ status.turns }}</span>
+                </span>
               </span>
             </div>
           </div>
@@ -300,15 +318,29 @@ defineExpose(view);
     color: #4ade80;
     filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.8));
   }
-  .status-icon sub{
-    position: absolute;
-    right: -4px;
-    bottom: -4px;
-    font-size: 9px;
-    font-weight: 700;
-    line-height: 1;
-    color: #fff;
+  /* Две крошечные цифры справа от иконки: сила за ход над оставшимися ходами */
+  .status-numbers{
+    display: inline-flex;
+    flex-direction: column;
+    justify-content: center;
+    margin-left: 1px;
+    min-height: 16px;
+    font-size: 8px;
+    font-weight: 800;
+    line-height: 8px;
     text-shadow: 0 0 2px #000, 0 0 2px #000;
+  }
+  .status-power{
+    color: #fecaca;
+  }
+  .status-power-heal{
+    color: #86efac;
+  }
+  .status-power-slow{
+    color: #bae6fd;
+  }
+  .status-turns{
+    color: #f8fafc;
   }
   .floating-layer{
     position: absolute;

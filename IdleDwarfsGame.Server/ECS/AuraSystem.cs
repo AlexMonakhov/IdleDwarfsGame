@@ -14,17 +14,18 @@ public class AuraSystem : ICombatSystem
         {
             var aura = world.Auras[bearer.Id];
 
-            // Проверяем условие триггера
+            // Проверяем условие триггера, затем интервал: аура может срабатывать не на каждом
             if (aura.Trigger == TriggerPhase.OnRoundStart && !context.IsNewRound) continue;
             if (aura.Trigger == TriggerPhase.OnTurnStart && bearer.Id != actor) continue;
+            if (!aura.Fires()) continue;
 
             // Находим цели (например, всех живых союзников)
             var targets = GetTargets(world, bearer.Id, aura.TargetType);
 
             foreach (var targetId in targets)
             {
-                // Новый экземпляр эффекта на каждую цель
-                aura.CreateEffect().ApplyEffect(world, targetId, context, bearer.Id);
+                // Новый экземпляр эффекта на каждую цель; копится не больше StackLimit
+                aura.CreateEffect().ApplyEffect(world, targetId, context, bearer.Id, AuraComponent.StackLimit);
             }
         }
     }

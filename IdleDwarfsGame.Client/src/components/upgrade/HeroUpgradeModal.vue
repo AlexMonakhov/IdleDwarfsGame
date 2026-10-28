@@ -99,7 +99,7 @@ const onStale = () => {
                             @click="select(hero)"
                         />
                     </div>
-                    <div v-if="!heroes.length" class="hero-upgrade-hint">{{ t('collection.noHeroes') }}</div>
+                    <div v-if="!heroes.length" class="hero-upgrade-hint">{{ t('inventory.noHeroes') }}</div>
                 </template>
             </section>
         </div>

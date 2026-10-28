@@ -39,6 +39,13 @@ namespace IdleDwarfsGame.Server.Migrations
                     b.Property<int>("EffectPower")
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("Element")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(16)
+                        .HasColumnType("TEXT")
+                        .HasDefaultValue("Basic");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -56,6 +63,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             EffectDuration = 1,
                             EffectName = "Burn",
                             EffectPower = 5,
+                            Element = "Fire",
                             Name = "Lava Arena"
                         },
                         new
@@ -66,7 +74,52 @@ namespace IdleDwarfsGame.Server.Migrations
                             EffectDuration = 1,
                             EffectName = "Frost",
                             EffectPower = 3,
+                            Element = "Frost",
                             Name = "Ice Arena"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Background = "storm",
+                            Description = "Lightning strikes the summit and shocks every fighter at the start of each round.",
+                            EffectDuration = 1,
+                            EffectName = "Shock",
+                            EffectPower = 4,
+                            Element = "Lightning",
+                            Name = "Storm Peak"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Background = "marsh",
+                            Description = "Toxic fumes rise from the bog and poison every fighter at the start of each round.",
+                            EffectDuration = 1,
+                            EffectName = "Poison",
+                            EffectPower = 4,
+                            Element = "Nature",
+                            Name = "Venom Marsh"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Background = "crypt",
+                            Description = "Amethyst shadows curse every fighter at the start of each round, draining life and energy.",
+                            EffectDuration = 1,
+                            EffectName = "Curse",
+                            EffectPower = 4,
+                            Element = "Dark",
+                            Name = "Shadow Crypt"
+                        },
+                        new
+                        {
+                            Id = 6,
+                            Background = "sanctum",
+                            Description = "Diamond light mends the wounds of every fighter — friend and foe — at the start of each round.",
+                            EffectDuration = 1,
+                            EffectName = "Regen",
+                            EffectPower = 6,
+                            Element = "Radiance",
+                            Name = "Crystal Sanctum"
                         });
                 });
 
@@ -927,6 +980,9 @@ namespace IdleDwarfsGame.Server.Migrations
                     b.Property<string>("AuraEffect")
                         .HasColumnType("TEXT");
 
+                    b.Property<int>("AuraInterval")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int>("AuraPower")
                         .HasColumnType("INTEGER");
 
@@ -1003,6 +1059,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Attack = 14,
                             AuraDuration = 1,
                             AuraEffect = "Regen",
+                            AuraInterval = 1,
                             AuraPower = 4,
                             AuraTarget = 0,
                             AuraTrigger = 1,
@@ -1026,6 +1083,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Id = new Guid("11111111-0000-4000-8000-000000000002"),
                             Attack = 18,
                             AuraDuration = 1,
+                            AuraInterval = 1,
                             AuraPower = 0,
                             AuraTarget = 0,
                             AuraTrigger = 1,
@@ -1049,6 +1107,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Id = new Guid("11111111-0000-4000-8000-000000000003"),
                             Attack = 16,
                             AuraDuration = 1,
+                            AuraInterval = 1,
                             AuraPower = 0,
                             AuraTarget = 0,
                             AuraTrigger = 1,
@@ -1072,6 +1131,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Id = new Guid("11111111-0000-4000-8000-000000000004"),
                             Attack = 20,
                             AuraDuration = 1,
+                            AuraInterval = 1,
                             AuraPower = 0,
                             AuraTarget = 0,
                             AuraTrigger = 1,
@@ -1095,6 +1155,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Id = new Guid("11111111-0000-4000-8000-000000000005"),
                             Attack = 12,
                             AuraDuration = 1,
+                            AuraInterval = 1,
                             AuraPower = 0,
                             AuraTarget = 0,
                             AuraTrigger = 1,
@@ -1118,6 +1179,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Id = new Guid("11111111-0000-4000-8000-000000000006"),
                             Attack = 15,
                             AuraDuration = 1,
+                            AuraInterval = 1,
                             AuraPower = 0,
                             AuraTarget = 0,
                             AuraTrigger = 1,
@@ -1137,9 +1199,56 @@ namespace IdleDwarfsGame.Server.Migrations
                         },
                         new
                         {
+                            Id = new Guid("11111111-0000-4000-8000-000000000007"),
+                            Attack = 19,
+                            AuraDuration = 1,
+                            AuraInterval = 1,
+                            AuraPower = 0,
+                            AuraTarget = 0,
+                            AuraTrigger = 1,
+                            Element = "Dark",
+                            EnergyPerAttack = 20,
+                            Immunities = "Curse",
+                            Level = 5,
+                            MaxEnergy = 100,
+                            MaxHp = 150,
+                            Name = "Morgra Duskvein",
+                            PlayerId = new Guid("a1d2f3e4-0000-4000-8000-000000000001"),
+                            Speed = 6,
+                            SpellIds = "39,42,45",
+                            StartEnergy = 20,
+                            UnitType = "Dwarf",
+                            UpgradeLevel = 1
+                        },
+                        new
+                        {
+                            Id = new Guid("11111111-0000-4000-8000-000000000008"),
+                            Attack = 17,
+                            AuraDuration = 1,
+                            AuraInterval = 1,
+                            AuraPower = 0,
+                            AuraTarget = 0,
+                            AuraTrigger = 1,
+                            Element = "Radiance",
+                            EnergyPerAttack = 20,
+                            Immunities = "Stun",
+                            Level = 5,
+                            MaxEnergy = 100,
+                            MaxHp = 160,
+                            Name = "Elda Brightfacet",
+                            PlayerId = new Guid("a1d2f3e4-0000-4000-8000-000000000001"),
+                            Speed = 7,
+                            SpellIds = "48,51,54",
+                            StartEnergy = 20,
+                            UnitType = "Dwarf",
+                            UpgradeLevel = 1
+                        },
+                        new
+                        {
                             Id = new Guid("22222222-0000-4000-8000-000000000001"),
                             Attack = 13,
                             AuraDuration = 1,
+                            AuraInterval = 1,
                             AuraPower = 0,
                             AuraTarget = 0,
                             AuraTrigger = 1,
@@ -1163,6 +1272,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Id = new Guid("22222222-0000-4000-8000-000000000002"),
                             Attack = 10,
                             AuraDuration = 1,
+                            AuraInterval = 1,
                             AuraPower = 0,
                             AuraTarget = 0,
                             AuraTrigger = 1,
@@ -1186,6 +1296,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Id = new Guid("22222222-0000-4000-8000-000000000003"),
                             Attack = 10,
                             AuraDuration = 1,
+                            AuraInterval = 1,
                             AuraPower = 0,
                             AuraTarget = 0,
                             AuraTrigger = 1,
@@ -1210,6 +1321,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Attack = 12,
                             AuraDuration = 1,
                             AuraEffect = "Burn",
+                            AuraInterval = 1,
                             AuraPower = 3,
                             AuraTarget = 1,
                             AuraTrigger = 1,
@@ -1233,6 +1345,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Id = new Guid("22222222-0000-4000-8000-000000000005"),
                             Attack = 13,
                             AuraDuration = 1,
+                            AuraInterval = 1,
                             AuraPower = 0,
                             AuraTarget = 0,
                             AuraTrigger = 1,
@@ -1256,6 +1369,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Id = new Guid("33333333-0000-4000-8000-000000000001"),
                             Attack = 11,
                             AuraDuration = 1,
+                            AuraInterval = 1,
                             AuraPower = 0,
                             AuraTarget = 0,
                             AuraTrigger = 1,
@@ -1278,6 +1392,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Id = new Guid("33333333-0000-4000-8000-000000000002"),
                             Attack = 12,
                             AuraDuration = 1,
+                            AuraInterval = 1,
                             AuraPower = 0,
                             AuraTarget = 0,
                             AuraTrigger = 1,
@@ -1301,6 +1416,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Attack = 16,
                             AuraDuration = 1,
                             AuraEffect = "Burn",
+                            AuraInterval = 1,
                             AuraPower = 4,
                             AuraTarget = 1,
                             AuraTrigger = 1,
@@ -1324,6 +1440,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Attack = 15,
                             AuraDuration = 1,
                             AuraEffect = "Frost",
+                            AuraInterval = 1,
                             AuraPower = 3,
                             AuraTarget = 1,
                             AuraTrigger = 1,
@@ -1339,6 +1456,144 @@ namespace IdleDwarfsGame.Server.Migrations
                             SpellIds = "6",
                             StartEnergy = 20,
                             UnitType = "Skeleton",
+                            UpgradeLevel = 1
+                        },
+                        new
+                        {
+                            Id = new Guid("44444444-0000-4000-8000-000000000001"),
+                            Attack = 13,
+                            AuraDuration = 1,
+                            AuraInterval = 1,
+                            AuraPower = 0,
+                            AuraTarget = 0,
+                            AuraTrigger = 1,
+                            Element = "Nature",
+                            EnergyPerAttack = 20,
+                            Immunities = "Stun,Poison",
+                            Level = 4,
+                            MaxEnergy = 100,
+                            MaxHp = 210,
+                            Name = "Mossback Troll",
+                            PlayerId = new Guid("b0b0b0b0-0000-4000-8000-000000000004"),
+                            Speed = 3,
+                            SpellIds = "31",
+                            StartEnergy = 0,
+                            UnitType = "Troll",
+                            UpgradeLevel = 1
+                        },
+                        new
+                        {
+                            Id = new Guid("44444444-0000-4000-8000-000000000002"),
+                            Attack = 13,
+                            AuraDuration = 1,
+                            AuraInterval = 1,
+                            AuraPower = 0,
+                            AuraTarget = 0,
+                            AuraTrigger = 1,
+                            Element = "Frost",
+                            EnergyPerAttack = 20,
+                            Immunities = "Frost,Freeze",
+                            Level = 4,
+                            MaxEnergy = 100,
+                            MaxHp = 210,
+                            Name = "Rimehorn Yeti",
+                            PlayerId = new Guid("b0b0b0b0-0000-4000-8000-000000000004"),
+                            Speed = 3,
+                            SpellIds = "16",
+                            StartEnergy = 0,
+                            UnitType = "Yeti",
+                            UpgradeLevel = 1
+                        },
+                        new
+                        {
+                            Id = new Guid("44444444-0000-4000-8000-000000000003"),
+                            Attack = 12,
+                            AuraDuration = 1,
+                            AuraInterval = 1,
+                            AuraPower = 0,
+                            AuraTarget = 0,
+                            AuraTrigger = 1,
+                            Element = "Fire",
+                            EnergyPerAttack = 20,
+                            Immunities = "Burn",
+                            Level = 4,
+                            MaxEnergy = 100,
+                            MaxHp = 180,
+                            Name = "Ashmaw the Warlord",
+                            PlayerId = new Guid("b0b0b0b0-0000-4000-8000-000000000004"),
+                            Speed = 4,
+                            SpellIds = "10",
+                            StartEnergy = 0,
+                            UnitType = "Orc",
+                            UpgradeLevel = 1
+                        },
+                        new
+                        {
+                            Id = new Guid("44444444-0000-4000-8000-000000000004"),
+                            Attack = 12,
+                            AuraDuration = 1,
+                            AuraInterval = 1,
+                            AuraPower = 0,
+                            AuraTarget = 0,
+                            AuraTrigger = 1,
+                            Element = "Lightning",
+                            EnergyPerAttack = 20,
+                            Immunities = "Shock,Stun",
+                            Level = 4,
+                            MaxEnergy = 100,
+                            MaxHp = 180,
+                            Name = "Grukk Stormcaller",
+                            PlayerId = new Guid("b0b0b0b0-0000-4000-8000-000000000004"),
+                            Speed = 4,
+                            SpellIds = "25",
+                            StartEnergy = 0,
+                            UnitType = "Ogre",
+                            UpgradeLevel = 1
+                        },
+                        new
+                        {
+                            Id = new Guid("44444444-0000-4000-8000-000000000005"),
+                            Attack = 13,
+                            AuraDuration = 1,
+                            AuraInterval = 1,
+                            AuraPower = 0,
+                            AuraTarget = 0,
+                            AuraTrigger = 1,
+                            Element = "Dark",
+                            EnergyPerAttack = 25,
+                            Immunities = "Curse,Frost",
+                            Level = 4,
+                            MaxEnergy = 100,
+                            MaxHp = 100,
+                            Name = "Nyxara the Hollow Queen",
+                            PlayerId = new Guid("b0b0b0b0-0000-4000-8000-000000000004"),
+                            Speed = 6,
+                            SpellIds = "37",
+                            StartEnergy = 0,
+                            UnitType = "Skeleton",
+                            UpgradeLevel = 1
+                        },
+                        new
+                        {
+                            Id = new Guid("44444444-0000-4000-8000-000000000006"),
+                            Attack = 13,
+                            AuraDuration = 1,
+                            AuraInterval = 1,
+                            AuraPower = 0,
+                            AuraTarget = 0,
+                            AuraTrigger = 1,
+                            Element = "Radiance",
+                            EnergyPerAttack = 25,
+                            Immunities = "Stun,Freeze",
+                            Level = 4,
+                            MaxEnergy = 100,
+                            MaxHp = 100,
+                            Name = "Seraphel the Shattered Light",
+                            PlayerId = new Guid("b0b0b0b0-0000-4000-8000-000000000004"),
+                            Speed = 6,
+                            SpellIds = "47",
+                            StartEnergy = 0,
+                            UnitType = "Golem",
                             UpgradeLevel = 1
                         });
                 });
@@ -1415,6 +1670,14 @@ namespace IdleDwarfsGame.Server.Migrations
                             Experience = 0L,
                             Gold = 0L,
                             Name = "Campaign Monsters",
+                            Rating = 0
+                        },
+                        new
+                        {
+                            Id = "b0b0b0b0-0000-4000-8000-000000000004",
+                            Experience = 0L,
+                            Gold = 0L,
+                            Name = "Guild Bosses",
                             Rating = 0
                         });
                 });
@@ -1560,6 +1823,82 @@ namespace IdleDwarfsGame.Server.Migrations
                     b.HasIndex("RewardId");
 
                     b.ToTable("PlayerRewardChests");
+                });
+
+            modelBuilder.Entity("PvpBattle", b =>
+                {
+                    b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("AttackerPower")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("AttackerUserId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("AttackerWon")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("Day")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("DefenderPower")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("DefenderUserId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("FoughtAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Points")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AttackerUserId", "FoughtAt");
+
+                    b.HasIndex("DefenderUserId", "FoughtAt");
+
+                    b.HasIndex("AttackerUserId", "DefenderUserId", "Day")
+                        .IsUnique()
+                        .HasFilter("\"AttackerWon\" = 1");
+
+                    b.ToTable("PvpBattles");
+                });
+
+            modelBuilder.Entity("PvpSeasonScore", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Type")
+                        .HasMaxLength(16)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("Start")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Losses")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Points")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Wins")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("UserId", "Type", "Start");
+
+                    b.HasIndex("Type", "Start", "Points");
+
+                    b.ToTable("PvpSeasonScores");
                 });
 
             modelBuilder.Entity("Resourses", b =>
@@ -2317,6 +2656,30 @@ namespace IdleDwarfsGame.Server.Migrations
                     b.HasOne("PlayerReward", null)
                         .WithMany("Chests")
                         .HasForeignKey("RewardId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("PvpBattle", b =>
+                {
+                    b.HasOne("User", null)
+                        .WithMany()
+                        .HasForeignKey("AttackerUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("User", null)
+                        .WithMany()
+                        .HasForeignKey("DefenderUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("PvpSeasonScore", b =>
+                {
+                    b.HasOne("User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

@@ -8,15 +8,15 @@ defineProps<{
 </script>
 
 <template>
-    <div class="collection-placeholder">
-        <span class="collection-placeholder-icon">{{ icon }}</span>
-        <h3 class="collection-placeholder-title">{{ title }}</h3>
-        <p class="collection-placeholder-hint">{{ hint }}</p>
+    <div class="tab-placeholder">
+        <span class="tab-placeholder-icon">{{ icon }}</span>
+        <h3 class="tab-placeholder-title">{{ title }}</h3>
+        <p class="tab-placeholder-hint">{{ hint }}</p>
     </div>
 </template>
 
 <style scoped>
-.collection-placeholder {
+.tab-placeholder {
     flex: 1;
     display: flex;
     flex-direction: column;
@@ -27,14 +27,14 @@ defineProps<{
     text-align: center;
 }
 
-.collection-placeholder-icon {
+.tab-placeholder-icon {
     font-size: 64px;
     line-height: 1;
     opacity: 0.85;
     filter: drop-shadow(2px 3px 2px rgba(0, 0, 0, 0.8));
 }
 
-.collection-placeholder-title {
+.tab-placeholder-title {
     margin: 0;
     color: #f8fafc;
     text-transform: uppercase;
@@ -42,7 +42,7 @@ defineProps<{
     text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.8);
 }
 
-.collection-placeholder-hint {
+.tab-placeholder-hint {
     margin: 0;
     max-width: 360px;
     color: #cbd5e1;

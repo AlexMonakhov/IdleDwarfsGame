@@ -86,6 +86,8 @@ builder.Services.AddScoped<IFriendRepository, FriendRepository>();
 builder.Services.AddScoped<FriendService>();
 builder.Services.AddScoped<IGuildRepository, GuildRepository>();
 builder.Services.AddScoped<GuildService>();
+builder.Services.AddScoped<IPvpRepository, PvpRepository>();
+builder.Services.AddScoped<PvpService>();
 builder.Services.AddScoped<IWorldFactory, WorldFactory>();
 builder.Services.AddScoped<ICombatEngine, CombatEngine>();
 builder.Services.AddScoped<CombatService>();
@@ -99,6 +101,10 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<GameDbContext>();
     db.Database.Migrate();
+
+    // Соперники для PvP на локальной базе
+    if (app.Environment.IsDevelopment())
+        await TestAccountsSeed.SeedAsync(db, scope.ServiceProvider.GetRequiredService<IPasswordHasher<User>>());
 }
 
 
