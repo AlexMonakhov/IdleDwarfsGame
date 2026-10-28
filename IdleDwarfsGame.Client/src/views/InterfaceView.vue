@@ -3,6 +3,8 @@ import GemButton from '@/components/common/GemButton.vue';
 import ExpeditionsModal from '@/components/expeditions/ExpeditionsModal.vue';
 import FriendsModal from '@/components/friends/FriendsModal.vue';
 import GuildModal from '@/components/guild/GuildModal.vue';
+import PvpModal from '@/components/pvp/PvpModal.vue';
+import InventoryModal from '@/components/inventory/InventoryModal.vue';
 import CollectionModal from '@/components/collection/CollectionModal.vue';
 import HeroUpgradeModal from '@/components/upgrade/HeroUpgradeModal.vue';
 import SquadModal from '@/components/inventory/SquadModal.vue';
@@ -15,6 +17,7 @@ import { useAuth } from '@/composables/UseAuth';
 import { useResources } from '@/composables/UseResources';
 import { usePresence } from '@/composables/UsePresence';
 import { useGuild } from '@/composables/UseGuild';
+import { usePvp } from '@/composables/UsePvp';
 import { useSquadModal } from '@/composables/UseSquadModal';
 import { soundService } from '@/services/soundService/SoundService';
 import { useI18n } from 'vue-i18n';
@@ -29,6 +32,8 @@ const { incomingFriendRequests, start: startPresence, stop: stopPresence } = use
 const expeditionsOpen = ref(false);
 const friendsOpen = ref(false);
 const { guildOpen } = useGuild();
+const { pvpOpen } = usePvp();
+const inventoryOpen = ref(false);
 const collectionOpen = ref(false);
 const upgradeOpen = ref(false);
 const { squadOpen } = useSquadModal();
@@ -49,6 +54,8 @@ const onLogout = () => {
     expeditionsOpen.value = false;
     friendsOpen.value = false;
     guildOpen.value = false;
+    pvpOpen.value = false;
+    inventoryOpen.value = false;
     collectionOpen.value = false;
     upgradeOpen.value = false;
     squadOpen.value = false;
@@ -79,12 +86,14 @@ watchEffect(() => {
             <GemButton @click="router.push('about')" :color="'blue'">{{ t('nav.about') }}</GemButton>
             <GemButton v-if="route.name != 'arena'" @click="router.push('arena')" :color="'blue'">{{ t('nav.arena') }}</GemButton>
             <GemButton @click="router.push('town')" :color="'blue'">{{ t('nav.town') }}</GemButton>
-            <GemButton v-if="isAuthenticated" @click="squadOpen = true" :color="'pink'">{{ t('nav.inventory') }}</GemButton>
-            <GemButton v-if="isAuthenticated" @click="collectionOpen = true" :color="'pink'">{{ t('nav.collection') }}</GemButton>
+            <GemButton v-if="isAuthenticated" @click="squadOpen = true" :color="'pink'">{{ t('nav.squad') }}</GemButton>
+            <GemButton v-if="isAuthenticated" @click="inventoryOpen = true" :color="'pink'">{{ t('nav.inventory') }}</GemButton>
+            <GemButton v-if="isAuthenticated" @click="collectionOpen = true" :color="'yellow'">{{ t('nav.collection') }}</GemButton>
             <GemButton v-if="isAuthenticated" @click="upgradeOpen = true" :color="'green'">{{ t('nav.upgrade') }}</GemButton>
             <GemButton v-if="isAuthenticated" @click="expeditionsOpen = true" :color="'yellow'">{{ t('nav.expeditions') }}</GemButton>
             <GemButton v-if="isAuthenticated" @click="friendsOpen = true" :color="'green'" :badge-count="incomingFriendRequests">{{ t('nav.friends') }}</GemButton>
             <GemButton v-if="isAuthenticated" @click="guildOpen = true" :color="'blue'">{{ t('nav.guild') }}</GemButton>
+            <GemButton v-if="isAuthenticated" @click="pvpOpen = true" :color="'red'">{{ t('nav.pvp') }}</GemButton>
             <template v-if="!isAuthenticated">
                 <GemButton v-if="route.name != 'login'" @click="router.push('/login')" :color="'green'">{{ t('nav.login') }}</GemButton>
                 <GemButton v-if="route.name != 'register'" @click="router.push('/register')" :color="'yellow'">{{ t('nav.register') }}</GemButton>
@@ -103,6 +112,8 @@ watchEffect(() => {
     <ExpeditionsModal v-if="isAuthenticated" v-model="expeditionsOpen" />
     <FriendsModal v-if="isAuthenticated" v-model="friendsOpen" />
     <GuildModal v-if="isAuthenticated" v-model="guildOpen" />
+    <PvpModal v-if="isAuthenticated" v-model="pvpOpen" />
+    <InventoryModal v-if="isAuthenticated" v-model="inventoryOpen" />
     <CollectionModal v-if="isAuthenticated" v-model="collectionOpen" />
     <HeroUpgradeModal v-if="isAuthenticated" v-model="upgradeOpen" />
     <SquadModal v-if="isAuthenticated" v-model="squadOpen" />
@@ -119,11 +130,14 @@ watchEffect(() => {
 }
 .nav-menu {
   width: 50%;
+  height: 15%;
   display: flex;
   justify-content: flex-start;
   align-items: flex-start;
   padding: 20px;
+  -moz-column-gap: 5px;
   column-gap: 5px;
+  flex-wrap: balance;
 }
 .settings {
   width: 50%;
