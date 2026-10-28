@@ -274,7 +274,7 @@ const footerText = computed(() => {
                         >
                             <span class="party-slot-number">{{ index + 1 }}</span>
                             <HeroCard v-if="hero" :hero="hero" selectable @click="clearSlot(index)" />
-                            <span v-else class="party-slot-placeholder">{{ t('inventory.emptySlot') }}</span>
+                            <span v-else class="party-slot-placeholder">{{ t('squad.emptySlot') }}</span>
                         </div>
                     </div>
                 </section>

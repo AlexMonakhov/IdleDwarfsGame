@@ -60,7 +60,7 @@ const onDrop = (index: number) => {
                 @dragend="emit('hero-dragend')"
                 @click="!readonly && emit('slot-click', index)"
             />
-            <span v-else class="squad-slot-placeholder">{{ t('inventory.emptySlot') }}</span>
+            <span v-else class="squad-slot-placeholder">{{ t('squad.emptySlot') }}</span>
         </div>
     </div>
 </template>

@@ -23,7 +23,7 @@ const load = async () => {
     try {
         heroes.value = await HeroesApiService.getMyHeroes();
     } catch {
-        errorMessage.value = t('inventory.loadError');
+        errorMessage.value = t('squad.loadError');
     } finally {
         loading.value = false;
     }
@@ -34,29 +34,29 @@ watch(() => props.refreshToken, load);
 </script>
 
 <template>
-    <div class="collection-heroes">
-        <div v-if="loading" class="collection-hint">{{ t('common.loading') }}</div>
-        <div v-else-if="errorMessage" class="collection-hint collection-hint-error">{{ errorMessage }}</div>
+    <div class="inventory-heroes">
+        <div v-if="loading" class="inventory-hint">{{ t('common.loading') }}</div>
+        <div v-else-if="errorMessage" class="inventory-hint inventory-hint-error">{{ errorMessage }}</div>
         <template v-else>
-            <div class="collection-hint">{{ t('collection.heroesCount', { count: heroes.length }) }}</div>
-            <div v-if="sorted.length" class="collection-grid">
+            <div class="inventory-hint">{{ t('inventory.heroesCount', { count: heroes.length }) }}</div>
+            <div v-if="sorted.length" class="inventory-grid">
                 <!-- selectable — чтобы карточку не тащили: здесь только просмотр -->
                 <HeroCard v-for="hero in sorted" :key="hero.id" :hero="hero" selectable />
             </div>
-            <div v-else class="collection-hint">{{ t('collection.noHeroes') }}</div>
+            <div v-else class="inventory-hint">{{ t('inventory.noHeroes') }}</div>
         </template>
     </div>
 </template>
 
 <style scoped>
-.collection-heroes {
+.inventory-heroes {
     flex: 1;
     min-width: 0;
     display: flex;
     flex-direction: column;
 }
 
-.collection-hint {
+.inventory-hint {
     margin-bottom: 10px;
     text-align: center;
     color: #cbd5e1;
@@ -65,11 +65,11 @@ watch(() => props.refreshToken, load);
     text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.6);
 }
 
-.collection-hint-error {
+.inventory-hint-error {
     color: #ffb4b4;
 }
 
-.collection-grid {
+.inventory-grid {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
