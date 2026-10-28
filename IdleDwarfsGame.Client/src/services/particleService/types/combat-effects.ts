@@ -5,21 +5,21 @@ import { EffectStrategy, EmitterConfig, Particle } from './interfaces/canvas-int
 
 const FIRE_PALETTE = ['#fffbe0', '#ffe27a', '#ffb347', '#ff7a1a', '#e2401b', '#8a1f0f'];
 
-const rand = (min: number, max: number) => min + Math.random() * (max - min);
-const clamp01 = (value: number) => Math.min(Math.max(value, 0), 1);
-const easeOut = (t: number) => 1 - (1 - t) * (1 - t);
+export const rand = (min: number, max: number) => min + Math.random() * (max - min);
+export const clamp01 = (value: number) => Math.min(Math.max(value, 0), 1);
+export const easeOut = (t: number) => 1 - (1 - t) * (1 - t);
 
 // Прогресс one-shot эффекта 0..1
-const progressOf = (emitter: EmitterConfig) => {
+export const progressOf = (emitter: EmitterConfig) => {
   const started = emitter.travelStartedAt ?? performance.now();
   return clamp01((performance.now() - started) / Math.max(emitter.travelDuration ?? 1, 1));
 };
 
 // Цвет частицы по оставшейся жизни: свежая — первый цвет палитры, угасающая — последний
-const paletteColor = (palette: string[], life: number) =>
+export const paletteColor = (palette: string[], life: number) =>
   palette[Math.min(palette.length - 1, Math.floor((1 - clamp01(life)) * palette.length))];
 
-const stepParticles = (particles: Particle[], drag = 1, gravity = 0, shrink = 1) => {
+export const stepParticles = (particles: Particle[], drag = 1, gravity = 0, shrink = 1) => {
   for (const p of particles) {
     p.x += p.vx;
     p.y += p.vy;
@@ -32,7 +32,7 @@ const stepParticles = (particles: Particle[], drag = 1, gravity = 0, shrink = 1)
   return particles.filter(p => p.life > 0 && p.size > 0.3);
 };
 
-const drawStar = (ctx: CanvasRenderingContext2D, x: number, y: number, outer: number, inner: number, points: number, rotation = 0) => {
+export const drawStar = (ctx: CanvasRenderingContext2D, x: number, y: number, outer: number, inner: number, points: number, rotation = 0) => {
   ctx.beginPath();
   for (let i = 0; i < points * 2; i++) {
     const r = i % 2 === 0 ? outer : inner;
@@ -47,7 +47,7 @@ const drawStar = (ctx: CanvasRenderingContext2D, x: number, y: number, outer: nu
 };
 
 // Базовый класс для эффектов, хранящих частицы по id эмиттера
-abstract class ParticleStore<T = Particle[]> implements EffectStrategy {
+export abstract class ParticleStore<T = Particle[]> implements EffectStrategy {
   protected store = new Map<string, T>();
   abstract update(emitter: EmitterConfig): void;
   abstract draw(ctx: CanvasRenderingContext2D, emitter: EmitterConfig): void;
@@ -184,9 +184,10 @@ export class ProjectileStrategy extends ParticleStore<{ trail: Particle[]; angle
 
 /**
  * Взрыв: вспышка, ударная волна, разлёт частиц и дым.
- * args: colors[], count, radius, speed, ring (цвет или false), flash, smoke, shards, gravity
+ * args: colors[], count, radius, speed, ring (цвет или false), flash, smoke, shards, gravity,
+ *       debris (сколько тяжёлых обломков камня взлетает и падает)
  */
-export class ExplosionStrategy extends ParticleStore<{ sparks: Particle[]; smoke: Particle[] }> {
+export class ExplosionStrategy extends ParticleStore<{ sparks: Particle[]; smoke: Particle[]; debris: Particle[] }> {
   update(emitter: EmitterConfig) {
     const args = emitter.args ?? {};
     let state = this.store.get(emitter.id);
@@ -227,11 +228,30 @@ export class ExplosionStrategy extends ParticleStore<{ sparks: Particle[]; smoke
         }))
         : [];
 
-      state = { sparks, smoke };
+      // Обломки летят вверх веером и падают под тяжестью
+      const debris = Array.from({ length: Number(args.debris ?? 0) }, () => {
+        const angle = -Math.PI / 2 + rand(-1.1, 1.1);
+        const v = rand(3, 7);
+        return {
+          x: emitter.x + rand(-10, 10),
+          y: emitter.y + rand(-6, 6),
+          vx: Math.cos(angle) * v,
+          vy: Math.sin(angle) * v,
+          life: 1,
+          maxLife: rand(0.014, 0.022),
+          size: rand(3, 6.5),
+          color: '#2a1810',
+          rotation: Math.random() * Math.PI,
+          spin: rand(-0.25, 0.25),
+        };
+      });
+
+      state = { sparks, smoke, debris };
     }
 
     state.sparks = stepParticles(state.sparks, 0.92, Number(args.gravity ?? -0.04), 0.985);
     state.smoke = stepParticles(state.smoke, 0.97, -0.01, 1.012);
+    state.debris = stepParticles(state.debris, 0.985, 0.28);
     this.store.set(emitter.id, state);
   }
 
@@ -253,6 +273,26 @@ export class ExplosionStrategy extends ParticleStore<{ sparks: Particle[]; smoke
       ctx.beginPath();
       ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
       ctx.fill();
+    }
+
+    // Обломки: тёмный камень, свежие ещё светятся раскалённым краем
+    for (const d of state.debris) {
+      ctx.save();
+      ctx.translate(d.x, d.y);
+      ctx.rotate(d.rotation ?? 0);
+      ctx.globalAlpha = opacity * clamp01(d.life * 2);
+      ctx.fillStyle = d.color;
+      ctx.strokeStyle = palette[3] ?? palette[0];
+      ctx.lineWidth = 1.5 * d.life;
+      ctx.beginPath();
+      ctx.moveTo(d.size, 0);
+      ctx.lineTo(d.size * 0.2, d.size * 0.9);
+      ctx.lineTo(-d.size * 0.9, d.size * 0.3);
+      ctx.lineTo(-d.size * 0.5, -d.size * 0.8);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+      ctx.restore();
     }
 
     ctx.globalCompositeOperation = 'lighter';
@@ -664,7 +704,7 @@ export class SparklesStrategy extends ParticleStore<{ particles: Particle[]; bur
 const rgbCache = new Map<string, string>();
 
 // '#rrggbb' + альфа -> 'rgba(...)' для стопов градиента
-const rgba = (hex: string, alpha: number) => {
+export const rgba = (hex: string, alpha: number) => {
   let rgb = rgbCache.get(hex);
   if (!rgb) {
     const n = parseInt(hex.slice(1, 7), 16);
@@ -678,7 +718,7 @@ const rgba = (hex: string, alpha: number) => {
 const GLOW_RADIUS = 32;
 const glowSprites = new Map<string, HTMLCanvasElement>();
 
-const getGlowSprite = (color: string) => {
+export const getGlowSprite = (color: string) => {
   let sprite = glowSprites.get(color);
   if (sprite) return sprite;
 
@@ -738,7 +778,7 @@ const drawMote = (ctx: CanvasRenderingContext2D, shape: AuraMote, x: number, y: 
 
 // Заливка эллипса радиальным градиентом: рисуем единичный круг в масштабированной системе координат.
 // stops — [смещение 0..1, цвет]
-const fillEllipseGradient = (
+export const fillEllipseGradient = (
   ctx: CanvasRenderingContext2D,
   x: number,
   y: number,

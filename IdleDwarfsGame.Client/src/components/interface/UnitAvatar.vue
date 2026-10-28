@@ -73,6 +73,14 @@ const portraitStyle = computed(() => {
     background-color: #2b2b2b;
 }
 
+.portrait-purple {
+    background-color: #2a1b3a;
+}
+
+.portrait-white {
+    background-color: #2b3440;
+}
+
 .portrait-boss {
     border-color: #ffd166;
     box-shadow: 0 0 0 2px #333, inset 0 0 8px black, 0 0 12px 3px #ff7b00;

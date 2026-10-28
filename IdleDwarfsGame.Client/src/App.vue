@@ -59,6 +59,8 @@ import InterfaceView from './views/InterfaceView.vue';
     --pink-gem-color: #e91e63;
     --red-gem-color: #d40808;
     --yellow-gem-color: #ffb300;
+    --purple-gem-color: #9b30ff;
+    --white-gem-color: #dff3ff;
   }
 
 nav {

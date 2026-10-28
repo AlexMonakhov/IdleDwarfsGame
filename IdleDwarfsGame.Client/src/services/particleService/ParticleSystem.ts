@@ -12,6 +12,19 @@ import {
   AuraSphereStrategy,
   AuraBurstStrategy,
 } from '@/services/particleService/types/combat-effects';
+import {
+  FireWallStrategy,
+  StormStrategy,
+  ScreenFlashStrategy,
+  IcePrisonStrategy,
+  RootsStrategy,
+  DrainStrategy,
+  SigilStrategy,
+  NovaStrategy,
+  LightPillarStrategy,
+  ArcsStrategy,
+  CometStrategy,
+} from '@/services/particleService/types/spell-effects';
 
 export class GlobalParticleService {
   private bgCanvas: HTMLCanvasElement | null = null;
@@ -38,6 +51,17 @@ export class GlobalParticleService {
     'ring': new RingStrategy(),
     'aura-sphere': new AuraSphereStrategy(),
     'aura-burst': new AuraBurstStrategy(),
+    'fire-wall': new FireWallStrategy(),
+    'storm': new StormStrategy(),
+    'screen-flash': new ScreenFlashStrategy(),
+    'ice-prison': new IcePrisonStrategy(),
+    'roots': new RootsStrategy(),
+    'drain': new DrainStrategy(),
+    'sigil': new SigilStrategy(),
+    'nova': new NovaStrategy(),
+    'light-pillar': new LightPillarStrategy(),
+    'arcs': new ArcsStrategy(),
+    'comet': new CometStrategy(),
   };
 
   // Подменить/добавить стратегию отрисовки (например, для нового эффекта статуса)

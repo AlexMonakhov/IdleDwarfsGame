@@ -9,8 +9,8 @@ import {
   HEAL_VISUAL,
   HIT_VISUALS,
   STATUS_VISUALS,
+  SpellVisual,
   UNIT_ANCHORS,
-  resolveSpellVisual,
 } from './FxRegistry';
 
 export { DAMAGE_COLORS };
@@ -26,6 +26,9 @@ export interface HitOptions {
 
 const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 let emitterSequence = 0;
+
+// На сколько волна заклинания уходит дальше самой дальней цели, px
+const WAVE_OVERSHOOT = 60;
 
 // Одноразовые и постоянные боевые эффекты поверх particle-сервиса арены
 export class BattleFx {
@@ -105,22 +108,129 @@ export class BattleFx {
     this.play([{ type: 'ring', anchor: 'feet', layer: 'background', duration, args: { color, radius: 58, mode: 'rune', width: 3 } }], caster);
   }
 
-  // Снаряд/луч от кастера к цели и взрыв на цели. Промис резолвится в момент попадания.
-  async spell(caster: UnitEl, target: UnitEl, skillName: string | undefined, damageType: string) {
-    const visual = resolveSpellVisual(skillName, damageType);
+  // Заклинание по набору целей (визуал уже выбран по имени и уровню — resolveSpellVisual):
+  // эффекты каста, доставка к каждой цели (снаряд, луч, волна или ничего) и взрывы на них.
+  // Возвращает по промису на цель — он резолвится в момент попадания по ней
+  spell(caster: UnitEl, targets: UnitEl[], visual: SpellVisual): Promise<void>[] {
     const from = this.point(caster);
-    const to = this.point(target);
-    if (!from || !to) return;
+    const points = targets.map(el => this.point(el));
+    if (!from) return targets.map(() => Promise.resolve());
 
-    if (visual.beam) {
-      this.emit(visual.beam, from, to);
-      await wait((visual.hitDelay ?? 0) / this.speed());
-    } else if (visual.projectile) {
-      this.emit(visual.projectile, from, to);
-      await wait(visual.projectile.duration / this.speed());
+    const order = this.hitOrder(visual, from, points);
+    const present = points.filter((p): p is Point => !!p);
+    // Сторона, куда бьёт кастер: по ней дует ветер бурана и катится волна
+    const side = present.length && present.reduce((sum, p) => sum + p.x, 0) / present.length < from.x ? -1 : 1;
+    const reach = Math.max(0, ...present.map(p => Math.abs(p.x - from.x))) + WAVE_OVERSHOOT;
+    const extra = { direction: side, groundOffset: this.groundOffset(caster) };
+
+    for (const spec of visual.cast ?? []) {
+      if (spec.at === 'caster') this.play([spec], caster, extra);
+      else this.playOverGroup(spec, targets, extra);
     }
 
-    this.play(visual.impact, target, { direction: from.x > to.x ? -1 : 1 });
+    if (visual.wave) {
+      const start = this.point(caster, visual.wave.anchor, visual.wave.layer);
+      if (start) this.emit(visual.wave, start, { x: start.x + side * reach, y: start.y }, extra);
+    }
+    const waveTravel = visual.wave ? visual.wave.duration * Number(visual.wave.args?.travel ?? 1) : 0;
+
+    return points.map((to, i) => {
+      if (!to) return Promise.resolve();
+      const rank = order.indexOf(i);
+      const previous = visual.from === 'chain' && rank > 0 ? points[order[rank - 1]] : null;
+      const startIn = visual.wave
+        ? (waveTravel * Math.abs(to.x - from.x)) / reach
+        : (visual.windup ?? 0) + rank * (visual.stagger ?? 0);
+      return this.deliver(visual, from, previous ?? from, targets[i], startIn);
+    });
+  }
+
+  // Порядок попаданий: цепь идёт от кастера к ближайшей цели и дальше к ближайшей к предыдущей,
+  // остальные — по удалённости от кастера
+  private hitOrder(visual: SpellVisual, from: Point, points: (Point | null)[]): number[] {
+    const left = points.flatMap((p, i) => (p ? [{ i, p }] : []));
+    if (visual.from !== 'chain') {
+      return left.sort((a, b) => Math.abs(a.p.x - from.x) - Math.abs(b.p.x - from.x)).map(t => t.i);
+    }
+
+    const order: number[] = [];
+    let at = from;
+    while (left.length) {
+      const distance = (p: Point) => Math.hypot(p.x - at.x, p.y - at.y);
+      left.sort((a, b) => distance(a.p) - distance(b.p));
+      const [next] = left.splice(0, 1);
+      order.push(next.i);
+      at = next.p;
+    }
+    return order;
+  }
+
+  // Доставка к одной цели: метка на цели, снаряд или луч, затем взрыв. Промис — момент попадания
+  private async deliver(visual: SpellVisual, caster: Point, source: Point, target: UnitEl, startIn: number) {
+    if (startIn > 0) await wait(startIn / this.speed());
+    const to = this.point(target, (visual.beam ?? visual.projectile)?.anchor);
+    if (!to) return;
+    const direction = caster.x > to.x ? -1 : 1;
+    this.play(visual.telegraph, target, { direction });
+
+    const origin = visual.from === 'sky'
+      ? { x: to.x - direction * (visual.sky?.dx ?? 0), y: to.y - (visual.sky?.height ?? 300) }
+      : source;
+
+    if (visual.beam) {
+      this.emit(visual.beam, origin, to);
+      await wait((visual.hitDelay ?? 0) / this.speed());
+    } else if (visual.projectile) {
+      await this.launch(visual, visual.projectile, origin, to);
+    } else {
+      await wait((visual.hitDelay ?? 0) / this.speed());
+    }
+
+    this.play(visual.impact, target, { direction });
+  }
+
+  // Снаряд или залп из нескольких; промис резолвится, когда долетел последний
+  private async launch(visual: SpellVisual, spec: FxSpec, from: Point, to: Point) {
+    const volley = visual.volley;
+    if (!volley) {
+      this.emit(spec, from, to);
+      await wait(spec.duration / this.speed());
+      return;
+    }
+
+    const spread = volley.spread ?? 0;
+    const jitter = () => (Math.random() * 2 - 1) * spread;
+    for (let i = 0; i < volley.count; i++) {
+      this.later(i * volley.interval, () => {
+        const start = { x: from.x + jitter(), y: from.y + jitter() };
+        const end = { x: to.x + jitter(), y: to.y + jitter() };
+        this.emit(spec, start, end, { arc: Number(spec.args?.arc ?? 0) * (0.6 + Math.random() * 0.8) });
+        this.later(spec.duration, () => volley.hit?.forEach(hit => this.emit(hit, end)));
+      });
+    }
+    await wait(((volley.count - 1) * volley.interval + spec.duration) / this.speed());
+  }
+
+  // Эффект над всей группой целей: по центру, шириной во всю группу (args.spread)
+  private playOverGroup(spec: FxSpec, targets: UnitEl[], extra: Record<string, unknown>) {
+    const points = targets.map(el => this.point(el, spec.anchor, spec.layer)).filter((p): p is Point => !!p);
+    if (!points.length) return;
+    const xs = points.map(p => p.x);
+    const left = Math.min(...xs);
+    const right = Math.max(...xs);
+    const at = { x: (left + right) / 2, y: Math.min(...points.map(p => p.y)) };
+    this.emit(spec, at, at, { ...extra, spread: right - left });
+  }
+
+  // От центра юнита до его ног, px: по нему эффекты на кастере находят землю
+  private groundOffset(el: UnitEl) {
+    const height = el?.getBoundingClientRect().height || 290;
+    return height * (UNIT_ANCHORS.feet - UNIT_ANCHORS.center);
+  }
+
+  private later(ms: number, action: () => void) {
+    if (ms > 0) setTimeout(action, ms / this.speed());
+    else action();
   }
 
   // Тик статуса (горение и т.п.). Если для статуса нет своего визуала — обычное попадание по типу урона.

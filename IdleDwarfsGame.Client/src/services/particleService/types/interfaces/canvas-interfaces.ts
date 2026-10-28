@@ -13,7 +13,18 @@ export type EffectType =
   | 'sparkles'
   | 'ring'
   | 'aura-sphere'
-  | 'aura-burst';
+  | 'aura-burst'
+  | 'fire-wall'
+  | 'storm'
+  | 'screen-flash'
+  | 'ice-prison'
+  | 'roots'
+  | 'drain'
+  | 'sigil'
+  | 'nova'
+  | 'light-pillar'
+  | 'arcs'
+  | 'comet';
 
 export type FadeDirection = 'in' | 'out';
 
