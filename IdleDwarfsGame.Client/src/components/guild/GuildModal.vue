@@ -2,7 +2,7 @@
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import ModalComponent from '@/components/common/ModalComponent.vue';
-import CollectionPlaceholder from '@/components/collection/CollectionPlaceholder.vue';
+import TabPlaceholder from '@/components/common/TabPlaceholder.vue';
 import GuildJoin from './GuildJoin.vue';
 import GuildMembers from './GuildMembers.vue';
 import GuildBosses from './GuildBosses.vue';
@@ -163,7 +163,7 @@ const footerText = computed(() => errorMessage.value ?? notice.value ?? '');
                 :server-now="serverNow"
                 @navigate="open = false"
             />
-            <CollectionPlaceholder
+            <TabPlaceholder
                 v-else
                 :icon="ICONS.shop"
                 :title="t('guild.tabs.shop')"
