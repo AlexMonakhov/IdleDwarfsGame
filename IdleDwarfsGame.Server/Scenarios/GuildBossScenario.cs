@@ -4,6 +4,9 @@ public class GuildBossScenario(IEntityFactory factory, Hero template, GuildBossD
 {
     public CombatMode Mode => CombatMode.GuildBoss;
 
+    // Бой с боссом гильдии короче обычного: на этот лимит рассчитан его запас HP (GuildBosses)
+    public int MaxRounds => GuildBosses.FightRounds;
+
     public GuildBossDefinition Definition => definition;
 
     private World? _world;
