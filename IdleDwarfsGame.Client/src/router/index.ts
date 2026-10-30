@@ -26,6 +26,12 @@ const routes: Array<RouteRecordRaw> = [
     name: 'arena',
     component: ArenaView
   },
+  // Нагрузочный тест арены: 10 дворфов разом кастуют заклинания 3-го уровня
+  {
+    path: '/arena-stress',
+    name: 'arena-stress',
+    component: () => import(/* webpackChunkName: "arena-stress" */ '@/views/ArenaStressView.vue')
+  },
   {
     path: '/town',
     name: 'town',

@@ -19,6 +19,7 @@ import { usePresence } from '@/composables/UsePresence';
 import { useGuild } from '@/composables/UseGuild';
 import { usePvp } from '@/composables/UsePvp';
 import { useSquadModal } from '@/composables/UseSquadModal';
+import { useInterface } from '@/composables/UseInterface';
 import { soundService } from '@/services/soundService/SoundService';
 import { useI18n } from 'vue-i18n';
 
@@ -37,6 +38,7 @@ const inventoryOpen = ref(false);
 const collectionOpen = ref(false);
 const upgradeOpen = ref(false);
 const { squadOpen } = useSquadModal();
+const { interfaceHidden } = useInterface();
 const accountOpen = ref(false);
 
 // Ресурсы аккаунта подтягиваем при входе и сбрасываем при выходе; там же открываем и закрываем сессию вкладки
@@ -80,7 +82,7 @@ watchEffect(() => {
 
 <template>
     <audio ref="audioRef" :src="backgroundMusic" autoplay loop :muted="soundService.settings.musicMuted"></audio>
-    <div class="interface-view" >
+    <div v-show="!interfaceHidden" class="interface-view" >
         <div  class="nav-menu">
             <GemButton @click="router.push('/')" :color="'blue'">{{ t('nav.home') }}</GemButton>
             <GemButton @click="router.push('about')" :color="'blue'">{{ t('nav.about') }}</GemButton>
