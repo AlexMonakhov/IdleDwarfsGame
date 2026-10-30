@@ -47,11 +47,24 @@ public class CombatService(
         return await ProcessCombat(playerId, 1, scenario, new List<IGlobalEffect> { new RisingFuryArenaEffect() });
     }
 
+    // Рейтинговая арена: отряд нападавшего — не из БД, а закреплённый снимок, поэтому его команду 1
+    // уже расставили в world; сценарий добавляет снимок защитника
+    public async Task<CombatResult> StartRankedFight(World world, PvpScenario scenario)
+    {
+        await scenario.PopulateEnemiesAsync(world, 1);
+        world.AddGlobalEffect(new RisingFuryArenaEffect());
+        return await RunCombat(world, 1, scenario);
+    }
+
     private async Task<CombatResult> ProcessCombat(Guid playerId, int level, ICombatScenario scenario, List<IGlobalEffect> globalEffects)
     {
         // 1. Собираем мир (WorldFactory достаёт героев из БД)
         var world = await worldFactory.CreateWorldAsync(playerId, scenario, level, globalEffects);
+        return await RunCombat(world, level, scenario);
+    }
 
+    private async Task<CombatResult> RunCombat(World world, int level, ICombatScenario scenario)
+    {
         // 2. Снимок участников до боя — фронт строит сцену по нему
         var units = CombatSnapshot.Units(world);
 

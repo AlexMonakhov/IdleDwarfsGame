@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { useAuth } from '@/composables/UseAuth';
-import { PvpFightResult, PvpOverview } from '@/models/types/Pvp';
+import { PvpFightResult, PvpOverview, RankedOverview } from '@/models/types/Pvp';
 
 const apiClient = axios.create({
     baseURL: 'https://localhost:7232',
@@ -40,6 +40,39 @@ class PvpApiService {
             return response.data;
         } catch (error) {
             console.error('Ошибка при бое PvP:', error);
+            throw error;
+        }
+    }
+
+    /* ===== Рейтинговая арена ===== */
+
+    async getRankedOverview(): Promise<RankedOverview> {
+        try {
+            const response = await apiClient.get<RankedOverview>('/pvp/ranked/me', { timeout: 15000 });
+            return response.data;
+        } catch (error) {
+            console.error('Ошибка при загрузке рейтинговой арены:', error);
+            throw error;
+        }
+    }
+
+    // Снимок текущего отряда аккаунта — раз в сутки; в ответ сразу новый обзор арены
+    async lockRankedSquad(): Promise<RankedOverview> {
+        try {
+            const response = await apiClient.post<RankedOverview>('/pvp/ranked/squad', null, { timeout: 15000 });
+            return response.data;
+        } catch (error) {
+            console.error('Ошибка при закреплении отряда:', error);
+            throw error;
+        }
+    }
+
+    async rankedFight(opponentUserId: string): Promise<PvpFightResult> {
+        try {
+            const response = await apiClient.post<PvpFightResult>(`/pvp/ranked/opponents/${opponentUserId}/fight`, null, { timeout: 15000 });
+            return response.data;
+        } catch (error) {
+            console.error('Ошибка при бое на рейтинговой арене:', error);
             throw error;
         }
     }

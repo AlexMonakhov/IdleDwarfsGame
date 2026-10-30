@@ -49,7 +49,8 @@ public static class PvpSeasons
 // Очки сезона за бой. Меняются только у нападавшего: защита идёт без участия игрока.
 // Цена зависит от соотношения мощи r = мощь соперника / мощь нападавшего:
 // победа над сильным даёт больше (WinPoints × r²), поражение от слабого снимает больше (LossPoints / r²).
-// При равной мощи +20 / −15, на краях обычного окна подбора (±10%) — +24…+16 и −12…−19
+// При равной мощи +20 / −15, на краях обычного окна подбора (±10%) — +24…+16 и −12…−19.
+// Рейтинговая арена считает по той же формуле, только вместо мощи подставляет рейтинг (±5% — +22…+18 и −14…−17)
 public static class PvpRating
 {
     public const int WinPoints = 20;
@@ -74,7 +75,22 @@ public static class PvpRating
         Math.Clamp((int)Math.Round(points, MidpointRounding.AwayFromZero), MinPoints, MaxPoints);
 }
 
-// Подбор соперников: OpponentCount игроков, чья мощь отличается от нашей не больше чем на StartSpreadPercent.
+// Рейтинговая арена: та же арена нарастающей ярости, но отряды — закреплённые снимки (RankedSquad),
+// а соперники подбираются по рейтингу, а не по мощи. Очки за бой — по формуле PvpRating от соотношения рейтингов
+public static class RankedArena
+{
+    // С него начинается каждый сезон: от нуля окно в ±5% не работало бы
+    public const int StartRating = 1000;
+    public const int StartSpreadPercent = 5;
+
+    // Подбор — по рейтингу месячного сезона: он копится дольше всех и честнее показывает силу игрока
+    public const PvpSeasonType MatchSeason = PvpSeasonType.Monthly;
+
+    // Отряд закрепляется в любой момент, а перезакрепить его можно только в следующие сутки (00:00 UTC)
+    public static DateTime CanChangeAt(DateTime lockedAt) => PvpSeasons.DayOf(lockedAt).AddDays(1);
+}
+
+// Подбор соперников: OpponentCount игроков, чья мощь (или рейтинг) отличается от нашей не больше чем на стартовое окно.
 // Не набралось — окно расширяется по SpreadStepPercent, пока не наберётся (или пока не кончатся игроки).
 // Если в окно попало больше игроков, чем нужно, выбираются случайные — но с сидом от игрока и суток,
 // чтобы список не менялся от перезахода в окно
@@ -88,22 +104,23 @@ public static class PvpMatchmaking
     public static double DiffPercent(int myPower, int theirPower) =>
         (theirPower - myPower) * 100.0 / Math.Max(1, myPower);
 
-    // Итог подбора: соперники и окно мощи, на котором их набрали
+    // Итог подбора: соперники и окно, на котором их набрали
     public record Pick<T>(List<T> Opponents, int SpreadPercent);
 
-    public static Pick<T> Choose<T>(IEnumerable<T> candidates, Func<T, Guid> id, Func<T, int> power, int myPower, int seed)
+    public static Pick<T> Choose<T>(IEnumerable<T> candidates, Func<T, Guid> id, Func<T, int> power, int myPower, int seed,
+        int startSpreadPercent = StartSpreadPercent)
     {
         var withDiff = candidates
             .OrderBy(id)
             .Select(c => (Candidate: c, Diff: Math.Abs(DiffPercent(myPower, power(c)))))
             .ToList();
         if (withDiff.Count == 0)
-            return new Pick<T>([], StartSpreadPercent);
+            return new Pick<T>([], startSpreadPercent);
 
         // Пошаговое расширение окна по 1% до первого, в котором OpponentCount игроков, —
         // это шаг, накрывающий OpponentCount-го по близости соперника
         var nearest = withDiff.Select(c => c.Diff).Order().ElementAt(Math.Min(OpponentCount, withDiff.Count) - 1);
-        int spread = StartSpreadPercent;
+        int spread = startSpreadPercent;
         if (nearest > spread)
             spread += (int)Math.Ceiling((nearest - spread) / SpreadStepPercent) * SpreadStepPercent;
 

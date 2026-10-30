@@ -43,11 +43,73 @@ public class PvpRepository(GameDbContext context) : IPvpRepository
             .ToList();
     }
 
-    public async Task<HashSet<Guid>> GetBeatenAsync(Guid attackerUserId, DateTime day)
+    public async Task<List<RankedCandidate>> GetRankedCandidatesAsync(Guid excludeUserId, PvpSeasonType type, DateTime start) =>
+        await QueryRankedCandidatesAsync(context.RankedSquads.Where(s => s.UserId != excludeUserId), type, start);
+
+    public async Task<RankedCandidate?> GetRankedCandidateAsync(Guid userId, PvpSeasonType type, DateTime start) =>
+        (await QueryRankedCandidatesAsync(context.RankedSquads.Where(s => s.UserId == userId), type, start)).FirstOrDefault();
+
+    // Снимок отряда вместе с именем и очками в сезоне подбора — одним запросом
+    private async Task<List<RankedCandidate>> QueryRankedCandidatesAsync(IQueryable<RankedSquad> squads, PvpSeasonType type, DateTime start)
+    {
+        var rows = await squads
+            .AsNoTracking()
+            .Select(s => new
+            {
+                Squad = s,
+                Username = context.Users.Where(u => u.Id == s.UserId).Select(u => u.Username).FirstOrDefault(),
+                Rating = context.PvpSeasonScores
+                    .Where(x => x.UserId == s.UserId && x.Mode == PvpMode.Ranked && x.Type == type && x.Start == start)
+                    .Select(x => (int?)x.Points)
+                    .FirstOrDefault()
+            })
+            .ToListAsync();
+
+        return rows
+            .Select(r => new RankedCandidate(r.Squad.UserId, r.Username ?? string.Empty, r.Squad.Heroes(), r.Rating))
+            .Where(c => c.Squad.Count > 0)
+            .ToList();
+    }
+
+    public async Task<RankedSquad?> GetRankedSquadAsync(Guid userId)
+    {
+        return await context.RankedSquads
+            .AsNoTracking()
+            .FirstOrDefaultAsync(s => s.UserId == userId);
+    }
+
+    public async Task<bool> SaveRankedSquadAsync(RankedSquad squad, DateTime? previousLockedAt)
+    {
+        // Условный апдейт: из двух одновременных перезакреплений пройдёт только первое
+        if (previousLockedAt is { } lockedAt)
+        {
+            return await context.RankedSquads
+                .Where(s => s.UserId == squad.UserId && s.LockedAt == lockedAt)
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(x => x.LockedAt, squad.LockedAt)
+                    .SetProperty(x => x.HeroesJson, squad.HeroesJson)) > 0;
+        }
+
+        context.RankedSquads.Add(squad);
+        try
+        {
+            await context.SaveChangesAsync();
+            context.Entry(squad).State = EntityState.Detached;
+            return true;
+        }
+        catch (DbUpdateException)
+        {
+            // Первый снимок только что сохранил параллельный запрос
+            context.ChangeTracker.Clear();
+            return false;
+        }
+    }
+
+    public async Task<HashSet<Guid>> GetBeatenAsync(Guid attackerUserId, DateTime day, PvpMode mode)
     {
         var ids = await context.PvpBattles
             .AsNoTracking()
-            .Where(b => b.AttackerUserId == attackerUserId && b.Day == day && b.AttackerWon)
+            .Where(b => b.AttackerUserId == attackerUserId && b.Day == day && b.Mode == mode && b.AttackerWon)
             .Select(b => b.DefenderUserId)
             .ToListAsync();
         return ids.ToHashSet();
@@ -80,14 +142,17 @@ public class PvpRepository(GameDbContext context) : IPvpRepository
     // Условный апдейт строки сезона; строки нет — первый бой игрока в сезоне
     private async Task AddPointsAsync(PvpBattle battle, PvpSeasonType type, DateTime start)
     {
+        var mode = battle.Mode;
         int delta = battle.Points;
         int wins = battle.AttackerWon ? 1 : 0;
         int losses = 1 - wins;
+        // Рейтинговая арена начинает сезон не с нуля
+        int initial = mode == PvpMode.Ranked ? RankedArena.StartRating : 0;
 
         for (int attempt = 0; attempt < 2; attempt++)
         {
             int updated = await context.PvpSeasonScores
-                .Where(s => s.UserId == battle.AttackerUserId && s.Type == type && s.Start == start)
+                .Where(s => s.UserId == battle.AttackerUserId && s.Mode == mode && s.Type == type && s.Start == start)
                 .ExecuteUpdateAsync(s => s
                     .SetProperty(x => x.Points, x => x.Points + delta < 0 ? 0 : x.Points + delta)
                     .SetProperty(x => x.Wins, x => x.Wins + wins)
@@ -99,9 +164,10 @@ public class PvpRepository(GameDbContext context) : IPvpRepository
             var score = new PvpSeasonScore
             {
                 UserId = battle.AttackerUserId,
+                Mode = mode,
                 Type = type,
                 Start = start,
-                Points = Math.Max(0, delta),
+                Points = Math.Max(0, initial + delta),
                 Wins = wins,
                 Losses = losses,
                 UpdatedAt = battle.FoughtAt
@@ -122,27 +188,27 @@ public class PvpRepository(GameDbContext context) : IPvpRepository
         }
     }
 
-    public async Task<PvpSeasonScore?> GetScoreAsync(Guid userId, PvpSeasonType type, DateTime start)
+    public async Task<PvpSeasonScore?> GetScoreAsync(Guid userId, PvpMode mode, PvpSeasonType type, DateTime start)
     {
         return await context.PvpSeasonScores
             .AsNoTracking()
-            .FirstOrDefaultAsync(s => s.UserId == userId && s.Type == type && s.Start == start);
+            .FirstOrDefaultAsync(s => s.UserId == userId && s.Mode == mode && s.Type == type && s.Start == start);
     }
 
     public async Task<int> CountAheadAsync(PvpSeasonScore score)
     {
         return await context.PvpSeasonScores.CountAsync(s =>
-            s.Type == score.Type && s.Start == score.Start &&
+            s.Mode == score.Mode && s.Type == score.Type && s.Start == score.Start &&
             (s.Points > score.Points
              || (s.Points == score.Points && s.Wins > score.Wins)
              || (s.Points == score.Points && s.Wins == score.Wins && s.UpdatedAt < score.UpdatedAt)));
     }
 
-    public async Task<List<PvpLeaderboardEntry>> GetLeaderboardAsync(PvpSeasonType type, DateTime start, int limit)
+    public async Task<List<PvpLeaderboardEntry>> GetLeaderboardAsync(PvpMode mode, PvpSeasonType type, DateTime start, int limit)
     {
         var rows = await context.PvpSeasonScores
             .AsNoTracking()
-            .Where(s => s.Type == type && s.Start == start)
+            .Where(s => s.Mode == mode && s.Type == type && s.Start == start)
             .OrderByDescending(s => s.Points)
             .ThenByDescending(s => s.Wins)
             .ThenBy(s => s.UpdatedAt)
@@ -160,11 +226,11 @@ public class PvpRepository(GameDbContext context) : IPvpRepository
         return rows.Select(r => new PvpLeaderboardEntry(r.UserId, r.Username ?? string.Empty, r.Points, r.Wins, r.Losses)).ToList();
     }
 
-    public async Task<List<PvpHistoryEntry>> GetHistoryAsync(Guid userId, int limit)
+    public async Task<List<PvpHistoryEntry>> GetHistoryAsync(Guid userId, PvpMode mode, int limit)
     {
         var battles = await context.PvpBattles
             .AsNoTracking()
-            .Where(b => b.AttackerUserId == userId || b.DefenderUserId == userId)
+            .Where(b => b.Mode == mode && (b.AttackerUserId == userId || b.DefenderUserId == userId))
             .OrderByDescending(b => b.FoughtAt)
             .Take(limit)
             .ToListAsync();

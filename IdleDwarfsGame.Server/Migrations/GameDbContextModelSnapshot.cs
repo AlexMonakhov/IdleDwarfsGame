@@ -1834,6 +1834,9 @@ namespace IdleDwarfsGame.Server.Migrations
                     b.Property<int>("AttackerPower")
                         .HasColumnType("INTEGER");
 
+                    b.Property<int>("AttackerRating")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("AttackerUserId")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -1847,11 +1850,19 @@ namespace IdleDwarfsGame.Server.Migrations
                     b.Property<int>("DefenderPower")
                         .HasColumnType("INTEGER");
 
+                    b.Property<int>("DefenderRating")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("DefenderUserId")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime>("FoughtAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Mode")
+                        .IsRequired()
+                        .HasMaxLength(16)
                         .HasColumnType("TEXT");
 
                     b.Property<int>("Points")
@@ -1863,7 +1874,7 @@ namespace IdleDwarfsGame.Server.Migrations
 
                     b.HasIndex("DefenderUserId", "FoughtAt");
 
-                    b.HasIndex("AttackerUserId", "DefenderUserId", "Day")
+                    b.HasIndex("AttackerUserId", "DefenderUserId", "Day", "Mode")
                         .IsUnique()
                         .HasFilter("\"AttackerWon\" = 1");
 
@@ -1873,6 +1884,10 @@ namespace IdleDwarfsGame.Server.Migrations
             modelBuilder.Entity("PvpSeasonScore", b =>
                 {
                     b.Property<string>("UserId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Mode")
+                        .HasMaxLength(16)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Type")
@@ -1894,11 +1909,28 @@ namespace IdleDwarfsGame.Server.Migrations
                     b.Property<int>("Wins")
                         .HasColumnType("INTEGER");
 
-                    b.HasKey("UserId", "Type", "Start");
+                    b.HasKey("UserId", "Mode", "Type", "Start");
 
-                    b.HasIndex("Type", "Start", "Points");
+                    b.HasIndex("Mode", "Type", "Start", "Points");
 
                     b.ToTable("PvpSeasonScores");
+                });
+
+            modelBuilder.Entity("RankedSquad", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("HeroesJson")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("LockedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("UserId");
+
+                    b.ToTable("RankedSquads");
                 });
 
             modelBuilder.Entity("Resourses", b =>
@@ -2676,6 +2708,15 @@ namespace IdleDwarfsGame.Server.Migrations
                 });
 
             modelBuilder.Entity("PvpSeasonScore", b =>
+                {
+                    b.HasOne("User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("RankedSquad", b =>
                 {
                     b.HasOne("User", null)
                         .WithMany()

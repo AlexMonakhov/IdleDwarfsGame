@@ -23,6 +23,9 @@ export interface PvpOpponentInfo {
     powerDiffPercent: number;
     squad: CombatUnitInfo[];
     forecast: BattleForecast;
+    // Рейтинговая арена: рейтинг соперника и насколько он выше (+) или ниже (−) нашего; в обычной — null
+    rating: number | null;
+    ratingDiffPercent: number | null;
     // Очки сезона за победу и за поражение
     winPoints: number;
     lossPoints: number;
@@ -63,6 +66,9 @@ export interface PvpBattleInfo {
     points: number;
     myPower: number;
     opponentPower: number;
+    // Рейтинг сторон до боя на рейтинговой арене; в обычной — null
+    myRating: number | null;
+    opponentRating: number | null;
 }
 
 export interface PvpOverview {
@@ -73,6 +79,38 @@ export interface PvpOverview {
     squad: CombatUnitInfo[];
     // Окно мощи подбора: 10%, а если игроков мало — шире
     powerSpreadPercent: number;
+    opponentCount: number;
+    opponents: PvpOpponentInfo[];
+    beatenToday: number;
+    seasons: PvpSeasonInfo[];
+    history: PvpBattleInfo[];
+    arena: PvpArenaInfo;
+}
+
+// Закреплённый отряд рейтинговой арены — снимок на момент закрепления
+export interface RankedSquadInfo {
+    lockedAt: string;
+    // С этого момента (следующие 00:00 UTC) отряд можно перезакрепить
+    canChangeAt: string;
+    power: number;
+    units: CombatUnitInfo[];
+}
+
+export interface RankedOverview {
+    serverTime: string;
+    dayResetAt: string;
+    // null — отряд ещё не закреплён, драться нельзя
+    squad: RankedSquadInfo | null;
+    canLockSquad: boolean;
+    // Текущий отряд аккаунта — что попадёт в снимок при закреплении
+    accountPower: number;
+    accountSquad: CombatUnitInfo[];
+    // Рейтинг сезона matchSeason, по которому идёт подбор, и окно подбора (5%, а если игроков мало — шире)
+    myRating: number;
+    // С него начинается каждый сезон
+    startRating: number;
+    matchSeason: PvpSeasonType;
+    ratingSpreadPercent: number;
     opponentCount: number;
     opponents: PvpOpponentInfo[];
     beatenToday: number;
