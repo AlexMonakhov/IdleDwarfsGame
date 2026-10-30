@@ -4,7 +4,7 @@ import CharacterSkeleton from './character-skeleton.vue';
 import CharacterStats from './character-stats.vue';
 import { HeroModel } from '@/models/hero';
 import { BattleUnit, UnitStatus, auraEffectOf } from '@/battle/BattleState';
-import { elementColor } from '@/battle/sprites';
+import { elementColor, SpriteAnimation } from '@/battle/sprites';
 import { BATTLE_FX_KEY } from '@/battle/BattleFx';
 import { DAMAGE_COLORS, combineStatusVisuals, resolveAuraVisual } from '@/battle/FxRegistry';
 import { registerUnitView, unregisterUnitView, UnitView } from '@/battle/UnitRegistry';
@@ -21,6 +21,9 @@ const props = defineProps<{
   scale?: number;
   rotate?: boolean;
 }>();
+
+// В бою юниты не ходят: лист walk не грузим
+const BATTLE_ANIMATIONS: SpriteAnimation[] = ['idle', 'attack', 'victory', 'death'];
 
 const rootRef = ref<HTMLElement | null>(null);
 const spriteRef = ref<HTMLElement | null>(null);
@@ -79,6 +82,8 @@ const wrapperStyle = computed(() => ({
   // Направление «лицом к врагу»: левая команда смотрит вправо
   '--face': props.rotate ? -1 : 1,
   '--focus-color': props.unit.focus?.color ?? '#ffe8a3',
+  // Во сколько раз юнит крупнее обычного (0.65): по нему растёт тень под ногами
+  '--unit-size': (props.scale ?? 0.65) / 0.65,
 }));
 
 // Постоянные эффекты статусов (пламя, снежинки, звёзды стана) — пока статус висит на юните
@@ -162,6 +167,7 @@ const view: UnitView = {
     skeletonRef.value?.flash(color, 0.5, 550);
   },
   victory: () => skeletonRef.value?.playAnimation('victory'),
+  ready: () => skeletonRef.value?.ready() ?? Promise.resolve(),
 };
 
 // id юнита может смениться при новом бое, а компонент переиспользоваться
@@ -225,7 +231,8 @@ defineExpose(view);
             >{{ text.text }}</div>
         </div>
 
-        <div ref="spriteRef" class="sprite-box" :class="fxClass">
+        <!-- data-face читает BattleFx.point: куда смотрит юнит (то же, что --face) -->
+        <div ref="spriteRef" class="sprite-box" :class="fxClass" :data-face="props.rotate ? -1 : 1">
           <div class="unit-shadow"></div>
           <div class="unit-body">
             <CharacterSkeleton
@@ -237,13 +244,14 @@ defineExpose(view);
                   :frame-width="props.frameWidth ?? 409.6"
                   :frame-height="props.frameHeight ?? 409.6"
                   :frame-count="props.frameCount ?? 24"
-                  :fps="12"
+                  :fps="16"
                   :columns="5"
                   :scale="props.scale ?? 0.65"
                   :padding="1.1"
                   :tint="spriteTint"
                   :speed="statusVisual.animSpeed"
-                  :paused="!unit.alive"></CharacterSkeleton>
+                  :paused="!unit.alive"
+                  :animations="BATTLE_ANIMATIONS"></CharacterSkeleton>
           </div>
         </div>
     </div>
@@ -385,7 +393,7 @@ defineExpose(view);
   .unit-body{
     position: relative;
     z-index: 1;
-    transform-origin: 50% 72%;
+    transform-origin: 50% 80%;
     transition: transform 0.2s ease-out, filter 0.2s ease-out;
   }
   .unit-body canvas{
@@ -394,10 +402,10 @@ defineExpose(view);
   .unit-shadow{
     position: absolute;
     z-index: 0;
-    top: 72%;
+    top: 80%;
     left: calc(50% + 3% * var(--face, 1));
-    width: 100px;
-    height: 24px;
+    width: calc(100px * var(--unit-size, 1));
+    height: calc(24px * var(--unit-size, 1));
     transform: translate(-50%, -50%);
     border-radius: 50%;
     background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.35) 45%, rgba(0, 0, 0, 0) 72%);
@@ -408,14 +416,10 @@ defineExpose(view);
     opacity: 0.5;
   }
 
-  /* Чей ход (атакующий/кастер): свечение и +10% размера с начала хода */
-  .focus-attacker .unit-body,
-  .focus-caster .unit-body{
-    transform: scale(1.1);
-  }
+  /* Чей ход (атакующий/кастер): свечение с начала хода */
   /* Рывок в сторону врага в момент удара */
   .fx-lunge .unit-body{
-    transform: translateX(calc(18px * var(--face, 1))) scale(1.1);
+    transform: translateX(calc(18px * var(--face, 1)));
   }
   .focus-attacker .unit-body,
   .focus-caster .unit-body{

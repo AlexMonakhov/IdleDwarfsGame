@@ -45,11 +45,16 @@ const TIMING = {
 // Облачко с репликой не короче этого даже на x4 — иначе не успеть прочитать
 const MIN_SPEECH_MS = 1500;
 
+// Дольше этого спрайты перед боем не ждём (медленная сеть): бой начнётся, недогруженные листы появятся по ходу
+const SPRITE_WAIT_MS = 15000;
+
 // Подсветка юнита, чей сейчас ход
 const TURN_COLOR = '#ffe8a3';
 
 let floatingTextId = 0;
 let speechId = 0;
+
+const nextFrame = () => new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
 
 // Проигрывает бой, полностью восстанавливая состояние сцены из серверных логов.
 export class BattlePlayer {
@@ -85,9 +90,22 @@ export class BattlePlayer {
     this.currentActor = null;
     resetBattleState(this.state, result);
     this.state.playing = true;
+    // Сцена под экраном загрузки, пока у юнитов не готовы спрайт-листы:
+    // иначе их загрузка и распаковка приходится на первые удары, а юниты появляются уже на глазах
+    this.state.preparing = true;
 
     // Дать Vue отрисовать юнитов, чтобы у эффектов были координаты
-    await this.delay(300, true);
+    await nextFrame();
+
+    await Promise.race([
+      Promise.all(Object.values(this.state.units).map(u => getUnitView(u.id)?.ready?.())),
+      new Promise(resolve => setTimeout(resolve, SPRITE_WAIT_MS)),
+    ]);
+    // Первые кадры с готовыми листами рисуются ещё под экраном загрузки
+    await nextFrame();
+    await nextFrame();
+    this.state.preparing = false;
+    if (runId !== this.runId) return;
 
     const logs = [...result.logs].sort((a, b) => a.sequence - b.sequence);
     let i = 0;
@@ -508,9 +526,8 @@ export class BattlePlayer {
     }, Math.max(MIN_SPEECH_MS, TIMING.speech / this.speed));
   }
 
-  private delay(ms: number, ignoreSpeed = false) {
+  private delay(ms: number) {
     if (this.skipping) return Promise.resolve();
-    const duration = ignoreSpeed ? ms : ms / this.speed;
-    return new Promise<void>(resolve => setTimeout(resolve, duration));
+    return new Promise<void>(resolve => setTimeout(resolve, ms / this.speed));
   }
 }

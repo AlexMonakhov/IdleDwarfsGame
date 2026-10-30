@@ -64,6 +64,8 @@ export interface BattleState {
   damageBonus: number;
   winningTeam: number | null;
   playing: boolean;
+  // Бой загружен, но ждёт, пока прогрузятся спрайт-листы юнитов
+  preparing: boolean;
   finished: boolean;
   shownLogs: CombatLogEntry[];
 }
@@ -102,6 +104,7 @@ export function createBattleState(): BattleState {
     damageBonus: 0,
     winningTeam: null,
     playing: false,
+    preparing: false,
     finished: false,
     shownLogs: [],
   });
@@ -113,6 +116,7 @@ export function resetBattleState(state: BattleState, result: CombatResult) {
   state.damageBonus = 0;
   state.winningTeam = null;
   state.playing = false;
+  state.preparing = false;
   state.finished = false;
   state.shownLogs = [];
 }
