@@ -579,6 +579,30 @@ export class FrostAuraStrategy extends ParticleStore {
   }
 }
 
+// Звёздочка оглушения со свечением, как и снежинка, рендерится один раз: оглушённых бывает полкоманды,
+// и shadowBlur на каждой звезде каждый кадр, пока висит стан, — постоянная нагрузка
+const STUN_STAR_SIZE = 14; // в 2 раза больше обычного размера звезды, чтобы не мылилось
+const STUN_STAR_BLUR = 20;
+const stunStarSprites = new Map<string, HTMLCanvasElement>();
+
+const getStunStarSprite = (color: string) => {
+  let sprite = stunStarSprites.get(color);
+  if (sprite) return sprite;
+
+  // Тень размытия уходит от фигуры примерно на 1.5 shadowBlur
+  const half = Math.ceil(STUN_STAR_SIZE + STUN_STAR_BLUR * 1.5);
+  sprite = document.createElement('canvas');
+  sprite.width = sprite.height = half * 2;
+  const ctx = sprite.getContext('2d')!;
+  ctx.fillStyle = color;
+  ctx.shadowColor = color;
+  ctx.shadowBlur = STUN_STAR_BLUR;
+  drawStar(ctx, half, half, STUN_STAR_SIZE, STUN_STAR_SIZE * 0.45, 5);
+
+  stunStarSprites.set(color, sprite);
+  return sprite;
+};
+
 /**
  * Звёздочки, кружащие над головой оглушённого.
  * args: count, radiusX, radiusY, color, size, speed
@@ -611,25 +635,55 @@ export class StunStarsStrategy implements EffectStrategy {
     ctx.ellipse(emitter.x, emitter.y, rx, ry, 0, 0, Math.PI * 2);
     ctx.stroke();
 
-    ctx.fillStyle = color;
-    ctx.shadowColor = color;
-    ctx.shadowBlur = 10;
+    const sprite = getStunStarSprite(color);
     for (const star of stars) {
-      const scale = 0.65 + star.depth * 0.55;
+      const half = (sprite.width / 2) * ((size * (0.65 + star.depth * 0.55)) / STUN_STAR_SIZE);
       ctx.globalAlpha = opacity * (0.55 + star.depth * 0.45);
-      drawStar(
-        ctx,
-        emitter.x + Math.cos(star.a) * rx,
-        emitter.y + Math.sin(star.a) * ry,
-        size * scale,
-        size * scale * 0.45,
-        5,
-        star.a * 1.5,
-      );
+      ctx.save();
+      ctx.translate(emitter.x + Math.cos(star.a) * rx, emitter.y + Math.sin(star.a) * ry);
+      ctx.rotate(star.a * 1.5);
+      ctx.drawImage(sprite, -half, -half, half * 2, half * 2);
+      ctx.restore();
     }
     ctx.restore();
   }
 }
+
+// Искра со свечением, как и снежинка, рендерится один раз на цвет и форму: при массовом лечении и буране
+// искр на экране сотни, и shadowBlur на каждой каждый кадр роняет FPS
+const SPARK_SIZE = 12; // в 2 раза больше максимального размера частицы, чтобы не мылилось
+const SPARK_BLUR = 16;
+const sparkSprites = new Map<string, HTMLCanvasElement>();
+
+const getSparkSprite = (color: string, shape: string) => {
+  const key = `${color}|${shape}`;
+  let sprite = sparkSprites.get(key);
+  if (sprite) return sprite;
+
+  // Тень размытия уходит от фигуры примерно на 1.5 shadowBlur
+  const half = Math.ceil(SPARK_SIZE + SPARK_BLUR * 1.5);
+  sprite = document.createElement('canvas');
+  sprite.width = sprite.height = half * 2;
+  const ctx = sprite.getContext('2d')!;
+  ctx.translate(half, half);
+  ctx.fillStyle = color;
+  ctx.shadowColor = color;
+  ctx.shadowBlur = SPARK_BLUR;
+  if (shape === 'plus') {
+    const t = SPARK_SIZE * 0.35;
+    ctx.fillRect(-SPARK_SIZE, -t / 2, SPARK_SIZE * 2, t);
+    ctx.fillRect(-t / 2, -SPARK_SIZE, t, SPARK_SIZE * 2);
+  } else if (shape === 'star') {
+    drawStar(ctx, 0, 0, SPARK_SIZE, SPARK_SIZE * 0.35, 4);
+  } else {
+    ctx.beginPath();
+    ctx.arc(0, 0, SPARK_SIZE * 0.6, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  sparkSprites.set(key, sprite);
+  return sprite;
+};
 
 /**
  * Поднимающиеся искры/плюсики (лечение, реген, бафы).
@@ -679,21 +733,10 @@ export class SparklesStrategy extends ParticleStore<{ particles: Particle[]; bur
     ctx.save();
     ctx.globalCompositeOperation = 'lighter';
     for (const p of state.particles) {
+      const sprite = getSparkSprite(p.color, shape);
+      const half = (sprite.width / 2) * (p.size / SPARK_SIZE);
       ctx.globalAlpha = opacity * Math.sin(Math.PI * clamp01(p.life));
-      ctx.fillStyle = p.color;
-      ctx.shadowColor = p.color;
-      ctx.shadowBlur = 8;
-      if (shape === 'plus') {
-        const t = p.size * 0.35;
-        ctx.fillRect(p.x - p.size, p.y - t / 2, p.size * 2, t);
-        ctx.fillRect(p.x - t / 2, p.y - p.size, t, p.size * 2);
-      } else if (shape === 'star') {
-        drawStar(ctx, p.x, p.y, p.size, p.size * 0.35, 4);
-      } else {
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size * 0.6, 0, Math.PI * 2);
-        ctx.fill();
-      }
+      ctx.drawImage(sprite, p.x - half, p.y - half, half * 2, half * 2);
     }
     ctx.restore();
   }
@@ -1117,6 +1160,64 @@ export class AuraBurstStrategy extends ParticleStore {
 }
 
 /**
+ * Вспышка света в точке попадания: мягкое пятно цвета стихии раздувается и гаснет, в центре — белое ядро,
+ * под ним на земле — отсвет. Всё из готового спрайта ореола (getGlowSprite): пара drawImage за кадр,
+ * а сцена заметно ярче и попадание читается издалека.
+ * args: color, radius, intensity (0..1), ground (на сколько ниже точки земля, px; 0 — без отсвета)
+ */
+export class FlareStrategy implements EffectStrategy {
+  update() {
+    // Целиком от времени
+  }
+
+  draw(ctx: CanvasRenderingContext2D, emitter: EmitterConfig) {
+    const args = emitter.args ?? {};
+    const color = args.color ?? '#ffd166';
+    const p = progressOf(emitter);
+    // Резко вспыхивает и плавно гаснет
+    const fade = p < 0.12 ? p / 0.12 : Math.pow(1 - (p - 0.12) / 0.88, 1.6);
+    const alpha = (emitter.opacity ?? 1) * Number(args.intensity ?? 1) * fade;
+    if (alpha <= 0) return;
+    const r = Number(args.radius ?? 110) * (0.55 + 0.45 * easeOut(clamp01(p / 0.3)));
+    const ground = Number(args.ground ?? 0);
+
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.globalAlpha = alpha;
+    ctx.drawImage(getGlowSprite(color), emitter.x - r, emitter.y - r, r * 2, r * 2);
+
+    const core = r * 0.35;
+    ctx.globalAlpha = alpha * 0.85;
+    ctx.drawImage(getGlowSprite('#ffffff'), emitter.x - core, emitter.y - core, core * 2, core * 2);
+
+    if (ground > 0) {
+      const spread = r * 1.5;
+      ctx.translate(emitter.x, emitter.y + ground);
+      ctx.scale(1, 0.28);
+      ctx.globalAlpha = alpha * 0.8;
+      ctx.drawImage(getGlowSprite(color), -spread, -spread, spread * 2, spread * 2);
+    }
+    ctx.restore();
+  }
+}
+
+// Штрих с ореолом: тот же путь сначала широким полупрозрачным штрихом, затем обычным.
+// Вместо shadowBlur: круги на земле рисует почти каждое заклинание (круг под кастером, волна под целью, руна),
+// и размытие на каждом штрихе каждый кадр роняет FPS
+const RING_GLOW = 10;
+const strokeGlowing = (ctx: CanvasRenderingContext2D, width: number, build: () => void) => {
+  const alpha = ctx.globalAlpha;
+  ctx.beginPath();
+  build();
+  ctx.globalAlpha = alpha * 0.25;
+  ctx.lineWidth = width + RING_GLOW;
+  ctx.stroke();
+  ctx.globalAlpha = alpha;
+  ctx.lineWidth = width;
+  ctx.stroke();
+};
+
+/**
  * Кольцо на земле: волна ('pulse') или вращающийся магический круг ('rune').
  * args: color, radius, squash (сплющивание эллипса), width, mode
  */
@@ -1139,8 +1240,7 @@ export class RingStrategy implements EffectStrategy {
     ctx.translate(emitter.x, emitter.y);
     ctx.scale(1, squash);
     ctx.strokeStyle = color;
-    ctx.shadowColor = color;
-    ctx.shadowBlur = 12;
+    ctx.lineCap = 'round';
 
     if (args.mode === 'rune') {
       const appear = easeOut(Math.min(p / 0.2, 1));
@@ -1149,25 +1249,17 @@ export class RingStrategy implements EffectStrategy {
       ctx.globalAlpha = opacity * fade;
       ctx.rotate(performance.now() / 600);
 
-      ctx.lineWidth = width;
-      ctx.beginPath();
-      ctx.arc(0, 0, r, 0, Math.PI * 2);
-      ctx.stroke();
-
-      ctx.lineWidth = width * 0.5;
-      ctx.beginPath();
-      ctx.arc(0, 0, r * 0.75, 0, Math.PI * 2);
-      ctx.stroke();
+      strokeGlowing(ctx, width, () => ctx.arc(0, 0, r, 0, Math.PI * 2));
+      strokeGlowing(ctx, width * 0.5, () => ctx.arc(0, 0, r * 0.75, 0, Math.PI * 2));
 
       // Руны-засечки между кругами
-      ctx.lineWidth = width * 0.8;
-      for (let i = 0; i < 8; i++) {
-        const a = (i * Math.PI) / 4;
-        ctx.beginPath();
-        ctx.moveTo(Math.cos(a) * r * 0.78, Math.sin(a) * r * 0.78);
-        ctx.lineTo(Math.cos(a + 0.2) * r * 0.97, Math.sin(a + 0.2) * r * 0.97);
-        ctx.stroke();
-      }
+      strokeGlowing(ctx, width * 0.8, () => {
+        for (let i = 0; i < 8; i++) {
+          const a = (i * Math.PI) / 4;
+          ctx.moveTo(Math.cos(a) * r * 0.78, Math.sin(a) * r * 0.78);
+          ctx.lineTo(Math.cos(a + 0.2) * r * 0.97, Math.sin(a + 0.2) * r * 0.97);
+        }
+      });
 
       const fill = ctx.createRadialGradient(0, 0, 0, 0, 0, r);
       fill.addColorStop(0, color);
@@ -1181,10 +1273,7 @@ export class RingStrategy implements EffectStrategy {
       const grow = easeOut(p);
       const r = radius * (0.3 + 0.9 * grow);
       ctx.globalAlpha = opacity * (1 - p);
-      ctx.lineWidth = width * (1 - p) + 1;
-      ctx.beginPath();
-      ctx.arc(0, 0, r, 0, Math.PI * 2);
-      ctx.stroke();
+      strokeGlowing(ctx, width * (1 - p) + 1, () => ctx.arc(0, 0, r, 0, Math.PI * 2));
 
       const fill = ctx.createRadialGradient(0, 0, 0, 0, 0, r);
       fill.addColorStop(0, color);

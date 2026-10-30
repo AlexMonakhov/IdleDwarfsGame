@@ -24,7 +24,8 @@ export type EffectType =
   | 'nova'
   | 'light-pillar'
   | 'arcs'
-  | 'comet';
+  | 'comet'
+  | 'flare';
 
 export type FadeDirection = 'in' | 'out';
 
