@@ -30,7 +30,7 @@ public class InventoryRepository(GameDbContext context) : IInventoryRepository
             .ToListAsync();
     }
 
-    public async Task<bool> OpenChestAsync(PlayerChest chest, IReadOnlyList<LootDrop> items, IReadOnlyList<Hero> heroes)
+    public async Task<bool> OpenChestAsync(PlayerChest chest, IReadOnlyList<LootDrop> items, IReadOnlyList<Hero> heroes, IReadOnlyList<PlayerEquipment>? equipment = null)
     {
         await using var transaction = await context.Database.BeginTransactionAsync();
 
@@ -64,6 +64,8 @@ public class InventoryRepository(GameDbContext context) : IInventoryRepository
         }
 
         context.Heroes.AddRange(heroes);
+        if (equipment != null)
+            context.PlayerEquipment.AddRange(equipment);
         await context.SaveChangesAsync();
 
         await transaction.CommitAsync();

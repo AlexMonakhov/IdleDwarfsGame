@@ -19,6 +19,8 @@ public class World
     public Dictionary<int, EnergyComponent> Energy = new();
     public Dictionary<int, TurnStateComponent> TurnState = new();
     public Dictionary<int, AuraComponent> Auras = new();
+    public Dictionary<int, PassiveComponent> Passives = new();
+    public Dictionary<int, GearComponent> Gear = new();
 
     public Entity CreateEntity()
     {
@@ -63,6 +65,21 @@ public class World
     // Урон с учётом DamageBonusPercent. Считается до ApplyDamage, чтобы в лог шла та же цифра, что сняла HP
     public int ScaleDamage(int amount) =>
         DamageBonusPercent == 0 ? amount : (int)Math.Round(amount * (100 + DamageBonusPercent) / 100.0, MidpointRounding.AwayFromZero);
+
+    public PassiveValues? GetPassive(int entityId, HeroPassive passive) =>
+        Passives.TryGetValue(entityId, out var component) && component.Active.TryGetValue(passive, out var values) ? values : null;
+
+    // Урон удара или спелла по цели: прибавка арены, затем защита цели. Тики статусов сюда не идут — у них нет атакующего
+    public int ResolveHit(int attackerId, int targetId, int amount)
+    {
+        int damage = ScaleDamage(amount);
+        if (GetPassive(targetId, HeroPassive.SurvivalOfTheWeakest) is { } survival
+            && Attack[attackerId].Damage > Attack[targetId].Damage)
+        {
+            damage = (int)Math.Round(damage * Math.Max(0, 100 - survival.Percent) / 100.0, MidpointRounding.AwayFromZero);
+        }
+        return damage;
+    }
 
     // Наносит урон и возвращает фактический остаток HP (не ниже 0)
     public int ApplyDamage(int targetId, int amount)

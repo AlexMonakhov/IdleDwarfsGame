@@ -21,7 +21,8 @@
         </div>
         <div class="stress-controls">
           <button title="Клавиша H" @click="interfaceHidden = !interfaceHidden">{{ interfaceHidden ? 'Показать интерфейс' : 'Скрыть интерфейс' }}</button>
-          <button @click="paused = !paused">{{ paused ? 'Продолжить' : 'Пауза' }}</button>
+          <button :class="{ active: manual }" @click="manual = !manual">{{ manual ? 'Ручной режим' : 'Автобой' }}</button>
+          <button v-if="!manual" @click="paused = !paused">{{ paused ? 'Продолжить' : 'Пауза' }}</button>
           <button v-for="value in [1, 2, 4]" :key="value" :class="{ active: speed === value }" @click="speed = value">x{{ value }}</button>
           <button :class="{ active: aurasOn }" @click="aurasOn = !aurasOn">Ауры</button>
           <button :class="{ active: statusesOn }" @click="statusesOn = !statusesOn">Статусы</button>
@@ -46,6 +47,45 @@
           </button>
         </div>
       </div>
+
+      <!-- Ручной режим: автобой стоит, заклинание и его уровень выбираются здесь — кастует дворф этой строки -->
+      <div v-if="manual" class="stress-spells">
+        <template v-for="team in teams" :key="team.title">
+          <div class="stress-spells-team">{{ team.title }}</div>
+          <div
+            v-for="unit in team.units"
+            :key="unit.id"
+            class="stress-spells-row"
+            @mouseenter="highlight(unit, true)"
+            @mouseleave="highlight(unit, false)"
+          >
+            <span class="stress-spells-unit">{{ unit.position }} · {{ unit.element }}</span>
+            <!-- Заклинание и кнопки его уровней: цифра — каст этого уровня -->
+            <div
+              v-for="sample in fighterOf(unit).spells"
+              :key="sample.key"
+              class="stress-spell"
+              :style="{ '--spell-color': spellColor(sample) }"
+            >
+              <span>{{ sample.name }}</span>
+              <button
+                v-for="level in SPELL_LEVELS"
+                :key="level"
+                :disabled="casting.has(unit.id)"
+                :title="`${sample.name}, уровень ${level}`"
+                @click="castSpell(unit, sample, level)"
+              >{{ level }}</button>
+            </div>
+            <button
+              v-if="aurasOn"
+              class="stress-spells-aura"
+              :disabled="casting.has(unit.id)"
+              title="Волна ауры"
+              @click="pulseAura(unit)"
+            >✦</button>
+          </div>
+        </template>
+      </div>
     </CanvasLayer>
 
     <div v-if="loading" class="stress-loading">Загрузка спрайтов…</div>
@@ -53,7 +93,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, nextTick, onBeforeUnmount, onMounted, provide, ref, watch } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, provide, reactive, ref, watch } from 'vue';
 import CanvasComponent from '@/components/canvas/CanvasComponent.vue';
 import CanvasLayer from '@/components/canvas/CanvasLayer.vue';
 import CharacterComponent from '@/components/character-component.vue';
@@ -65,10 +105,11 @@ import { getUnitView } from '@/battle/UnitRegistry';
 import { useInterface } from '@/composables/UseInterface';
 import { EffectType } from '@/services/particleService/types/interfaces/canvas-interfaces';
 import { CombatUnitInfo, HeroElement } from '@/battle/types';
-import { AURA_SAMPLES, AuraSample, PREVIEW_RANK, SPELLS, SpellSample } from '@/components/collection/catalog';
+import { AURA_SAMPLES, AuraSample, HERO_KINDS, PREVIEW_RANK, SPELL_LEVELS, SPELLS, SpellSample } from '@/components/collection/catalog';
 
 // Нагрузочный тест арены: 10 дворфов, у каждого аура и одно заклинание 3-го уровня.
-// Ходят по очереди, как в бою: на своём ходу носитель пускает волну ауры и кастует, и так по кругу без конца.
+// Автобой: ходят по очереди, как в бою — на своём ходу носитель пускает волну ауры и кастует, и так по кругу без конца.
+// Ручной режим: автобой стоит, заклинание (любое из стихии дворфа, любого уровня) выбирается в списке справа.
 // Эффекты те же, что в бою (BattleFx и вьюхи юнитов), паузы — как в BattlePlayer
 
 const UNIT_SCALE = 0.8; // как на арене
@@ -93,9 +134,14 @@ const FIRST_ID = 9101;
 
 interface Fighter {
   element: HeroElement;
+  // Заклинание автобоя
   spell: SpellSample;
+  // Все заклинания стихии — для ручного режима
+  spells: SpellSample[];
   aura: AuraSample;
 }
+
+const spellsOf = (element: HeroElement) => HERO_KINDS.find(kind => kind.element === element)?.spells ?? [];
 
 // Первые пять — левая команда, остальные — правая
 const ROSTER: Fighter[] = ([
@@ -109,7 +155,11 @@ const ROSTER: Fighter[] = ([
   { element: 'Lightning', spell: SPELLS.thunderclap },
   { element: 'Dark', spell: SPELLS.hex },
   { element: 'Radiance', spell: SPELLS.dawnlight },
-] as Omit<Fighter, 'aura'>[]).map((fighter, i) => ({ ...fighter, aura: AURA_SAMPLES[i % AURA_SAMPLES.length] }));
+] as Pick<Fighter, 'element' | 'spell'>[]).map((fighter, i) => ({
+  ...fighter,
+  spells: spellsOf(fighter.element),
+  aura: AURA_SAMPLES[i % AURA_SAMPLES.length],
+}));
 
 const fighterOf = (unit: BattleUnit) => ROSTER[unit.id - FIRST_ID];
 
@@ -127,7 +177,7 @@ const units: CombatUnitInfo[] = ROSTER.map((fighter, i) => ({
   speed: 10,
   maxEnergy: 100,
   energy: 100,
-  spells: [fighter.spell.name],
+  spells: fighter.spells.map(spell => spell.name),
   immunities: [],
   auraEffect: fighter.aura.effect,
   auraTarget: fighter.aura.target,
@@ -137,6 +187,10 @@ const units: CombatUnitInfo[] = ROSTER.map((fighter, i) => ({
 const layerRef = ref<InstanceType<typeof CanvasLayer> | null>(null);
 const speed = ref(1);
 const paused = ref(false);
+// Ручной режим: автобой стоит, заклинания кастуются по кнопкам
+const manual = ref(true);
+// Кто сейчас кастует: его кнопки неактивны, пока каст не закончится
+const casting = reactive(new Set<number>());
 const loading = ref(true);
 const aurasOn = ref(true);
 const statusesOn = ref(true);
@@ -155,7 +209,20 @@ provide(BATTLE_FX_KEY, fx);
 
 const teamA = computed(() => teamUnits(state, 1));
 const teamB = computed(() => teamUnits(state, 2));
+const teams = computed(() => [
+  { title: 'Слева', units: teamA.value },
+  { title: 'Справа', units: teamB.value },
+]);
 const allUnits = () => Object.values(state.units);
+
+// Цвет рамки заклинания — цвет его визуала
+const spellColor = (sample: SpellSample) => resolveSpellVisual(sample.name, sample.damageType, SPELL_LEVEL).color;
+
+// Наведение на строку списка подсвечивает дворфа, который будет кастовать
+const highlight = (unit: BattleUnit, on: boolean) => {
+  if (casting.has(unit.id)) return;
+  unit.focus = on ? { role: 'attacker', color: '#ffe8a3' } : null;
+};
 
 const bgStyle = {
   backgroundImage: `url('${arenaBackground(BACKGROUND)}')`,
@@ -215,11 +282,12 @@ const pickTargets = (caster: BattleUnit, support: boolean, count: number) => {
 };
 
 // Каст как в BattlePlayer.playCast: подсветка, круг под кастером, визуал заклинания, попадания по мере доставки
-const castSpell = async (caster: BattleUnit) => {
-  const sample = fighterOf(caster).spell;
-  const spell = sample.levels[SPELL_LEVEL - 1];
+const castSpell = async (caster: BattleUnit, sample = fighterOf(caster).spell, level = SPELL_LEVEL) => {
+  if (casting.has(caster.id)) return;
+  casting.add(caster.id);
+  const spell = sample.levels[level - 1];
   const support = !spell.damage;
-  const visual = resolveSpellVisual(sample.name, sample.damageType, SPELL_LEVEL);
+  const visual = resolveSpellVisual(sample.name, sample.damageType, level);
   const targets = pickTargets(caster, support, spell.targets ?? 1);
 
   caster.focus = { role: 'caster', color: visual.color };
@@ -246,6 +314,7 @@ const castSpell = async (caster: BattleUnit) => {
   await wait(CAST_RECOVER);
   caster.focus = null;
   targets.forEach(u => (u.focus = null));
+  casting.delete(caster.id);
 };
 
 // Срабатывание ауры как в BattlePlayer.playAura: вспышка носителя, волна, затем статус и попадание на целях
@@ -279,7 +348,7 @@ const turnOrder = () => teamA.value.flatMap((unit, i) => [unit, teamB.value[i]])
 const play = async () => {
   while (active) {
     for (const unit of turnOrder()) {
-      while (active && paused.value) await wait(100);
+      while (active && (paused.value || manual.value)) await wait(100);
       if (!active) return;
 
       unit.focus = { role: 'attacker', color: '#ffe8a3' };
@@ -501,6 +570,81 @@ onBeforeUnmount(() => {
 .stress-profile-row.off {
   color: #64748b;
   text-decoration: line-through;
+}
+
+/* Список заклинаний ручного режима — справа, поверх канваса эффектов */
+.stress-spells {
+  position: absolute;
+  top: 100px;
+  right: 20px;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: calc(100vh - 140px);
+  overflow-y: auto;
+  padding: 8px;
+  border-radius: 8px;
+  background: rgba(14, 19, 34, 0.8);
+  color: #cbd5e1;
+  font-size: 13px;
+}
+
+.stress-spells-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Заклинание: имя и кнопки уровней в одной рамке цвета заклинания */
+.stress-spell {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 3px 3px 10px;
+  border: 1px solid var(--spell-color);
+  border-radius: 8px;
+  background: rgba(14, 19, 34, 0.7);
+  color: white;
+}
+
+.stress-spell span {
+  margin-right: 4px;
+}
+
+.stress-spells-team {
+  margin-top: 4px;
+  color: #ffd166;
+  font-weight: 700;
+}
+
+.stress-spells-unit {
+  width: 90px;
+  font-family: monospace;
+}
+
+.stress-spells button {
+  min-width: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(14, 19, 34, 0.7);
+  color: white;
+  border-radius: 6px;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+
+.stress-spells button:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.stress-spells button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.stress-spells-aura {
+  color: #ffd166 !important;
 }
 
 .stress-loading {

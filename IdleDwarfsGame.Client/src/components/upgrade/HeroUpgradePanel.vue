@@ -5,9 +5,12 @@ import { useI18n } from 'vue-i18n';
 import CharacterSkeleton from '@/components/character-skeleton.vue';
 import GemButton from '@/components/common/GemButton.vue';
 import { STATUS_ICONS } from '@/components/icons/status';
+import EquipmentSlots from '@/components/equipment/EquipmentSlots.vue';
+import { passiveName, passiveText } from '@/components/equipment/equipmentText';
 import HeroesApiService from '@/services/apiServices/HeroesApiService';
 import { useResources } from '@/composables/UseResources';
 import { HeroInfo, HeroUpgradeError, HeroUpgradeResult } from '@/models/types/Heroes';
+import { EquipmentInfo, EquipmentSlot, EquipmentType } from '@/models/types/Equipment';
 import { HeroModel } from '@/models/hero';
 import { elementColor } from '@/battle/sprites';
 import { statusLabel } from '@/i18n';
@@ -21,6 +24,9 @@ const emit = defineEmits<{
     (e: 'upgraded', result: HeroUpgradeResult): void;
     // Данные устарели (героя прокачали в другой вкладке, ресурсы потратили) — окну стоит перечитать их
     (e: 'stale'): void;
+    (e: 'equip', item: EquipmentInfo, slot: EquipmentSlot): void;
+    (e: 'unequip', item: EquipmentInfo): void;
+    (e: 'pick-type', type: EquipmentType): void;
 }>();
 
 const { t, te, locale } = useI18n();
@@ -160,6 +166,13 @@ const hint = computed(() => {
                 />
                 <div v-if="levelUpFlash" :key="`text-${levelUpFlash}`" class="upgrade-float">{{ t('heroUpgrade.levelUp') }}</div>
             </div>
+
+            <EquipmentSlots
+                :hero="hero"
+                @equip="(item, slot) => emit('equip', item, slot)"
+                @unequip="item => emit('unequip', item)"
+                @pick-type="type => emit('pick-type', type)"
+            />
         </div>
 
         <!-- ===== Характеристики ===== -->
@@ -194,6 +207,14 @@ const hint = computed(() => {
             <div class="stat-group">
                 <span class="stat-label">{{ t('heroUpgrade.statNames.aura') }}</span>
                 <span class="stat-text">{{ hero.aura ?? t('heroUpgrade.none') }}</span>
+            </div>
+            <div class="stat-group">
+                <span class="stat-label">{{ t('heroUpgrade.statNames.passives') }}</span>
+                <div v-for="passive in hero.passives ?? []" :key="passive.passive" class="stat-passive">
+                    <span class="stat-text stat-passive-name">{{ passiveName(passive) }} · {{ t('passives.level', { level: passive.level }) }}</span>
+                    <span class="stat-passive-text">{{ passiveText(passive) }}</span>
+                </div>
+                <span v-if="!hero.passives?.length" class="stat-text">{{ t('heroUpgrade.none') }}</span>
             </div>
         </aside>
 
@@ -439,6 +460,20 @@ const hint = computed(() => {
 .stat-icons {
     display: flex;
     gap: 6px;
+}
+
+.stat-passive {
+    display: flex;
+    flex-direction: column;
+}
+
+.stat-passive-name {
+    font-weight: bold;
+}
+
+.stat-passive-text {
+    color: #cbd5e1;
+    font-size: 12px;
 }
 
 /* ===== Прокачка ===== */

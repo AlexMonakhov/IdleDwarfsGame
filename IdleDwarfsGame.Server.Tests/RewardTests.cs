@@ -67,8 +67,8 @@ public class RewardTests : IDisposable
             Assert.All(bossReward.Chests, c => Assert.Equal(2, c.ChestLevel));
         }
 
-        // Сундук с обычного уровня — редкость (15% + 5% независимо ≈ 19%)
-        Assert.InRange(mobsWithChest, 140, 240);
+        // Сундук с обычного уровня — редкость (15%, 5% и 10% независимо ≈ 27%)
+        Assert.InRange(mobsWithChest, 220, 330);
     }
 
     [Fact]

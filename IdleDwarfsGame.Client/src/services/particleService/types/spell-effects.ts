@@ -32,10 +32,12 @@ const endpoints = (emitter: EmitterConfig) => ({
 });
 
 /**
- * Огненный вал: стена пламени катится по земле от startX к endX, за ней остаётся тлеющая полоса.
+ * Огненный вал: стена пламени катится по земле от startX к endX. Языки пламени — вытянутые мягкие огни
+ * из готового спрайта (getGlowSprite): накладываясь, они сами собираются в яркое тело огня. Над стеной —
+ * дым и летящие вверх угли, у основания — широкое зарево, позади вала полоса земли ещё догорает.
  * args: colors[], height, width (толщина вала), rate, travel (доля жизни на проход, дальше догорает)
  */
-export class FireWallStrategy extends ParticleStore {
+export class FireWallStrategy extends ParticleStore<{ flames: Particle[]; embers: Particle[]; smoke: Particle[] }> {
   private front(emitter: EmitterConfig) {
     const { sx, sy, ex, ey } = endpoints(emitter);
     const t = clamp01(progressOf(emitter) / Number(emitter.args?.travel ?? 0.75));
@@ -44,36 +46,83 @@ export class FireWallStrategy extends ParticleStore {
 
   update(emitter: EmitterConfig) {
     const args = emitter.args ?? {};
-    const particles = this.store.get(emitter.id) ?? [];
+    const state = this.store.get(emitter.id) ?? { flames: [], embers: [], smoke: [] };
     const height = Number(args.height ?? 110);
     const width = Number(args.width ?? 46);
+    const rate = Number(args.rate ?? 9);
     const palette: string[] = args.colors ?? FIRE;
     const front = this.front(emitter);
+    const scale = height / 110;
 
     if (front.t < 1) {
-      for (let i = 0; i < Number(args.rate ?? 9); i++) {
+      for (let i = 0; i < rate; i++) {
         // У самого фронта языки гуще и выше, позади — догорают пониже
         const back = Math.random() ** 2 * width * 2.2;
         const tall = 1 - (back / (width * 2.2)) * 0.6;
-        particles.push({
-          x: front.x - front.dir * back + rand(-width * 0.25, width * 0.25),
+        state.flames.push({
+          x: front.x - front.dir * back + rand(-width * 0.3, width * 0.3),
           y: front.y + rand(-6, 6),
           vx: front.dir * rand(0.4, 1.4),
-          vy: -rand(1.4, 3.2) * (height / 110) * tall,
+          vy: -rand(1.4, 3.2) * scale * tall,
           life: 1,
           maxLife: rand(0.022, 0.04),
-          size: rand(7, 13) * tall,
+          size: rand(10, 17) * tall * Math.sqrt(scale),
+          color: palette[0],
+        });
+      }
+
+      if (Math.random() < 0.5) {
+        state.embers.push({
+          x: front.x + rand(-width * 0.5, width * 0.5),
+          y: front.y - rand(0, height * 0.4),
+          vx: front.dir * rand(0.3, 1.5) + rand(-0.5, 0.5),
+          vy: -rand(2.5, 5) * scale,
+          life: 1,
+          maxLife: rand(0.012, 0.022),
+          size: rand(2, 4),
+          color: palette[1],
+        });
+      }
+
+      if (Math.random() < 0.35) {
+        state.smoke.push({
+          x: front.x - front.dir * rand(0, width),
+          y: front.y - height * rand(0.6, 0.9),
+          vx: rand(-0.3, 0.3),
+          vy: -rand(0.6, 1.4),
+          life: 1,
+          maxLife: rand(0.01, 0.018),
+          size: rand(14, 24) * Math.sqrt(scale),
+          color: 'rgba(40, 26, 20, 1)',
+        });
+      }
+    }
+
+    // Пройденная полоса догорает низкими язычками, пока эффект не начал гаснуть
+    if (Math.abs(front.x - front.sx) > 1 && progressOf(emitter) < 0.9) {
+      for (let i = 0; i < Math.ceil(rate * 0.25); i++) {
+        state.flames.push({
+          x: front.sx + (front.x - front.sx) * Math.random(),
+          y: front.y + rand(-4, 4),
+          vx: rand(-0.3, 0.3),
+          vy: -rand(0.8, 1.8) * scale,
+          life: 1,
+          maxLife: rand(0.04, 0.07),
+          size: rand(6, 10),
           color: palette[0],
         });
       }
     }
 
-    this.store.set(emitter.id, stepParticles(particles, 0.985, -0.03, 0.975));
+    state.flames = stepParticles(state.flames, 0.985, -0.03, 0.975);
+    state.embers = stepParticles(state.embers, 0.99, 0.02, 0.99);
+    state.smoke = stepParticles(state.smoke, 0.98, -0.005, 1.02);
+    this.store.set(emitter.id, state);
   }
 
   draw(ctx: CanvasRenderingContext2D, emitter: EmitterConfig) {
-    const particles = this.store.get(emitter.id);
-    if (!particles) return;
+    const state = this.store.get(emitter.id);
+    if (!state) return;
     const args = emitter.args ?? {};
     const palette: string[] = args.colors ?? FIRE;
     const opacity = emitter.opacity ?? 1;
@@ -85,33 +134,50 @@ export class FireWallStrategy extends ParticleStore {
     const fade = p > travel ? 1 - (p - travel) / (1 - travel) : 1;
 
     ctx.save();
+
+    // Дым над стеной обычным смешиванием — затемняет фон
+    for (const s of state.smoke) {
+      ctx.globalAlpha = opacity * s.life * 0.28;
+      ctx.fillStyle = s.color;
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
     ctx.globalCompositeOperation = 'lighter';
 
     // Опалённая полоса земли: от кастера к фронту разгорается
     if (Math.abs(front.x - front.sx) > 1) {
       const scorch = ctx.createLinearGradient(front.sx, 0, front.x, 0);
       scorch.addColorStop(0, rgba('#ff4d00', 0));
-      scorch.addColorStop(1, rgba('#ff7a1a', 0.45));
+      scorch.addColorStop(1, rgba('#ff7a1a', 0.5));
       ctx.globalAlpha = opacity * fade;
       ctx.fillStyle = scorch;
       ctx.beginPath();
-      ctx.ellipse((front.sx + front.x) / 2, front.y, Math.abs(front.x - front.sx) / 2, 14, 0, 0, Math.PI * 2);
+      ctx.ellipse((front.sx + front.x) / 2, front.y, Math.abs(front.x - front.sx) / 2, 18, 0, 0, Math.PI * 2);
       ctx.fill();
     }
 
-    // Жар перед валом
-    ctx.globalAlpha = opacity * fade;
-    fillEllipseGradient(ctx, front.x, front.y - height * 0.3, width * 1.6, height * 0.7, [
-      [0, rgba('#ffb347', 0.4)],
-      [1, rgba('#ff4d00', 0)],
-    ]);
+    if (front.t < 1) {
+      // Зарево на всю высоту стены и приплюснутое — по земле вокруг основания
+      ctx.globalAlpha = opacity * fade * 0.5;
+      ctx.drawImage(getGlowSprite('#ffb347'), front.x - width * 1.8, front.y - height * 1.15, width * 3.6, height * 1.5);
+      ctx.globalAlpha = opacity * fade * 0.9;
+      ctx.drawImage(getGlowSprite('#ff7a1a'), front.x - width * 3, front.y - width * 0.8, width * 6, width * 1.6);
+    }
 
-    for (const f of particles) {
-      ctx.globalAlpha = opacity * clamp01(f.life * 1.4) * 0.85;
-      ctx.fillStyle = paletteColor(palette, f.life);
-      ctx.beginPath();
-      ctx.ellipse(f.x, f.y, f.size * 0.7, f.size * 1.3, 0, 0, Math.PI * 2);
-      ctx.fill();
+    // Языки пламени: мягкий огонь, вытянутый вверх
+    for (const f of state.flames) {
+      const w = f.size * 1.5;
+      const h = f.size * 2.8;
+      ctx.globalAlpha = opacity * clamp01(f.life * 1.4) * 0.75;
+      ctx.drawImage(getGlowSprite(paletteColor(palette, f.life)), f.x - w, f.y - h * 1.2, w * 2, h * 2);
+    }
+
+    for (const e of state.embers) {
+      const halo = e.size * 3;
+      ctx.globalAlpha = opacity * clamp01(e.life * 1.5);
+      ctx.drawImage(getGlowSprite(paletteColor(palette, 0.5 + e.life * 0.4)), e.x - halo, e.y - halo, halo * 2, halo * 2);
     }
 
     ctx.restore();
@@ -1138,11 +1204,13 @@ export class ArcsStrategy implements EffectStrategy {
 }
 
 /**
- * Метеор: раскалённое ядро с длинным огненным хвостом падает с ускорением от start к end,
- * земля под точкой падения разгорается его светом, с хвоста сыплются искры.
- * args: colors[] (искры), core, glow, size, tail (длина хвоста, px)
+ * Метеор: раскалённая глыба с длинным огненным хвостом падает с ускорением от start к end.
+ * В полёте за ней тянется дымный шлейф, с хвоста сыплются угли, вокруг — широкое зарево,
+ * а земля под точкой падения разгорается отсветом.
+ * Свечение и угли — из готовых спрайтов (getGlowSprite), градиенты в кадре только у хвоста.
+ * args: colors[] (угли), core, glow, size, tail (длина хвоста, px), smoke (дымный шлейф, по умолчанию есть)
  */
-export class CometStrategy extends ParticleStore {
+export class CometStrategy extends ParticleStore<{ sparks: Particle[]; smoke: Particle[] }> {
   private head(emitter: EmitterConfig) {
     const { sx, sy, ex, ey } = endpoints(emitter);
     const raw = progressOf(emitter);
@@ -1153,29 +1221,43 @@ export class CometStrategy extends ParticleStore {
 
   update(emitter: EmitterConfig) {
     const args = emitter.args ?? {};
-    const sparks = this.store.get(emitter.id) ?? [];
+    const state = this.store.get(emitter.id) ?? { sparks: [], smoke: [] };
     const palette: string[] = args.colors ?? FIRE;
     const size = Number(args.size ?? 13);
     const head = this.head(emitter);
 
     if (head.raw < 1) {
       for (let i = 0; i < 4; i++) {
-        const back = head.angle + Math.PI + rand(-0.35, 0.35);
-        const v = rand(1, 3.5);
-        sparks.push({
-          x: head.x + rand(-size * 0.5, size * 0.5),
-          y: head.y + rand(-size * 0.5, size * 0.5),
+        const back = head.angle + Math.PI + rand(-0.4, 0.4);
+        const v = rand(1, 4);
+        state.sparks.push({
+          x: head.x + rand(-size * 0.6, size * 0.6),
+          y: head.y + rand(-size * 0.6, size * 0.6),
           vx: Math.cos(back) * v,
           vy: Math.sin(back) * v,
           life: 1,
-          maxLife: rand(0.03, 0.06),
-          size: rand(size * 0.25, size * 0.6),
+          maxLife: rand(0.025, 0.05),
+          size: rand(size * 0.3, size * 0.7),
           color: palette[0],
+        });
+      }
+      if (args.smoke !== false && Math.random() < 0.6) {
+        state.smoke.push({
+          x: head.x + rand(-size * 0.4, size * 0.4),
+          y: head.y + rand(-size * 0.4, size * 0.4),
+          vx: rand(-0.4, 0.4),
+          vy: rand(-0.6, -0.1),
+          life: 1,
+          maxLife: rand(0.012, 0.02),
+          size: rand(size * 0.8, size * 1.3),
+          color: 'rgba(45, 30, 24, 1)',
         });
       }
     }
 
-    this.store.set(emitter.id, stepParticles(sparks, 0.95, -0.03, 0.96));
+    state.sparks = stepParticles(state.sparks, 0.95, -0.03, 0.96);
+    state.smoke = stepParticles(state.smoke, 0.97, -0.01, 1.025);
+    this.store.set(emitter.id, state);
   }
 
   draw(ctx: CanvasRenderingContext2D, emitter: EmitterConfig) {
@@ -1186,30 +1268,45 @@ export class CometStrategy extends ParticleStore {
     const core = args.core ?? '#fffbe0';
     const glow = args.glow ?? '#ff6a00';
     const head = this.head(emitter);
+    const state = this.store.get(emitter.id);
 
     ctx.save();
-    ctx.globalCompositeOperation = 'lighter';
 
-    // Отсвет на земле: чем ближе метеор, тем ярче и шире
-    if (head.raw < 1) {
-      const spot = 25 + 55 * head.raw;
-      ctx.globalAlpha = opacity;
-      fillEllipseGradient(ctx, head.ex, head.ey, spot, spot * 0.3, [
-        [0, rgba('#ffb347', 0.7 * head.raw)],
-        [0.5, rgba('#ff4d00', 0.35 * head.raw)],
-        [1, rgba('#ff4d00', 0)],
-      ]);
-    }
-
-    for (const s of this.store.get(emitter.id) ?? []) {
-      ctx.globalAlpha = opacity * clamp01(s.life * 1.4) * 0.85;
-      ctx.fillStyle = paletteColor(palette, s.life);
+    // Дымный шлейф обычным смешиванием — затемняет небо позади глыбы
+    for (const s of state?.smoke ?? []) {
+      ctx.globalAlpha = opacity * s.life * 0.3;
+      ctx.fillStyle = s.color;
       ctx.beginPath();
       ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
       ctx.fill();
     }
 
+    ctx.globalCompositeOperation = 'lighter';
+
+    // Отсвет на земле: чем ближе метеор, тем ярче и шире
     if (head.raw < 1) {
+      const spot = 40 + 90 * head.raw;
+      ctx.globalAlpha = opacity;
+      fillEllipseGradient(ctx, head.ex, head.ey, spot, spot * 0.3, [
+        [0, rgba('#ffb347', 0.75 * head.raw)],
+        [0.5, rgba('#ff4d00', 0.4 * head.raw)],
+        [1, rgba('#ff4d00', 0)],
+      ]);
+    }
+
+    // Угли — мягкие огоньки
+    for (const s of state?.sparks ?? []) {
+      ctx.globalAlpha = opacity * clamp01(s.life * 1.4) * 0.9;
+      const halo = s.size * 2.6;
+      ctx.drawImage(getGlowSprite(paletteColor(palette, s.life)), s.x - halo, s.y - halo, halo * 2, halo * 2);
+    }
+
+    if (head.raw < 1) {
+      // Широкое зарево вокруг глыбы
+      const aura = size * 7;
+      ctx.globalAlpha = opacity * 0.8;
+      ctx.drawImage(getGlowSprite(glow), head.x - aura, head.y - aura, aura * 2, aura * 2);
+
       // Хвост — клин от ядра назад по траектории: снаружи оранжевый, внутри почти белый. Отрастает в начале полёта
       const length = Number(args.tail ?? 150) * Math.min(1, 0.3 + head.raw * 2);
       const flicker = 1 + Math.sin(performance.now() / 30) * 0.08;
@@ -1235,13 +1332,8 @@ export class CometStrategy extends ParticleStore {
       }
 
       // Ядро с ореолом
-      const halo = ctx.createRadialGradient(0, 0, 0, 0, 0, size * 3.2);
-      halo.addColorStop(0, rgba(glow, 0.7));
-      halo.addColorStop(1, rgba(glow, 0));
-      ctx.fillStyle = halo;
-      ctx.beginPath();
-      ctx.arc(0, 0, size * 3.2, 0, Math.PI * 2);
-      ctx.fill();
+      const halo = size * 3.4;
+      ctx.drawImage(getGlowSprite(glow), -halo, -halo, halo * 2, halo * 2);
 
       const ball = ctx.createRadialGradient(0, 0, 0, 0, 0, size);
       ball.addColorStop(0, '#ffffff');

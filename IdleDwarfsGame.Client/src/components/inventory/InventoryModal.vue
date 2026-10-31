@@ -5,7 +5,7 @@ import ModalComponent from '@/components/common/ModalComponent.vue';import type 
 import InventoryHeroes from './InventoryHeroes.vue';
 import InventoryGems from './InventoryGems.vue';
 import InventoryChests from './InventoryChests.vue';
-import TabPlaceholder from '@/components/common/TabPlaceholder.vue';
+import InventoryEquipment from './InventoryEquipment.vue';
 
 const props = defineProps<{ modelValue: boolean }>();
 const emit = defineEmits<{ (e: 'update:modelValue', value: boolean): void }>();
@@ -17,13 +17,13 @@ const open = computed({
     set: value => emit('update:modelValue', value),
 });
 
-type InventoryTab = 'heroes' | 'gems' | 'chests' | 'artifacts';
+type InventoryTab = 'heroes' | 'equipment' | 'gems' | 'chests';
 
 const ICONS: Record<InventoryTab, string> = {
     heroes: '⚔',
+    equipment: '🛡',
     gems: '💎',
     chests: '🎁',
-    artifacts: '🏺',
 };
 
 const tab = ref<InventoryTab>('heroes');
@@ -55,15 +55,9 @@ const activeTab = computed({
         <!-- KeepAlive — чтобы при переключении вкладок не перезагружать героев -->
         <KeepAlive>
             <InventoryHeroes v-if="tab === 'heroes'" :refresh-token="lootVersion" />
+            <InventoryEquipment v-else-if="tab === 'equipment'" :refresh-token="lootVersion" />
             <InventoryGems v-else-if="tab === 'gems'" :refresh-token="lootVersion" />
-            <InventoryChests v-else-if="tab === 'chests'" @opened="lootVersion++" />
-            <TabPlaceholder
-                v-else
-                :key="'artifacts'"
-                :icon="ICONS.artifacts"
-                :title="t('inventory.tabs.artifacts')"
-                :hint="t('inventory.artifactsHint')"
-            />
+            <InventoryChests v-else @opened="lootVersion++" />
         </KeepAlive>
     </ModalComponent>
 </template>

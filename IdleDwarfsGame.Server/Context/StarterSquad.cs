@@ -40,7 +40,8 @@ public static class StarterSquad
                 Speed = role.Speed,
                 MaxEnergy = 100,
                 StartEnergy = 0,
-                EnergyPerAttack = 20
+                EnergyPerAttack = 20,
+                Passives = [PassiveBook.Random(random)]
             })
             .ToList();
     }

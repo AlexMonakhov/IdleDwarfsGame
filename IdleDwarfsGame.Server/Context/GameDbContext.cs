@@ -26,6 +26,7 @@ public class GameDbContext : DbContext
     public DbSet<Friendship> Friendships => Set<Friendship>();
     public DbSet<UserSession> UserSessions => Set<UserSession>();
     public DbSet<PlayerItem> PlayerItems => Set<PlayerItem>();
+    public DbSet<PlayerEquipment> PlayerEquipment => Set<PlayerEquipment>();
     public DbSet<PlayerReward> PlayerRewards => Set<PlayerReward>();
     public DbSet<PlayerRewardChest> PlayerRewardChests => Set<PlayerRewardChest>();
     public DbSet<Guild> Guilds => Set<Guild>();
@@ -73,6 +74,16 @@ public class GameDbContext : DbContext
                 new ValueComparer<List<string>>(
                     (a, b) => a!.SequenceEqual(b!),
                     v => v.Aggregate(0, (hash, item) => HashCode.Combine(hash, item.GetHashCode())),
+                    v => v.ToList()));
+
+        modelBuilder.Entity<Hero>()
+            .Property(h => h.Passives)
+            .HasConversion(
+                v => string.Join(',', v),
+                v => v.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(Enum.Parse<HeroPassive>).ToList(),
+                new ValueComparer<List<HeroPassive>>(
+                    (a, b) => a!.SequenceEqual(b!),
+                    v => v.Aggregate(0, (hash, item) => HashCode.Combine(hash, item)),
                     v => v.ToList()));
 
         modelBuilder.Entity<Hero>()
@@ -420,6 +431,44 @@ public class GameDbContext : DbContext
         // Одна стопка на вид предмета
         modelBuilder.Entity<PlayerItem>()
             .HasIndex(i => new { i.PlayerId, i.ItemType, i.SubType, i.Rarity, i.Level })
+            .IsUnique();
+
+        // ===== Снаряжение =====
+        modelBuilder.Entity<PlayerEquipment>()
+            .HasKey(e => e.Id);
+
+        modelBuilder.Entity<PlayerEquipment>()
+            .Property(e => e.PlayerId)
+            .HasConversion<string>();
+
+        modelBuilder.Entity<PlayerEquipment>()
+            .Property(e => e.ItemKey)
+            .HasMaxLength(32);
+
+        modelBuilder.Entity<PlayerEquipment>()
+            .Property(e => e.Slot)
+            .HasConversion<string>()
+            .HasMaxLength(16);
+
+        modelBuilder.Entity<PlayerEquipment>()
+            .HasOne<Player>()
+            .WithMany()
+            .HasForeignKey(e => e.PlayerId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Герой исчез — его предметы возвращаются в инвентарь
+        modelBuilder.Entity<Hero>()
+            .HasMany(h => h.Equipment)
+            .WithOne()
+            .HasForeignKey(e => e.HeroId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        modelBuilder.Entity<PlayerEquipment>()
+            .HasIndex(e => e.PlayerId);
+
+        // В слоте героя один предмет. Лежащие в инвентаре (null) индекс не ограничивает: в SQLite NULL не равен NULL
+        modelBuilder.Entity<PlayerEquipment>()
+            .HasIndex(e => new { e.HeroId, e.Slot })
             .IsUnique();
 
         // ===== Награды =====

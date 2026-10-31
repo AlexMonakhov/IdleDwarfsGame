@@ -1,4 +1,5 @@
 import { CombatPowerBreakdown, HeroElement } from '@/battle/types';
+import { EquipmentInfo, PassiveInfo } from '@/models/types/Equipment';
 import { PlayerResources } from '@/models/types/Expeditions';
 
 // Герой в инвентаре (IdleDwarfsGame.Server/Controllers/Responses/HeroResponses.cs)
@@ -19,6 +20,9 @@ export interface HeroInfo {
     spells: string[];
     immunities: string[];
     aura?: string | null;
+    passives: PassiveInfo[];
+    // Надетые предметы; maxHp, attack и остальное уже с их прибавкой
+    equipment: EquipmentInfo[];
     power: CombatPowerBreakdown;
     upgrade: HeroUpgradeInfo;
 }

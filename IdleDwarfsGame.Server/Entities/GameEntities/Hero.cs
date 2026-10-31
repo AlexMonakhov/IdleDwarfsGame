@@ -41,6 +41,12 @@ public class Hero
     // Аура срабатывает раз в столько своих триггеров (раундов или ходов носителя): 1 — каждый, 2 — через один
     public int AuraInterval { get; set; } = 1;
 
+    // PassiveComponent: уровень пассивок зависит от ранга (PassiveBook.LevelFor)
+    public List<HeroPassive> Passives { get; set; } = new();
+
+    // Надетые предметы. Попадают и в снимок отряда рейтинговой арены (RankedSquad)
+    public List<PlayerEquipment> Equipment { get; set; } = new();
+
     // Копия для расчётов «а что будет на другом уровне прокачки»; в БД не попадает
     public Hero WithUpgradeLevel(int upgradeLevel)
     {

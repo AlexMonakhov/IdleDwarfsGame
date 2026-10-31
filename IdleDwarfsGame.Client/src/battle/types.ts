@@ -96,13 +96,14 @@ export interface CombatUnitInfo {
   power: CombatPowerBreakdown;
 }
 
-// Боевая мощь (IdleDwarfsGame.Server/ECS/CombatPower.cs): total = stats + level + skills + passives
+// Боевая мощь (IdleDwarfsGame.Server/ECS/CombatPower.cs): total = stats + level + skills + passives + equipment
 export interface CombatPowerBreakdown {
   total: number;
   stats: number;
   level: number;
   skills: number;
   passives: number;
+  equipment: number;
 }
 
 export type AuraTarget = 'Allies' | 'Enemies' | 'All';

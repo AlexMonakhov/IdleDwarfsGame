@@ -51,7 +51,32 @@ public static class LootSeedData
             .. ElementGems.Select(gem => Gem(gem, Rarity.Common, 0.12, 4, 8)),
             .. ElementGems.Select(gem => Gem(gem, Rarity.Uncommon, 0.09, 2, 3)),
             Gem(GemType.Diamond, Rarity.Rare, 0.12, 1, 2),
-            Gem(GemType.Diamond, Rarity.Epic, 0.04, 1, 1)
+            Gem(GemType.Diamond, Rarity.Mythic, 0.04, 1, 1)
+        ]),
+
+        // ===== Сундуки снаряжения: шанс редкости делится поровну между предметами этой редкости =====
+        new(ChestType.Equipment, 1, Rolls: 1,
+        [
+            .. EquipmentOf(Rarity.Common, 0.60),
+            .. EquipmentOf(Rarity.Uncommon, 0.30),
+            .. EquipmentOf(Rarity.Rare, 0.09),
+            .. EquipmentOf(Rarity.Mythic, 0.01)
+        ]),
+        new(ChestType.Equipment, 2, Rolls: 1,
+        [
+            .. EquipmentOf(Rarity.Common, 0.30),
+            .. EquipmentOf(Rarity.Uncommon, 0.40),
+            .. EquipmentOf(Rarity.Rare, 0.22),
+            .. EquipmentOf(Rarity.Mythic, 0.07),
+            .. EquipmentOf(Rarity.Legendary, 0.01)
+        ]),
+        new(ChestType.Equipment, 3, Rolls: 1,
+        [
+            .. EquipmentOf(Rarity.Uncommon, 0.25),
+            .. EquipmentOf(Rarity.Rare, 0.40),
+            .. EquipmentOf(Rarity.Mythic, 0.25),
+            .. EquipmentOf(Rarity.Legendary, 0.09),
+            .. EquipmentOf(Rarity.Artifact, 0.01)
         ])
     ];
 
@@ -111,6 +136,22 @@ public static class LootSeedData
         MinAmount = min,
         MaxAmount = max
     };
+
+    // Предмет из каталога: SubType — его ключ (EquipmentCatalog)
+    private static IEnumerable<DropEntry> EquipmentOf(Rarity rarity, double totalProbability)
+    {
+        var items = EquipmentCatalog.All.Where(i => i.Rarity == rarity).ToList();
+        return items.Select(item => new DropEntry
+        {
+            ItemType = ItemType.Equipment,
+            SubType = item.Key,
+            Rarity = rarity,
+            ItemLevel = 1,
+            Probability = totalProbability / items.Count,
+            MinAmount = 1,
+            MaxAmount = 1
+        });
+    }
 
     private record TableDefinition(ChestType Type, int Level, int Rolls, DropEntry[] Entries);
 }

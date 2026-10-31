@@ -138,19 +138,12 @@ export class ProjectileStrategy extends ParticleStore<{ trail: Particle[]; angle
       const flicker = 1 + Math.sin(performance.now() / 35) * 0.12;
       const r = size * flicker;
 
-      // Ореол
+      // Ореол — из готового спрайта, а не градиент и shadowBlur каждый кадр: в залпе бурана снарядов десятки
+      const halo = r * 4.5;
       ctx.globalAlpha = opacity;
-      const halo = ctx.createRadialGradient(emitter.x, emitter.y, 0, emitter.x, emitter.y, r * 3);
-      halo.addColorStop(0, glow);
-      halo.addColorStop(1, 'rgba(0, 0, 0, 0)');
-      ctx.fillStyle = halo;
-      ctx.beginPath();
-      ctx.arc(emitter.x, emitter.y, r * 3, 0, Math.PI * 2);
-      ctx.fill();
+      ctx.drawImage(getGlowSprite(glow), emitter.x - halo, emitter.y - halo, halo * 2, halo * 2);
 
       ctx.translate(emitter.x, emitter.y);
-      ctx.shadowColor = glow;
-      ctx.shadowBlur = r * 1.5;
 
       if (args.shape === 'shard') {
         ctx.rotate(state.angle);
@@ -176,16 +169,26 @@ export class ProjectileStrategy extends ParticleStore<{ trail: Particle[]; angle
         ctx.arc(0, 0, r, 0, Math.PI * 2);
         ctx.fill();
       }
+
+      // Раскалённое белое ядро поверх тела снаряда
+      const hot = r * 1.3;
+      ctx.globalAlpha = opacity * 0.8;
+      ctx.drawImage(getGlowSprite('#ffffff'), -hot, -hot, hot * 2, hot * 2);
     }
 
     ctx.restore();
   }
 }
 
+// Доля искр взрыва за юнитом (part 'back'); остальные — перед ним (part 'front')
+const EXPLOSION_BACK_SHARE = 0.65;
+
 /**
  * Взрыв: вспышка, ударная волна, разлёт частиц и дым.
  * args: colors[], count, radius, speed, ring (цвет или false), flash, smoke, shards, gravity,
- *       debris (сколько тяжёлых обломков камня взлетает и падает)
+ *       debris (сколько тяжёлых обломков камня взлетает и падает),
+ *       part — половина взрыва по глубине (см. BattleFx): 'back' за юнитом — вспышка, волна, дым, обломки
+ *       и большая часть искр; 'front' перед юнитом — только остальные искры. Без part — весь взрыв
  */
 export class ExplosionStrategy extends ParticleStore<{ sparks: Particle[]; smoke: Particle[]; debris: Particle[] }> {
   update(emitter: EmitterConfig) {
@@ -194,13 +197,17 @@ export class ExplosionStrategy extends ParticleStore<{ sparks: Particle[]; smoke
 
     if (!state) {
       const palette: string[] = args.colors ?? FIRE_PALETTE;
-      const count = Number(args.count ?? 36);
+      const total = Number(args.count ?? 36);
+      const share = args.part === 'back' ? EXPLOSION_BACK_SHARE : args.part === 'front' ? 1 - EXPLOSION_BACK_SHARE : 1;
+      const count = Math.round(total * share);
+      const behind = args.part !== 'front';
       const speed = Number(args.speed ?? 5);
       const shards = !!args.shards;
 
       const sparks = Array.from({ length: count }, () => {
         const angle = Math.random() * Math.PI * 2;
-        const v = rand(0.25, 1) * speed;
+        // Без совсем медленных искр: они висели бы на теле юнита и закрывали спрайт
+        const v = rand(0.45, 1) * speed;
         return {
           x: emitter.x,
           y: emitter.y,
@@ -215,8 +222,8 @@ export class ExplosionStrategy extends ParticleStore<{ sparks: Particle[]; smoke
         };
       });
 
-      const smoke = args.smoke
-        ? Array.from({ length: Math.round(count / 3) }, () => ({
+      const smoke = args.smoke && behind
+        ? Array.from({ length: Math.round(total / 3) }, () => ({
           x: emitter.x + rand(-12, 12),
           y: emitter.y + rand(-12, 12),
           vx: rand(-0.6, 0.6),
@@ -229,7 +236,7 @@ export class ExplosionStrategy extends ParticleStore<{ sparks: Particle[]; smoke
         : [];
 
       // Обломки летят вверх веером и падают под тяжестью
-      const debris = Array.from({ length: Number(args.debris ?? 0) }, () => {
+      const debris = Array.from({ length: behind ? Number(args.debris ?? 0) : 0 }, () => {
         const angle = -Math.PI / 2 + rand(-1.1, 1.1);
         const v = rand(3, 7);
         return {
@@ -296,9 +303,10 @@ export class ExplosionStrategy extends ParticleStore<{ sparks: Particle[]; smoke
     }
 
     ctx.globalCompositeOperation = 'lighter';
+    const behind = args.part !== 'front';
 
     // Вспышка в первой четверти
-    if (p < 0.3) {
+    if (behind && p < 0.3) {
       const k = 1 - p / 0.3;
       const flashRadius = radius * (0.5 + p * 1.5);
       const flash = ctx.createRadialGradient(emitter.x, emitter.y, 0, emitter.x, emitter.y, flashRadius);
@@ -313,7 +321,7 @@ export class ExplosionStrategy extends ParticleStore<{ sparks: Particle[]; smoke
     }
 
     // Ударная волна
-    if (args.ring !== false) {
+    if (behind && args.ring !== false) {
       const ringP = easeOut(Math.min(p / 0.6, 1));
       ctx.globalAlpha = opacity * (1 - ringP);
       ctx.strokeStyle = args.ring ?? palette[2] ?? palette[0];
@@ -325,23 +333,23 @@ export class ExplosionStrategy extends ParticleStore<{ sparks: Particle[]; smoke
 
     for (const s of state.sparks) {
       ctx.globalAlpha = opacity * clamp01(s.life * 1.3);
-      ctx.fillStyle = paletteColor(palette, s.life);
-      if (args.shards) {
-        ctx.save();
-        ctx.translate(s.x, s.y);
-        ctx.rotate(s.rotation ?? 0);
-        ctx.beginPath();
-        ctx.moveTo(s.size, 0);
-        ctx.lineTo(-s.size * 0.6, s.size * 0.35);
-        ctx.lineTo(-s.size * 0.6, -s.size * 0.35);
-        ctx.closePath();
-        ctx.fill();
-        ctx.restore();
-      } else {
-        ctx.beginPath();
-        ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
-        ctx.fill();
+      if (!args.shards) {
+        // Мягкий огонёк из готового спрайта, а не залитый круг: читается как свет и не заслоняет спрайт
+        const halo = s.size * 2.6;
+        ctx.drawImage(getGlowSprite(paletteColor(palette, s.life)), s.x - halo, s.y - halo, halo * 2, halo * 2);
+        continue;
       }
+      ctx.fillStyle = paletteColor(palette, s.life);
+      ctx.save();
+      ctx.translate(s.x, s.y);
+      ctx.rotate(s.rotation ?? 0);
+      ctx.beginPath();
+      ctx.moveTo(s.size, 0);
+      ctx.lineTo(-s.size * 0.6, s.size * 0.35);
+      ctx.lineTo(-s.size * 0.6, -s.size * 0.35);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
     }
 
     ctx.restore();
@@ -385,18 +393,25 @@ export class SlashStrategy implements EffectStrategy {
       const current = start + (end - start) * sweep;
       const segments = 18;
 
-      for (const [lineScale, style, blur] of [[1, color, 16], [0.45, '#ffffff', 4]] as const) {
+      // Ореол — широкий полупрозрачный штрих под основным, а не shadowBlur: росчерк есть на каждом ударе оружием
+      const alpha = (emitter.opacity ?? 1) * fade;
+      for (const [lineScale, style, glowWidth] of [[1, color, 18], [0.45, '#ffffff', 0]] as const) {
         ctx.strokeStyle = style;
-        ctx.shadowColor = color;
-        ctx.shadowBlur = blur;
-        ctx.globalAlpha = (emitter.opacity ?? 1) * fade;
         for (let i = 0; i < segments; i++) {
           const a0 = start + ((current - start) * i) / segments;
           const a1 = start + ((current - start) * (i + 1)) / segments;
           // Сужение к концам росчерка
-          ctx.lineWidth = Math.max(width * lineScale * Math.sin((Math.PI * (i + 0.5)) / segments), 0.5);
+          const taper = Math.sin((Math.PI * (i + 0.5)) / segments);
+          const lineWidth = Math.max(width * lineScale * taper, 0.5);
           ctx.beginPath();
           ctx.arc(0, radius * 0.35, radius, a0, a1);
+          if (glowWidth) {
+            ctx.globalAlpha = alpha * 0.2;
+            ctx.lineWidth = lineWidth + glowWidth * taper;
+            ctx.stroke();
+          }
+          ctx.globalAlpha = alpha;
+          ctx.lineWidth = lineWidth;
           ctx.stroke();
         }
       }
@@ -1285,6 +1300,205 @@ export class RingStrategy implements EffectStrategy {
       ctx.fill();
     }
 
+    ctx.restore();
+  }
+}
+
+// Вид следа на земле: выжженное пятно с трещинами, иней с шипами, лужа (яд, тьма, кровь), пятно света
+export type GroundMarkKind = 'burn' | 'frost' | 'stain' | 'glow';
+
+// След рисуется в спрайт один раз на вид и цвет (shadowBlur — только тогда), в кадре — пара drawImage
+const MARK_RADIUS = 80;
+// Запас под размытие и шипы инея, которые выходят за пятно
+const MARK_SIZE = MARK_RADIUS * 3;
+
+// Луч из центра пятна (трещина, шип, луч света): [угол, длина, излом посередине]
+type MarkRay = [number, number, number];
+
+interface MarkSprites {
+  // Держится почти всю жизнь следа
+  base: HTMLCanvasElement;
+  // Раскалённые трещины, блеск инея, светящийся край лужи — гаснет первым, рисуется 'lighter'
+  glow: HTMLCanvasElement;
+  // Основа тоже светится (пятно света), а не затемняет землю
+  additive: boolean;
+}
+
+const markSprites = new Map<string, MarkSprites>();
+
+const markCanvas = () => {
+  const canvas = document.createElement('canvas');
+  canvas.width = canvas.height = MARK_SIZE;
+  return canvas;
+};
+
+// Неровный контур пятна: окружность со «гуляющим» радиусом
+const traceBlotch = (ctx: CanvasRenderingContext2D, radii: number[], scale = 1) => {
+  const c = MARK_SIZE / 2;
+  ctx.beginPath();
+  radii.forEach((r, i) => {
+    const a = (i / radii.length) * Math.PI * 2;
+    const x = c + Math.cos(a) * r * scale;
+    const y = c + Math.sin(a) * r * scale;
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  });
+  ctx.closePath();
+};
+
+const traceRays = (ctx: CanvasRenderingContext2D, rays: MarkRay[], from: number) => {
+  const c = MARK_SIZE / 2;
+  ctx.beginPath();
+  for (const [a, length, bend] of rays) {
+    const mid = (from + length) / 2;
+    ctx.moveTo(c + Math.cos(a) * from, c + Math.sin(a) * from);
+    ctx.lineTo(c + Math.cos(a + bend) * mid, c + Math.sin(a + bend) * mid);
+    ctx.lineTo(c + Math.cos(a) * length, c + Math.sin(a) * length);
+  }
+};
+
+const getMarkSprites = (kind: GroundMarkKind, color: string): MarkSprites => {
+  const key = `${kind}|${color}`;
+  const cached = markSprites.get(key);
+  if (cached) return cached;
+
+  const base = markCanvas();
+  const glow = markCanvas();
+  const b = base.getContext('2d')!;
+  const g = glow.getContext('2d')!;
+  b.lineCap = g.lineCap = 'round';
+  b.lineJoin = g.lineJoin = 'round';
+
+  const c = MARK_SIZE / 2;
+  const R = MARK_RADIUS;
+  const radii = Array.from({ length: 18 }, () => R * rand(0.72, 1));
+  const rayCount = kind === 'frost' ? 11 : 7;
+  const rays = Array.from({ length: rayCount }, (_, i): MarkRay => [
+    (i / rayCount) * Math.PI * 2 + rand(-0.3, 0.3),
+    R * (kind === 'frost' ? rand(0.7, 1.3) : rand(0.55, 0.95)),
+    kind === 'glow' ? 0 : rand(-0.3, 0.3),
+  ]);
+
+  switch (kind) {
+    case 'burn':
+      // Обугленная земля и тёмные трещины; края трещин и пятна раскалены цветом стихии
+      b.shadowColor = 'rgba(12, 6, 2, 0.9)';
+      b.shadowBlur = 18;
+      b.fillStyle = 'rgba(28, 16, 8, 0.72)';
+      traceBlotch(b, radii);
+      b.fill();
+      b.shadowBlur = 0;
+      b.strokeStyle = 'rgba(8, 4, 2, 0.85)';
+      b.lineWidth = 4;
+      traceRays(b, rays, R * 0.15);
+      b.stroke();
+
+      g.shadowColor = color;
+      g.shadowBlur = 12;
+      g.strokeStyle = color;
+      g.lineWidth = 3;
+      traceRays(g, rays, R * 0.15);
+      g.stroke();
+      g.globalAlpha = 0.6;
+      g.lineWidth = 4;
+      traceBlotch(g, radii, 0.9);
+      g.stroke();
+      break;
+    case 'frost':
+      // Наледь цвета стихии и белые шипы инея во все стороны, шипы ещё и блестят
+      b.shadowColor = color;
+      b.shadowBlur = 16;
+      b.fillStyle = rgba(color, 0.3);
+      traceBlotch(b, radii);
+      b.fill();
+      b.shadowBlur = 6;
+      b.strokeStyle = 'rgba(255, 255, 255, 0.75)';
+      b.lineWidth = 3;
+      traceRays(b, rays, R * 0.1);
+      b.stroke();
+
+      g.shadowColor = '#ffffff';
+      g.shadowBlur = 14;
+      g.strokeStyle = '#ffffff';
+      g.lineWidth = 4;
+      traceRays(g, rays, R * 0.1);
+      g.stroke();
+      break;
+    case 'stain':
+      // Лужа: пятно, в середине гуще, вокруг брызги; край светится
+      b.shadowColor = rgba(color, 0.8);
+      b.shadowBlur = 14;
+      b.fillStyle = rgba(color, 0.42);
+      traceBlotch(b, radii);
+      b.fill();
+      b.fillStyle = rgba(color, 0.35);
+      traceBlotch(b, radii, 0.55);
+      b.fill();
+      for (const [a, length] of rays) {
+        b.beginPath();
+        b.arc(c + Math.cos(a) * length * 1.25, c + Math.sin(a) * length * 1.25, rand(4, 9), 0, Math.PI * 2);
+        b.fill();
+      }
+
+      g.shadowColor = color;
+      g.shadowBlur = 14;
+      g.strokeStyle = color;
+      g.lineWidth = 4;
+      traceBlotch(g, radii, 0.95);
+      g.stroke();
+      break;
+    default:
+      // Пятно света с короткими лучами и белой серединой
+      b.drawImage(getGlowSprite(color), c - R, c - R, R * 2, R * 2);
+      b.shadowColor = color;
+      b.shadowBlur = 12;
+      b.strokeStyle = rgba(color, 0.55);
+      b.lineWidth = 5;
+      traceRays(b, rays, R * 0.3);
+      b.stroke();
+
+      g.drawImage(getGlowSprite('#ffffff'), c - R * 0.6, c - R * 0.6, R * 1.2, R * 1.2);
+  }
+
+  const sprites = { base, glow, additive: kind === 'glow' };
+  markSprites.set(key, sprites);
+  return sprites;
+};
+
+/**
+ * След на земле под целью после попадания: быстро расползается, держится и тает к концу жизни,
+ * раскалённая (сияющая) часть гаснет за первую половину. Поворот у каждого следа свой —
+ * одинаковые спрайты не бросаются в глаза.
+ * args: kind (GroundMarkKind), color, radius, squash (сплющивание по земле), intensity
+ */
+export class GroundMarkStrategy extends ParticleStore<number> {
+  update(emitter: EmitterConfig) {
+    if (!this.store.has(emitter.id)) this.store.set(emitter.id, rand(0, Math.PI * 2));
+  }
+
+  draw(ctx: CanvasRenderingContext2D, emitter: EmitterConfig) {
+    const args = emitter.args ?? {};
+    const sprites = getMarkSprites((args.kind ?? 'burn') as GroundMarkKind, args.color ?? '#ff7a1a');
+    const p = progressOf(emitter);
+    const opacity = (emitter.opacity ?? 1) * Number(args.intensity ?? 1);
+    const spread = 0.6 + 0.4 * easeOut(clamp01(p / 0.12));
+    const linger = p < 0.65 ? 1 : 1 - (p - 0.65) / 0.35;
+    const heat = Math.pow(1 - clamp01(p / 0.5), 1.5);
+    const half = (MARK_SIZE / 2) * (Number(args.radius ?? 60) / MARK_RADIUS) * spread;
+
+    ctx.save();
+    ctx.translate(emitter.x, emitter.y);
+    ctx.scale(1, Number(args.squash ?? 0.32));
+    ctx.rotate(this.store.get(emitter.id) ?? 0);
+    if (sprites.additive) ctx.globalCompositeOperation = 'lighter';
+    ctx.globalAlpha = opacity * linger * (sprites.additive ? 0.7 : 1);
+    ctx.drawImage(sprites.base, -half, -half, half * 2, half * 2);
+
+    if (heat > 0.01) {
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.globalAlpha = opacity * heat;
+      ctx.drawImage(sprites.glow, -half, -half, half * 2, half * 2);
+    }
     ctx.restore();
   }
 }

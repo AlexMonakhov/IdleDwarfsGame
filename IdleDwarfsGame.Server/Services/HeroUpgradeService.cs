@@ -67,10 +67,11 @@ public class HeroUpgradeService(
         if (cost != null)
         {
             var upgraded = hero.WithUpgradeLevel(level + 1);
+            var gear = EquipmentCatalog.CollectGear(hero);
             next = new HeroUpgradePreview
             {
-                MaxHp = ScaleStat(hero.MaxHp, level + 1),
-                Attack = ScaleStat(hero.Attack, level + 1),
+                MaxHp = ScaleStat(hero.MaxHp, level + 1) + gear.Stats.MaxHp,
+                Attack = ScaleStat(hero.Attack, level + 1) + gear.Stats.Attack,
                 Power = CombatPower.OfHero(factory, upgraded).Total
             };
         }

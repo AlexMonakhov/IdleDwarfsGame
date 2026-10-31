@@ -35,6 +35,19 @@ const WAVE_OVERSHOOT = 60;
 // Сколько живёт вспышка света в точке попадания, мс при x1
 const FLARE_DURATION = 520;
 
+// Вспышка на кастере, когда заклинание срывается с рук, px
+const CAST_FLARE = 85;
+
+// Взрыв на юните делится по глубине: вспышка, волна, дым и большая часть искр — за ним, немного искр — перед ним.
+// Так взрыв обрамляет спрайт, а не закрывает его. Взрыв с явно заданным слоем не трогаем
+const splitByDepth = (spec: FxSpec): FxSpec[] =>
+  spec.type !== 'explosion' || spec.layer
+    ? [spec]
+    : [
+      { ...spec, layer: 'background', args: { ...spec.args, part: 'back' } },
+      { ...spec, args: { ...spec.args, part: 'front' } },
+    ];
+
 // Одноразовые и постоянные боевые эффекты поверх particle-сервиса арены
 export class BattleFx {
   // Вспышки света при попаданиях (выключаются в нагрузочном тесте, чтобы сравнить FPS)
@@ -45,10 +58,11 @@ export class BattleFx {
     private readonly speed: () => number,
   ) {}
 
-  // Вспышка света на юните: пятно цвета эффекта и отсвет на земле под ним
+  // Вспышка света на юните: пятно цвета эффекта и отсвет на земле под ним.
+  // За юнитом: свет обрисовывает силуэт контровым, а не засвечивает спрайт
   flare(el: UnitEl, color: string, radius: number, intensity = 1) {
     if (!this.flares) return;
-    this.play([{ type: 'flare', duration: FLARE_DURATION, padding: radius, args: { color, radius, intensity } }], el, { ground: this.groundOffset(el) });
+    this.play([{ type: 'flare', layer: 'background', duration: FLARE_DURATION, padding: radius, args: { color, radius, intensity } }], el, { ground: this.groundOffset(el) });
   }
 
   // Точка на спрайте юнита в координатах канваса нужного слоя
@@ -98,7 +112,7 @@ export class BattleFx {
 
   // Проиграть набор эффектов на юните
   play(specs: FxSpec[] | undefined, el: UnitEl, extraArgs?: Record<string, unknown>) {
-    for (const spec of specs ?? []) {
+    for (const spec of (specs ?? []).flatMap(splitByDepth)) {
       const at = this.point(el, spec.anchor, spec.layer);
       if (at) this.emit(spec, at, at, extraArgs);
     }
@@ -139,6 +153,8 @@ export class BattleFx {
     const side = present.length && present.reduce((sum, p) => sum + p.x, 0) / present.length < from.x ? -1 : 1;
     const reach = Math.max(0, ...present.map(p => Math.abs(p.x - from.x))) + WAVE_OVERSHOOT;
     const extra = { direction: side, groundOffset: this.groundOffset(caster) };
+
+    this.flare(caster, visual.color, CAST_FLARE, 0.65);
 
     for (const spec of visual.cast ?? []) {
       if (spec.at === 'caster') this.play([spec], caster, extra);
