@@ -4,6 +4,7 @@ import { Point } from '@/services/particleService/types/interfaces/canvas-interf
 import {
   Anchor,
   AuraVisual,
+  CRIT_FLARE,
   DAMAGE_COLORS,
   FxSpec,
   HEAL_VISUAL,
@@ -11,6 +12,7 @@ import {
   STATUS_VISUALS,
   SpellVisual,
   UNIT_ANCHORS,
+  UNIT_FACE_SHIFT,
 } from './FxRegistry';
 
 export { DAMAGE_COLORS };
@@ -30,12 +32,24 @@ let emitterSequence = 0;
 // На сколько волна заклинания уходит дальше самой дальней цели, px
 const WAVE_OVERSHOOT = 60;
 
+// Сколько живёт вспышка света в точке попадания, мс при x1
+const FLARE_DURATION = 520;
+
 // Одноразовые и постоянные боевые эффекты поверх particle-сервиса арены
 export class BattleFx {
+  // Вспышки света при попаданиях (выключаются в нагрузочном тесте, чтобы сравнить FPS)
+  flares = true;
+
   constructor(
     private readonly service: () => GlobalParticleService | null,
     private readonly speed: () => number,
   ) {}
+
+  // Вспышка света на юните: пятно цвета эффекта и отсвет на земле под ним
+  flare(el: UnitEl, color: string, radius: number, intensity = 1) {
+    if (!this.flares) return;
+    this.play([{ type: 'flare', duration: FLARE_DURATION, padding: radius, args: { color, radius, intensity } }], el, { ground: this.groundOffset(el) });
+  }
 
   // Точка на спрайте юнита в координатах канваса нужного слоя
   point(el: UnitEl, anchor: Anchor = 'center', layer: FxSpec['layer'] = 'foreground'): Point | null {
@@ -43,8 +57,10 @@ export class BattleFx {
     if (!el || !canvas || !el.isConnected) return null;
     const rect = el.getBoundingClientRect();
     const canvasRect = canvas.getBoundingClientRect();
+    // Из атрибута, а не getComputedStyle: точку следующих эффектов считают каждый кадр, а стили — дорого
+    const face = Number(el.dataset.face) || 1;
     return {
-      x: rect.left + rect.width / 2 - canvasRect.left,
+      x: rect.left + rect.width * (0.5 + UNIT_FACE_SHIFT * face) - canvasRect.left,
       y: rect.top + rect.height * UNIT_ANCHORS[anchor] - canvasRect.top,
     };
   }
@@ -97,10 +113,11 @@ export class BattleFx {
       direction,
       ...(options.crit ? { count: 2, radius: 62, width: 16 } : {}),
     });
+    if (options.crit) this.flare(target, DAMAGE_COLORS[damageType] ?? DAMAGE_COLORS.Physical, CRIT_FLARE);
   }
 
   heal(target: UnitEl) {
-    this.play(HEAL_VISUAL, target);
+    this.play(HEAL_VISUAL, target, { ground: this.groundOffset(target) });
   }
 
   // Магический круг под кастером на время подготовки заклинания
@@ -186,6 +203,7 @@ export class BattleFx {
       await wait((visual.hitDelay ?? 0) / this.speed());
     }
 
+    if (visual.flare) this.flare(target, visual.color, visual.flare);
     this.play(visual.impact, target, { direction });
   }
 
@@ -263,6 +281,7 @@ export class BattleFx {
   auraBurst(el: UnitEl, visual: AuraVisual) {
     if (!el) return;
     const args = this.auraArgs(el, visual);
+    this.flare(el, visual.color, args.rx * 2.4, 0.75);
     this.play([
       { type: 'aura-burst', duration: 900, padding: 260, args: { ...args, colors: visual.palette, reach: args.rx * 3.6 } },
       { type: 'ring', anchor: 'feet', layer: 'background', duration: 800, args: { color: visual.color, radius: args.rx * 2.6, mode: 'pulse', width: 6 } },

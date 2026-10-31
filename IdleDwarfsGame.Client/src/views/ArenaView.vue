@@ -10,7 +10,7 @@
             :active="unit.alive"
             style="position: absolute;"
           >
-            <CharacterComponent :unit="unit" />
+            <CharacterComponent :unit="unit" :scale="UNIT_SCALE" />
           </CanvasComponent>
         </template>
 
@@ -20,13 +20,15 @@
             :active="unit.alive"
             style="position: absolute;"
           >
-            <CharacterComponent :unit="unit" rotate />
+            <CharacterComponent :unit="unit" :scale="UNIT_SCALE" rotate />
           </CanvasComponent>
         </template>
       </div>
 
       <div class="arena-controls">
-        <div v-if="pvpOpponentId" class="floor-select">{{ pvpResult ? t('arena.pvpVs', { name: pvpResult.opponentName }) : t('arena.pvp') }}</div>
+        <div v-if="pvpOpponentId" class="floor-select">
+          {{ pvpResult ? t(pvpRanked ? 'arena.rankedVs' : 'arena.pvpVs', { name: pvpResult.opponentName }) : t(pvpRanked ? 'arena.ranked' : 'arena.pvp') }}
+        </div>
         <div v-else-if="guildBossTier" class="floor-select">{{ t('arena.guildBoss', { tier: t(`guild.bosses.tiers.${guildBossTier}`) }) }}</div>
         <div v-else-if="stageId" class="floor-select">{{ t('arena.stage', { id: stageId }) }}</div>
         <label v-else class="floor-select">
@@ -59,9 +61,9 @@
       <!-- PvP: победа или поражение и сколько очков сезона это стоило -->
       <div v-if="state.finished && pvpResult" class="arena-message" :class="pvpResult.won ? 'victory' : 'defeat'">
         <div class="result-title">{{ pvpResult.won ? t('arena.victory') : t('arena.defeat') }}</div>
-        <div class="result-rewards">{{ t('arena.pvpVs', { name: pvpResult.opponentName }) }}</div>
+        <div class="result-rewards">{{ t(pvpRanked ? 'arena.rankedVs' : 'arena.pvpVs', { name: pvpResult.opponentName }) }}</div>
         <div class="result-rewards" :class="pvpResult.points >= 0 ? 'pvp-points-up' : 'pvp-points-down'">
-          {{ t('arena.pvpPoints', { points: pvpResult.points > 0 ? `+${pvpResult.points}` : pvpResult.points }) }}
+          {{ t(pvpRanked ? 'arena.rankedPoints' : 'arena.pvpPoints', { points: pvpResult.points > 0 ? `+${pvpResult.points}` : pvpResult.points }) }}
         </div>
         <div class="result-rewards">
           <span v-for="season in pvpResult.seasons" :key="season.type" class="pvp-season-points">
@@ -100,6 +102,13 @@
 
       <CombatLogFeed v-if="result" :logs="result.logs" :shown-logs="state.shownLogs" :units="state.units" :speed="speed" />
     </CanvasLayer>
+
+    <!-- Экран загрузки: запрос боя, фон арены, спрайт-листы юнитов. Сцена под ним уже собирается и открывается готовой -->
+    <Transition name="arena-loading">
+      <div v-if="loading || state.preparing" class="arena-loading-screen">
+        <div class="arena-loading">{{ t('arena.loadingSprites') }}</div>
+      </div>
+    </Transition>
   </div>
 </template>
 
@@ -131,6 +140,9 @@ import { useI18n } from 'vue-i18n';
 
 const { t, locale } = useI18n();
 
+// Размер юнитов на арене (1 — кадр 409.6px; по умолчанию у юнитов 0.65)
+const UNIT_SCALE = 0.8;
+
 const bgImage = ref('arena_blue_crystals');
 const layerRef = ref<InstanceType<typeof CanvasLayer> | null>(null);
 const floor = ref(2);
@@ -159,10 +171,12 @@ const guildBossTier = computed(() => {
 const guildResult = ref<GuildBossAttackResult | null>(null);
 const { guildOpen } = useGuild();
 
-// Режим PvP: /arena?pvp=<userId соперника>&attack=<метка> — бой с отрядом другого игрока
+// Режим PvP: /arena?pvp=<userId соперника>&attack=<метка> — бой с отрядом другого игрока;
+// &ranked=1 — на рейтинговой арене (закреплённые снимки отрядов, очки рейтинга)
 const pvpOpponentId = computed(() => (typeof route.query.pvp === 'string' && route.query.pvp) || null);
+const pvpRanked = computed(() => !!pvpOpponentId.value && route.query.ranked === '1');
 const pvpResult = ref<PvpFightResult | null>(null);
-const { pvpOpen } = usePvp();
+const { pvpOpen, pvpTab } = usePvp();
 
 const state = createBattleState();
 const fx = new BattleFx(() => layerRef.value?.particleService ?? null, () => speed.value);
@@ -190,6 +204,13 @@ const onVolumeInput = (event: Event) => {
   soundService.setVolume(Number((event.target as HTMLInputElement).value));
 };
 
+// Загрузить и распаковать картинку; не загрузилась — не страшно, бой всё равно начнётся
+const preloadImage = (url: string) => {
+  const image = new Image();
+  image.src = url;
+  return image.decode().catch(() => undefined);
+};
+
 const playFight = async (load: () => Promise<CombatResult>) => {
   if (state.playing || loading.value) return;
   loading.value = true;
@@ -199,6 +220,8 @@ const playFight = async (load: () => Promise<CombatResult>) => {
 
   try {
     result.value = await load();
+    // Фон арены (у каждого режима свой) — тоже под экраном загрузки, а не проявляется на глазах
+    await preloadImage(arenaBackground(bgImage.value));
   } catch (e) {
     console.error('Ошибка запуска боя:', e);
     // Сервер отвечает 400 с текстом, например "Campaign stage 3 is locked"; гильдия — { code, message }
@@ -233,19 +256,19 @@ const startGuildBossFight = (tier: GuildBossTier) => playFight(async () => {
   return attack.combat;
 });
 
-const startPvpFight = (opponentId: string) => playFight(async () => {
+const startPvpFight = (opponentId: string, ranked: boolean) => playFight(async () => {
   // Метку боя убираем сразу: перезагрузка страницы не должна начинать бой ещё раз
-  router.replace({ query: { pvp: opponentId } });
+  router.replace({ query: ranked ? { pvp: opponentId, ranked: '1' } : { pvp: opponentId } });
   campaignResult.value = null;
   guildResult.value = null;
-  const fight = await PvpApiService.fight(opponentId);
+  const fight = ranked ? await PvpApiService.rankedFight(opponentId) : await PvpApiService.fight(opponentId);
   pvpResult.value = fight;
   bgImage.value = fight.arena.background;
   return fight.combat;
 });
 
 const startArenaFight = () => {
-  if (pvpOpponentId.value) return startPvpFight(pvpOpponentId.value);
+  if (pvpOpponentId.value) return startPvpFight(pvpOpponentId.value, pvpRanked.value);
   if (guildBossTier.value) return startGuildBossFight(guildBossTier.value);
   return stageId.value
     ? startCampaignFight(stageId.value)
@@ -260,7 +283,9 @@ watch(() => route.query.attack, (attack, previous) => {
 const goToGuild = () => {
   guildOpen.value = true;
 };
+// Возвращаем на вкладку соперников той арены, на которой шёл бой
 const goToPvp = () => {
+  pvpTab.value = pvpRanked.value ? 'ranked' : 'fight';
   pvpOpen.value = true;
 };
 const startBossFight = () => playFight(() => CombatApiService.startBoss(undefined, floor.value));
@@ -282,7 +307,7 @@ onMounted(() => {
   }
   // То же для PvP — в окно PvP
   if (pvpOpponentId.value && !route.query.attack) {
-    pvpOpen.value = true;
+    goToPvp();
     return;
   }
   startArenaFight();
@@ -479,6 +504,38 @@ onBeforeUnmount(() => player.stop());
 
 .arena-message.error {
   color: #fca5a5;
+}
+
+/* Поверх всего, включая канвас эффектов (z-index 9999 в CanvasLayer) */
+.arena-loading-screen {
+  position: absolute;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: radial-gradient(ellipse at center, #1a2232 0%, #0a0f18 75%);
+}
+
+.arena-loading-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.arena-loading-leave-to {
+  opacity: 0;
+}
+
+.arena-loading {
+  color: white;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  animation: arena-loading-pulse 1s ease-in-out infinite alternate;
+}
+
+@keyframes arena-loading-pulse {
+  from { opacity: 0.55; }
+  to { opacity: 1; }
 }
 
 .arena-message.victory .result-title {

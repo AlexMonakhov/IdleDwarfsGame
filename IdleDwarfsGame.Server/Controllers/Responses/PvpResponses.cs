@@ -31,6 +31,9 @@ public class PvpOpponentInfo
     public List<CombatUnitInfo> Squad { get; set; } = new();
     // Прогноз боя на арене PvP
     public BattleForecast Forecast { get; set; } = new();
+    // Рейтинг соперника на рейтинговой арене (в обычной — null) и насколько он выше (+) или ниже (−) нашего, в процентах
+    public int? Rating { get; set; }
+    public double? RatingDiffPercent { get; set; }
     // Сколько очков сезона даст победа и снимет поражение
     public int WinPoints { get; set; }
     public int LossPoints { get; set; }
@@ -73,6 +76,9 @@ public class PvpBattleInfo
     public int Points { get; set; }
     public int MyPower { get; set; }
     public int OpponentPower { get; set; }
+    // Рейтинг сторон до боя на рейтинговой арене (в обычной — null)
+    public int? MyRating { get; set; }
+    public int? OpponentRating { get; set; }
 }
 
 public class PvpOverview
@@ -84,6 +90,42 @@ public class PvpOverview
     public List<CombatUnitInfo> Squad { get; set; } = new();
     // Окно мощи, в котором подобраны соперники: 10%, а если игроков мало — шире
     public int PowerSpreadPercent { get; set; }
+    public int OpponentCount { get; set; }
+    public List<PvpOpponentInfo> Opponents { get; set; } = new();
+    public int BeatenToday { get; set; }
+    public List<PvpSeasonInfo> Seasons { get; set; } = new();
+    public List<PvpBattleInfo> History { get; set; } = new();
+    public PvpArenaInfo Arena { get; set; } = new();
+}
+
+// Закреплённый отряд рейтинговой арены — снимок на момент закрепления
+public class RankedSquadInfo
+{
+    public DateTime LockedAt { get; set; }
+    // С этого момента (следующие 00:00 UTC) отряд можно перезакрепить
+    public DateTime CanChangeAt { get; set; }
+    public int Power { get; set; }
+    public List<CombatUnitInfo> Units { get; set; } = new();
+}
+
+public class RankedOverview
+{
+    public DateTime ServerTime { get; set; }
+    // Когда обнулится список побеждённых (и дневной сезон): 00:00 UTC
+    public DateTime DayResetAt { get; set; }
+    // null — отряд ещё не закреплён, драться нельзя
+    public RankedSquadInfo? Squad { get; set; }
+    // Можно ли закрепить отряд сейчас: первый раз — всегда, дальше — раз в сутки
+    public bool CanLockSquad { get; set; }
+    // Текущий отряд аккаунта — что попадёт в снимок при закреплении
+    public int AccountPower { get; set; }
+    public List<CombatUnitInfo> AccountSquad { get; set; } = new();
+    // Рейтинг, по которому идёт подбор (месячный сезон), и окно подбора: 5%, а если игроков мало — шире
+    public int MyRating { get; set; }
+    // С него начинается каждый сезон рейтинговой арены
+    public int StartRating { get; set; }
+    public PvpSeasonType MatchSeason { get; set; }
+    public int RatingSpreadPercent { get; set; }
     public int OpponentCount { get; set; }
     public List<PvpOpponentInfo> Opponents { get; set; } = new();
     public int BeatenToday { get; set; }

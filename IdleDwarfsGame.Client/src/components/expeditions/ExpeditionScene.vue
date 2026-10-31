@@ -1,12 +1,12 @@
 <script lang="ts" setup>
-import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import CharacterSkeleton from '@/components/character-skeleton.vue';
 import { HeroModel } from '@/models/hero';
 import { HeroInfo } from '@/models/types/Heroes';
 import { elementColor, SpriteColor } from '@/battle/sprites';
 
 // Декоративная сцена задания: никакого расчёта боя, просто показываем, что герои заняты делом.
-// Цикл: справа выходят враги → обмен ударами → враги исчезают, герои празднуют → снова враги.
+// Цикл: обмен ударами → враги исчезают → герои идут дальше, навстречу выходят новые враги → снова бой.
 const props = defineProps<{
     heroes: HeroInfo[];
     background: string;
@@ -114,35 +114,64 @@ const exchange = () => {
     }
 };
 
-const celebrate = (on: boolean) => {
-    heroRefs.forEach(skeleton => skeleton?.playAnimation(on ? 'victory' : 'idle'));
+const heroesPlay = (animation: 'idle' | 'walk' | 'victory') => {
+    heroRefs.forEach(skeleton => skeleton?.playAnimation(animation));
+};
+
+// Пока герои идут, новые враги выходят справа медленнее обычного — будто герои подходят к ним
+const marching = ref(false);
+
+// Тайминги цикла, мс
+const MARCH = 1600;         // герои и враги идут навстречу (совпадает с переходом .scene-marching)
+const VICTORY = 2600;       // празднование после волны
+const BLOWS: [number, number] = [7, 11];
+
+const stopped = () => !alive || props.finished;
+
+// Герои идут дальше, навстречу выходят враги. false — сцену пора заканчивать
+const march = async () => {
+    marching.value = true;
+    heroesPlay('walk');
+    spawnEnemies();
+    // Враги тоже идут, пока выходят
+    await nextTick();
+    enemyRefs.forEach(skeleton => skeleton.playAnimation('walk'));
+    await sleep(MARCH);
+    marching.value = false;
+    heroesPlay('idle');
+    enemyRefs.forEach(skeleton => skeleton.playAnimation('idle'));
+    await sleep(300);
+    return !stopped();
 };
 
 const run = async () => {
     // Даём спрайтам героев загрузиться
     await sleep(400);
-    while (alive && !props.finished) {
-        spawnEnemies();
-        await sleep(900);
 
-        const blows = random(4, 7);
-        for (let i = 0; i < blows && alive && !props.finished; i++) {
+    // Ходьба → драка → победа → снова ходьба
+    while (!stopped()) {
+        if (!(await march())) break;
+
+        const blows = random(...BLOWS);
+        for (let i = 0; i < blows && !stopped(); i++) {
             exchange();
             await sleep(random(550, 850));
         }
         if (!alive) return;
 
+        // Враги растворяются, герои празднуют
         enemies.value = [];
-        celebrate(true);
-        await sleep(2600);
-        if (!alive || props.finished) break;
-        celebrate(false);
-        await sleep(700);
+        if (props.finished) break;
+        heroesPlay('victory');
+        await sleep(VICTORY);
     }
 
+    marching.value = false;
+
+    // Задание выполнено — герои празднуют
     if (alive) {
         enemies.value = [];
-        celebrate(true);
+        heroesPlay('victory');
     }
 };
 
@@ -194,7 +223,7 @@ const setEnemyRef = (id: number) => (el: unknown) => {
             </div>
         </div>
 
-        <TransitionGroup name="scene-enemy" tag="div" class="scene-side scene-enemies">
+        <TransitionGroup name="scene-enemy" tag="div" class="scene-side scene-enemies" :class="{ 'scene-marching': marching }">
             <div
                 v-for="(enemy, index) in enemies"
                 :key="enemy.id"
@@ -343,6 +372,15 @@ const setEnemyRef = (id: number) => (el: unknown) => {
 .scene-enemy-enter-from {
     opacity: 0;
     transform: translateX(160px);
+}
+
+/* Герои идут навстречу: враги «приближаются» дольше и издалека, без резкого торможения */
+.scene-marching .scene-enemy-enter-active {
+    transition: transform 1.6s linear, opacity 0.6s ease-out;
+}
+
+.scene-marching .scene-enemy-enter-from {
+    transform: translateX(320px);
 }
 
 .scene-enemy-leave-to {

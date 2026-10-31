@@ -19,13 +19,16 @@ export const DAMAGE_COLORS: Record<string, string> = {
   Heal: '#4ade80',
 };
 
-// Точки на спрайте юнита (доля высоты кадра): кадр персонажа занимает примерно 27%..72% по высоте
+// Точки на спрайте юнита (доля высоты рамки юнита) — по дворфам из видео (tools/sprite-sheets.js):
+// кончик меча ~27%, макушка ~33%, грудь ~56%, подошвы ~81% высоты. Совпадают с тенью в character-component
 export type Anchor = 'center' | 'head' | 'feet';
 export const UNIT_ANCHORS: Record<Anchor, number> = {
-  head: 0.2,
-  center: 0.5,
-  feet: 0.72,
+  head: 0.33,
+  center: 0.56,
+  feet: 0.8,
 };
+// Тело стоит чуть впереди центра рамки (доля ширины, в сторону взгляда — см. --face)
+export const UNIT_FACE_SHIFT = 0.03;
 
 export interface FxSpec {
   type: EffectType;
@@ -74,6 +77,8 @@ export interface SpellVisual {
   support?: boolean;
   // Лечение кастера или союзников, идущее вместе с уроном, срабатывает через столько мс после попаданий
   healDelay?: number;
+  // Радиус вспышки света на цели в миг попадания, px; по умолчанию — по уровню заклинания (FLARE_BY_LEVEL)
+  flare?: number;
 }
 
 export interface SpriteTint {
@@ -268,6 +273,7 @@ const FLAME_WAVE: SpellVisualOf = level => ({
 // 3 — глыба крупнее, хвост длиннее, летят обломки, волна двойная и всё вокруг озаряет зарево
 const METEOR: SpellVisualOf = level => ({
   color: '#ff4d00',
+  flare: lvl(level, [150, 185, 240]),
   from: 'sky',
   sky: { height: 460, dx: 110 },
   projectile: {
@@ -385,6 +391,7 @@ const CHAIN_LIGHTNING: SpellVisualOf = level => ({
 // 2 — молнии толще, вспышка ярче; 3 — молнии ещё толще и ветвистее, волна шире и летят искры
 const THUNDERCLAP: SpellVisualOf = level => ({
   color: '#fde68a',
+  flare: lvl(level, [130, 160, 200]),
   cast: [{ at: 'caster', type: 'screen-flash', duration: 700, args: { color: '#fde68a', alpha: lvl(level, [0.2, 0.3, 0.42]) } }],
   windup: 120,
   stagger: 70,
@@ -621,13 +628,22 @@ export const SPELL_VISUALS: Record<string, SpellVisualOf> = {
   Magical: () => ARCANE_BOLT,
 };
 
+// Вспышка света на цели по уровню заклинания: прокачанное бьёт ярче и шире
+const FLARE_BY_LEVEL: [number, number, number] = [95, 120, 155];
+
 // Уровень заклинания 1..3 (SkillLevel в логе каста); без уровня — первый
 export const resolveSpellVisual = (skillName: string | undefined, damageType: string, level?: number | null): SpellVisual => {
   const of = (skillName && SPELL_VISUALS[skillName]) || SPELL_VISUALS[damageType];
-  return of ? of(Math.min(Math.max(Math.round(level ?? 1), 1), 3) as SpellLevel) : ARCANE_BOLT;
+  const spellLevel = Math.min(Math.max(Math.round(level ?? 1), 1), 3) as SpellLevel;
+  const visual = of ? of(spellLevel) : ARCANE_BOLT;
+  return { ...visual, flare: visual.flare ?? lvl(spellLevel, FLARE_BY_LEVEL) };
 };
 
+// Вспышка от крита обычной атакой
+export const CRIT_FLARE = 110;
+
 export const HEAL_VISUAL: FxSpec[] = [
+  { type: 'flare', duration: 650, args: { color: '#4ade80', radius: 85, intensity: 0.6 } },
   { type: 'sparkles', duration: 900, args: { color: '#4ade80', burst: 14, rate: 0.6, once: true, width: 60, height: 90 } },
   groundPulse('#4ade80', 55, 700),
 ];

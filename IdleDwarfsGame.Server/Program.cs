@@ -88,6 +88,7 @@ builder.Services.AddScoped<IGuildRepository, GuildRepository>();
 builder.Services.AddScoped<GuildService>();
 builder.Services.AddScoped<IPvpRepository, PvpRepository>();
 builder.Services.AddScoped<PvpService>();
+builder.Services.AddScoped<RankedPvpService>();
 builder.Services.AddScoped<IWorldFactory, WorldFactory>();
 builder.Services.AddScoped<ICombatEngine, CombatEngine>();
 builder.Services.AddScoped<CombatService>();

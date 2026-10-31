@@ -5,7 +5,10 @@ public enum PvpError
     NoSquad,
     OpponentNotFound,
     NotAnOpponent,
-    AlreadyBeaten
+    AlreadyBeaten,
+    // Рейтинговая арена: отряд не закреплён / сегодня его уже закрепляли
+    NoRankedSquad,
+    SquadChangeCooldown
 }
 
 public class PvpException(PvpError code, string message) : InvalidOperationException(message)
@@ -15,7 +18,8 @@ public class PvpException(PvpError code, string message) : InvalidOperationExcep
 
 // PvP между аккаунтами: игрок нападает на сохранённый отряд другого игрока (защитник в бою не участвует).
 // Соперники подбираются по мощи отряда (PvpMatchmaking). Побеждённый соперник пропадает из подбора до 00:00 UTC.
-// Каждый бой меняет очки нападавшего сразу в трёх сезонах — дневном, недельном и месячном (PvpRating, PvpSeasons)
+// Каждый бой меняет очки нападавшего сразу в трёх сезонах — дневном, недельном и месячном (PvpRating, PvpSeasons).
+// Сезоны, история и прогноз боя здесь общие с рейтинговой ареной (RankedPvpService)
 public class PvpService(
     IPvpRepository pvp,
     IUserRepository users,
@@ -37,7 +41,7 @@ public class PvpService(
         var day = PvpSeasons.DayOf(now);
         var (_, squad) = await RequirePlayerAsync(userId);
         int myPower = SquadPower(squad);
-        var beaten = await pvp.GetBeatenAsync(userId, day);
+        var beaten = await pvp.GetBeatenAsync(userId, day, PvpMode.Casual);
         var pick = await PickOpponentsAsync(userId, myPower, day, beaten);
 
         var squadWorld = new World();
@@ -51,10 +55,10 @@ public class PvpService(
             Squad = CombatSnapshot.Units(squadWorld),
             PowerSpreadPercent = pick.SpreadPercent,
             OpponentCount = PvpMatchmaking.OpponentCount,
-            Opponents = pick.Opponents.Select(o => ToOpponentInfo(o, squad, myPower)).ToList(),
+            Opponents = pick.Opponents.Select(o => ToOpponentInfo(o.Candidate.UserId, o.Candidate.Username, o.Candidate.Squad, o.Power, squad, myPower)).ToList(),
             BeatenToday = beaten.Count,
-            Seasons = await GetSeasonsAsync(userId, now),
-            History = (await pvp.GetHistoryAsync(userId, HistorySize)).Select(h => ToBattleInfo(h, userId)).ToList(),
+            Seasons = await GetSeasonsAsync(userId, now, PvpMode.Casual),
+            History = await GetHistoryAsync(userId, PvpMode.Casual),
             Arena = PvpArenaInfo.Current
         };
     }
@@ -67,7 +71,7 @@ public class PvpService(
         if (squad.Count == 0)
             throw new PvpException(PvpError.NoSquad, "Your squad is empty");
 
-        var beaten = await pvp.GetBeatenAsync(userId, day);
+        var beaten = await pvp.GetBeatenAsync(userId, day, PvpMode.Casual);
         if (beaten.Contains(opponentUserId))
             throw new PvpException(PvpError.AlreadyBeaten, "You have already beaten this player today");
 
@@ -90,6 +94,7 @@ public class PvpService(
         var battle = new PvpBattle
         {
             Id = Guid.NewGuid(),
+            Mode = PvpMode.Casual,
             AttackerUserId = userId,
             DefenderUserId = opponentUserId,
             FoughtAt = now,
@@ -99,24 +104,7 @@ public class PvpService(
             DefenderPower = opponent.Power,
             Points = points
         };
-        // Параллельный бой успел победить этого соперника раньше — второй победы за сутки не будет
-        if (!await pvp.RecordBattleAsync(battle, SeasonsOf(now)))
-            throw new PvpException(PvpError.AlreadyBeaten, "You have already beaten this player today");
-
-        var seasons = new List<PvpSeasonPointsInfo>();
-        foreach (var (type, start) in SeasonsOf(now))
-            seasons.Add(new PvpSeasonPointsInfo { Type = type, Points = (await pvp.GetScoreAsync(userId, type, start))?.Points ?? 0 });
-
-        return new PvpFightResult
-        {
-            OpponentUserId = opponentUserId,
-            OpponentName = opponent.Candidate.Username,
-            Won = won,
-            Points = points,
-            Seasons = seasons,
-            Arena = PvpArenaInfo.Current,
-            Combat = combat
-        };
+        return await RecordFightAsync(battle, opponent.Candidate.Username, combat);
     }
 
     /* ===== Подбор ===== */
@@ -137,15 +125,17 @@ public class PvpService(
     }
 
     // Мощь отряда — сумма мощи героев, собранных той же фабрикой, что и для боя
-    private int SquadPower(IEnumerable<Hero> squad)
+    public int SquadPower(IEnumerable<Hero> squad)
     {
         var world = new World();
         return entityFactory.CreateSquad(world, squad, teamId: 1).Sum(id => CombatPower.Of(world, id).Total);
     }
 
-    private PvpOpponentInfo ToOpponentInfo(Rated opponent, List<Hero> mySquad, int myPower)
+    // Соперник с прогнозом боя; очки за бой — по мощи (рейтинговая арена потом пересчитывает их по рейтингу)
+    public PvpOpponentInfo ToOpponentInfo(Guid opponentUserId, string username, IReadOnlyList<Hero> opponentSquad, int opponentPower,
+        IReadOnlyList<Hero> mySquad, int myPower)
     {
-        var scenario = new PvpScenario(entityFactory, opponent.Candidate.Squad);
+        var scenario = new PvpScenario(entityFactory, opponentSquad);
 
         // Мир прогноза собирается как настоящий бой: наш отряд, отряд соперника, арена PvP
         World BuildWorld()
@@ -162,36 +152,65 @@ public class PvpService(
 
         return new PvpOpponentInfo
         {
-            UserId = opponent.Candidate.UserId,
-            Username = opponent.Candidate.Username,
-            Power = opponent.Power,
-            PowerDiffPercent = Math.Round(PvpMatchmaking.DiffPercent(myPower, opponent.Power), 1),
+            UserId = opponentUserId,
+            Username = username,
+            Power = opponentPower,
+            PowerDiffPercent = Math.Round(PvpMatchmaking.DiffPercent(myPower, opponentPower), 1),
             Squad = CombatSnapshot.Units(defenders),
             Forecast = CombatPower.Forecast(BuildWorld),
-            WinPoints = PvpRating.WinFor(myPower, opponent.Power),
-            LossPoints = PvpRating.LossFor(myPower, opponent.Power)
+            WinPoints = PvpRating.WinFor(myPower, opponentPower),
+            LossPoints = PvpRating.LossFor(myPower, opponentPower)
+        };
+    }
+
+    // Записывает бой и очки во всех сезонах его арены
+    public async Task<PvpFightResult> RecordFightAsync(PvpBattle battle, string opponentName, CombatResult combat)
+    {
+        // Параллельный бой успел победить этого соперника раньше — второй победы за сутки не будет
+        if (!await pvp.RecordBattleAsync(battle, SeasonsOf(battle.FoughtAt)))
+            throw new PvpException(PvpError.AlreadyBeaten, "You have already beaten this player today");
+
+        var seasons = new List<PvpSeasonPointsInfo>();
+        foreach (var (type, start) in SeasonsOf(battle.FoughtAt))
+        {
+            var score = await pvp.GetScoreAsync(battle.AttackerUserId, battle.Mode, type, start);
+            seasons.Add(new PvpSeasonPointsInfo { Type = type, Points = score?.Points ?? InitialPoints(battle.Mode) });
+        }
+
+        return new PvpFightResult
+        {
+            OpponentUserId = battle.DefenderUserId,
+            OpponentName = opponentName,
+            Won = battle.AttackerWon,
+            Points = battle.Points,
+            Seasons = seasons,
+            Arena = PvpArenaInfo.Current,
+            Combat = combat
         };
     }
 
     /* ===== Сезоны ===== */
 
+    // Очки, с которых игрок начинает сезон
+    public static int InitialPoints(PvpMode mode) => mode == PvpMode.Ranked ? RankedArena.StartRating : 0;
+
     private static List<(PvpSeasonType Type, DateTime Start)> SeasonsOf(DateTime now) =>
         PvpSeasons.All.Select(type => (type, PvpSeasons.StartOf(type, now))).ToList();
 
-    private async Task<List<PvpSeasonInfo>> GetSeasonsAsync(Guid userId, DateTime now)
+    public async Task<List<PvpSeasonInfo>> GetSeasonsAsync(Guid userId, DateTime now, PvpMode mode)
     {
         var seasons = new List<PvpSeasonInfo>();
         foreach (var (type, start) in SeasonsOf(now))
         {
-            var score = await pvp.GetScoreAsync(userId, type, start);
-            var top = await pvp.GetLeaderboardAsync(type, start, LeaderboardSize);
+            var score = await pvp.GetScoreAsync(userId, mode, type, start);
+            var top = await pvp.GetLeaderboardAsync(mode, type, start, LeaderboardSize);
 
             seasons.Add(new PvpSeasonInfo
             {
                 Type = type,
                 StartsAt = start,
                 EndsAt = PvpSeasons.EndOf(type, start),
-                Points = score?.Points ?? 0,
+                Points = score?.Points ?? InitialPoints(mode),
                 Wins = score?.Wins ?? 0,
                 Losses = score?.Losses ?? 0,
                 Rank = score == null ? null : await pvp.CountAheadAsync(score) + 1,
@@ -212,10 +231,14 @@ public class PvpService(
         return seasons;
     }
 
+    public async Task<List<PvpBattleInfo>> GetHistoryAsync(Guid userId, PvpMode mode) =>
+        (await pvp.GetHistoryAsync(userId, mode, HistorySize)).Select(h => ToBattleInfo(h, userId)).ToList();
+
     private static PvpBattleInfo ToBattleInfo(PvpHistoryEntry entry, Guid userId)
     {
         var battle = entry.Battle;
         bool isAttack = battle.AttackerUserId == userId;
+        bool ranked = battle.Mode == PvpMode.Ranked;
         return new PvpBattleInfo
         {
             Id = battle.Id,
@@ -226,7 +249,9 @@ public class PvpService(
             Won = isAttack == battle.AttackerWon,
             Points = isAttack ? battle.Points : 0,
             MyPower = isAttack ? battle.AttackerPower : battle.DefenderPower,
-            OpponentPower = isAttack ? battle.DefenderPower : battle.AttackerPower
+            OpponentPower = isAttack ? battle.DefenderPower : battle.AttackerPower,
+            MyRating = ranked ? (isAttack ? battle.AttackerRating : battle.DefenderRating) : null,
+            OpponentRating = ranked ? (isAttack ? battle.DefenderRating : battle.AttackerRating) : null
         };
     }
 
@@ -238,5 +263,5 @@ public class PvpService(
     }
 
     // SQLite возвращает даты без Kind — без Utc JSON уйдёт без "Z", и браузер прочитает его как местное время
-    private static DateTime AsUtc(DateTime value) => DateTime.SpecifyKind(value, DateTimeKind.Utc);
+    public static DateTime AsUtc(DateTime value) => DateTime.SpecifyKind(value, DateTimeKind.Utc);
 }

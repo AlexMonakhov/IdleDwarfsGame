@@ -233,10 +233,11 @@ export class LightningStrategy implements EffectStrategy {
 
     const color = emitter.args?.color ?? '#9be7ff';
     const glow = Number(emitter.args?.width ?? 10);
+    const opacity = emitter.opacity ?? 1;
     ctx.save();
     ctx.globalCompositeOperation = 'lighter';
-    ctx.globalAlpha = emitter.opacity ?? 1;
     ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
 
     const stroke = (path: BoltPath) => {
       ctx.beginPath();
@@ -244,11 +245,17 @@ export class LightningStrategy implements EffectStrategy {
       ctx.stroke();
     };
 
-    // Широкое свечение + тонкое ядро; отростки вдвое тоньше
-    for (const [width, style] of [[glow, color], [glow * 0.3, '#ffffff']] as const) {
+    // Ореол — широкие полупрозрачные штрихи, а не shadowBlur: размытие длинного разряда каждый кадр
+    // (у толстых молний раската грома — до 40px) заметно роняет FPS. Дальше разряд и тонкое белое ядро;
+    // отростки вдвое тоньше
+    for (const [width, style, alpha] of [
+      [glow * 3, color, 0.1],
+      [glow * 1.8, color, 0.22],
+      [glow, color, 1],
+      [glow * 0.3, '#ffffff', 1],
+    ] as const) {
+      ctx.globalAlpha = opacity * alpha;
       ctx.strokeStyle = style;
-      ctx.shadowColor = color;
-      ctx.shadowBlur = width * 2;
       ctx.lineWidth = width;
       stroke(bolt.points);
       ctx.lineWidth = width * 0.45;

@@ -3,8 +3,8 @@ using Microsoft.EntityFrameworkCore;
 
 // Тестовые аккаунты TestUser1..TestUser{Count} — соперники для PvP на локальной базе. Добавляются при старте сервера
 // в Development, если их ещё нет (Program.cs). Под ними можно войти: пароль Password, почта testuser{n}@test.local.
-// Отряд — 5 случайных героев 1–5 ранга со случайными статами и ровно одним заклинанием случайного уровня 1–3.
-// Сид фиксированный: на чистой базе аккаунты получаются одинаковыми
+// Отряд — 5 случайных героев 1–5 ранга со случайными статами и ровно одним заклинанием случайного уровня 1–3,
+// он же закреплён на рейтинговой арене. Сид фиксированный: на чистой базе аккаунты получаются одинаковыми
 public static class TestAccountsSeed
 {
     public const int Count = 100;
@@ -19,9 +19,41 @@ public static class TestAccountsSeed
     public static async Task SeedAsync(GameDbContext context, IPasswordHasher<User> hasher)
     {
         var normalizedFirst = UserRepository.Normalize(UsernamePrefix + 1);
-        if (await context.Users.AnyAsync(u => u.NormalizedUsername == normalizedFirst))
+        if (!await context.Users.AnyAsync(u => u.NormalizedUsername == normalizedFirst))
+            await SeedAccountsAsync(context, hasher);
+
+        // Отдельным шагом: на базах, где аккаунты появились до рейтинговой арены, отрядов арены ещё нет
+        await SeedRankedSquadsAsync(context);
+    }
+
+    // Каждый тестовый аккаунт закрепляет на рейтинговой арене свой текущий отряд
+    private static async Task SeedRankedSquadsAsync(GameDbContext context)
+    {
+        var users = await context.Users
+            .Where(u => u.Username.StartsWith(UsernamePrefix) && !context.RankedSquads.Any(s => s.UserId == u.Id))
+            .Select(u => new { u.Id, u.PlayerId })
+            .ToListAsync();
+        if (users.Count == 0)
             return;
 
+        var playerIds = users.Select(u => u.PlayerId).ToList();
+        var squads = (await context.Heroes
+                .AsNoTracking()
+                .Where(h => h.PlaceInSquad != null && playerIds.Contains(h.PlayerId))
+                .ToListAsync())
+            .GroupBy(h => h.PlayerId)
+            .ToDictionary(g => g.Key, g => g.OrderBy(h => h.PlaceInSquad).ToList());
+
+        var now = DateTime.UtcNow;
+        foreach (var user in users.Where(u => squads.ContainsKey(u.PlayerId)))
+            context.RankedSquads.Add(new RankedSquad { UserId = user.Id, LockedAt = now, HeroesJson = RankedSquad.Serialize(squads[user.PlayerId]) });
+
+        await context.SaveChangesAsync();
+        context.ChangeTracker.Clear();
+    }
+
+    private static async Task SeedAccountsAsync(GameDbContext context, IPasswordHasher<User> hasher)
+    {
         var random = new Random(Seed);
         var now = DateTime.UtcNow;
 

@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { computed } from 'vue';
 import { PortraitUnit } from '@/battle/types';
-import { elementColor, getSpriteUrl, SPRITE_COLUMNS } from '@/battle/sprites';
+import { elementColor, getPortraitUrl } from '@/battle/sprites';
 
 // Только лицо юнита в кружке — без подсказки (её добавляет UnitPortrait)
 interface Props {
@@ -15,24 +15,15 @@ const props = withDefaults(defineProps<Props>(), {
     showLevel: true,
 });
 
-// Персонаж занимает центр кадра (~25-75% по обеим осям) — приближаем эту область в 2 раза
-const ZOOM = 2;
-const CROP_LEFT = 0.25;
-const CROP_TOP = 0.2;
-
+// Иконка — уже вырезанная с портрета голова (tools/portraits.js), растягивается на весь кружок
 const color = computed(() => elementColor(props.unit.element));
-const sprite = computed(() => getSpriteUrl('idle', color.value, props.unit.level, 1, props.unit.unitType));
+const sprite = computed(() => getPortraitUrl(color.value, props.unit.level));
 
-const portraitStyle = computed(() => {
-    const frame = props.size * ZOOM;
-    return {
-        width: `${props.size}px`,
-        height: `${props.size}px`,
-        backgroundImage: sprite.value ? `url(${sprite.value})` : 'none',
-        backgroundSize: `${frame * SPRITE_COLUMNS}px auto`,
-        backgroundPosition: `${-frame * CROP_LEFT}px ${-frame * CROP_TOP}px`,
-    };
-});
+const portraitStyle = computed(() => ({
+    width: `${props.size}px`,
+    height: `${props.size}px`,
+    backgroundImage: sprite.value ? `url(${sprite.value})` : 'none',
+}));
 </script>
 
 <template>
@@ -50,6 +41,8 @@ const portraitStyle = computed(() => {
     border-radius: 50%;
     background-color: #1b2533;
     background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center;
     border: 2px solid rgb(157, 173, 175);
     box-shadow: 0 0 0 2px #333, inset 0 0 8px black, 0 3px 6px rgba(0, 0, 0, 0.5);
     display: flex;

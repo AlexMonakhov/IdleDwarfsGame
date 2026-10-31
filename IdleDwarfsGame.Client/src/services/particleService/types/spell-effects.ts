@@ -118,6 +118,9 @@ export class FireWallStrategy extends ParticleStore {
   }
 }
 
+// Ступени прозрачности снега бурана (снежинки рисуются пачками по ступеням)
+const SNOW_LEVELS = 6;
+
 /**
  * Буран над группой целей: клубящаяся туча и косой снег под ней.
  * args: spread (ширина группы, добавляет BattleFx), margin, lift (на сколько выше эмиттера туча), fall (высота снегопада),
@@ -208,17 +211,30 @@ export class StormStrategy extends ParticleStore<{ puffs: Particle[]; snow: Part
       [1, rgba('#7dd3fc', 0)],
     ]);
 
-    // Снег косыми штрихами
-    ctx.lineCap = 'round';
+    // Снег косыми штрихами. Снежинок сотни: рисуем их пачками одного цвета, толщины и прозрачности
+    // (по SNOW_LEVELS ступеней), один stroke на пачку — иначе сотни отдельных отрисовок за кадр
+    const batches = new Map<string, Particle[]>();
     for (const s of state.snow) {
-      ctx.globalAlpha = opacity * env * Math.sin(Math.PI * clamp01(s.life)) * 0.9;
-      ctx.strokeStyle = s.color;
-      ctx.lineWidth = s.size;
-      ctx.beginPath();
-      ctx.moveTo(s.x, s.y);
-      ctx.lineTo(s.x - s.vx * 2.5, s.y - s.vy * 2.5);
-      ctx.stroke();
+      const level = Math.round(Math.sin(Math.PI * clamp01(s.life)) * SNOW_LEVELS);
+      if (level <= 0) continue;
+      const key = `${s.color}|${Math.round(s.size * 2) / 2}|${level}`;
+      const batch = batches.get(key);
+      if (batch) batch.push(s);
+      else batches.set(key, [s]);
     }
+    ctx.lineCap = 'round';
+    batches.forEach((batch, key) => {
+      const [color, size, level] = key.split('|');
+      ctx.globalAlpha = opacity * env * (Number(level) / SNOW_LEVELS) * 0.9;
+      ctx.strokeStyle = color;
+      ctx.lineWidth = Number(size);
+      ctx.beginPath();
+      for (const s of batch) {
+        ctx.moveTo(s.x, s.y);
+        ctx.lineTo(s.x - s.vx * 2.5, s.y - s.vy * 2.5);
+      }
+      ctx.stroke();
+    });
 
     ctx.restore();
   }
@@ -676,6 +692,116 @@ export class DrainStrategy extends ParticleStore<DrainOrb[]> {
   }
 }
 
+// Слои печати Порчи со свечением рендерятся один раз и дальше только поворачиваются (как снежинки и искры):
+// shadowBlur на трёх десятках штрихов каждый кадр, да на трёх целях сразу, заметно роняет FPS
+const SIGIL_RES = 2; // спрайт детальнее, чтобы не мылился
+const SIGIL_BLUR = 14;
+const sigilSprites = new Map<string, HTMLCanvasElement>();
+
+// extent — радиус слоя без свечения; paint рисует слой с центром в 0, 0
+const sigilSprite = (key: string, color: string, extent: number, paint: (ctx: CanvasRenderingContext2D) => void) => {
+  let sprite = sigilSprites.get(key);
+  if (sprite) return sprite;
+
+  // Свечение уходит от штриха примерно на 1.5 shadowBlur
+  const half = Math.ceil((extent + SIGIL_BLUR * 1.5) * SIGIL_RES);
+  sprite = document.createElement('canvas');
+  sprite.width = sprite.height = half * 2;
+  const ctx = sprite.getContext('2d')!;
+  ctx.translate(half, half);
+  ctx.scale(SIGIL_RES, SIGIL_RES);
+  ctx.globalCompositeOperation = 'lighter';
+  ctx.shadowColor = color;
+  // shadowBlur не масштабируется вместе с канвасом
+  ctx.shadowBlur = SIGIL_BLUR * SIGIL_RES;
+  paint(ctx);
+
+  sigilSprites.set(key, sprite);
+  return sprite;
+};
+
+const drawSigilLayer = (ctx: CanvasRenderingContext2D, sprite: HTMLCanvasElement, rotation: number) => {
+  const half = sprite.width / 2 / SIGIL_RES;
+  ctx.save();
+  ctx.rotate(rotation);
+  ctx.drawImage(sprite, -half, -half, half * 2, half * 2);
+  ctx.restore();
+};
+
+// Два кольца и глаз в центре
+const sigilBase = (color: string, accent: string, r: number) => sigilSprite(`base|${color}|${accent}|${r}`, color, r, ctx => {
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  ctx.arc(0, 0, r, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.lineWidth = 1.2;
+  ctx.beginPath();
+  ctx.arc(0, 0, r * 0.84, 0, Math.PI * 2);
+  ctx.stroke();
+
+  ctx.strokeStyle = accent;
+  ctx.fillStyle = accent;
+  ctx.lineWidth = 1.8;
+  ctx.beginPath();
+  ctx.moveTo(-r * 0.4, 0);
+  ctx.quadraticCurveTo(0, -r * 0.32, r * 0.4, 0);
+  ctx.quadraticCurveTo(0, r * 0.32, -r * 0.4, 0);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.ellipse(0, 0, r * 0.06, r * 0.15, 0, 0, Math.PI * 2);
+  ctx.fill();
+});
+
+// Гексаграмма и засечки по кругу
+const sigilHexagram = (color: string, r: number) => sigilSprite(`hex|${color}|${r}`, color, r, ctx => {
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1.8;
+  for (const offset of [0, Math.PI]) {
+    ctx.beginPath();
+    for (let i = 0; i < 3; i++) {
+      const a = offset + (i * Math.PI * 2) / 3 - Math.PI / 2;
+      if (i === 0) ctx.moveTo(Math.cos(a) * r * 0.8, Math.sin(a) * r * 0.8);
+      else ctx.lineTo(Math.cos(a) * r * 0.8, Math.sin(a) * r * 0.8);
+    }
+    ctx.closePath();
+    ctx.stroke();
+  }
+  for (let i = 0; i < 12; i++) {
+    const a = (i * Math.PI) / 6;
+    ctx.beginPath();
+    ctx.moveTo(Math.cos(a) * r * 0.86, Math.sin(a) * r * 0.86);
+    ctx.lineTo(Math.cos(a) * r * 0.98, Math.sin(a) * r * 0.98);
+    ctx.stroke();
+  }
+});
+
+// Внешнее пунктирное кольцо с ромбиками рун
+const sigilRunes = (color: string, accent: string, r: number) => sigilSprite(`runes|${color}|${accent}|${r}`, color, r * 1.4, ctx => {
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1.4;
+  ctx.setLineDash([r * 0.22, r * 0.1]);
+  ctx.beginPath();
+  ctx.arc(0, 0, r * 1.28, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = accent;
+  for (let i = 0; i < 8; i++) {
+    const a = (i * Math.PI) / 4;
+    ctx.save();
+    ctx.translate(Math.cos(a) * r * 1.28, Math.sin(a) * r * 1.28);
+    ctx.rotate(a);
+    ctx.beginPath();
+    ctx.moveTo(r * 0.12, 0);
+    ctx.lineTo(0, r * 0.07);
+    ctx.lineTo(-r * 0.12, 0);
+    ctx.lineTo(0, -r * 0.07);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+});
+
 /**
  * Порча: над головой цели проступает печать с глазом, вращается и обрушивается на неё.
  * args: color, accent, radius, lift (на сколько выше эмиттера висит печать), drop (на сколько падает), slam (доля жизни начала падения),
@@ -751,80 +877,10 @@ export class SigilStrategy extends ParticleStore {
       ctx.fill();
 
       ctx.globalCompositeOperation = 'lighter';
-      ctx.strokeStyle = color;
-      ctx.shadowColor = color;
-      ctx.shadowBlur = 14;
-      ctx.lineWidth = 2.5;
-      ctx.beginPath();
-      ctx.arc(0, 0, r, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.lineWidth = 1.2;
-      ctx.beginPath();
-      ctx.arc(0, 0, r * 0.84, 0, Math.PI * 2);
-      ctx.stroke();
-
-      // Гексаграмма и засечки вращаются, глаз в центре смотрит прямо
-      ctx.save();
-      ctx.rotate(pose.spin);
-      ctx.lineWidth = 1.8;
-      for (const offset of [0, Math.PI]) {
-        ctx.beginPath();
-        for (let i = 0; i < 3; i++) {
-          const a = offset + (i * Math.PI * 2) / 3 - Math.PI / 2;
-          if (i === 0) ctx.moveTo(Math.cos(a) * r * 0.8, Math.sin(a) * r * 0.8);
-          else ctx.lineTo(Math.cos(a) * r * 0.8, Math.sin(a) * r * 0.8);
-        }
-        ctx.closePath();
-        ctx.stroke();
-      }
-      for (let i = 0; i < 12; i++) {
-        const a = (i * Math.PI) / 6;
-        ctx.beginPath();
-        ctx.moveTo(Math.cos(a) * r * 0.86, Math.sin(a) * r * 0.86);
-        ctx.lineTo(Math.cos(a) * r * 0.98, Math.sin(a) * r * 0.98);
-        ctx.stroke();
-      }
-      ctx.restore();
-
-      // Внешнее кольцо рун вращается навстречу гексаграмме
-      if (args.ornate) {
-        ctx.save();
-        ctx.rotate(-pose.spin * 1.4);
-        ctx.lineWidth = 1.4;
-        ctx.setLineDash([r * 0.22, r * 0.1]);
-        ctx.beginPath();
-        ctx.arc(0, 0, r * 1.28, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.setLineDash([]);
-        ctx.fillStyle = accent;
-        for (let i = 0; i < 8; i++) {
-          const a = (i * Math.PI) / 4;
-          ctx.save();
-          ctx.translate(Math.cos(a) * r * 1.28, Math.sin(a) * r * 1.28);
-          ctx.rotate(a);
-          ctx.beginPath();
-          ctx.moveTo(r * 0.12, 0);
-          ctx.lineTo(0, r * 0.07);
-          ctx.lineTo(-r * 0.12, 0);
-          ctx.lineTo(0, -r * 0.07);
-          ctx.closePath();
-          ctx.fill();
-          ctx.restore();
-        }
-        ctx.restore();
-      }
-
-      ctx.strokeStyle = accent;
-      ctx.fillStyle = accent;
-      ctx.lineWidth = 1.8;
-      ctx.beginPath();
-      ctx.moveTo(-r * 0.4, 0);
-      ctx.quadraticCurveTo(0, -r * 0.32, r * 0.4, 0);
-      ctx.quadraticCurveTo(0, r * 0.32, -r * 0.4, 0);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.ellipse(0, 0, r * 0.06, r * 0.15, 0, 0, Math.PI * 2);
-      ctx.fill();
+      // Кольца и глаз смотрят прямо, гексаграмма вращается, внешнее кольцо рун — ей навстречу
+      drawSigilLayer(ctx, sigilBase(color, accent, r), 0);
+      drawSigilLayer(ctx, sigilHexagram(color, r), pose.spin);
+      if (args.ornate) drawSigilLayer(ctx, sigilRunes(color, accent, r), -pose.spin * 1.4);
     }
 
     ctx.restore();
@@ -1056,20 +1112,22 @@ export class ArcsStrategy implements EffectStrategy {
     const color = emitter.args?.color ?? '#9be7ff';
     const flicker = Math.random() > 0.15 ? 1 : 0.3;
 
+    const alpha = (emitter.opacity ?? 1) * (1 - progressOf(emitter)) * flicker;
+
     ctx.save();
     ctx.globalCompositeOperation = 'lighter';
-    ctx.globalAlpha = (emitter.opacity ?? 1) * (1 - progressOf(emitter)) * flicker;
     ctx.lineJoin = 'round';
-    for (const [width, style] of [[3, color], [1, '#ffffff']] as const) {
+    ctx.lineCap = 'round';
+    // Ореол — широкий полупрозрачный штрих вместо shadowBlur (см. LightningStrategy); все дуги одним путём
+    for (const [width, style, strength] of [[9, color, 0.2], [3, color, 1], [1, '#ffffff', 1]] as const) {
+      ctx.globalAlpha = alpha * strength;
       ctx.lineWidth = width;
       ctx.strokeStyle = style;
-      ctx.shadowColor = color;
-      ctx.shadowBlur = 8;
+      ctx.beginPath();
       for (const path of state.paths) {
-        ctx.beginPath();
         path.forEach((point, i) => (i === 0 ? ctx.moveTo(point.x, point.y) : ctx.lineTo(point.x, point.y)));
-        ctx.stroke();
       }
+      ctx.stroke();
     }
     ctx.restore();
   }

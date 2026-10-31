@@ -37,6 +37,7 @@ public class GameDbContext : DbContext
     public DbSet<GuildBossRewardClaim> GuildBossRewardClaims => Set<GuildBossRewardClaim>();
     public DbSet<PvpBattle> PvpBattles => Set<PvpBattle>();
     public DbSet<PvpSeasonScore> PvpSeasonScores => Set<PvpSeasonScore>();
+    public DbSet<RankedSquad> RankedSquads => Set<RankedSquad>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -661,6 +662,12 @@ public class GameDbContext : DbContext
             .Property(b => b.DefenderUserId)
             .HasConversion<string>();
 
+        // Бои, сыгранные до рейтинговой арены, миграция AddRankedArena отметила обычными
+        modelBuilder.Entity<PvpBattle>()
+            .Property(b => b.Mode)
+            .HasConversion<string>()
+            .HasMaxLength(16);
+
         modelBuilder.Entity<PvpBattle>()
             .HasOne<User>()
             .WithMany()
@@ -673,9 +680,9 @@ public class GameDbContext : DbContext
             .HasForeignKey(b => b.DefenderUserId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // Побеждённого сегодня соперника нельзя победить ещё раз — даже двумя одновременными боями
+        // Побеждённого сегодня соперника нельзя победить ещё раз на той же арене — даже двумя одновременными боями
         modelBuilder.Entity<PvpBattle>()
-            .HasIndex(b => new { b.AttackerUserId, b.DefenderUserId, b.Day })
+            .HasIndex(b => new { b.AttackerUserId, b.DefenderUserId, b.Day, b.Mode })
             .IsUnique()
             .HasFilter("\"AttackerWon\" = 1");
 
@@ -687,11 +694,17 @@ public class GameDbContext : DbContext
             .HasIndex(b => new { b.DefenderUserId, b.FoughtAt });
 
         modelBuilder.Entity<PvpSeasonScore>()
-            .HasKey(s => new { s.UserId, s.Type, s.Start });
+            .HasKey(s => new { s.UserId, s.Mode, s.Type, s.Start });
 
         modelBuilder.Entity<PvpSeasonScore>()
             .Property(s => s.UserId)
             .HasConversion<string>();
+
+        // Mode — часть ключа, поэтому без значения по умолчанию в модели: старые очки миграция отметила обычными
+        modelBuilder.Entity<PvpSeasonScore>()
+            .Property(s => s.Mode)
+            .HasConversion<string>()
+            .HasMaxLength(16);
 
         modelBuilder.Entity<PvpSeasonScore>()
             .Property(s => s.Type)
@@ -706,6 +719,20 @@ public class GameDbContext : DbContext
 
         // Таблица лидеров сезона
         modelBuilder.Entity<PvpSeasonScore>()
-            .HasIndex(s => new { s.Type, s.Start, s.Points });
+            .HasIndex(s => new { s.Mode, s.Type, s.Start, s.Points });
+
+        // Один закреплённый отряд на игрока
+        modelBuilder.Entity<RankedSquad>()
+            .HasKey(s => s.UserId);
+
+        modelBuilder.Entity<RankedSquad>()
+            .Property(s => s.UserId)
+            .HasConversion<string>();
+
+        modelBuilder.Entity<RankedSquad>()
+            .HasOne<User>()
+            .WithMany()
+            .HasForeignKey(s => s.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

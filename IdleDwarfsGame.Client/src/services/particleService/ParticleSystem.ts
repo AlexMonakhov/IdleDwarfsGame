@@ -11,6 +11,7 @@ import {
   RingStrategy,
   AuraSphereStrategy,
   AuraBurstStrategy,
+  FlareStrategy,
 } from '@/services/particleService/types/combat-effects';
 import {
   FireWallStrategy,
@@ -34,6 +35,16 @@ export class GlobalParticleService {
   private animationId: number | null = null;
 
   private emitters: Map<string, EmitterConfig> = new Map();
+
+  // Замер по типам эффектов (включает нагрузочный тест арены): сколько эмиттеров живо и сколько мс за кадр
+  // уходит на их update + draw (сглажено). Время только JS: растр на видеокарте сюда не попадает —
+  // для него типы можно скрыть (hidden) и смотреть, как меняется FPS
+  profiling = false;
+  readonly profile = new Map<EffectType, { emitters: number; ms: number }>();
+  // Весь кадр сервиса вместе с очисткой канвасов, мс (сглажено)
+  frameMs = 0;
+  // Эти типы обновляются, но не рисуются
+  readonly hidden = new Set<EffectType>();
 
   private strategies: Record<EffectType, EffectStrategy> = {
     'particles': new ParticlesStrategy(),
@@ -62,6 +73,7 @@ export class GlobalParticleService {
     'light-pillar': new LightPillarStrategy(),
     'arcs': new ArcsStrategy(),
     'comet': new CometStrategy(),
+    'flare': new FlareStrategy(),
   };
 
   // Подменить/добавить стратегию отрисовки (например, для нового эффекта статуса)
@@ -194,11 +206,13 @@ export class GlobalParticleService {
     const render = () => {
       if (!this.bgCtx || !this.fgCtx || !this.bgCanvas || !this.fgCanvas) return;
 
+      const frameStarted = this.profiling ? performance.now() : 0;
       this.bgCtx.clearRect(0, 0, this.bgCanvas.width, this.bgCanvas.height);
       this.fgCtx.clearRect(0, 0, this.fgCanvas.width, this.fgCanvas.height);
 
       const now = performance.now();
       const toRemove: string[] = [];
+      const frame = this.profiling ? new Map<EffectType, { emitters: number; ms: number }>() : null;
       this.emitters.forEach((emitter) => {
         this.updateEmitterPosition(emitter, now);
 
@@ -226,12 +240,27 @@ export class GlobalParticleService {
 
         const strategy = this.strategies[emitter.type];
         if (strategy) {
+          const started = frame ? performance.now() : 0;
           strategy.update(emitter);
 
-          const targetCtx = emitter.layer === 'foreground' ? this.fgCtx! : this.bgCtx!;
-          strategy.draw(targetCtx, emitter);
+          if (!this.hidden.has(emitter.type)) {
+            const targetCtx = emitter.layer === 'foreground' ? this.fgCtx! : this.bgCtx!;
+            strategy.draw(targetCtx, emitter);
+          }
+
+          if (frame) {
+            const stat = frame.get(emitter.type) ?? { emitters: 0, ms: 0 };
+            stat.emitters++;
+            stat.ms += performance.now() - started;
+            frame.set(emitter.type, stat);
+          }
         }
       });
+
+      if (frame) {
+        this.recordProfile(frame);
+        this.frameMs = this.frameMs * 0.9 + (performance.now() - frameStarted) * 0.1;
+      }
 
       for (const id of toRemove) {
         const emitter = this.emitters.get(id);
@@ -244,6 +273,18 @@ export class GlobalParticleService {
     };
 
     render();
+  }
+
+  // Время сглаживается, чтобы цифры не прыгали каждый кадр; тип без эмиттеров плавно уходит в ноль
+  private recordProfile(frame: Map<EffectType, { emitters: number; ms: number }>) {
+    for (const type of new Set([...this.profile.keys(), ...frame.keys()])) {
+      const current = frame.get(type) ?? { emitters: 0, ms: 0 };
+      const previous = this.profile.get(type);
+      this.profile.set(type, {
+        emitters: current.emitters,
+        ms: previous ? previous.ms * 0.9 + current.ms * 0.1 : current.ms,
+      });
+    }
   }
 
   destroy() {

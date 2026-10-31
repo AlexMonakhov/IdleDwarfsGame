@@ -14,6 +14,8 @@ export interface UnitView {
   // Сработала аура носителя: вспышка силуэта её цветом
   aura?: (color: string) => void;
   victory?: () => void;
+  // Все спрайт-листы юнита загружены и готовы к отрисовке
+  ready?: () => Promise<void>;
 }
 
 const views = new Map<number, UnitView>();
