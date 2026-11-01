@@ -7,6 +7,7 @@
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint",
     "sprites": "node tools/sprite-sheets.js",
+    "sprites:recolor": "node tools/sprite-recolor.js",
     "atlas": "node tools/sprite-atlas.js",
     "portraits": "node tools/portraits.js"
   },

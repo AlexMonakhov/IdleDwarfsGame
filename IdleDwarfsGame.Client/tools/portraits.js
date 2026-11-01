@@ -21,7 +21,7 @@ const ICON = 192;
 const CROP = { x: 0.56, y: 0.374, size: 0.55 };
 // Портреты с другой компоновкой
 const CROP_OVERRIDES = {
-  'white_lvl4.jpg': { x: 0.63, y: 0.36, size: 0.52 },
+  'white_lvl3.jpg': { x: 0.63, y: 0.36, size: 0.52 },
 };
 
 const PORTRAIT_FILE = /^([a-z]+)_lvl(\d+)\.jpg$/;

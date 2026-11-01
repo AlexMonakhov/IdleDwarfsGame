@@ -68,6 +68,46 @@ function floodFill(seeds, passable, W, H) {
   return filled;
 }
 
+// Узкие щели между рукой и телом: запечатка контура закрывает их целиком, поэтому как просветы они не находятся.
+// Щель — почти белое пятно в тёмном контуре; блик на кости или ядро свечения окружены светлым и цветным
+function eraseSlits(d, W, H, paperLum, ring, s, outside) {
+  const n = W * H;
+  const whitish = new Uint8Array(n);
+  for (let p = 0; p < n; p++) {
+    const i = p * 4;
+    if (!outside[p] && Math.min(d[i], d[i + 1], d[i + 2]) >= paperLum - 30 && sat(d, i) <= 16) whitish[p] = 1;
+  }
+  const seen = new Uint8Array(n);
+  const minSlit = 6 * s * s;
+  for (let p = 0; p < n; p++) {
+    if (!whitish[p] || seen[p]) continue;
+    seen[p] = 1;
+    const pts = [p];
+    for (let j = 0; j < pts.length; j++) {
+      const q = pts[j], x = q % W;
+      for (const nb of [x > 0 ? q - 1 : -1, x < W - 1 ? q + 1 : -1, q - W, q + W]) {
+        if (nb >= 0 && nb < n && whitish[nb] && !seen[nb]) { seen[nb] = 1; pts.push(nb); }
+      }
+    }
+    if (pts.length < minSlit) continue;
+    const around = new Set();
+    for (const q of pts) {
+      const x = q % W;
+      for (let dy = -ring; dy <= ring; dy++) for (let dx = -ring; dx <= ring; dx++) {
+        const r = q + dy * W + dx;
+        if (x + dx >= 0 && x + dx < W && r >= 0 && r < n && !whitish[r]) around.add(r);
+      }
+    }
+    let darkAround = 0, glow = 0;
+    for (const r of around) {
+      const l = lum(d, r * 4);
+      if (l < 110) darkAround++;
+      else if (sat(d, r * 4) > 40) glow++;
+    }
+    if (darkAround >= around.size * 0.5 && glow < around.size * 0.3) pts.forEach(q => { outside[q] = 1; });
+  }
+}
+
 // Всё, что обведено тёмным контуром персонажа, остаётся непрозрачным (белая борода не пропадёт).
 // Снаружи контура фон убирается через color-to-alpha от цвета бумаги: шлейфы и свечение атак
 // становятся полупрозрачными, а не исчезают целиком. Фон может быть любым однотонным:
@@ -75,8 +115,15 @@ function floodFill(seeds, passable, W, H) {
 // Цветной фон (хромакей) вырезается по перевесу ключевого канала, см. chromaKey.
 // lightOutline — контуром считается и светлая обводка, лишь бы заметно темнее фона (золотой меч, серые грани
 // кристаллов короны); только для анимаций без эффектов: у атак так обвелись бы шлейфы и стали непрозрачными целиком.
+// holeEdge — какая доля края пятна цвета бумаги должна быть контуром, чтобы считать его просветом фона.
+// Ниже — убирает и просветы со свечением по краю, но пробьёт дыры в броне, если она того же цвета, что и фон.
+// faintOutline — контуром считается и всё с заметным оттенком на нейтральном фоне, и линии чуть темнее фона:
+// для светлой брони, части которой почти сливаются с серым фоном (сиреневый плащ, серые сапоги).
+// lightDelta — насколько светлая обводка должна отличаться от фона; меньше — ловит и бледные грани белого меча.
+// bigHole — пятно цвета бумаги больше этой площади всегда просвет, какой бы ни был край (фон внутри кольца удара);
+// площадь в пикселях кадра шириной 768. Грани меча намного меньше.
 // Результат — RGBA с премультиплицированным цветом
-function cutout(png, paper, lightOutline) {
+function cutout(png, paper, lightOutline, holeEdge = 0.7, faintOutline = false, lightDelta = 60, bigHole = Infinity) {
   const { width: W, height: H, data: d } = png;
   const n = W * H;
   const s = W / 768;
@@ -91,7 +138,8 @@ function cutout(png, paper, lightOutline) {
   for (let p = 0; p < n; p++) {
     const i = p * 4, l = lum(d, i);
     // На сером фоне белые кристаллы сами служат обводкой: серые грани между ними иначе не отличить от фона
-    if (l < darkBelow || (lightOutline && (l < paperLum - 60 || (!whitePaper && l > paperLum + 60)))) dark[p] = 1;
+    if (l < darkBelow || (lightOutline && (l < paperLum - lightDelta || (!whitePaper && l > paperLum + lightDelta)))) dark[p] = 1;
+    else if (faintOutline && (sat(d, i) >= 16 || l < paperLum - 22)) dark[p] = 1;
   }
   // На цветном фоне тёмное, но с цветом фона (тень от сжатия по краю кадра), — не контур
   if (chroma) for (let p = 0; p < n; p++) if (dark[p] && chroma.alpha(d, p * 4) < 0.5) dark[p] = 0;
@@ -114,7 +162,8 @@ function cutout(png, paper, lightOutline) {
   };
   // Просвет обведён тёмным контуром почти целиком, а белая грань кристалла (борода, меч) — светлыми линиями граней
   const seen = new Uint8Array(n);
-  const minHole = 150 * s * s;
+  // holeEdge 0 — белых деталей у персонажа нет, поэтому просветом считаются и мелкие белые пятна
+  const minHole = (holeEdge === 0 ? 40 : 150) * s * s;
   for (let p = 0; p < n; p++) {
     if (seen[p] || !paperLike(p)) continue;
     seen[p] = 1;
@@ -127,8 +176,9 @@ function cutout(png, paper, lightOutline) {
         if (paperLike(nb)) { seen[nb] = 1; pts.push(nb); } else { edge++; if (sealed[nb]) edgeDark++; }
       }
     }
-    if (pts.length >= minHole && (chroma || edgeDark >= edge * 0.7)) pts.forEach(q => { outside[q] = 1; });
+    if (pts.length >= minHole && (chroma || edgeDark >= edge * holeEdge || pts.length >= bigHole * s * s)) pts.forEach(q => { outside[q] = 1; });
   }
+  if (whitePaper && holeEdge === 0) eraseSlits(d, W, H, paperLum, R + 1, s, outside);
 
   // Полоса запечатки со стороны фона тоже прозрачная, иначе вокруг контура останется белая кайма
   const nearOutside = dilate(outside, W, H, R + 1);
