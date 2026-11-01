@@ -45,6 +45,9 @@ desktop.ini
 *.db-shm
 *.db-wal
 
+# PNG, вынесенные из проекта: исходники атласов и старые версии спрайтов
+/unused-png/
+
 # User secrets
 secrets.json
 appsettings.*.Local.json

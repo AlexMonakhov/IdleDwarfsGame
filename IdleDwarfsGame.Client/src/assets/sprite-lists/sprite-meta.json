@@ -1,4 +1,172 @@
 {
+  "draconid_attack_lvl1_basic_1.png": {
+    "zoom": 2
+  },
+  "draconid_attack_lvl1_basic_2.png": {
+    "zoom": 2
+  },
+  "draconid_attack_lvl1_blue_1.png": {
+    "zoom": 2
+  },
+  "draconid_attack_lvl1_blue_2.png": {
+    "zoom": 2
+  },
+  "draconid_attack_lvl1_green_1.png": {
+    "zoom": 2
+  },
+  "draconid_attack_lvl1_green_2.png": {
+    "zoom": 2
+  },
+  "draconid_attack_lvl1_purple_1.png": {
+    "zoom": 2
+  },
+  "draconid_attack_lvl1_purple_2.png": {
+    "zoom": 2
+  },
+  "draconid_attack_lvl1_red_1.png": {
+    "zoom": 2
+  },
+  "draconid_attack_lvl1_red_2.png": {
+    "zoom": 2
+  },
+  "draconid_attack_lvl1_white_1.png": {
+    "zoom": 2
+  },
+  "draconid_attack_lvl1_white_2.png": {
+    "zoom": 2
+  },
+  "draconid_attack_lvl1_yellow_1.png": {
+    "zoom": 2
+  },
+  "draconid_attack_lvl1_yellow_2.png": {
+    "zoom": 2
+  },
+  "draconid_victory_lvl1_basic_1.png": {
+    "zoom": 1.25
+  },
+  "draconid_victory_lvl1_blue_1.png": {
+    "zoom": 1.25
+  },
+  "draconid_victory_lvl1_green_1.png": {
+    "zoom": 1.25
+  },
+  "draconid_victory_lvl1_purple_1.png": {
+    "zoom": 1.25
+  },
+  "draconid_victory_lvl1_red_1.png": {
+    "zoom": 1.25
+  },
+  "draconid_victory_lvl1_white_1.png": {
+    "zoom": 1.25
+  },
+  "draconid_victory_lvl1_yellow_1.png": {
+    "zoom": 1.25
+  },
+  "dwarf_attack_lvl1_basic_1.png": {
+    "zoom": 2
+  },
+  "dwarf_attack_lvl1_basic_2.png": {
+    "zoom": 2.25
+  },
+  "dwarf_attack_lvl2_blue_1.png": {
+    "zoom": 2
+  },
+  "dwarf_attack_lvl2_blue_2.png": {
+    "zoom": 2
+  },
+  "dwarf_attack_lvl2_green_1.png": {
+    "zoom": 2
+  },
+  "dwarf_attack_lvl2_green_2.png": {
+    "zoom": 2
+  },
+  "dwarf_attack_lvl2_purple_1.png": {
+    "zoom": 2
+  },
+  "dwarf_attack_lvl2_purple_2.png": {
+    "zoom": 2
+  },
+  "dwarf_attack_lvl2_red_1.png": {
+    "zoom": 2.25
+  },
+  "dwarf_attack_lvl2_red_2.png": {
+    "zoom": 2.25
+  },
+  "dwarf_attack_lvl2_white_1.png": {
+    "zoom": 2
+  },
+  "dwarf_attack_lvl2_white_2.png": {
+    "zoom": 2.25
+  },
+  "dwarf_attack_lvl2_yellow_1.png": {
+    "zoom": 2
+  },
+  "dwarf_attack_lvl2_yellow_2.png": {
+    "zoom": 2.25
+  },
+  "dwarf_attack_lvl3_blue_1.png": {
+    "zoom": 2
+  },
+  "dwarf_attack_lvl3_blue_2.png": {
+    "zoom": 2
+  },
+  "dwarf_attack_lvl3_blue_3.png": {
+    "zoom": 2
+  },
+  "dwarf_attack_lvl3_green_1.png": {
+    "zoom": 2
+  },
+  "dwarf_attack_lvl3_green_2.png": {
+    "zoom": 2
+  },
+  "dwarf_attack_lvl3_green_3.png": {
+    "zoom": 2
+  },
+  "dwarf_attack_lvl3_purple_1.png": {
+    "zoom": 2
+  },
+  "dwarf_attack_lvl3_purple_2.png": {
+    "zoom": 2
+  },
+  "dwarf_attack_lvl3_purple_3.png": {
+    "zoom": 2.5
+  },
+  "dwarf_attack_lvl3_red_1.png": {
+    "zoom": 2
+  },
+  "dwarf_attack_lvl3_red_2.png": {
+    "zoom": 2
+  },
+  "dwarf_attack_lvl3_red_3.png": {
+    "zoom": 2.25
+  },
+  "dwarf_attack_lvl3_violet_1.png": {
+    "zoom": 2
+  },
+  "dwarf_attack_lvl3_violet_2.png": {
+    "zoom": 2
+  },
+  "dwarf_attack_lvl3_violet_3.png": {
+    "zoom": 2.25
+  },
+  "dwarf_attack_lvl3_white_1.png": {
+    "zoom": 2
+  },
+  "dwarf_attack_lvl3_white_2.png": {
+    "zoom": 2
+  },
+  "dwarf_attack_lvl3_white_3.png": {
+    "zoom": 2.25
+  },
+  "dwarf_attack_lvl3_white_4.png": {
+    "zoom": 2
+  },
+  "dwarf_attack_lvl3_yellow_1.png": {
+    "zoom": 2
+  },
+  "dwarf_attack_lvl3_yellow_2.png": {
+    "zoom": 2
+  },
   "dwarf_attack_lvl4_blue_1.png": {
     "zoom": 2
   },
@@ -6,7 +174,7 @@
     "zoom": 2
   },
   "dwarf_attack_lvl4_blue_3.png": {
-    "zoom": 2
+    "zoom": 2.25
   },
   "dwarf_attack_lvl4_green_1.png": {
     "zoom": 2
@@ -18,13 +186,13 @@
     "zoom": 2
   },
   "dwarf_attack_lvl4_purple_1.png": {
-    "zoom": 2
+    "zoom": 2.25
   },
   "dwarf_attack_lvl4_purple_2.png": {
     "zoom": 2
   },
   "dwarf_attack_lvl4_purple_3.png": {
-    "zoom": 2.5
+    "zoom": 2
   },
   "dwarf_attack_lvl4_red_1.png": {
     "zoom": 2
@@ -33,27 +201,24 @@
     "zoom": 2
   },
   "dwarf_attack_lvl4_red_3.png": {
-    "zoom": 2.25
+    "zoom": 2.5
   },
   "dwarf_attack_lvl4_violet_1.png": {
     "zoom": 2
   },
   "dwarf_attack_lvl4_violet_2.png": {
-    "zoom": 2
+    "zoom": 2.25
   },
   "dwarf_attack_lvl4_violet_3.png": {
     "zoom": 2.25
   },
   "dwarf_attack_lvl4_white_1.png": {
-    "zoom": 2
+    "zoom": 2.25
   },
   "dwarf_attack_lvl4_white_2.png": {
-    "zoom": 2
+    "zoom": 2.25
   },
   "dwarf_attack_lvl4_white_3.png": {
-    "zoom": 2
-  },
-  "dwarf_attack_lvl4_white_4.png": {
     "zoom": 2
   },
   "dwarf_attack_lvl4_yellow_1.png": {
@@ -62,7 +227,223 @@
   "dwarf_attack_lvl4_yellow_2.png": {
     "zoom": 2
   },
+  "dwarf_attack_lvl4_yellow_3.png": {
+    "zoom": 2
+  },
+  "dwarf_victory_lvl2_green_1.png": {
+    "zoom": 1.25
+  },
+  "dwarf_victory_lvl2_purple_1.png": {
+    "zoom": 1.25
+  },
+  "dwarf_victory_lvl2_red_1.png": {
+    "zoom": 1.25
+  },
+  "dwarf_victory_lvl2_yellow_1.png": {
+    "zoom": 1.25
+  },
+  "dwarf_victory_lvl3_violet_1.png": {
+    "zoom": 1.25
+  },
+  "dwarf_victory_lvl4_green_1.png": {
+    "zoom": 1.25
+  },
+  "dwarf_victory_lvl4_purple_1.png": {
+    "zoom": 1.25
+  },
   "dwarf_victory_lvl4_violet_1.png": {
     "zoom": 1.25
+  },
+  "dwarf_victory_lvl4_white_1.png": {
+    "zoom": 1.25
+  },
+  "goblin_attack_lvl1_basic_1.png": {
+    "zoom": 2.5
+  },
+  "goblin_attack_lvl1_basic_2.png": {
+    "zoom": 2.5
+  },
+  "goblin_attack_lvl1_blue_1.png": {
+    "zoom": 2.5
+  },
+  "goblin_attack_lvl1_blue_2.png": {
+    "zoom": 2.5
+  },
+  "goblin_attack_lvl1_green_1.png": {
+    "zoom": 2.5
+  },
+  "goblin_attack_lvl1_green_2.png": {
+    "zoom": 2.5
+  },
+  "goblin_attack_lvl1_purple_1.png": {
+    "zoom": 2.5
+  },
+  "goblin_attack_lvl1_purple_2.png": {
+    "zoom": 2.5
+  },
+  "goblin_attack_lvl1_red_1.png": {
+    "zoom": 2.5
+  },
+  "goblin_attack_lvl1_red_2.png": {
+    "zoom": 2.5
+  },
+  "goblin_attack_lvl1_white_1.png": {
+    "zoom": 2.5
+  },
+  "goblin_attack_lvl1_white_2.png": {
+    "zoom": 2.5
+  },
+  "goblin_attack_lvl1_yellow_1.png": {
+    "zoom": 2.5
+  },
+  "goblin_attack_lvl1_yellow_2.png": {
+    "zoom": 2.5
+  },
+  "goblin_victory_lvl1_basic_1.png": {
+    "zoom": 1.5
+  },
+  "goblin_victory_lvl1_blue_1.png": {
+    "zoom": 1.5
+  },
+  "goblin_victory_lvl1_green_1.png": {
+    "zoom": 1.5
+  },
+  "goblin_victory_lvl1_purple_1.png": {
+    "zoom": 1.5
+  },
+  "goblin_victory_lvl1_red_1.png": {
+    "zoom": 1.5
+  },
+  "goblin_victory_lvl1_white_1.png": {
+    "zoom": 1.5
+  },
+  "goblin_victory_lvl1_yellow_1.png": {
+    "zoom": 1.5
+  },
+  "golem_attack_lvl1_basic_1.png": {
+    "zoom": 2
+  },
+  "golem_attack_lvl1_basic_2.png": {
+    "zoom": 2
+  },
+  "golem_attack_lvl1_blue_1.png": {
+    "zoom": 2
+  },
+  "golem_attack_lvl1_blue_2.png": {
+    "zoom": 2
+  },
+  "golem_attack_lvl1_green_1.png": {
+    "zoom": 2
+  },
+  "golem_attack_lvl1_green_2.png": {
+    "zoom": 2
+  },
+  "golem_attack_lvl1_purple_1.png": {
+    "zoom": 2
+  },
+  "golem_attack_lvl1_purple_2.png": {
+    "zoom": 2
+  },
+  "golem_attack_lvl1_red_1.png": {
+    "zoom": 2
+  },
+  "golem_attack_lvl1_red_2.png": {
+    "zoom": 2
+  },
+  "golem_attack_lvl1_white_1.png": {
+    "zoom": 2
+  },
+  "golem_attack_lvl1_white_2.png": {
+    "zoom": 2
+  },
+  "golem_attack_lvl1_yellow_1.png": {
+    "zoom": 2
+  },
+  "golem_attack_lvl1_yellow_2.png": {
+    "zoom": 2
+  },
+  "golem_victory_lvl1_basic_1.png": {
+    "zoom": 1.25
+  },
+  "golem_victory_lvl1_blue_1.png": {
+    "zoom": 1.25
+  },
+  "golem_victory_lvl1_green_1.png": {
+    "zoom": 1.25
+  },
+  "golem_victory_lvl1_purple_1.png": {
+    "zoom": 1.25
+  },
+  "golem_victory_lvl1_red_1.png": {
+    "zoom": 1.25
+  },
+  "golem_victory_lvl1_white_1.png": {
+    "zoom": 1.25
+  },
+  "golem_victory_lvl1_yellow_1.png": {
+    "zoom": 1.25
+  },
+  "skeleton_attack_lvl1_basic_1.png": {
+    "zoom": 2.5
+  },
+  "skeleton_attack_lvl1_basic_2.png": {
+    "zoom": 2.25
+  },
+  "skeleton_attack_lvl1_blue_1.png": {
+    "zoom": 2.5
+  },
+  "skeleton_attack_lvl1_blue_2.png": {
+    "zoom": 2.25
+  },
+  "skeleton_attack_lvl1_green_1.png": {
+    "zoom": 2.5
+  },
+  "skeleton_attack_lvl1_green_2.png": {
+    "zoom": 2.25
+  },
+  "skeleton_attack_lvl1_purple_1.png": {
+    "zoom": 2.5
+  },
+  "skeleton_attack_lvl1_purple_2.png": {
+    "zoom": 2.25
+  },
+  "skeleton_attack_lvl1_red_1.png": {
+    "zoom": 2.5
+  },
+  "skeleton_attack_lvl1_red_2.png": {
+    "zoom": 2.25
+  },
+  "skeleton_attack_lvl1_white_1.png": {
+    "zoom": 2.5
+  },
+  "skeleton_attack_lvl1_white_2.png": {
+    "zoom": 2.25
+  },
+  "skeleton_attack_lvl1_yellow_1.png": {
+    "zoom": 2.5
+  },
+  "skeleton_attack_lvl1_yellow_2.png": {
+    "zoom": 2.25
+  },
+  "skeleton_victory_lvl1_basic_1.png": {
+    "zoom": 1.5
+  },
+  "skeleton_victory_lvl1_blue_1.png": {
+    "zoom": 1.5
+  },
+  "skeleton_victory_lvl1_green_1.png": {
+    "zoom": 1.5
+  },
+  "skeleton_victory_lvl1_purple_1.png": {
+    "zoom": 1.5
+  },
+  "skeleton_victory_lvl1_red_1.png": {
+    "zoom": 1.5
+  },
+  "skeleton_victory_lvl1_white_1.png": {
+    "zoom": 1.5
+  },
+  "skeleton_victory_lvl1_yellow_1.png": {
+    "zoom": 1.5
   }
 }
