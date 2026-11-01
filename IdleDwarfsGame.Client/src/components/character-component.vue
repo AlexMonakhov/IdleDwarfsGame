@@ -4,7 +4,7 @@ import CharacterSkeleton from './character-skeleton.vue';
 import CharacterStats from './character-stats.vue';
 import { HeroModel } from '@/models/hero';
 import { BattleUnit, UnitStatus, auraEffectOf } from '@/battle/BattleState';
-import { elementColor, SpriteAnimation } from '@/battle/sprites';
+import { getUnitHead, getUnitSize, SpriteAnimation, SpritePose, spriteColor } from '@/battle/sprites';
 import { BATTLE_FX_KEY } from '@/battle/BattleFx';
 import { DAMAGE_COLORS, combineStatusVisuals, resolveAuraVisual } from '@/battle/FxRegistry';
 import { registerUnitView, unregisterUnitView, UnitView } from '@/battle/UnitRegistry';
@@ -20,6 +20,9 @@ const props = defineProps<{
   frameCount?: number;
   scale?: number;
   rotate?: boolean;
+  pose?: SpritePose | null;
+  // Какие анимации грузить; по умолчанию — боевые
+  animations?: SpriteAnimation[];
 }>();
 
 // В бою юниты не ходят: лист walk не грузим
@@ -38,7 +41,7 @@ const model = computed<HeroModel>(() => ({
   currentHp: props.unit.hp,
   maxHp: props.unit.maxHp,
   lvl: props.unit.level,
-  color: elementColor(props.unit.element),
+  color: spriteColor(props.unit),
   unitType: props.unit.unitType,
 }));
 
@@ -78,12 +81,16 @@ const wrapperClasses = computed(() => [
   ...statusVisual.value.classes,
 ]);
 
+const unitSize = computed(() => getUnitSize(props.unit.unitType));
+
 const wrapperStyle = computed(() => ({
   // Направление «лицом к врагу»: левая команда смотрит вправо
   '--face': props.rotate ? -1 : 1,
   '--focus-color': props.unit.focus?.color ?? '#ffe8a3',
   // Во сколько раз юнит крупнее обычного (0.65): по нему растёт тень под ногами
-  '--unit-size': (props.scale ?? 0.65) / 0.65,
+  '--unit-size': ((props.scale ?? 0.65) / 0.65) * unitSize.value,
+  // Голова крупного юнита выше: имя и полоски поднимаются, чтобы не лежать на ней
+  '--header-top': `${2 - (unitSize.value - 1) * 20}%`,
 }));
 
 // Постоянные эффекты статусов (пламя, снежинки, звёзды стана) — пока статус висит на юните
@@ -231,14 +238,14 @@ defineExpose(view);
             >{{ text.text }}</div>
         </div>
 
-        <!-- data-face читает BattleFx.point: куда смотрит юнит (то же, что --face) -->
-        <div ref="spriteRef" class="sprite-box" :class="fxClass" :data-face="props.rotate ? -1 : 1">
+        <!-- data-face, data-size и data-head читает BattleFx.point: куда смотрит юнит (то же, что --face), во сколько раз он крупнее и где его голова -->
+        <div ref="spriteRef" class="sprite-box" :class="fxClass" :data-face="props.rotate ? -1 : 1" :data-size="unitSize" :data-head="getUnitHead(unit.unitType)">
           <div class="unit-shadow"></div>
           <div class="unit-body">
             <CharacterSkeleton
                   ref="skeletonRef"
                   :style="getSkeletonStyle"
-                  :key="unit.id"
+                  :key="`${unit.id}-${unit.level}-${unit.unitType}-${unit.element}-${unit.appearance}`"
                   :sprite-src="props.sprite"
                   :model="model"
                   :frame-width="props.frameWidth ?? 409.6"
@@ -251,7 +258,8 @@ defineExpose(view);
                   :tint="spriteTint"
                   :speed="statusVisual.animSpeed"
                   :paused="!unit.alive"
-                  :animations="BATTLE_ANIMATIONS"></CharacterSkeleton>
+                  :pose="props.pose"
+                  :animations="props.animations ?? BATTLE_ANIMATIONS"></CharacterSkeleton>
           </div>
         </div>
     </div>
@@ -264,7 +272,7 @@ defineExpose(view);
   }
   .character-header{
     position: absolute;
-    top: 2%;
+    top: var(--header-top, 2%);
     left: 25%;
     width: 50%;
     z-index: 2;

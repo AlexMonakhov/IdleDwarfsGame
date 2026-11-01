@@ -73,10 +73,19 @@ export class BattleFx {
     const canvasRect = canvas.getBoundingClientRect();
     // Из атрибута, а не getComputedStyle: точку следующих эффектов считают каждый кадр, а стили — дорого
     const face = Number(el.dataset.face) || 1;
+    // Крупный юнит растёт от ног вверх: и голова, и центр у него выше
+    const anchorY = anchor === 'head' && el.dataset.head
+      ? Number(el.dataset.head)
+      : UNIT_ANCHORS.feet + (UNIT_ANCHORS[anchor] - UNIT_ANCHORS.feet) * this.unitSize(el);
     return {
       x: rect.left + rect.width * (0.5 + UNIT_FACE_SHIFT * face) - canvasRect.left,
-      y: rect.top + rect.height * UNIT_ANCHORS[anchor] - canvasRect.top,
+      y: rect.top + rect.height * anchorY - canvasRect.top,
     };
+  }
+
+  // Во сколько раз юнит крупнее обычного (data-size на его рамке)
+  private unitSize(el: UnitEl) {
+    return Number(el?.dataset.size) || 1;
   }
 
   // Запустить одноразовый эффект от from к to (для неподвижных эффектов to = from)
@@ -259,7 +268,7 @@ export class BattleFx {
   // От центра юнита до его ног, px: по нему эффекты на кастере находят землю
   private groundOffset(el: UnitEl) {
     const height = el?.getBoundingClientRect().height || 290;
-    return height * (UNIT_ANCHORS.feet - UNIT_ANCHORS.center);
+    return height * this.unitSize(el) * (UNIT_ANCHORS.feet - UNIT_ANCHORS.center);
   }
 
   private later(ms: number, action: () => void) {
@@ -311,7 +320,7 @@ export class BattleFx {
 
   // Размеры сферы — от высоты кадра юнита (босс крупнее — и сфера больше)
   private auraArgs(el: HTMLElement, visual: AuraVisual) {
-    const height = el.getBoundingClientRect().height || 290;
+    const height = (el.getBoundingClientRect().height || 290) * this.unitSize(el);
     return {
       color: visual.color,
       glow: visual.glow,

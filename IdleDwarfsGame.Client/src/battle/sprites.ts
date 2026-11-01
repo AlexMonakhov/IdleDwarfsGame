@@ -1,9 +1,16 @@
-import { HeroElement } from './types';
+import { HeroAppearance, HeroElement } from './types';
 
 export type SpriteAnimation = 'idle' | 'walk' | 'attack' | 'victory' | 'death';
 
-// Цвет в имени файла спрайта. Basic — герои 1-го уровня без стихии, white — бриллиант (сияние)
-export type SpriteColor = 'basic' | 'red' | 'blue' | 'yellow' | 'green' | 'purple' | 'white';
+// Анимация с конкретным листом (номер варианта в имени файла)
+export interface SpritePose {
+  animation: SpriteAnimation;
+  variant: number;
+}
+
+// Цвет героя на спрайте. Basic — герои 1-го ранга без стихии, white — бриллиант (сияние), purple — тёмный герой тьмы.
+// Violet — светлый вариант тьмы, rainbow и negative — дворфы 5-го ранга. В именах файлов цвет бывает другим, см. SHEET_COLORS
+export type SpriteColor = 'basic' | 'red' | 'blue' | 'yellow' | 'green' | 'purple' | 'white' | 'violet' | 'rainbow' | 'negative';
 
 export const ELEMENT_COLORS: Record<HeroElement, SpriteColor> = {
   Basic: 'basic',
@@ -18,6 +25,18 @@ export const ELEMENT_COLORS: Record<HeroElement, SpriteColor> = {
 export const elementColor = (element?: string | null): SpriteColor =>
   ELEMENT_COLORS[element as HeroElement] ?? 'basic';
 
+const DEFAULT_UNIT = 'dwarf';
+// Высший ранг: здесь только два дворфа, свои для тьмы и для всех остальных стихий
+const TOP_RANK = 5;
+
+// Цвет спрайта героя: не только стихия, но и ранг с внешностью. Для рамок и фонов по стихии — elementColor
+export const spriteColor = (unit: { unitType?: string; element?: string | null; level: number; appearance?: HeroAppearance | null }): SpriteColor => {
+  const color = elementColor(unit.element);
+  if (unit.unitType && unit.unitType.toLowerCase() !== DEFAULT_UNIT) return color;
+  if (unit.level >= TOP_RANK) return color === 'purple' ? 'negative' : 'rainbow';
+  return color === 'purple' && unit.appearance === 'Violet' ? 'violet' : color;
+};
+
 // Спрайт-листы: 5 колонок кадров по 409.6px (лист 2048x2048)
 export const SPRITE_COLUMNS = 5;
 
@@ -30,10 +49,34 @@ const metaContext = require.context('../assets/sprite-lists', false, /sprite-met
 const spriteMeta: Record<string, SpriteMeta> = metaContext.keys().length ? metaContext(metaContext.keys()[0]) : {};
 const zoomByUrl = new Map<string, number>();
 
-// Файлы называются {юнит}_{анимация}_lvl{уровень}_{цвет}_{вариант}.png, например dwarf_attack_lvl4_red_2.png.
-// Папка не важна — индекс строится по имени файла, так что новый спрайт достаточно просто положить в sprite-lists
+// Поправка рисования юнита: размер и положение меняются без пересборки листов и атласов.
+// size — во сколько раз крупнее; shiftX, shiftY — сдвиг кадра в долях его ширины (ноги должны остаться на линии 0.84 кадра);
+// head — где макушка, в долях высоты рамки, если она не там, куда её переносит size
+interface UnitDraw {
+  size: number;
+  shiftX: number;
+  shiftY: number;
+  head?: number;
+}
+const UNIT_DRAW: Record<string, UnitDraw> = {
+  // В листах тело левее центра кадра: эффекты и тень попадали мимо него. Голем сутулый: голова ниже плеч и кулака
+  golem: { size: 1.4, shiftX: 0.122, shiftY: -0.136, head: 0.22 },
+  draconid: { size: 1.2, shiftX: 0, shiftY: -0.068 },
+};
+const NO_SHIFT = { shiftX: 0, shiftY: 0 };
+const drawByUrl = new Map<string, UnitDraw>();
+
+// Файлы называются {юнит}_{анимация}_lvl{ранг}_{цвет}_{вариант}.png, например dwarf_attack_lvl4_red_2.png.
+// Индекс строится по именам листов в atlas-meta.json: новый лист попадает в игру после npm run atlas
 const SPRITE_FILE = /([a-z]+)_([a-z]+)_lvl(\d+)_([a-z]+)_(\d+)\.png$/;
-const DEFAULT_UNIT = 'dwarf';
+
+// Цвет в именах файлов на этом уровне листов, если он не совпадает с цветом героя.
+// Уровень 2: тёмного варианта тьмы ещё нет, оба рисуются одним листом
+const SHEET_COLORS: Record<number, Partial<Record<SpriteColor, string>>> = {
+  2: { violet: 'purple' },
+};
+// Чем рисовать анимацию, которой у цвета ещё нет: у дворфов 5-го ранга есть только часть листов
+const FALLBACK_COLORS: Partial<Record<SpriteColor, SpriteColor>> = { rainbow: 'white', negative: 'purple' };
 
 interface SpriteSheet {
   level: number;
@@ -43,7 +86,7 @@ interface SpriteSheet {
 }
 
 // Атлас листа (tools/sprite-atlas.js): те же кадры, обрезанные по персонажу и плотно уложенные.
-// Игра грузит и рисует атлас, а не сам лист — в памяти он в 2-5 раз меньше
+// Игра грузит и рисует только атлас — в памяти он в 2-5 раз меньше, а сами листы в сборку не попадают
 // Кадр: x, y, ширина, высота в атласе и смещение от угла своей клетки в листе; null — пустой кадр
 export type AtlasFrame = [number, number, number, number, number, number];
 export interface SpriteAtlas {
@@ -62,19 +105,18 @@ const atlasMeta: Record<string, AtlasMeta> = atlasMetaContext.keys().length ? at
 const atlasUrls = new Map(atlasContext.keys().map(path => [path.split('/').pop() ?? '', atlasContext(path) as string]));
 const atlasBySheet = new Map<string, SpriteAtlas>();
 
-const requireContext = require.context('../assets/sprite-lists', true, /\.png$/);
-
 // "dwarf_idle" -> все листы этой анимации
 const index = new Map<string, SpriteSheet[]>();
-requireContext.keys()
-  .flatMap(path => {
-    const match = SPRITE_FILE.exec(path);
-    if (!match) return [];
+Object.keys(atlasMeta)
+  .flatMap(name => {
+    const match = SPRITE_FILE.exec(name);
+    const url = atlasUrls.get(name.replace(/\.png$/, '.webp'));
+    if (!match || !url) return [];
     const [, unit, anim, level, color, variant] = match;
-    return [{ path, key: `${unit}_${anim}`, level: Number(level), color, variant: Number(variant) }];
+    return [{ name, url, unit, key: `${unit}_${anim}`, level: Number(level), color, variant: Number(variant) }];
   })
   .sort((a, b) => a.variant - b.variant)
-  .forEach(({ path, key, level, color }) => {
+  .forEach(({ name, url, unit, key, level, color }) => {
     const sheets = index.get(key) ?? [];
     let sheet = sheets.find(s => s.level === level && s.color === color);
     if (!sheet) {
@@ -82,45 +124,56 @@ requireContext.keys()
       sheets.push(sheet);
       index.set(key, sheets);
     }
-    const url = requireContext(path);
     sheet.variants.push(url);
-    const name = path.split('/').pop() ?? '';
-    const zoom = spriteMeta[name]?.zoom;
-    if (zoom) zoomByUrl.set(url, zoom);
-    const atlasUrl = atlasUrls.get(name.replace(/\.png$/, '.webp'));
-    if (atlasMeta[name] && atlasUrl) atlasBySheet.set(url, { ...atlasMeta[name], url: atlasUrl });
+    const draw = UNIT_DRAW[unit];
+    if (draw) drawByUrl.set(url, draw);
+    const zoom = (spriteMeta[name]?.zoom ?? 1) * (draw?.size ?? 1);
+    if (zoom !== 1) zoomByUrl.set(url, zoom);
+    atlasBySheet.set(url, { ...atlasMeta[name], url });
   });
 
 export const getSpriteZoom = (url: string): number => zoomByUrl.get(url) ?? 1;
 
-// Атлас листа; undefined — атлас не собран, рисуется сам лист
+// Сдвиг кадра листа на экране, в долях ширины обычного кадра
+export const getSpriteShift = (url: string): { shiftX: number; shiftY: number } => drawByUrl.get(url) ?? NO_SHIFT;
+
+// Во сколько раз юнит крупнее обычного: по этому множителю растут тень и точки привязки эффектов
+export const getUnitSize = (unitType?: string): number => UNIT_DRAW[unitType?.toLowerCase() ?? '']?.size ?? 1;
+
+// Своя точка головы юнита, в долях высоты рамки; undefined — обычная
+export const getUnitHead = (unitType?: string): number | undefined => UNIT_DRAW[unitType?.toLowerCase() ?? '']?.head;
+
+// Атлас листа по его адресу из getSpriteVariants
 export const getSpriteAtlas = (url: string): SpriteAtlas | undefined => atlasBySheet.get(url);
 
-// Если точного листа нет — берём ближайший: сначала того же цвета, потом того же уровня.
+// Лист для ранга героя. Если точного нет — берём ближайший: сначала того же цвета, потом запасного, потом того же уровня.
 // Юниты без своих спрайтов рисуются дворфами
 export const getSpriteVariants = (
   animType: SpriteAnimation,
-  color: string,
-  level: number,
+  color: SpriteColor,
+  rank: number,
   unitType: string = DEFAULT_UNIT,
 ): string[] => {
   const sheets = index.get(`${unitType.toLowerCase()}_${animType}`) ?? index.get(`${DEFAULT_UNIT}_${animType}`);
   if (!sheets?.length) return [];
 
-  const distance = (s: SpriteSheet) => (s.color === color ? 0 : 100) + Math.abs(s.level - level);
+  const fallback = FALLBACK_COLORS[color];
+  const isColor = (s: SpriteSheet, c: SpriteColor) => s.color === (SHEET_COLORS[s.level]?.[c] ?? c);
+  const distance = (s: SpriteSheet) => (isColor(s, color) ? 0 : fallback && isColor(s, fallback) ? 50 : 100) + Math.abs(s.level - rank);
   return sheets.reduce((best, s) => (distance(s) < distance(best) ? s : best)).variants;
 };
 
 // Пустая строка — для этой анимации нет ни одного спрайта
-export const getSpriteUrl = (animType: SpriteAnimation, color: string, level: number, variant = 1, unitType?: string): string => {
-  const variants = getSpriteVariants(animType, color, level, unitType);
+export const getSpriteUrl = (animType: SpriteAnimation, color: SpriteColor, rank: number, variant = 1, unitType?: string): string => {
+  const variants = getSpriteVariants(animType, color, rank, unitType);
   return variants[variant - 1] ?? variants[0] ?? '';
 };
 
 // Иконки героев: голова с портрета, assets/portraits/icons/{цвет}_lvl{уровень}.png (собирает npm run portraits).
-// Цвет — как у спрайтов, только герои без стихии нарисованы серыми
+// Цвет — как у спрайтов, кроме этих: герои без стихии нарисованы серыми, тёмный герой тьмы лежит в dark, светлый — в purple.
+// Своего портрета у негативного дворфа ещё нет
 const PORTRAIT_FILE = /([a-z]+)_lvl(\d+)\.png$/;
-const PORTRAIT_COLORS: Partial<Record<SpriteColor, string>> = { basic: 'gray' };
+const PORTRAIT_COLORS: Partial<Record<SpriteColor, string>> = { basic: 'gray', purple: 'dark', violet: 'purple', negative: 'dark' };
 
 const portraitContext = require.context('../assets/portraits/icons', false, /\.png$/);
 const portraits = portraitContext.keys().flatMap(path => {

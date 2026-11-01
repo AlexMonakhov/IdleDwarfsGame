@@ -3,7 +3,7 @@ import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import CharacterSkeleton from '@/components/character-skeleton.vue';
 import { HeroModel } from '@/models/hero';
 import { HeroInfo } from '@/models/types/Heroes';
-import { elementColor, SpriteColor } from '@/battle/sprites';
+import { spriteColor, SpriteColor } from '@/battle/sprites';
 
 // Декоративная сцена задания: никакого расчёта боя, просто показываем, что герои заняты делом.
 // Цикл: обмен ударами → враги исчезают → герои идут дальше, навстречу выходят новые враги → снова бой.
@@ -45,7 +45,7 @@ watch(() => props.heroes, heroes => {
         currentHp: hero.maxHp,
         maxHp: hero.maxHp,
         lvl: hero.level,
-        color: elementColor(hero.element),
+        color: spriteColor(hero),
         unitType: hero.unitType,
     }));
 }, { immediate: true });

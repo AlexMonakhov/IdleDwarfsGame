@@ -1,11 +1,11 @@
 <script lang="ts" setup>
 import { computed } from 'vue';
 import { PortraitUnit } from '@/battle/types';
-import { elementColor, getPortraitUrl } from '@/battle/sprites';
+import { elementColor, getPortraitUrl, spriteColor } from '@/battle/sprites';
 
 // Только лицо юнита в кружке — без подсказки (её добавляет UnitPortrait)
 interface Props {
-    unit: Pick<PortraitUnit, 'name' | 'unitType' | 'element' | 'level' | 'isBoss'>;
+    unit: Pick<PortraitUnit, 'name' | 'unitType' | 'element' | 'appearance' | 'level' | 'isBoss'>;
     size?: number;
     showLevel?: boolean;
 }
@@ -17,7 +17,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 // Иконка — уже вырезанная с портрета голова (tools/portraits.js), растягивается на весь кружок
 const color = computed(() => elementColor(props.unit.element));
-const sprite = computed(() => getPortraitUrl(color.value, props.unit.level));
+const sprite = computed(() => getPortraitUrl(spriteColor(props.unit), props.unit.level));
 
 const portraitStyle = computed(() => ({
     width: `${props.size}px`,

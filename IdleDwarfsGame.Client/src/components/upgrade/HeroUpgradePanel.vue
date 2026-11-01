@@ -12,7 +12,7 @@ import { useResources } from '@/composables/UseResources';
 import { HeroInfo, HeroUpgradeError, HeroUpgradeResult } from '@/models/types/Heroes';
 import { EquipmentInfo, EquipmentSlot, EquipmentType } from '@/models/types/Equipment';
 import { HeroModel } from '@/models/hero';
-import { elementColor } from '@/battle/sprites';
+import { elementColor, spriteColor } from '@/battle/sprites';
 import { statusLabel } from '@/i18n';
 import { vDragScroll } from '@/directives/dragScroll';
 import caveBackground from '@/assets/red_crystal_arena.png';
@@ -47,7 +47,7 @@ const model = computed<HeroModel>(() => ({
     currentHp: props.hero.maxHp,
     maxHp: props.hero.maxHp,
     lvl: props.hero.level,
-    color: color.value,
+    color: spriteColor(props.hero),
     unitType: props.hero.unitType,
 }));
 

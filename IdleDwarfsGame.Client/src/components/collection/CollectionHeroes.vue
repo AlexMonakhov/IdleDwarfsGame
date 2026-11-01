@@ -9,7 +9,7 @@ import { elementAura } from '@/components/effects/elementAura';
 import { DAMAGE_COLORS, resolveSpellVisual } from '@/battle/FxRegistry';
 import { elementColor } from '@/battle/sprites';
 import { statusLabel } from '@/i18n';
-import { DEFAULT_SPELL_LEVEL, HERO_KINDS, HeroKind, PREVIEW_RANK, SPELL_LEVELS, SpellSample } from './catalog';
+import { DEFAULT_SPELL_LEVEL, HERO_KINDS, HeroKind, PREVIEW_LOOK_RANK, PREVIEW_RANK, SPELL_LEVELS, SpellSample } from './catalog';
 import { CollectionPreview, spellScene } from './previewScenes';
 
 // Все виды героев на 5-м ранге и их заклинания; выбранное заклинание на выбранном уровне крутится на сцене
@@ -52,7 +52,7 @@ const avatar = (kind: HeroKind) => ({
     name: t(`collection.heroNames.${kind.element}`),
     unitType: 'Dwarf',
     element: kind.element,
-    level: PREVIEW_RANK,
+    level: PREVIEW_LOOK_RANK,
 });
 </script>
 

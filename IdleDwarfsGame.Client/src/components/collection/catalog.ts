@@ -187,6 +187,8 @@ export interface HeroKind {
 
 // Ранг, на котором показываем героев: на нём открыта вся книга стихии
 export const PREVIEW_RANK = 5;
+// Ранг, которым героя рисуем: на 5-м остаются только радужный и негативный дворфы, а здесь нужен цвет стихии
+export const PREVIEW_LOOK_RANK = 4;
 
 export const HERO_KINDS: HeroKind[] = [
     { element: 'Fire', spells: [SPELLS.fireball, SPELLS.flameWave, SPELLS.meteor] },

@@ -15,7 +15,7 @@ const FPS = 16;
 const DWARFS = [
     {
         name: 'Белый: 4K',
-        sheets: [{ label: '4K — лист в игре (4096)', src: getSpriteUrl('idle', 'white', 4) }],
+        sheets: [{ label: '4K — лист в игре (4096)', src: getSpriteUrl('idle', 'white', 3) }],
     },
 ];
 
