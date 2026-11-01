@@ -7,7 +7,13 @@ export interface FloatingText {
   kind: 'damage' | 'heal' | 'status' | 'immune';
   damageType?: string;
   crit?: boolean;
+  // Сколько снято или вылечено: чем больше доля от здоровья юнита, тем крупнее цифра
+  amount?: number;
+  // Дорожка над юнитом: -1, 0 или 1
+  lane: number;
 }
+
+export type FloatingTextDetails = Pick<FloatingText, 'damageType' | 'crit' | 'amount'>;
 
 // Реплика в облачке над персонажем (см. DialogueService)
 export interface Speech {
@@ -121,6 +127,19 @@ export function resetBattleState(state: BattleState, result: CombatResult) {
   state.preparing = false;
   state.finished = false;
   state.shownLogs = [];
+}
+
+let floatingTextId = 0;
+
+// Дорожка закрепляется за цифрой при появлении: новая встаёт рядом с предыдущей, и цифры не перекрывают друг друга
+export function addFloatingText(unit: BattleUnit, lifetime: number, text: string, kind: FloatingText['kind'], details: FloatingTextDetails = {}) {
+  const last = unit.floatingTexts[unit.floatingTexts.length - 1];
+  const entry: FloatingText = { id: ++floatingTextId, text, kind, lane: last ? ((last.lane + 2) % 3) - 1 : 0, ...details };
+  unit.floatingTexts.push(entry);
+  setTimeout(() => {
+    const index = unit.floatingTexts.findIndex(t => t.id === entry.id);
+    if (index >= 0) unit.floatingTexts.splice(index, 1);
+  }, lifetime);
 }
 
 // Эффект ауры юнита. Если сервер не прислал auraEffect, берём имя из строки описания ("Burn 4 → Enemies").

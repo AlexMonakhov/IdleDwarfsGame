@@ -3,7 +3,7 @@ import { ref, defineProps, computed, onMounted, onBeforeUnmount, inject, watch }
 import CharacterSkeleton from './character-skeleton.vue';
 import CharacterStats from './character-stats.vue';
 import { HeroModel } from '@/models/hero';
-import { BattleUnit, UnitStatus, auraEffectOf } from '@/battle/BattleState';
+import { BattleUnit, FloatingText, UnitStatus, auraEffectOf } from '@/battle/BattleState';
 import { getUnitHead, getUnitSize, SpriteAnimation, SpritePose, spriteColor } from '@/battle/sprites';
 import { BATTLE_FX_KEY } from '@/battle/BattleFx';
 import { DAMAGE_COLORS, combineStatusVisuals, resolveAuraVisual } from '@/battle/FxRegistry';
@@ -131,12 +131,20 @@ const syncHeroAura = () => {
 
 watch(heroAuraKey, syncHeroAura, { flush: 'post' });
 
-const floatingStyle = (kind: string, damageType?: string) => ({
-  color: kind === 'heal'
+// Размер цифры по доле снятого здоровья: тик в 2% — чуть меньше обычного, половина здоровья и больше — в полтора раза крупнее
+const floatingSize = (amount?: number) =>
+  amount ? 0.85 + 0.65 * Math.sqrt(Math.min(amount / (props.unit.maxHp * 0.5), 1)) : 1;
+
+const floatingStyle = (text: FloatingText) => ({
+  '--float-color': text.kind === 'heal'
     ? DAMAGE_COLORS.Heal
-    : kind === 'damage'
-      ? DAMAGE_COLORS[damageType ?? 'Physical'] ?? '#fff'
-      : kind === 'immune' ? '#e5e7eb' : '#fde68a',
+    : text.kind === 'damage'
+      ? DAMAGE_COLORS[text.damageType ?? 'Physical'] ?? '#fff'
+      : text.kind === 'immune' ? '#e5e7eb' : '#fde68a',
+  '--float-size': floatingSize(text.amount),
+  // Крайние дорожки расходятся в стороны, пока цифра летит вверх
+  '--float-drift': `${text.lane * 16}px`,
+  left: `${50 + text.lane * 24}%`,
 });
 
 // Перезапуск CSS-анимации: снять класс, дождаться кадра, повесить снова
@@ -230,11 +238,11 @@ defineExpose(view);
 
         <div class="floating-layer">
             <div
-              v-for="(text, index) in unit.floatingTexts"
+              v-for="text in unit.floatingTexts"
               :key="text.id"
               class="floating-text"
               :class="[`floating-${text.kind}`, { 'floating-crit': text.crit }]"
-              :style="[floatingStyle(text.kind, text.damageType), { left: `${50 + ((index % 3) - 1) * 18}%` }]"
+              :style="floatingStyle(text)"
             >{{ text.text }}</div>
         </div>
 
@@ -365,32 +373,76 @@ defineExpose(view);
     z-index: 3;
     pointer-events: none;
   }
+  /* Длительность анимаций совпадает с временем жизни цифры (TIMING.floatingText в BattlePlayer) */
   .floating-text{
     position: absolute;
-    transform: translateX(-50%);
-    font-weight: 800;
-    font-size: 22px;
+    color: var(--float-color);
+    font-family: 'Arial Black', Impact, Avenir, Helvetica, Arial, sans-serif;
+    font-weight: 900;
+    font-size: calc(30px * var(--float-size, 1));
+    line-height: 1;
     white-space: nowrap;
-    text-shadow: 0 2px 4px #000, 0 0 2px #000;
-    animation: float-up 1.1s ease-out forwards;
+    -webkit-text-stroke: 4px #1a0f08;
+    paint-order: stroke fill;
+    text-shadow: 0 3px 0 rgba(0, 0, 0, 0.85), 0 0 12px rgba(0, 0, 0, 0.6);
+    animation: float-pop 1.1s ease-out forwards;
+  }
+  /* Цифра вылетает из удара раскалённо-белой, с перелётом по размеру, затем остывает до цвета урона */
+  @keyframes float-pop {
+    0% { opacity: 0; color: #fff; transform: translate(-50%, 34px) scale(0.35); }
+    10% { opacity: 1; color: #fff; transform: translate(-50%, 8px) scale(1.35); }
+    22% { color: var(--float-color); transform: translate(-50%, 0) scale(1); }
+    70% { opacity: 1; transform: translate(calc(-50% + var(--float-drift) * 0.6), -28px) scale(1); }
+    100% { opacity: 0; transform: translate(calc(-50% + var(--float-drift)), -60px) scale(0.85); }
+  }
+  /* Лечение и надписи без удара: мягко всплывают */
+  .floating-heal{
+    animation-name: float-rise;
   }
   .floating-status, .floating-immune{
-    font-size: 15px;
+    font-size: 16px;
+    -webkit-text-stroke-width: 3px;
+    animation-name: float-rise;
   }
-  @keyframes float-up {
-    0% { opacity: 0; margin-top: 30px; }
-    15% { opacity: 1; }
-    100% { opacity: 0; margin-top: -40px; }
+  @keyframes float-rise {
+    0% { opacity: 0; transform: translate(-50%, 30px) scale(0.7); }
+    18% { opacity: 1; transform: translate(-50%, 12px) scale(1.1); }
+    30% { transform: translate(-50%, 4px) scale(1); }
+    70% { opacity: 1; }
+    100% { opacity: 0; transform: translate(-50%, -48px) scale(1); }
   }
   .floating-crit{
-    font-size: 30px;
-    animation: float-up-crit 1.1s ease-out forwards;
+    font-size: calc(38px * var(--float-size, 1));
+    -webkit-text-stroke-width: 5px;
+    text-shadow: 0 4px 0 rgba(0, 0, 0, 0.85), 0 0 18px currentColor, 0 0 34px currentColor;
+    animation-name: float-crit;
   }
-  @keyframes float-up-crit {
-    0% { opacity: 0; margin-top: 30px; transform: translateX(-50%) scale(0.6); }
-    15% { opacity: 1; transform: translateX(-50%) scale(1.35); }
-    30% { transform: translateX(-50%) scale(1); }
-    100% { opacity: 0; margin-top: -45px; transform: translateX(-50%) scale(1); }
+  /* Вспышка за цифрой крита */
+  .floating-crit::before{
+    content: '';
+    position: absolute;
+    z-index: -1;
+    left: 50%;
+    top: 50%;
+    width: 2.8em;
+    height: 2.8em;
+    margin: -1.4em 0 0 -1.4em;
+    border-radius: 50%;
+    background: radial-gradient(circle, #fff 0%, var(--float-color) 30%, transparent 70%);
+    animation: float-crit-burst 0.4s ease-out forwards;
+  }
+  @keyframes float-crit {
+    0% { opacity: 0; color: #fff; transform: translate(-50%, 30px) scale(0.3) rotate(-14deg); }
+    9% { opacity: 1; color: #fff; transform: translate(-50%, 4px) scale(1.5) rotate(6deg); }
+    18% { transform: translate(-50%, 0) scale(0.92) rotate(-4deg); }
+    28% { color: var(--float-color); transform: translate(-50%, -2px) scale(1.08) rotate(-3deg); }
+    36% { transform: translate(-50%, -4px) scale(1) rotate(-3deg); }
+    72% { opacity: 1; transform: translate(calc(-50% + var(--float-drift) * 0.6), -30px) scale(1) rotate(-3deg); }
+    100% { opacity: 0; transform: translate(calc(-50% + var(--float-drift)), -64px) scale(0.9) rotate(-3deg); }
+  }
+  @keyframes float-crit-burst {
+    0% { opacity: 0.9; transform: scale(0.3); }
+    100% { opacity: 0; transform: scale(1.3); }
   }
 
   /* Спрайт: тень под ногами (z 0) и тело персонажа (z 1). Доли совпадают с UNIT_ANCHORS в FxRegistry. */

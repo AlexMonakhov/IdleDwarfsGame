@@ -391,34 +391,37 @@ export class SlashStrategy implements EffectStrategy {
       const start = -Math.PI * 0.95;
       const end = -Math.PI * 0.05;
       const current = start + (end - start) * sweep;
-      const segments = 18;
-
-      // Ореол — широкий полупрозрачный штрих под основным, а не shadowBlur: росчерк есть на каждом ударе оружием
       const alpha = (emitter.opacity ?? 1) * fade;
-      for (const [lineScale, style, glowWidth] of [[1, color, 18], [0.45, '#ffffff', 0]] as const) {
-        ctx.strokeStyle = style;
-        for (let i = 0; i < segments; i++) {
-          const a0 = start + ((current - start) * i) / segments;
-          const a1 = start + ((current - start) * (i + 1)) / segments;
-          // Сужение к концам росчерка
-          const taper = Math.sin((Math.PI * (i + 0.5)) / segments);
-          const lineWidth = Math.max(width * lineScale * taper, 0.5);
-          ctx.beginPath();
-          ctx.arc(0, radius * 0.35, radius, a0, a1);
-          if (glowWidth) {
-            ctx.globalAlpha = alpha * 0.2;
-            ctx.lineWidth = lineWidth + glowWidth * taper;
-            ctx.stroke();
-          }
-          ctx.globalAlpha = alpha;
-          ctx.lineWidth = lineWidth;
-          ctx.stroke();
-        }
+
+      // Ореол — широкий полупрозрачный серп под основным, а не shadowBlur: росчерк есть на каждом ударе оружием.
+      // Серп — одна фигура: штрихи внахлёст в режиме lighter на такой толщине дают яркие бусины
+      const layers = [[2.5, color, 0.2], [1, color, 1], [0.3, '#ffffff', 1]] as const;
+      for (const [scale, style, layerAlpha] of layers) {
+        ctx.fillStyle = style;
+        ctx.globalAlpha = alpha * layerAlpha;
+        this.crescent(ctx, radius, start, current, width * scale);
       }
       ctx.restore();
     }
 
     ctx.restore();
+  }
+
+  // Дуга от from до to, толщина сходит на нет к обоим концам
+  private crescent(ctx: CanvasRenderingContext2D, radius: number, from: number, to: number, thickness: number) {
+    const segments = 24;
+    const centerY = radius * 0.35;
+    ctx.beginPath();
+    // Туда по внешнему краю, обратно по внутреннему
+    for (let i = 0; i <= segments * 2; i++) {
+      const t = i <= segments ? i / segments : 2 - i / segments;
+      const edge = i <= segments ? 1 : -1;
+      const angle = from + (to - from) * t;
+      const r = radius + edge * (thickness / 2) * Math.sin(Math.PI * t);
+      ctx.lineTo(Math.cos(angle) * r, centerY + Math.sin(angle) * r);
+    }
+    ctx.closePath();
+    ctx.fill();
   }
 }
 

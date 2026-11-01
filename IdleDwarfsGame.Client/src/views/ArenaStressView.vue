@@ -139,7 +139,7 @@ import CanvasComponent from '@/components/canvas/CanvasComponent.vue';
 import CanvasLayer from '@/components/canvas/CanvasLayer.vue';
 import CharacterComponent from '@/components/character-component.vue';
 import { arenaBackground, arenaBackgroundFilter } from '@/battle/arenaBackgrounds';
-import { BattleUnit, FloatingText, auraEffectOf, createBattleState, resetBattleState, teamUnits } from '@/battle/BattleState';
+import { BattleUnit, addFloatingText, auraEffectOf, createBattleState, resetBattleState, teamUnits } from '@/battle/BattleState';
 import { BATTLE_FX_KEY, BattleFx } from '@/battle/BattleFx';
 import { STATUS_VISUALS, resolveAuraVisual, resolveSpellVisual } from '@/battle/FxRegistry';
 import { SpriteAnimation, SpritePose } from '@/battle/sprites';
@@ -366,26 +366,16 @@ const nextFrame = () => new Promise<void>(resolve => requestAnimationFrame(() =>
 const view = (unit: BattleUnit) => getUnitView(unit.id);
 const el = (unit: BattleUnit) => view(unit)?.el?.();
 
-let floatingTextId = 0;
-const float = (unit: BattleUnit, text: string, kind: FloatingText['kind'], damageType?: string) => {
-  const entry: FloatingText = { id: ++floatingTextId, text, kind, damageType };
-  unit.floatingTexts.push(entry);
-  setTimeout(() => {
-    const index = unit.floatingTexts.findIndex(t => t.id === entry.id);
-    if (index >= 0) unit.floatingTexts.splice(index, 1);
-  }, FLOATING_TEXT);
-};
-
 // Юниты не умирают: здоровье, ушедшее в ноль, восстанавливается
 const damage = (unit: BattleUnit, amount: number, damageType: string) => {
   unit.hp = unit.hp > amount ? unit.hp - amount : MAX_HP;
-  float(unit, `-${amount}`, 'damage', damageType);
+  addFloatingText(unit, FLOATING_TEXT, `-${amount}`, 'damage', { damageType, amount });
   view(unit)?.hit?.(damageType);
 };
 
 const heal = (unit: BattleUnit, amount: number) => {
   unit.hp = Math.min(MAX_HP, unit.hp + amount);
-  float(unit, `+${amount}`, 'heal');
+  addFloatingText(unit, FLOATING_TEXT, `+${amount}`, 'heal', { amount });
   view(unit)?.heal?.();
   fx.heal(el(unit));
 };
@@ -424,7 +414,7 @@ const castSpell = async (caster: BattleUnit, sample = fighterOf(caster).spell, l
   caster.focus = { role: 'caster', color: visual.color };
   if (!support) targets.forEach(u => (u.focus = { role: 'target' }));
   view(caster)?.cast?.(visual.color);
-  float(caster, sample.name, 'status');
+  addFloatingText(caster, FLOATING_TEXT, sample.name, 'status');
   fx.castCircle(el(caster), visual.color, CAST_WINDUP + 700);
   await wait(CAST_WINDUP);
 
