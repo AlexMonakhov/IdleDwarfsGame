@@ -209,7 +209,7 @@ public class PvpTests : IDisposable
             Assert.True(SpellRegistry.All.ContainsKey(Assert.Single(h.SpellIds)));
         });
         // Разные ранги героев и уровни заклинаний
-        Assert.Equal(HeroLevels.Max, heroes.Select(h => h.Level).Distinct().Count());
+        Assert.Equal(HeroLevels.Available, heroes.Select(h => h.Level).Distinct().Count());
         Assert.Equal(3, heroes.Select(h => SpellRegistry.All[h.SpellIds[0]].Level).Distinct().Count());
     }
 

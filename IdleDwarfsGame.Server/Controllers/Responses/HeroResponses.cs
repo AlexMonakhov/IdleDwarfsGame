@@ -5,6 +5,7 @@ public class HeroInfo
     public string Name { get; set; } = string.Empty;
     public string UnitType { get; set; } = string.Empty;
     public HeroElement Element { get; set; }
+    public HeroAppearance Appearance { get; set; }
     public int Level { get; set; }
     // null — герой не в отряде
     public int? PlaceInSquad { get; set; }
@@ -33,6 +34,7 @@ public class HeroInfo
             Name = hero.Name,
             UnitType = hero.UnitType,
             Element = hero.Element,
+            Appearance = hero.Appearance,
             Level = hero.Level,
             PlaceInSquad = hero.PlaceInSquad,
             OnExpedition = onExpedition,

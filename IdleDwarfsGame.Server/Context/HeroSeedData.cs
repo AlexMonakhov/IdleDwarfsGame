@@ -17,7 +17,7 @@ public static class HeroSeedData
         new Hero
         {
             Id = Guid.Parse("11111111-0000-4000-8000-000000000001"), PlayerId = DemoPlayerId,
-            Name = "Brakk Ironbeard", UnitType = "Dwarf", Element = HeroElement.Fire, Level = 4, PlaceInSquad = 1,
+            Name = "Brakk Ironbeard", UnitType = "Dwarf", Element = HeroElement.Fire, Level = 3, PlaceInSquad = 1,
             MaxHp = 260, Attack = 14, Speed = 4,
             MaxEnergy = 100, StartEnergy = 0, EnergyPerAttack = 20,
             Immunities = ["Stun"],
@@ -27,7 +27,7 @@ public static class HeroSeedData
         new Hero
         {
             Id = Guid.Parse("11111111-0000-4000-8000-000000000002"), PlayerId = DemoPlayerId,
-            Name = "Dain Emberforge", UnitType = "Dwarf", Element = HeroElement.Fire, Level = 4, PlaceInSquad = 2,
+            Name = "Dain Emberforge", UnitType = "Dwarf", Element = HeroElement.Fire, Level = 3, PlaceInSquad = 2,
             MaxHp = 130, Attack = 18, Speed = 7,
             MaxEnergy = 100, StartEnergy = 20, EnergyPerAttack = 20,
             SpellIds = [2], // Fireball 2
@@ -36,7 +36,7 @@ public static class HeroSeedData
         new Hero
         {
             Id = Guid.Parse("11111111-0000-4000-8000-000000000003"), PlayerId = DemoPlayerId,
-            Name = "Thora Stormhammer", UnitType = "Dwarf", Element = HeroElement.Frost, Level = 4, PlaceInSquad = 3,
+            Name = "Thora Stormhammer", UnitType = "Dwarf", Element = HeroElement.Frost, Level = 3, PlaceInSquad = 3,
             MaxHp = 150, Attack = 16, Speed = 6,
             MaxEnergy = 100, StartEnergy = 0, EnergyPerAttack = 25,
             SpellIds = [4, 6] // Lightning 1, Lightning 3
@@ -44,14 +44,14 @@ public static class HeroSeedData
         new Hero
         {
             Id = Guid.Parse("11111111-0000-4000-8000-000000000004"), PlayerId = DemoPlayerId,
-            Name = "Grim Ashaxe", UnitType = "Dwarf", Element = HeroElement.Fire, Level = 4, PlaceInSquad = 4,
+            Name = "Grim Ashaxe", UnitType = "Dwarf", Element = HeroElement.Fire, Level = 3, PlaceInSquad = 4,
             MaxHp = 180, Attack = 20, Speed = 5,
             MaxEnergy = 100, StartEnergy = 0, EnergyPerAttack = 20
         },
         new Hero
         {
             Id = Guid.Parse("11111111-0000-4000-8000-000000000005"), PlayerId = DemoPlayerId,
-            Name = "Runa Frostpick", UnitType = "Dwarf", Element = HeroElement.Frost, Level = 4, PlaceInSquad = 5,
+            Name = "Runa Frostpick", UnitType = "Dwarf", Element = HeroElement.Frost, Level = 3, PlaceInSquad = 5,
             MaxHp = 120, Attack = 12, Speed = 8,
             MaxEnergy = 100, StartEnergy = 40, EnergyPerAttack = 20,
             SpellIds = [7] // Healing Rune 1
@@ -60,16 +60,16 @@ public static class HeroSeedData
         new Hero
         {
             Id = Guid.Parse("11111111-0000-4000-8000-000000000006"), PlayerId = DemoPlayerId,
-            Name = "Oin Deepdelver", UnitType = "Dwarf", Element = HeroElement.Frost, Level = 4, PlaceInSquad = null,
+            Name = "Oin Deepdelver", UnitType = "Dwarf", Element = HeroElement.Frost, Level = 3, PlaceInSquad = null,
             MaxHp = 140, Attack = 15, Speed = 5,
             MaxEnergy = 100, StartEnergy = 0, EnergyPerAttack = 20,
             SpellIds = [1]
         },
-        // Запасные герои 5-го ранга новых стихий: полная книга заклинаний (ElementSpellBook)
+        // Запасные герои 4-го ранга новых стихий: полная книга заклинаний (ElementSpellBook)
         new Hero
         {
             Id = Guid.Parse("11111111-0000-4000-8000-000000000007"), PlayerId = DemoPlayerId,
-            Name = "Morgra Duskvein", UnitType = "Dwarf", Element = HeroElement.Dark, Level = 5, PlaceInSquad = null,
+            Name = "Morgra Duskvein", UnitType = "Dwarf", Element = HeroElement.Dark, Level = 4, PlaceInSquad = null,
             MaxHp = 150, Attack = 19, Speed = 6,
             MaxEnergy = 100, StartEnergy = 20, EnergyPerAttack = 20,
             SpellIds = [39, 42, 45], // Shadow Bolt 3, Life Drain 3, Hex 3
@@ -78,7 +78,7 @@ public static class HeroSeedData
         new Hero
         {
             Id = Guid.Parse("11111111-0000-4000-8000-000000000008"), PlayerId = DemoPlayerId,
-            Name = "Elda Brightfacet", UnitType = "Dwarf", Element = HeroElement.Radiance, Level = 5, PlaceInSquad = null,
+            Name = "Elda Brightfacet", UnitType = "Dwarf", Element = HeroElement.Radiance, Level = 4, PlaceInSquad = null,
             MaxHp = 160, Attack = 17, Speed = 7,
             MaxEnergy = 100, StartEnergy = 20, EnergyPerAttack = 20,
             SpellIds = [48, 51, 54], // Prism Ray 3, Radiant Nova 3, Dawnlight 3

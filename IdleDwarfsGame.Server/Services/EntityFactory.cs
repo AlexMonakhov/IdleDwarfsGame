@@ -13,6 +13,7 @@ public class EntityFactory : IEntityFactory
             Name = hero.Name,
             UnitType = hero.UnitType,
             Element = hero.Element,
+            Appearance = hero.Appearance,
             Level = hero.Level,
             StatLevel = Math.Max(1, level),
             UpgradeLevel = HeroUpgradeService.ClampLevel(hero.UpgradeLevel),
