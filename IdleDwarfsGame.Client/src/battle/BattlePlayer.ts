@@ -237,6 +237,8 @@ export class BattlePlayer {
     this.setFocus(log.targetId, { role: 'target' });
     this.animate(log.attackerId, v => v.attack?.());
     this.sound(s => s.swing());
+    // Удар от пассивки (двойной удар) подписываем, чтобы было понятно, откуда он
+    if (log.skillName) this.float(log.attackerId, t(`passives.names.${log.skillName}`), 'status');
     await this.delay(TIMING.attackWindup);
 
     this.applyDamage(log);
@@ -331,9 +333,10 @@ export class BattlePlayer {
   }
 
   // Статус наложен аурой: источник — её носитель и эффект совпадает с эффектом ауры.
-  // Статусы от заклинаний сюда не попадают — они разбираются раньше, в группе каста.
+  // Статусы от заклинаний сюда не попадают — они разбираются раньше, в группе каста, а от пассивок отмечены фазой.
   private isAuraTrigger(log: CombatLogEntry) {
     if (log.eventType !== 'StatusApplied' && log.eventType !== 'Immune') return false;
+    if (log.phase === 'Passive') return false;
     const bearer = this.unit(log.attackerId);
     const effect = log.appliedEffects[0]?.name;
     return !!bearer && !!effect && auraEffectOf(bearer) === effect;

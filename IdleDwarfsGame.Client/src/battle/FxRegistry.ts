@@ -1,5 +1,5 @@
 import { EffectType } from '@/services/particleService/types/interfaces/canvas-interfaces';
-import type { AuraMote } from '@/services/particleService/types/combat-effects';
+import type { AuraMote, GroundMarkKind } from '@/services/particleService/types/combat-effects';
 import type { AuraTarget } from './types';
 
 // Описания боевых визуалов. Чтобы добавить новый эффект (статус, заклинание, тип урона),
@@ -124,6 +124,16 @@ const groundPulse = (color: string, radius = 55, duration = 650): FxSpec => ({
   args: { color, radius, mode: 'pulse', width: 5 },
 });
 
+// След под целью, который остаётся после попадания: выжженная земля, иней, лужа яда или тьмы, пятно света
+const groundMark = (kind: GroundMarkKind, color: string, radius: number, duration = 2400): FxSpec => ({
+  type: 'ground-mark',
+  anchor: 'feet',
+  layer: 'background',
+  duration,
+  padding: radius * 2,
+  args: { kind, color, radius },
+});
+
 // Попадание по типу урона (обычная атака, урон вне каста)
 export const HIT_VISUALS: Record<string, FxSpec[]> = {
   Physical: [
@@ -196,12 +206,13 @@ const FIREBALL: SpellVisualOf = level => ({
   projectile: {
     type: 'projectile',
     duration: 600,
-    args: { core: '#fff1a8', glow: '#ff6a00', trail: FIRE, size: lvl(level, [13, 15, 17]), arc: 50, trailRate: lvl(level, [4, 5, 7]) },
+    args: { core: '#fff1a8', glow: '#ff6a00', trail: FIRE, size: lvl(level, [16, 19, 23]), arc: 50, trailRate: lvl(level, [4, 5, 7]) },
   },
   impact: [
-    { type: 'explosion', duration: 850, padding: 80, args: { colors: FIRE, count: lvl(level, [48, 58, 70]), radius: lvl(level, [70, 78, 88]), speed: 6, smoke: true } },
-    groundPulse('#ff7a1a', lvl(level, [60, 70, 80])),
-    ...since(level, 3, [{ type: 'flames', duration: 700, anchor: 'feet', args: { burst: true, rate: 4, width: 70, height: 50, size: 8 } }]),
+    { type: 'explosion', duration: 850, padding: 100, args: { colors: FIRE, count: lvl(level, [48, 58, 70]), radius: lvl(level, [80, 90, 105]), speed: 6.5, smoke: true } },
+    groundPulse('#ff7a1a', lvl(level, [70, 80, 95])),
+    groundMark('burn', '#ff7a1a', lvl(level, [50, 60, 72])),
+    ...since(level, 3, [{ type: 'flames', duration: 700, anchor: 'feet', layer: 'background', args: { burst: true, rate: 4, width: 70, height: 50, size: 8 } }]),
     ...since(level, 3, masteryBurst(FIRE, '#ffe27a')),
   ],
 });
@@ -217,6 +228,7 @@ const FROST_BOLT: SpellVisualOf = level => ({
   impact: [
     { type: 'explosion', duration: 700, args: { colors: ICE, count: lvl(level, [30, 36, 44]), radius: 55, speed: 5, shards: true, gravity: 0.1 } },
     groundPulse('#7dd3fc'),
+    groundMark('frost', '#7dd3fc', lvl(level, [42, 50, 58])),
     ...since(level, 2, [{ type: 'sparkles', duration: 700, args: { color: '#ffffff', burst: 8, rate: 0.3, once: true, width: 55, height: 80, shape: 'star' } }]),
     ...since(level, 3, [{ type: 'ring', anchor: 'feet', layer: 'background', duration: 800, args: { color: '#bae6fd', radius: 55, mode: 'rune', width: 4 } }]),
     ...since(level, 3, masteryBurst(ICE, '#ffffff')),
@@ -231,6 +243,7 @@ const LIGHTNING: SpellVisualOf = level => ({
   impact: [
     { type: 'explosion', duration: 500, args: { colors: ELECTRIC, count: 30, radius: 60, speed: 7, gravity: 0 } },
     groundPulse('#9be7ff', 50, 500),
+    groundMark('burn', '#9be7ff', lvl(level, [38, 44, 54]), 1800),
     ...since(level, 2, [sparkShower(ELECTRIC, lvl(level, [0, 14, 36]))]),
     ...since(level, 3, [{ type: 'arcs', duration: 600, args: { color: '#9be7ff', count: 3, width: 55, height: 90 } }]),
     ...since(level, 3, masteryBurst(ELECTRIC, '#e0fbff')),
@@ -249,53 +262,62 @@ const ARCANE_BOLT: SpellVisual = {
 };
 
 /* ===== Огонь ===== */
-// Огненный вал катится по земле от кастера через врагов: каждый вспыхивает, когда вал до него докатился.
+// Огненный вал выше роста дворфа катится по земле от кастера через врагов, за ним догорает полоса:
+// каждый враг вспыхивает, когда вал до него докатился (пламя встаёт за ним, спрайт не закрывает).
 // 2 — вал выше и гуще; 3 — ещё выше, с искрами угольков на целях (поджигает)
 const FLAME_WAVE: SpellVisualOf = level => ({
   color: DAMAGE_COLORS.Fire,
   wave: {
     type: 'fire-wall',
     anchor: 'feet',
-    duration: 1100,
-    padding: 120,
-    args: { colors: FIRE, height: lvl(level, [100, 120, 145]), width: lvl(level, [40, 46, 54]), rate: lvl(level, [7, 9, 12]), travel: 0.75 },
+    duration: 1300,
+    padding: 220,
+    args: { colors: FIRE, height: lvl(level, [160, 190, 230]), width: lvl(level, [55, 65, 80]), rate: lvl(level, [9, 11, 14]), travel: 0.75 },
   },
   impact: [
-    { type: 'flames', duration: 650, args: { burst: true, rate: 6, width: 70, height: lvl(level, [85, 100, 125]), size: 10, glow: 'rgba(255, 90, 0, 0.55)' } },
-    groundPulse('#ff7a1a', 50, 550),
+    { type: 'flames', layer: 'background', duration: 750, args: { burst: true, rate: 7, width: 80, height: lvl(level, [120, 140, 170]), size: 12, glow: 'rgba(255, 90, 0, 0.55)' } },
+    groundPulse('#ff7a1a', lvl(level, [65, 75, 90]), 550),
+    groundMark('burn', '#ff7a1a', lvl(level, [55, 62, 72])),
     ...since(level, 3, [{ type: 'sparkles', duration: 900, args: { color: '#ffb347', burst: 12, rate: 0.4, once: true, width: 60, height: 90, shape: 'dot', rise: 1.4 } }]),
     ...since(level, 3, masteryBurst(FIRE, '#ffe27a')),
   ],
 });
 
-// Метеор падает с неба почти отвесно, с длинным огненным хвостом, а земля под целью разгорается его светом.
-// Удар — вспышка, столб огня и ударная волна. 2 — на земле остаётся гореть пламя (поджог);
-// 3 — глыба крупнее, хвост длиннее, летят обломки, волна двойная и всё вокруг озаряет зарево
+// Под целью загорается огненный круг, и с неба почти отвесно падает крупная раскалённая глыба:
+// длинный огненный хвост, дымный шлейф, сыплются угли, вокруг зарево, земля под целью разгорается его светом.
+// Удар — вспышка, столб огня за целью, обломки и ударная волна, остаётся воронка.
+// 2 — на земле остаётся гореть пламя (поджог); 3 — глыба крупнее, хвост длиннее, волна двойная и всё озаряет зарево
 const METEOR: SpellVisualOf = level => ({
   color: '#ff4d00',
-  flare: lvl(level, [150, 185, 240]),
+  flare: lvl(level, [190, 240, 300]),
   from: 'sky',
-  sky: { height: 460, dx: 110 },
+  sky: { height: 600, dx: 130 },
+  telegraph: [
+    { type: 'ring', anchor: 'feet', layer: 'background', duration: 950, args: { color: '#ff4d00', radius: lvl(level, [70, 80, 95]), mode: 'rune', width: 4 } },
+  ],
   projectile: {
     type: 'comet',
     anchor: 'feet',
-    duration: 750,
-    padding: 220,
-    args: { colors: FIRE, core: '#fffbe0', glow: '#ff6a00', size: lvl(level, [11, 13, 16]), tail: lvl(level, [120, 150, 190]) },
+    duration: 850,
+    padding: 400,
+    args: { colors: FIRE, core: '#fffbe0', glow: '#ff6a00', size: lvl(level, [20, 24, 30]), tail: lvl(level, [230, 290, 360]) },
   },
   impact: [
     {
       type: 'explosion',
       anchor: 'feet',
       duration: 1000,
-      padding: 120,
-      args: { colors: FIRE, count: lvl(level, [44, 56, 72]), radius: lvl(level, [75, 90, 110]), speed: 7, gravity: -0.06, smoke: true, flash: '#fff7d6', debris: lvl(level, [0, 6, 16]) },
+      padding: 160,
+      args: { colors: FIRE, count: lvl(level, [56, 70, 90]), radius: lvl(level, [100, 120, 145]), speed: 8, gravity: -0.06, smoke: true, flash: '#fff7d6', debris: lvl(level, [6, 10, 18]) },
     },
-    { type: 'flames', anchor: 'feet', duration: 900, args: { burst: true, rate: 9, width: 50, height: lvl(level, [150, 180, 220]), size: 12, glow: 'rgba(255, 110, 20, 0.55)' } },
-    groundPulse('#ff4d00', lvl(level, [85, 100, 125]), 800),
-    ...since(level, 2, [{ type: 'flames', anchor: 'feet', duration: 1400, delay: 200, args: { burst: true, rate: 3, width: 110, height: 45, size: 8 } }]),
+    // Столб огня встаёт за целью
+    { type: 'flames', anchor: 'feet', layer: 'background', duration: 900, args: { burst: true, rate: 11, width: 60, height: lvl(level, [180, 220, 270]), size: 14, glow: 'rgba(255, 110, 20, 0.55)' } },
+    groundPulse('#ff4d00', lvl(level, [110, 130, 160]), 800),
+    // Воронка от метеора — самый крупный и долгий след
+    groundMark('burn', '#ff4d00', lvl(level, [85, 100, 125]), 3200),
+    ...since(level, 2, [{ type: 'flames', anchor: 'feet', layer: 'background', duration: 1400, delay: 200, args: { burst: true, rate: 3, width: 140, height: 55, size: 9 } }]),
     ...since(level, 3, [
-      { ...groundPulse('#ffb347', 150, 900), delay: 160 },
+      { ...groundPulse('#ffb347', 190, 900), delay: 160 },
       { type: 'screen-flash', duration: 600, args: { color: '#ffb347', alpha: 0.22 } },
     ]),
     ...since(level, 3, masteryBurst(FIRE, '#fff7d6')),
@@ -333,6 +355,7 @@ const BLIZZARD: SpellVisualOf = level => ({
   impact: [
     { type: 'explosion', duration: 650, args: { colors: ICE, count: 18, radius: 45, speed: 3.5, shards: true, gravity: 0.1, ring: false } },
     { type: 'sparkles', duration: 900, args: { color: '#e0f6ff', burst: lvl(level, [10, 14, 20]), rate: 0.5, once: true, width: 70, height: 100, shape: 'dot', rise: -0.8 } },
+    groundMark('frost', '#bae6fd', lvl(level, [45, 52, 62]), 2800),
     ...since(level, 3, masteryBurst(ICE, '#ffffff')),
   ],
 });
@@ -366,6 +389,7 @@ const GLACIAL_PRISON: SpellVisualOf = level => ({
   impact: [
     { type: 'explosion', duration: 600, anchor: 'feet', args: { colors: ICE, count: lvl(level, [22, 26, 34]), radius: 50, speed: 4, shards: true, gravity: 0.15, ring: false } },
     { type: 'sparkles', duration: 900, args: { color: '#ffffff', burst: 10, rate: 0.3, once: true, width: 70, height: 110, shape: 'star' } },
+    groundMark('frost', '#7dd3fc', lvl(level, [60, 62, 78]), 3000),
     ...since(level, 3, masteryBurst(ICE, '#ffffff')),
   ],
 });
@@ -382,6 +406,7 @@ const CHAIN_LIGHTNING: SpellVisualOf = level => ({
   impact: [
     { type: 'explosion', duration: 450, args: { colors: ELECTRIC, count: 20, radius: 45, speed: 6, gravity: 0 } },
     { type: 'arcs', duration: 550, args: { color: '#9be7ff', count: lvl(level, [2, 3, 4]), width: 55, height: 90 } },
+    groundMark('burn', '#7dd3fc', lvl(level, [34, 40, 48]), 1800),
     ...since(level, 3, [sparkShower(ELECTRIC, 18)]),
     ...since(level, 3, masteryBurst(ELECTRIC, '#e0fbff')),
   ],
@@ -403,6 +428,7 @@ const THUNDERCLAP: SpellVisualOf = level => ({
     { type: 'explosion', duration: 550, anchor: 'feet', args: { colors: TOPAZ, count: 30, radius: 60, speed: 7, gravity: 0.1 } },
     groundPulse('#ffd166', lvl(level, [80, 95, 120]), 650),
     { type: 'arcs', duration: 600, args: { color: '#fde68a', count: 2, width: 60, height: 95 } },
+    groundMark('burn', '#fde68a', lvl(level, [55, 65, 80]), 2600),
     ...since(level, 3, [sparkShower(TOPAZ, 24)]),
     ...since(level, 3, masteryBurst(TOPAZ, '#fff7d6')),
   ],
@@ -422,6 +448,7 @@ const HEALING_RUNE: SpellVisualOf = level => ({
   impact: [
     { type: 'sparkles', duration: 900, args: { color: '#86efac', burst: lvl(level, [8, 12, 16]), rate: 0.4, once: true, width: 60, height: 90, shape: 'plus' } },
     ...since(level, 2, [groundPulse('#4ade80', 65, 700)]),
+    groundMark('glow', '#4ade80', lvl(level, [45, 55, 62]), 1600),
     ...since(level, 3, masteryBurst(HEAL_PALETTE, '#86efac', 'plus')),
   ],
 });
@@ -449,6 +476,7 @@ const VENOM_THORNS: SpellVisualOf = level => ({
       args: { colors: POISON, count: lvl(level, [20, 24, 32]), radius: 40, speed: 3, gravity: -0.06, ring: false, smoke: true, smokeColor: 'rgba(54, 83, 20, 1)' },
     },
     { type: 'sparkles', duration: 900, args: { color: '#a3e635', burst: lvl(level, [6, 10, 14]), rate: 0.3, once: true, width: 50, height: 70, shape: 'dot', rise: -0.7 } },
+    groundMark('stain', '#65a30d', lvl(level, [38, 44, 52])),
     ...since(level, 3, masteryBurst(POISON, '#d9f99d')),
   ],
 });
@@ -471,6 +499,8 @@ const ENTANGLING_ROOTS: SpellVisualOf = level => ({
   hitDelay: 420,
   impact: [
     { type: 'explosion', duration: 700, anchor: 'feet', args: { colors: LEAF, count: 22, radius: 45, speed: 3.5, shards: true, gravity: -0.06, ring: false } },
+    // Взрытая лозами земля
+    groundMark('stain', '#5b3a1e', lvl(level, [48, 54, 62]), 2600),
     ...since(level, 3, [{ type: 'sparkles', duration: 1000, args: { color: '#a3e635', burst: 10, rate: 0.4, once: true, width: 55, height: 90, shape: 'dot', rise: 0.8 } }]),
     ...since(level, 3, masteryBurst(LEAF, '#bbf7d0')),
   ],
@@ -488,6 +518,7 @@ const SHADOW_BOLT: SpellVisualOf = level => ({
   impact: [
     { type: 'explosion', duration: 750, padding: 70, args: { colors: SHADOW, count: lvl(level, [28, 34, 42]), radius: 55, speed: 4.5, smoke: true, smokeColor: 'rgba(30, 5, 56, 1)' } },
     ...since(level, 2, [groundPulse('#7e22ce', 55)]),
+    groundMark('stain', '#6b21a8', lvl(level, [40, 46, 54])),
     ...since(level, 3, [{ type: 'flames', duration: 750, args: { burst: true, rate: 5, width: 55, height: 95, size: 9, colors: SHADOW, glow: 'rgba(126, 34, 206, 0.45)' } }]),
     ...since(level, 3, masteryBurst(SHADOW, '#e9d5ff')),
   ],
@@ -507,6 +538,7 @@ const LIFE_DRAIN: SpellVisualOf = level => ({
   healDelay: 450,
   impact: [
     { type: 'explosion', duration: 600, args: { colors: ['#fecdd3', '#f43f5e', '#be185d', '#6b21a8', '#3b0764'], count: lvl(level, [18, 22, 30]), radius: 40, speed: 3, gravity: -0.1, ring: false } },
+    groundMark('stain', '#9f1239', lvl(level, [36, 42, 50]), 2000),
     ...since(level, 3, masteryBurst(DRAIN_PALETTE, '#fecdd3')),
   ],
 });
@@ -531,6 +563,7 @@ const HEX: SpellVisualOf = level => ({
       args: { colors: SHADOW, count: lvl(level, [18, 22, 30]), radius: 45, speed: 3, gravity: -0.06, ring: '#a855f7', smoke: true, smokeColor: 'rgba(59, 7, 100, 1)' },
     },
     { type: 'sparkles', duration: 800, args: { color: '#c084fc', burst: lvl(level, [6, 8, 12]), rate: 0.3, once: true, width: 50, height: 80, shape: 'star' } },
+    groundMark('stain', '#7e22ce', lvl(level, [44, 50, 58]), 2600),
     ...since(level, 3, masteryBurst(SHADOW, '#f0abfc')),
   ],
 });
@@ -544,6 +577,7 @@ const PRISM_RAY: SpellVisualOf = level => ({
   impact: [
     ...HIT_VISUALS.Radiant,
     groundPulse('#ff7ad9', 50, 550),
+    groundMark('glow', '#ff7ad9', lvl(level, [40, 46, 54]), 1600),
     ...since(level, 3, [
       { type: 'explosion', duration: 700, args: { colors: PRISM, count: 24, radius: 70, speed: 5.5, gravity: 0, ring: '#ff7ad9' } },
       { type: 'sparkles', duration: 800, args: { color: '#ffffff', burst: 10, rate: 0.3, once: true, width: 70, height: 90, shape: 'star' } },
@@ -571,6 +605,7 @@ const RADIANT_NOVA: SpellVisualOf = level => ({
   },
   impact: [
     { type: 'explosion', duration: 650, args: { colors: PRISM, count: lvl(level, [24, 30, 38]), radius: 55, speed: 5, gravity: 0, ring: '#ffffff' } },
+    groundMark('glow', '#fde68a', lvl(level, [42, 48, 56]), 1600),
     { type: 'sparkles', duration: 800, args: { color: '#ffffff', burst: 10, rate: 0.4, once: true, width: 70, height: 90, shape: 'star' } },
     ...since(level, 3, masteryBurst(PRISM, '#ffffff')),
   ],
@@ -596,6 +631,7 @@ const DAWNLIGHT: SpellVisualOf = level => ({
   impact: [
     { type: 'sparkles', duration: 900, args: { color: '#ffe8a3', burst: lvl(level, [8, 10, 14]), rate: 0.4, once: true, width: 60, height: 100, shape: 'star' } },
     groundPulse('#ffd166', 60, 700),
+    groundMark('glow', '#ffd166', lvl(level, [50, 60, 70]), 1800),
     ...since(level, 3, masteryBurst(DAWN_PALETTE, '#ffe8a3', 'plus')),
   ],
 });

@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n';
 import { AxiosError } from 'axios';
 import GemTile from './GemTile.vue';
 import HeroCard from '@/components/inventory/HeroCard.vue';
+import ItemTile from '@/components/equipment/ItemTile.vue';
 import InventoryApiService from '@/services/apiServices/InventoryApiService';
 import { ChestInfo, ChestOpenResult, ChestType } from '@/models/types/Inventory';
 import { CHEST_ICONS } from './lootStyles';
@@ -70,11 +71,12 @@ onMounted(load);
             <section v-if="opened" class="chest-result">
                 <div class="chest-result-title">
                     {{ CHEST_ICONS[opened.chest.type] }} {{ t('chests.name', { type: t(`chests.types.${opened.chest.type}`), level: opened.chest.level }) }}
-                    — {{ opened.items.length || opened.heroes.length ? t('chests.dropped') : t('chests.nothing') }}
+                    — {{ opened.items.length || opened.heroes.length || opened.equipment?.length ? t('chests.dropped') : t('chests.nothing') }}
                 </div>
                 <div class="inventory-grid">
                     <GemTile v-for="item in opened.items" :key="`${item.subType}-${item.rarity}`" :item="item" />
                     <HeroCard v-for="hero in opened.heroes" :key="hero.id" :hero="hero" selectable />
+                    <ItemTile v-for="item in opened.equipment" :key="item.id" :item="item" />
                 </div>
             </section>
 

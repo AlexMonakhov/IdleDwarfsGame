@@ -56,4 +56,5 @@ public class ChestOpenResult
     public ChestInfo Chest { get; set; } = new();
     public List<ItemInfo> Items { get; set; } = new();
     public List<HeroInfo> Heroes { get; set; } = new();
+    public List<EquipmentInfo> Equipment { get; set; } = new();
 }

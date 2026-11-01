@@ -25,7 +25,8 @@ export type EffectType =
   | 'light-pillar'
   | 'arcs'
   | 'comet'
-  | 'flare';
+  | 'flare'
+  | 'ground-mark';
 
 export type FadeDirection = 'in' | 'out';
 

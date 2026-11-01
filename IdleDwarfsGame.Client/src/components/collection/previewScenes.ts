@@ -115,7 +115,7 @@ const previewUnit = (options: UnitOptions): CombatUnitInfo => ({
     immunities: [],
     auraEffect: options.auraEffect ?? null,
     auraTarget: options.auraTarget ?? null,
-    power: { total: 0, stats: 0, level: 0, skills: 0, passives: 0 },
+    power: { total: 0, stats: 0, level: 0, skills: 0, passives: 0, equipment: 0 },
 });
 
 type EntryInit = Partial<CombatLogEntry> & Pick<CombatLogEntry, 'eventType' | 'attackerId' | 'targetId'>;

@@ -12,6 +12,7 @@ import {
   AuraSphereStrategy,
   AuraBurstStrategy,
   FlareStrategy,
+  GroundMarkStrategy,
 } from '@/services/particleService/types/combat-effects';
 import {
   FireWallStrategy,
@@ -74,6 +75,7 @@ export class GlobalParticleService {
     'arcs': new ArcsStrategy(),
     'comet': new CometStrategy(),
     'flare': new FlareStrategy(),
+    'ground-mark': new GroundMarkStrategy(),
   };
 
   // Подменить/добавить стратегию отрисовки (например, для нового эффекта статуса)

@@ -29,13 +29,18 @@ public class ChestService(
             ?? throw new InvalidOperationException("Chest not found or already opened");
 
         var loot = drops.Roll(chest.ChestDropTable);
-        var items = loot.Where(d => d.ItemType != ItemType.Hero).ToList();
+        var items = loot.Where(d => d.ItemType is not (ItemType.Hero or ItemType.Equipment)).ToList();
         var heroes = loot
             .Where(d => d.ItemType == ItemType.Hero)
             .SelectMany(d => Enumerable.Range(0, d.Amount).Select(_ => HeroGenerator.Create(playerId, d.Level, d.SubType, random)))
             .ToList();
+        // Снаряжение не складывается в стопки: каждая штука — своя строка
+        var equipment = loot
+            .Where(d => d.ItemType == ItemType.Equipment)
+            .SelectMany(d => Enumerable.Range(0, d.Amount).Select(_ => new PlayerEquipment { Id = Guid.NewGuid(), PlayerId = playerId, ItemKey = d.SubType }))
+            .ToList();
 
-        if (!await inventory.OpenChestAsync(chest, items, heroes))
+        if (!await inventory.OpenChestAsync(chest, items, heroes, equipment))
             throw new InvalidOperationException("Chest is already opened");
 
         return new ChestOpenResult
@@ -43,7 +48,8 @@ public class ChestService(
             Chest = ChestInfo.From(chest),
             Items = items.Select(ItemInfo.From).ToList(),
             // Только что созданный герой не может быть в экспедиции
-            Heroes = heroes.Select(h => HeroInfo.From(entityFactory, h, onExpedition: false)).ToList()
+            Heroes = heroes.Select(h => HeroInfo.From(entityFactory, h, onExpedition: false)).ToList(),
+            Equipment = equipment.Select(EquipmentInfo.From).OfType<EquipmentInfo>().ToList()
         };
     }
 }

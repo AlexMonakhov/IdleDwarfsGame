@@ -25,38 +25,80 @@ public abstract class BaseSpell : ISpell
             .ToList();
         if (targets.Count == 0) return;
 
+        // Предметы могут добавить целей и урона (SpellModifier); без них modifier == null
+        SpellModifier? modifier = null;
+        world.Gear.GetValueOrDefault(casterId)?.Spells.TryGetValue(Name, out modifier);
+
+        if (modifier != null)
+            targets.AddRange(GetAliveEnemies(world, casterId).Select(e => e.Id).Except(targets).Take(modifier.ExtraTargets).ToList());
+
         // 1. Лог каста — фронт проигрывает анимацию каста и снаряды ко всем целям
         LogCast(world, casterId, context, targets);
 
         foreach (var targetId in targets)
         {
-            // 2. Считаем и наносим урон
-            int damage = world.ScaleDamage(GetDamage(world, casterId, targetId));
-            int hpLeft = world.ApplyDamage(targetId, damage);
-
-            // 3. Пишем лог попадания
-            context.AddLog(new CombatLogEntry
-            {
-                EventType = CombatEventType.Damage,
-                AttackerId = casterId,
-                TargetId = targetId,
-                AttackerTeam = world.Team[casterId].TeamId,
-                TargetTeam = world.Team[targetId].TeamId,
-                ActionType = $"{Name} (Lvl {Level})",
-                SkillId = Id,
-                SkillName = Name,
-                DamageType = DamageType,
-                Damage = damage,
-                TargetRemainingHp = hpLeft
-            });
-
-            // 4. Накладываем дополнительные эффекты (огонь, оглушение и т.д.)
-            if (world.IsAlive(targetId))
-                ApplyEffects(world, casterId, targetId, context);
-
-            // 5. То, что зависит от нанесённого урона и срабатывает даже по убитой цели (вампиризм)
-            AfterHit(world, casterId, targetId, damage, context);
+            int damage = GetDamage(world, casterId, targetId);
+            if (modifier != null)
+                damage = damage * (100 + modifier.DamagePercent) / 100;
+            Hit(world, casterId, targetId, damage, context);
         }
+
+        if (modifier != null)
+            CastProcs(world, casterId, context, modifier, targets);
+    }
+
+    // Спелл, вызванный предметом: своё действие с логом каста, урон задан процентом от атаки кастера.
+    // Цели уже выбраны, энергия не тратится, новые срабатывания он не вызывает
+    public void CastTriggered(World world, int casterId, CombatContext context, List<int> targets, int damagePercent)
+    {
+        context.NextAction();
+        LogCast(world, casterId, context, targets);
+
+        int damage = world.Attack[casterId].Damage * damagePercent / 100;
+        foreach (var targetId in targets)
+            Hit(world, casterId, targetId, damage, context);
+    }
+
+    private static void CastProcs(World world, int casterId, CombatContext context, SpellModifier modifier, List<int> targets)
+    {
+        foreach (var proc in modifier.Procs)
+        {
+            var alive = targets.Where(world.IsAlive).ToList();
+            if (alive.Count == 0) return;
+
+            if (SpellRegistry.All.GetValueOrDefault(proc.SpellId) is BaseSpell spell)
+                spell.CastTriggered(world, casterId, context, alive, proc.DamagePercent);
+        }
+    }
+
+    private void Hit(World world, int casterId, int targetId, int amount, CombatContext context)
+    {
+        // 2. Считаем и наносим урон
+        int damage = world.ResolveHit(casterId, targetId, amount);
+        int hpLeft = world.ApplyDamage(targetId, damage);
+
+        // 3. Пишем лог попадания
+        context.AddLog(new CombatLogEntry
+        {
+            EventType = CombatEventType.Damage,
+            AttackerId = casterId,
+            TargetId = targetId,
+            AttackerTeam = world.Team[casterId].TeamId,
+            TargetTeam = world.Team[targetId].TeamId,
+            ActionType = $"{Name} (Lvl {Level})",
+            SkillId = Id,
+            SkillName = Name,
+            DamageType = DamageType,
+            Damage = damage,
+            TargetRemainingHp = hpLeft
+        });
+
+        // 4. Накладываем дополнительные эффекты (огонь, оглушение и т.д.)
+        if (world.IsAlive(targetId))
+            ApplyEffects(world, casterId, targetId, context);
+
+        // 5. То, что зависит от нанесённого урона и срабатывает даже по убитой цели (вампиризм)
+        AfterHit(world, casterId, targetId, damage, context);
     }
 
     // Лечение с логом: фронт показывает его в той же группе, что и каст. Возвращает восстановленное HP

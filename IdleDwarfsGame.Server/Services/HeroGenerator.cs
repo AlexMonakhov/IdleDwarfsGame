@@ -51,7 +51,8 @@ public static class HeroGenerator
             MaxEnergy = 100,
             StartEnergy = 0,
             EnergyPerAttack = 20,
-            SpellIds = ElementSpellBook.SpellsFor(heroElement, rank)
+            SpellIds = ElementSpellBook.SpellsFor(heroElement, rank),
+            Passives = [PassiveBook.Random(random)]
         };
     }
 }

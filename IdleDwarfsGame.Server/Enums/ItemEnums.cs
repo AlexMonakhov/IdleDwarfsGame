@@ -8,11 +8,23 @@ public enum ItemType
     Hero = 3
 }
 
-public enum EquipmentSubType
+// Вид предмета: определяет, в какой слот он надевается (EquipmentCatalog.SlotsFor)
+public enum EquipmentType
 {
-    Armor,
     Weapon,
-    Accessory
+    Helmet,
+    Neck,
+    Ring
+}
+
+// Слот на герое. Хранится строкой
+public enum EquipmentSlot
+{
+    Weapon,
+    Helmet,
+    Neck,
+    Ring1,
+    Ring2
 }
 
 public enum MaterialSubType
@@ -35,11 +47,13 @@ public enum GemType
     Topaz
 }
 
+// В DropEntry хранится числом, в PlayerItems — строкой: значения не переставлять и не переименовывать без миграции
 public enum Rarity
 {
     Common,
     Uncommon,
     Rare,
-    Epic,
-    Legendary
+    Mythic,
+    Legendary,
+    Artifact
 }

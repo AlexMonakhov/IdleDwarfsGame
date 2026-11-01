@@ -21,14 +21,16 @@ public static class CampaignRewards
     public static readonly (ChestType Type, double Chance)[] RandomChests =
     [
         (ChestType.Gem, 0.15),
-        (ChestType.Hero, 0.05)
+        (ChestType.Hero, 0.05),
+        (ChestType.Equipment, 0.10)
     ];
 
     // Гарантированный сундук босса: тип выбирается по весам
     public static readonly (ChestType Type, int Weight)[] BossChestWeights =
     [
-        (ChestType.Gem, 70),
-        (ChestType.Hero, 30)
+        (ChestType.Gem, 50),
+        (ChestType.Hero, 25),
+        (ChestType.Equipment, 25)
     ];
 
     // Уровень сундука растёт каждые 10 уровней кампании: 1–9 → 1, 10–19 → 2, дальше 3

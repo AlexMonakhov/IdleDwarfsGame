@@ -65,6 +65,8 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IPlayerRepository, PlayerRepository>();
 builder.Services.AddScoped<IHeroesRepository, HeroesRepository>();
 builder.Services.AddScoped<HeroUpgradeService>();
+builder.Services.AddScoped<IEquipmentRepository, EquipmentRepository>();
+builder.Services.AddScoped<EquipmentService>();
 // Броски дропа и наград; в тестах подменяется на new Random(seed)
 builder.Services.AddSingleton(Random.Shared);
 builder.Services.AddScoped<IInventoryRepository, InventoryRepository>();
@@ -105,7 +107,10 @@ using (var scope = app.Services.CreateScope())
 
     // Соперники для PvP на локальной базе
     if (app.Environment.IsDevelopment())
+    {
         await TestAccountsSeed.SeedAsync(db, scope.ServiceProvider.GetRequiredService<IPasswordHasher<User>>());
+        await EquipmentDevSeed.SeedAsync(db);
+    }
 }
 
 

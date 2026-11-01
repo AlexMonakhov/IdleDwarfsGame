@@ -16,12 +16,15 @@ public class HeroesRepository : IHeroesRepository
 
     public async Task<Hero?> GetByIdAsync(Guid id)
     {
-        return await _context.Heroes.FindAsync(id);
+        return await _context.Heroes
+            .Include(h => h.Equipment)
+            .FirstOrDefaultAsync(h => h.Id == id);
     }
 
     public async Task<List<Hero>> GetByPlayerAsync(Guid playerId)
     {
         return await _context.Heroes
+            .Include(h => h.Equipment)
             .Where(h => h.PlayerId == playerId)
             .ToListAsync();
     }
@@ -29,6 +32,7 @@ public class HeroesRepository : IHeroesRepository
     public async Task<List<Hero>> GetSquadAsync(Guid playerId, int maxSize = 5)
     {
         var heroes = await _context.Heroes
+            .Include(h => h.Equipment)
             .Where(h => h.PlayerId == playerId)
             .ToListAsync();
 

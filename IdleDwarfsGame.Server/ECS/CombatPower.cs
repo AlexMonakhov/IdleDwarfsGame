@@ -42,12 +42,15 @@ public static class CombatPower
         ["Bleed"] = 0.04
     };
 
+    // «Выживает слабейший» работает не против всех: примерно половина ударов — от тех, кто сильнее героя
+    private const double SurvivalUptime = 0.5;
+
     public static CombatPowerBreakdown Of(World world, int entityId)
     {
-        // Слои разбивки получаются отключением частей профиля; мощь каждого слоя — прибавка к предыдущему.
-        // Предметы появятся отдельным слоем поверх пассивок
+        // Слои разбивки получаются отключением частей профиля; мощь каждого слоя — прибавка к предыдущему
         var full = Profile(world, entityId);
-        var noPassives = full with { Immunities = [], Aura = null };
+        var noGear = WithoutGear(full, world, entityId);
+        var noPassives = noGear with { Immunities = [], Aura = null, Passives = NoPassives };
         var noSkills = noPassives with { Spells = [] };
 
         // Уровень боя и прокачка героя вместе дают слой Level
@@ -58,6 +61,7 @@ public static class CombatPower
         int stats = Power(baseStats);
         int withLevel = Power(noSkills);
         int withSkills = Power(noPassives);
+        int withPassives = Power(noGear);
         int total = Power(full);
 
         return new CombatPowerBreakdown
@@ -66,7 +70,30 @@ public static class CombatPower
             Stats = stats,
             Level = withLevel - stats,
             Skills = withSkills - withLevel,
-            Passives = total - withSkills
+            Passives = withPassives - withSkills,
+            Equipment = total - withPassives
+        };
+    }
+
+    private static readonly IReadOnlyDictionary<HeroPassive, PassiveValues> NoPassives = new Dictionary<HeroPassive, PassiveValues>();
+
+    // Тот же юнит, но без предметов: их статы вычитаем, ауру и пассивки берём исходные
+    private static UnitProfile WithoutGear(UnitProfile unit, World world, int id)
+    {
+        if (world.Gear.GetValueOrDefault(id) is not { } gear)
+            return unit;
+
+        return unit with
+        {
+            MaxHp = unit.MaxHp - gear.Stats.MaxHp,
+            Attack = unit.Attack - gear.Stats.Attack,
+            Speed = unit.Speed - gear.Stats.Speed,
+            MaxEnergy = unit.MaxEnergy - gear.Stats.MaxEnergy,
+            StartEnergy = Math.Max(0, unit.StartEnergy - gear.Stats.StartEnergy),
+            EnergyGain = unit.EnergyGain - gear.Stats.EnergyPerAttack,
+            Aura = gear.BaseAura,
+            Passives = world.Passives.GetValueOrDefault(id)?.Base ?? NoPassives,
+            Gear = null
         };
     }
 
@@ -107,7 +134,8 @@ public static class CombatPower
 
     private static (double Offense, double Healing, double Hp) Evaluate(UnitProfile unit)
     {
-        double offense = unit.Attack;
+        double basicAttack = BasicAttack(unit);
+        double offense = basicAttack;
         double healing = 0;
 
         // Скилы: часть ходов юнит кастует вместо базовой атаки (SpellSystem выбирает случайный доступный)
@@ -115,9 +143,9 @@ public static class CombatPower
         if (spells.Count > 0)
         {
             double castRate = CastRate(unit, spells.Average(s => s.EnergyCost));
-            var casts = spells.Select(s => s.Estimate((int)Math.Round(unit.Attack), ReferenceTargets)).ToList();
+            var casts = spells.Select(s => EstimateCast(s, unit)).ToList();
 
-            offense = (1 - castRate) * unit.Attack + castRate * casts.Average(c => Damage(c, unit.Attack));
+            offense = (1 - castRate) * basicAttack + castRate * casts.Average(c => Damage(c, unit.Attack));
             healing += castRate * casts.Average(c => c.Healing);
         }
 
@@ -131,7 +159,37 @@ public static class CombatPower
         offense *= 1 + InitiativePerSpeed * unit.Speed;
 
         double immunityBonus = unit.Immunities.Sum(name => ImmunityValue.GetValueOrDefault(name));
-        return (offense, healing, unit.MaxHp * (1 + immunityBonus));
+        double survivalBonus = unit.Passives.GetValueOrDefault(HeroPassive.SurvivalOfTheWeakest).Percent / 100.0 * SurvivalUptime;
+        return (offense, healing, unit.MaxHp * (1 + immunityBonus + survivalBonus));
+    }
+
+    // Урон одной базовой атаки с пассивками: второй удар и горение от каждого удара
+    private static double BasicAttack(UnitProfile unit)
+    {
+        var doubleStrike = unit.Passives.GetValueOrDefault(HeroPassive.DoubleStrike);
+        var tongue = unit.Passives.GetValueOrDefault(HeroPassive.SharpTongue);
+
+        int hits = 1 + doubleStrike.Targets;
+        double second = doubleStrike.Targets * unit.Attack * doubleStrike.Percent / 100;
+        double burn = hits * tongue.Targets * tongue.Turns * unit.Attack * tongue.Percent / 100;
+        return unit.Attack + second + burn;
+    }
+
+    // Польза каста с учётом предметов. Estimate на одного врага — это урон по одной цели: из него получаем доп. цели и срабатывания
+    private static SpellEstimate EstimateCast(ISpell spell, UnitProfile unit)
+    {
+        int attack = (int)Math.Round(unit.Attack);
+        var estimate = spell.Estimate(attack, ReferenceTargets);
+        if (unit.Gear is not { } gear || !gear.Spells.TryGetValue(spell.Name, out var modifier))
+            return estimate;
+
+        double perTarget = spell.Estimate(attack, 1).Damage;
+        int targets = perTarget > 0 ? (int)Math.Round(estimate.Damage / perTarget) : 0;
+        int extra = perTarget > 0 ? Math.Min(modifier.ExtraTargets, Math.Max(0, ReferenceTargets - targets)) : 0;
+
+        double damage = (estimate.Damage + extra * perTarget) * (100 + modifier.DamagePercent) / 100;
+        damage += (targets + extra) * modifier.Procs.Sum(p => attack * p.DamagePercent / 100.0);
+        return estimate with { Damage = damage };
     }
 
     private static double Damage(SpellEstimate estimate, double attack) =>
@@ -183,7 +241,9 @@ public static class CombatPower
             EnergyGain: energy?.GainPerAttack ?? 0,
             Spells: spells ?? [],
             Immunities: world.Immunities.GetValueOrDefault(id)?.ImmuneTo ?? [],
-            Aura: world.Auras.GetValueOrDefault(id));
+            Aura: world.Auras.GetValueOrDefault(id),
+            Passives: world.Passives.GetValueOrDefault(id)?.Active ?? NoPassives,
+            Gear: world.Gear.GetValueOrDefault(id));
     }
 
     // Всё, что влияет на мощь юнита
@@ -196,10 +256,12 @@ public static class CombatPower
         int EnergyGain,
         IReadOnlyList<ISpell> Spells,
         IReadOnlyList<string> Immunities,
-        AuraComponent? Aura);
+        AuraComponent? Aura,
+        IReadOnlyDictionary<HeroPassive, PassiveValues> Passives,
+        GearComponent? Gear);
 }
 
-// Мощь и её разбивка по источникам: Total = Stats + Level + Skills + Passives
+// Мощь и её разбивка по источникам: Total = Stats + Level + Skills + Passives + Equipment
 public class CombatPowerBreakdown
 {
     public int Total { get; set; }
@@ -209,8 +271,10 @@ public class CombatPowerBreakdown
     public int Level { get; set; }
     // Заклинания (с учётом того, как часто на них хватает энергии)
     public int Skills { get; set; }
-    // Иммунитеты и аура
+    // Иммунитеты, аура и пассивные способности
     public int Passives { get; set; }
+    // Надетые предметы: их статы и всё, что они усилили
+    public int Equipment { get; set; }
 }
 
 public class BattleForecast
