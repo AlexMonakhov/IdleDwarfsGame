@@ -5,6 +5,7 @@ import {
   Anchor,
   AuraVisual,
   CRIT_FLARE,
+  CRIT_SLASH,
   DAMAGE_COLORS,
   FxSpec,
   HEAL_VISUAL,
@@ -132,11 +133,17 @@ export class BattleFx {
     const from = this.point(options.attacker);
     const to = this.point(target);
     const direction = from && to && from.x > to.x ? -1 : 1;
-    this.play(HIT_VISUALS[damageType] ?? HIT_VISUALS.Physical, target, {
-      direction,
-      ...(options.crit ? { count: 2, radius: 62, width: 16 } : {}),
-    });
+    const specs = (HIT_VISUALS[damageType] ?? HIT_VISUALS.Physical)
+      .map(spec => (spec.type === 'slash' ? this.sizedSlash(spec, target, options.crit) : spec));
+    this.play(specs, target, { direction });
     if (options.crit) this.flare(target, DAMAGE_COLORS[damageType] ?? DAMAGE_COLORS.Physical, CRIT_FLARE);
+  }
+
+  // Росчерк по размеру цели. Размеры крита задаём только ему: у взрыва и искр count, radius и width значат другое
+  private sizedSlash(spec: FxSpec, target: UnitEl, crit?: boolean): FxSpec {
+    const args = { ...spec.args, ...(crit ? CRIT_SLASH : {}) };
+    const size = this.unitSize(target);
+    return { ...spec, args: { ...args, radius: Number(args.radius) * size, width: Number(args.width) * size } };
   }
 
   heal(target: UnitEl) {

@@ -137,8 +137,9 @@ const groundMark = (kind: GroundMarkKind, color: string, radius: number, duratio
 // Попадание по типу урона (обычная атака, урон вне каста)
 export const HIT_VISUALS: Record<string, FxSpec[]> = {
   Physical: [
-    { type: 'slash', duration: 360, args: { color: '#ffe8a3', radius: 48, width: 12 } },
-    { type: 'impact', duration: 420, padding: 40, args: { color: '#ffd166' } },
+    // Росчерк шире фигуры дворфа и от головы до пояса
+    { type: 'slash', duration: 420, args: { color: '#ffb52e', radius: 105, width: 20 } },
+    { type: 'impact', duration: 420, padding: 60, args: { color: '#ffd166' } },
   ],
   Fire: [
     { type: 'explosion', duration: 600, args: { colors: FIRE, count: 26, radius: 45, speed: 4, smoke: true } },
@@ -677,6 +678,9 @@ export const resolveSpellVisual = (skillName: string | undefined, damageType: st
 
 // Вспышка от крита обычной атакой
 export const CRIT_FLARE = 110;
+
+// Росчерк крита: крест из двух штрихов, крупнее обычного
+export const CRIT_SLASH = { count: 2, radius: 135, width: 26 };
 
 export const HEAL_VISUAL: FxSpec[] = [
   { type: 'flare', duration: 650, args: { color: '#4ade80', radius: 85, intensity: 0.6 } },

@@ -3,7 +3,7 @@ import { dialogueService } from '@/services/dialogueService/DialogueService';
 import { DamageSource } from '@/services/dialogueService/types';
 import { t } from '@/i18n';
 import { BattleFx } from './BattleFx';
-import { BattleState, BattleUnit, FloatingText, UnitFocus, auraEffectOf, resetBattleState } from './BattleState';
+import { BattleState, BattleUnit, FloatingText, FloatingTextDetails, UnitFocus, addFloatingText, auraEffectOf, resetBattleState } from './BattleState';
 import { DAMAGE_COLORS, STATUS_VISUALS, resolveAuraVisual, resolveSpellVisual } from './FxRegistry';
 import { CombatLogEntry, CombatResult, StatusEffectLogData } from './types';
 import { getUnitView } from './UnitRegistry';
@@ -51,7 +51,6 @@ const SPRITE_WAIT_MS = 15000;
 // Подсветка юнита, чей сейчас ход
 const TURN_COLOR = '#ffe8a3';
 
-let floatingTextId = 0;
 let speechId = 0;
 
 const nextFrame = () => new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
@@ -360,7 +359,7 @@ export class BattlePlayer {
 
     const crit = log.isCritical;
     target.hp = log.targetRemainingHp;
-    this.float(target.id, crit ? `-${log.damage}!` : `-${log.damage}`, 'damage', log.damageType, crit);
+    this.float(target.id, crit ? `-${log.damage}!` : `-${log.damage}`, 'damage', { damageType: log.damageType, crit, amount: log.damage });
 
     const flash = options.status ? STATUS_VISUALS[options.status]?.tickFlash : undefined;
     this.animate(target.id, v => v.hit?.(log.damageType, { crit, flash }));
@@ -384,7 +383,7 @@ export class BattlePlayer {
     if (!target) return;
 
     target.hp = log.targetRemainingHp;
-    this.float(target.id, `+${log.heal}`, 'heal');
+    this.float(target.id, `+${log.heal}`, 'heal', { amount: log.heal });
     this.animate(target.id, v => v.heal?.());
     this.sound(s => s.heal());
     if (!this.skipping) this.fx.heal(getUnitView(target.id)?.el?.());
@@ -489,16 +488,11 @@ export class BattlePlayer {
     if (!this.skipping) play(soundService);
   }
 
-  private float(unitId: number, text: string, kind: FloatingText['kind'], damageType?: string, crit = false) {
+  private float(unitId: number, text: string, kind: FloatingText['kind'], details?: FloatingTextDetails) {
     const unit = this.unit(unitId);
     if (!unit || this.skipping) return;
 
-    const entry: FloatingText = { id: ++floatingTextId, text, kind, damageType, crit };
-    unit.floatingTexts.push(entry);
-    setTimeout(() => {
-      const index = unit.floatingTexts.findIndex(t => t.id === entry.id);
-      if (index >= 0) unit.floatingTexts.splice(index, 1);
-    }, TIMING.floatingText);
+    addFloatingText(unit, TIMING.floatingText, text, kind, details);
   }
 
   // Иногда (см. DialogueService.chance) атакующий или цель что-то говорит
