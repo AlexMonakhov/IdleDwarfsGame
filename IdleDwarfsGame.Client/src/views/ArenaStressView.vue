@@ -4,13 +4,13 @@
     <CanvasLayer ref="layerRef">
       <div class="grid">
         <template v-for="unit in teamA" :key="unit.id">
-          <CanvasComponent :class="['grid-item', `grid-item-left-${unit.position}`]" style="position: absolute;">
-            <CharacterComponent :unit="unit" :scale="UNIT_SCALE" />
+          <CanvasComponent :class="['grid-item', `grid-item-left-${unit.position}`]" :style="slotStyle(unit, 'marginLeft')">
+            <CharacterComponent :unit="unit" :scale="slotScale(unit)" :pose="POSES[slots[unit.id].pose]" :animations="SPRITE_ANIMATIONS" />
           </CanvasComponent>
         </template>
         <template v-for="unit in teamB" :key="unit.id">
-          <CanvasComponent :class="['grid-item', `grid-item-right-${unit.position}`]" style="position: absolute;">
-            <CharacterComponent :unit="unit" :scale="UNIT_SCALE" rotate />
+          <CanvasComponent :class="['grid-item', `grid-item-right-${unit.position}`]" :style="slotStyle(unit, 'marginRight')">
+            <CharacterComponent :unit="unit" :scale="slotScale(unit)" :pose="POSES[slots[unit.id].pose]" :animations="SPRITE_ANIMATIONS" rotate />
           </CanvasComponent>
         </template>
       </div>
@@ -29,6 +29,47 @@
           <button :class="{ active: flaresOn }" @click="flaresOn = !flaresOn">Вспышки</button>
           <button @click="clearStatuses()">Снять статусы</button>
           <button @click="minFps = null">Сбросить минимум</button>
+        </div>
+
+        <!-- Проверка спрайтов: юнит, цвет, уровень и анимация сразу у всех на арене -->
+        <div class="stress-controls">
+          <span class="stress-controls-label">Юнит</span>
+          <button v-for="item in SPRITE_UNITS" :key="item.title" :class="{ active: spriteUnit === item }" @click="spriteUnit = item">{{ item.title }}</button>
+        </div>
+        <div class="stress-controls">
+          <span class="stress-controls-label">Цвет</span>
+          <button v-for="item in SPRITE_ELEMENTS" :key="item.title" :class="{ active: spriteElement === item }" @click="spriteElement = item">{{ item.title }}</button>
+        </div>
+        <div class="stress-controls">
+          <span class="stress-controls-label">Уровень</span>
+          <button v-for="value in SPRITE_LEVELS" :key="value" :class="{ active: spriteLevel === value }" @click="spriteLevel = value">{{ value }}</button>
+          <span class="stress-controls-label">Анимация</span>
+          <button v-for="(item, index) in POSES" :key="item.title" :class="{ active: allOnPose(index) }" @click="setAllPoses(index)">{{ item.title }}</button>
+        </div>
+        <div class="stress-controls">
+          <span class="stress-controls-label">Масштаб всех, %</span>
+          <input type="range" :min="SCALE_MIN" :max="SCALE_MAX" :value="allScale" @input="setAllScales">
+          <input class="stress-scale-input" type="number" :min="SCALE_MIN" :max="SCALE_MAX" :value="allScale" @input="setAllScales">
+          <button :class="{ active: slotsOpen }" @click="slotsOpen = !slotsOpen">Слоты</button>
+          <button @click="resetSlots()">Сбросить слоты</button>
+        </div>
+
+        <!-- Своя анимация и масштаб у каждого слота: наведение на строку подсвечивает юнита -->
+        <div v-if="slotsOpen" class="stress-slots">
+          <div
+            v-for="unit in [...teamA, ...teamB]"
+            :key="unit.id"
+            class="stress-slot"
+            @mouseenter="highlight(unit, true)"
+            @mouseleave="highlight(unit, false)"
+          >
+            <span class="stress-slot-name">{{ unit.team === 1 ? 'Л' : 'П' }}{{ unit.position }}</span>
+            <select v-model.number="slots[unit.id].pose">
+              <option v-for="(item, index) in POSES" :key="item.title" :value="index">{{ item.title }}</option>
+            </select>
+            <input type="range" :min="SCALE_MIN" :max="SCALE_MAX" :value="slots[unit.id].scale" @input="setSlotScale(unit, $event)">
+            <input class="stress-scale-input" type="number" :min="SCALE_MIN" :max="SCALE_MAX" :value="slots[unit.id].scale" @input="setSlotScale(unit, $event)">
+          </div>
         </div>
 
         <!-- Время эффектов только JS: растр на видеокарте не виден — поэтому тип можно скрыть и смотреть на FPS -->
@@ -59,7 +100,7 @@
             @mouseenter="highlight(unit, true)"
             @mouseleave="highlight(unit, false)"
           >
-            <span class="stress-spells-unit">{{ unit.position }} · {{ unit.element }}</span>
+            <span class="stress-spells-unit">{{ unit.position }} · {{ fighterOf(unit).element }}</span>
             <!-- Заклинание и кнопки его уровней: цифра — каст этого уровня -->
             <div
               v-for="sample in fighterOf(unit).spells"
@@ -93,7 +134,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, nextTick, onBeforeUnmount, onMounted, provide, reactive, ref, watch } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, provide, reactive, ref, shallowRef, watch } from 'vue';
 import CanvasComponent from '@/components/canvas/CanvasComponent.vue';
 import CanvasLayer from '@/components/canvas/CanvasLayer.vue';
 import CharacterComponent from '@/components/character-component.vue';
@@ -101,11 +142,12 @@ import { arenaBackground, arenaBackgroundFilter } from '@/battle/arenaBackground
 import { BattleUnit, FloatingText, auraEffectOf, createBattleState, resetBattleState, teamUnits } from '@/battle/BattleState';
 import { BATTLE_FX_KEY, BattleFx } from '@/battle/BattleFx';
 import { STATUS_VISUALS, resolveAuraVisual, resolveSpellVisual } from '@/battle/FxRegistry';
+import { SpriteAnimation, SpritePose } from '@/battle/sprites';
 import { getUnitView } from '@/battle/UnitRegistry';
 import { useInterface } from '@/composables/UseInterface';
 import { EffectType } from '@/services/particleService/types/interfaces/canvas-interfaces';
-import { CombatUnitInfo, HeroElement } from '@/battle/types';
-import { AURA_SAMPLES, AuraSample, HERO_KINDS, PREVIEW_RANK, SPELL_LEVELS, SPELLS, SpellSample } from '@/components/collection/catalog';
+import { CombatUnitInfo, HeroAppearance, HeroElement } from '@/battle/types';
+import { AURA_SAMPLES, AuraSample, HERO_KINDS, PREVIEW_LOOK_RANK, SPELL_LEVELS, SPELLS, SpellSample } from '@/components/collection/catalog';
 
 // Нагрузочный тест арены: 10 дворфов, у каждого аура и одно заклинание 3-го уровня.
 // Автобой: ходят по очереди, как в бою — на своём ходу носитель пускает волну ауры и кастует, и так по кругу без конца.
@@ -132,8 +174,53 @@ const SPRITE_WAIT_MS = 15000;
 // Реестр вьюх юнитов общий с ареной и коллекцией: id не должны пересекаться с их id
 const FIRST_ID = 9101;
 
+// Масштаб слота, % от обычного размера на арене
+const SCALE_MIN = 25;
+const SCALE_MAX = 300;
+const SCALE_DEFAULT = 100;
+// Рамка юнита при обычном масштабе (кадр 409.6 и поле 1.1, см. character-component) и доля её высоты, где стоят ноги (как у тени)
+const UNIT_BOX = 409.6 * 1.1 * UNIT_SCALE;
+const FEET_Y = 0.8;
+
+// Проверка спрайтов по рангам: листа нужного ранга или варианта нет — рисуется ближайший (см. battle/sprites.ts)
+const SPRITE_LEVELS = [1, 2, 3, 4, 5];
+// В отличие от боя, здесь грузится и ходьба — чтобы её проверить
+const SPRITE_ANIMATIONS: SpriteAnimation[] = ['idle', 'walk', 'attack', 'victory', 'death'];
+// Мобы нарисованы в одном уровне, поэтому кнопки уровней на них не влияют.
+// Вперемешку — юниты идут по кругу, чтобы сравнить размеры рядом
+const UNIT_TYPES = ['Dwarf', 'Goblin', 'Skeleton', 'Golem', 'Draconid'];
+const SPRITE_UNITS: { title: string; type: string | null }[] = [
+  { title: 'Дворф', type: 'Dwarf' },
+  { title: 'Гоблин', type: 'Goblin' },
+  { title: 'Скелет', type: 'Skeleton' },
+  { title: 'Голем', type: 'Golem' },
+  { title: 'Дракондир', type: 'Draconid' },
+  { title: 'Вперемешку', type: null },
+];
+// Как в отряде — у каждого стихия его заклинаний
+const SPRITE_ELEMENTS: { title: string; element: HeroElement | null; appearance?: HeroAppearance }[] = [
+  { title: 'Как в отряде', element: null },
+  { title: 'Без стихии', element: 'Basic' },
+  { title: 'Огонь', element: 'Fire' },
+  { title: 'Лёд', element: 'Frost' },
+  { title: 'Молния', element: 'Lightning' },
+  { title: 'Природа', element: 'Nature' },
+  { title: 'Тьма', element: 'Dark' },
+  { title: 'Тьма, фиолетовый', element: 'Dark', appearance: 'Violet' },
+  { title: 'Сияние', element: 'Radiance' },
+];
+const POSES: (SpritePose & { title: string })[] = [
+  { title: 'Idle', animation: 'idle', variant: 1 },
+  { title: 'Ходьба', animation: 'walk', variant: 1 },
+  { title: 'Победа', animation: 'victory', variant: 1 },
+  { title: 'Удар 1', animation: 'attack', variant: 1 },
+  { title: 'Удар 2', animation: 'attack', variant: 2 },
+  { title: 'Удар 3', animation: 'attack', variant: 3 },
+];
+
 interface Fighter {
   element: HeroElement;
+  appearance?: HeroAppearance;
   // Заклинание автобоя
   spell: SpellSample;
   // Все заклинания стихии — для ручного режима
@@ -149,13 +236,13 @@ const ROSTER: Fighter[] = ([
   { element: 'Frost', spell: SPELLS.blizzard },
   { element: 'Lightning', spell: SPELLS.chainLightning },
   { element: 'Nature', spell: SPELLS.healingRune },
-  { element: 'Radiance', spell: SPELLS.radiantNova },
+  { element: 'Dark', appearance: 'Violet', spell: SPELLS.lifeDrain },
   { element: 'Fire', spell: SPELLS.flameWave },
   { element: 'Frost', spell: SPELLS.glacialPrison },
   { element: 'Lightning', spell: SPELLS.thunderclap },
   { element: 'Dark', spell: SPELLS.hex },
   { element: 'Radiance', spell: SPELLS.dawnlight },
-] as Pick<Fighter, 'element' | 'spell'>[]).map((fighter, i) => ({
+] as Pick<Fighter, 'element' | 'appearance' | 'spell'>[]).map((fighter, i) => ({
   ...fighter,
   spells: spellsOf(fighter.element),
   aura: AURA_SAMPLES[i % AURA_SAMPLES.length],
@@ -168,7 +255,8 @@ const units: CombatUnitInfo[] = ROSTER.map((fighter, i) => ({
   name: fighter.spell.name,
   unitType: 'Dwarf',
   element: fighter.element,
-  level: PREVIEW_RANK,
+  appearance: fighter.appearance,
+  level: PREVIEW_LOOK_RANK,
   team: i < 5 ? 1 : 2,
   position: (i % 5) + 1,
   maxHp: MAX_HP,
@@ -194,6 +282,49 @@ const casting = reactive(new Set<number>());
 const loading = ref(true);
 const aurasOn = ref(true);
 const statusesOn = ref(true);
+const spriteLevel = ref(PREVIEW_LOOK_RANK);
+const spriteUnit = shallowRef(SPRITE_UNITS[0]);
+const spriteElement = shallowRef(SPRITE_ELEMENTS[0]);
+// Настройки слотов: pose — номер в POSES, scale — в процентах
+const slots = reactive<Record<number, { pose: number; scale: number }>>(
+  Object.fromEntries(units.map(unit => [unit.entityId, { pose: 0, scale: SCALE_DEFAULT }])),
+);
+const slotsOpen = ref(true);
+const allScale = ref(SCALE_DEFAULT);
+const allSlots = () => Object.values(slots);
+
+const allOnPose = (index: number) => allSlots().every(slot => slot.pose === index);
+const setAllPoses = (index: number) => allSlots().forEach(slot => (slot.pose = index));
+
+// Значение ещё набирается или вне диапазона — null, масштаб остаётся прежним
+const readScale = (event: Event) => {
+  const value = Number((event.target as HTMLInputElement).value);
+  return value >= SCALE_MIN && value <= SCALE_MAX ? value : null;
+};
+const setSlotScale = (unit: BattleUnit, event: Event) => {
+  const value = readScale(event);
+  if (value !== null) slots[unit.id].scale = value;
+};
+const setAllScales = (event: Event) => {
+  const value = readScale(event);
+  if (value === null) return;
+  allScale.value = value;
+  allSlots().forEach(slot => (slot.scale = value));
+};
+const resetSlots = () => {
+  allScale.value = SCALE_DEFAULT;
+  allSlots().forEach(slot => {
+    slot.pose = 0;
+    slot.scale = SCALE_DEFAULT;
+  });
+};
+
+const slotScale = (unit: BattleUnit) => (UNIT_SCALE * slots[unit.id].scale) / 100;
+// Рамка растёт от своего угла: сдвиг оставляет ноги на месте, чтобы размеры сравнивались в той же точке арены
+const slotStyle = (unit: BattleUnit, side: 'marginLeft' | 'marginRight') => {
+  const extra = (UNIT_BOX * (slots[unit.id].scale - SCALE_DEFAULT)) / SCALE_DEFAULT;
+  return { position: 'absolute' as const, [side]: `${-extra / 2}px`, marginTop: `${-extra * FEET_Y}px` };
+};
 // Скрыть верхнюю панель игры (кнопки разделов, ресурсы, аккаунт); панель теста остаётся
 const { interfaceHidden } = useInterface();
 const onKey = (event: KeyboardEvent) => {
@@ -348,7 +479,7 @@ const turnOrder = () => teamA.value.flatMap((unit, i) => [unit, teamB.value[i]])
 const play = async () => {
   while (active) {
     for (const unit of turnOrder()) {
-      while (active && (paused.value || manual.value)) await wait(100);
+      while (active && (paused.value || manual.value || loading.value)) await wait(100);
       if (!active) return;
 
       unit.focus = { role: 'attacker', color: '#ffe8a3' };
@@ -421,22 +552,39 @@ const measure = (now: number) => {
   fpsFrame = requestAnimationFrame(measure);
 };
 
-onMounted(async () => {
-  fpsFrame = requestAnimationFrame(measure);
-  window.addEventListener('keydown', onKey);
-
-  // Вьюхи юнитов регистрируются при монтировании, листы спрайтов — ещё грузятся
+// Вьюхи юнитов регистрируются при монтировании, листы спрайтов — ещё грузятся
+const waitForSprites = async () => {
+  loading.value = true;
   await nextTick();
-  const service = particles();
-  if (service) service.profiling = true;
   await nextFrame();
   await Promise.race([
     Promise.all(allUnits().map(u => view(u)?.ready?.())),
     new Promise(resolve => setTimeout(resolve, SPRITE_WAIT_MS)),
   ]);
   await nextFrame();
-  if (!active) return;
   loading.value = false;
+};
+
+// Смена уровня, юнита или цвета пересоздаёт скелеты юнитов: им нужны другие листы
+watch([spriteLevel, spriteUnit, spriteElement], () => {
+  allUnits().forEach(u => {
+    u.level = spriteLevel.value;
+    u.unitType = spriteUnit.value.type ?? UNIT_TYPES[(u.id - FIRST_ID) % UNIT_TYPES.length];
+    u.element = spriteElement.value.element ?? fighterOf(u).element;
+    u.appearance = spriteElement.value.element ? spriteElement.value.appearance : fighterOf(u).appearance;
+  });
+  waitForSprites();
+});
+
+onMounted(async () => {
+  fpsFrame = requestAnimationFrame(measure);
+  window.addEventListener('keydown', onKey);
+
+  await nextTick();
+  const service = particles();
+  if (service) service.profiling = true;
+  await waitForSprites();
+  if (!active) return;
 
   play();
 });
@@ -487,6 +635,8 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  max-height: calc(100vh - 120px);
+  overflow-y: auto;
 }
 
 .stress-fps {
@@ -508,6 +658,14 @@ onBeforeUnmount(() => {
   gap: 8px;
 }
 
+.stress-controls-label {
+  align-self: center;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: rgba(14, 19, 34, 0.7);
+  color: #cbd5e1;
+}
+
 .stress-controls button {
   border: 1px solid rgba(255, 255, 255, 0.5);
   background: rgba(14, 19, 34, 0.7);
@@ -525,6 +683,52 @@ onBeforeUnmount(() => {
 .stress-controls button.active {
   border-color: #ffd166;
   color: #ffd166;
+}
+
+.stress-scale-input {
+  width: 64px;
+  padding: 6px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 8px;
+  background: rgba(14, 19, 34, 0.7);
+  color: white;
+}
+
+/* Слева первая команда, справа вторая: по пять строк в столбце */
+.stress-slots {
+  align-self: flex-start;
+  display: grid;
+  grid-template-rows: repeat(5, auto);
+  grid-auto-flow: column;
+  gap: 4px 16px;
+  padding: 8px;
+  border-radius: 8px;
+  background: rgba(14, 19, 34, 0.8);
+  color: #cbd5e1;
+  font-size: 13px;
+}
+
+.stress-slot {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.stress-slot input[type='range'] {
+  width: 110px;
+}
+
+.stress-slot-name {
+  width: 24px;
+  font-family: monospace;
+}
+
+.stress-slot select {
+  padding: 4px 6px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 6px;
+  background: #0e1322;
+  color: white;
 }
 
 .stress-profile {

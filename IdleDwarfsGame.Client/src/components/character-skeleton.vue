@@ -2,7 +2,7 @@
     import { ref, computed, onMounted, onUnmounted, watch, defineProps, withDefaults } from "vue";
     import { HeroModel } from "@/models/hero";
     import { SpriteTint } from "@/battle/FxRegistry";
-    import { getSpriteAtlas, getSpriteVariants, getSpriteZoom, SpriteAnimation, SpriteAtlas } from "@/battle/sprites";
+    import { getSpriteAtlas, getSpriteShift, getSpriteVariants, getSpriteZoom, SpriteAnimation, SpriteAtlas, SpritePose } from "@/battle/sprites";
     import { acquireSheet, releaseSheet, SheetImage, sheetHeight, sheetWidth } from "@/battle/spriteCache";
 
 const props = withDefaults(defineProps<{
@@ -23,6 +23,8 @@ const props = withDefaults(defineProps<{
   paused?: boolean;
   // Какие анимации загрузить: остальные не грузятся и не запускаются (в бою не ходят — walk не нужен)
   animations?: SpriteAnimation[];
+  // Закреплённая анимация (проверка спрайтов): играет по кругу вместо idle
+  pose?: SpritePose | null;
 }>(), {
   animationType: 'idle',
   padding: 1,
@@ -33,7 +35,10 @@ const props = withDefaults(defineProps<{
   speed: 1,
   paused: false,
   animations: () => ['idle', 'walk', 'attack', 'victory', 'death'],
+  pose: null,
 });
+
+const PREPARE_DELAY = 200;
 
 // Короткая вспышка силуэта (получение урона, удар, лечение)
 let flashState: { color: string; alpha: number; start: number; duration: number } | null = null;
@@ -184,14 +189,19 @@ const canvasStyle = computed(() => ({
 
 /* ===== Вспомогательная функция смены спрайта ===== */
 // false — листа для такой анимации нет (например, смерть ещё не нарисована)
-const updateActiveSprite = (type: SpriteAnimation): boolean => {
+// Без варианта лист выбирается случайно; такого варианта нет — первый
+const updateActiveSprite = (type: SpriteAnimation, variant?: number): boolean => {
   const variants = sheets[type];
   if (!variants.length) return false;
   localAnimType.value = type;
-  current = variants[Math.floor(Math.random() * variants.length)];
+  current = variant ? variants[variant - 1] ?? variants[0] : variants[Math.floor(Math.random() * variants.length)];
   dirty = true;
   return true;
 };
+
+// Анимация покоя: закреплённая, иначе idle
+const updateRestSprite = () =>
+  (props.pose && updateActiveSprite(props.pose.animation, props.pose.variant)) || updateActiveSprite('idle');
 
 /* ===== DRAW ===== */
 function drawFrame(frame: number) {
@@ -203,11 +213,12 @@ function drawFrame(frame: number) {
   const atlas = current.atlas;
   let drawn: Rect | null = null;
   if (image) {
-    // Клетка кадра на экране — по центру канваса
+    // Клетка кадра на экране — по центру канваса, со сдвигом этого юнита (см. UNIT_DRAW)
     const width = cellPx(current.zoom);
     const height = (width * props.frameHeight) / props.frameWidth;
-    const left = (canvasWidth - width) / 2;
-    const top = (canvasHeight - height) / 2;
+    const { shiftX, shiftY } = getSpriteShift(current.url);
+    const left = (canvasWidth - width) / 2 + cellPx(1) * shiftX;
+    const top = (canvasHeight - height) / 2 + cellPx(1) * shiftY;
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
 
@@ -261,8 +272,8 @@ function animate(time: number) {
     // ПРОВЕРКА ЗАВЕРШЕНИЯ
     if (nextFrame >= props.frameCount) {
       if (localAnimType.value === 'attack') {
-        // Если проиграли атаку до конца — возвращаемся в idle
-        updateActiveSprite('idle');
+        // Если проиграли атаку до конца — возвращаемся в покой
+        updateRestSprite();
       }
       // Смерть замирает на последнем кадре, idle, ходьба и победа зацикливаются
       nextFrame = dying ? props.frameCount - 1 : 0;
@@ -291,7 +302,7 @@ onMounted(() => {
   // Предзагрузка всех спрайтов
   loadSheets();
 
-  updateActiveSprite('idle'); // Стартуем с idle
+  updateRestSprite(); // Стартуем с покоя
   // Уже мёртвый юнит сразу лежит на последнем кадре смерти
   if (props.paused && updateActiveSprite('death')) currentFrame = props.frameCount - 1;
 
@@ -299,9 +310,13 @@ onMounted(() => {
   animationId = requestAnimationFrame(animate);
 });
 
-// Сменился размер на экране — канвас пересоздаёт буфер (и очищается), листы нужны другого размера
+// Сменился размер на экране — канвас пересоздаёт буфер (и очищается), листы нужны другого размера.
+// Копия дорогая, поэтому она запрашивается, когда размер устоялся (ползунок масштаба меняет его на каждом шаге);
+// пока её нет, прежняя растягивается до нового размера
+let prepareTimer = 0;
 watch([dpr, () => props.scale], () => {
-  allSheets().forEach(prepare);
+  window.clearTimeout(prepareTimer);
+  prepareTimer = window.setTimeout(() => allSheets().forEach(prepare), PREPARE_DELAY);
   dirty = true;
 }, { flush: 'post' });
 
@@ -310,12 +325,14 @@ watch(() => props.tint, () => {
 }, { deep: true });
 
 /* ===== WATCHER & METHODS ===== */
-const playAnimation = (type: SpriteAnimation) => {
+const playAnimation = (type: SpriteAnimation, variant?: number) => {
   // Нет листа (например, смерть ещё не нарисована) — остаёмся в текущей анимации
-  if (!updateActiveSprite(type)) return;
+  if (!updateActiveSprite(type, variant)) return;
   currentFrame = 0;
   lastTime = performance.now(); // Сброс таймера для мгновенного начала
 };
+
+watch(() => props.pose, (pose) => playAnimation(pose?.animation ?? 'idle', pose?.variant));
 
 // Юнит умер — проигрываем смерть, если она нарисована, иначе просто замираем (см. animate)
 watch(() => props.paused, (paused) => {
@@ -338,6 +355,7 @@ watch(() => props.animationType, (newType) => {
 
 onUnmounted(() => {
   cancelAnimationFrame(animationId);
+  window.clearTimeout(prepareTimer);
   window.removeEventListener('resize', onResize);
   releaseSheets();
 });

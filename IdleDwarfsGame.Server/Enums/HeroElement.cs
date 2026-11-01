@@ -15,6 +15,8 @@ public static class HeroLevels
 {
     public const int Min = 1;
     public const int Max = 5;
+    // Выше этого ранга героев пока не выдаём: для 5-го ранга ещё нет спрайтов
+    public const int Available = 4;
 
     // На минимальном уровне стихии нет, на остальных — есть
     public static HeroElement NormalizeElement(int level, HeroElement element) =>

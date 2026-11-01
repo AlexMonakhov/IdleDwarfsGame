@@ -92,7 +92,7 @@ public static class TestAccountsSeed
 
     private static Hero RandomHero(Guid playerId, int place, Random random)
     {
-        int rank = random.Next(HeroLevels.Min, HeroLevels.Max + 1);
+        int rank = random.Next(HeroLevels.Min, HeroLevels.Available + 1);
         var hero = HeroGenerator.Create(playerId, rank, string.Empty, random);
 
         double hpJitter = MinStatJitter + random.NextDouble() * (MaxStatJitter - MinStatJitter);

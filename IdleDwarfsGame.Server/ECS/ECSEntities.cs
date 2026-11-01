@@ -110,6 +110,7 @@ public class CombatUnitInfo
     public string Name { get; set; } = string.Empty;
     public string UnitType { get; set; } = string.Empty;
     public HeroElement Element { get; set; }
+    public HeroAppearance Appearance { get; set; }
     public int Level { get; set; }
     public int Team { get; set; }
     public int Position { get; set; }
@@ -214,6 +215,7 @@ public class UnitInfoComponent
     public string Name { get; set; } = string.Empty;
     public string UnitType { get; set; } = string.Empty;
     public HeroElement Element { get; set; }
+    public HeroAppearance Appearance { get; set; }
     public int Level { get; set; } = 1;
     // Уровень, под который BalanceCalculator масштабировал HP/атаку/ауру (у отряда игрока — 1)
     public int StatLevel { get; set; } = 1;

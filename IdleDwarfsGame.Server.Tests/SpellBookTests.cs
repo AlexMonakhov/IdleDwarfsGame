@@ -50,6 +50,19 @@ public class SpellBookTests
         Assert.Empty(HeroGenerator.Create(Guid.NewGuid(), rank: 1, element: "", new Random(5)).SpellIds);
     }
 
+    // Внешность — только у тьмы, оба варианта выпадают; на механику она не влияет
+    [Fact]
+    public void GeneratedHero_AppearanceVariesOnlyForDark()
+    {
+        var random = new Random(5);
+        var dark = Enumerable.Range(0, 200).Select(_ => HeroGenerator.Create(Guid.NewGuid(), rank: 4, element: "Dark", random)).ToList();
+        var fire = Enumerable.Range(0, 200).Select(_ => HeroGenerator.Create(Guid.NewGuid(), rank: 4, element: "Fire", random)).ToList();
+
+        Assert.Equal(2, dark.Select(h => h.Appearance).Distinct().Count());
+        Assert.All(dark, h => Assert.Equal(ElementSpellBook.SpellsFor(HeroElement.Dark, 4), h.SpellIds));
+        Assert.All(fire, h => Assert.Equal(HeroAppearance.Default, h.Appearance));
+    }
+
     [Fact]
     public void RegistryIds_MatchSpellIds()
     {

@@ -9,7 +9,8 @@
 // В атласе каждый кадр обрезан по непрозрачным пикселям, одинаковые кадры хранятся один раз, всё плотно уложено;
 // в meta для каждого кадра — где он в атласе и где лежал в своей клетке листа. Разрешение то же, что у листа.
 // WebP без потерь: те же пиксели, файл в несколько раз меньше PNG.
-// Лист пересобирается, только если он новее своего атласа
+// Лист пересобирается, только если он новее своего атласа.
+// Сами листы можно хранить вне проекта: атлас без листа остаётся, игре нужен только он. Ненужный атлас удаляется вручную
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
@@ -134,15 +135,6 @@ const filter = process.argv[2] ?? '';
 fs.mkdirSync(ATLAS, { recursive: true });
 const meta = fs.existsSync(META) ? JSON.parse(fs.readFileSync(META, 'utf8')) : {};
 const sheets = listSheets(SPRITES);
-const names = new Set(sheets.map(file => path.basename(file)));
-
-// Лист удалён — удаляем и его атлас
-for (const name of Object.keys(meta)) {
-  if (names.has(name)) continue;
-  delete meta[name];
-  fs.rmSync(path.join(ATLAS, path.basename(name, '.png') + '.webp'), { force: true });
-  console.log(`${name}: листа нет, атлас удалён`);
-}
 
 for (const file of sheets) {
   const name = path.basename(file);

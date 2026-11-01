@@ -4,9 +4,10 @@ public class Hero
     public Guid PlayerId { get; set; }
     public string Name { get; set; } = string.Empty;
 
-    // Внешний вид (для фронта): спрайт выбирается по типу, уровню и стихии
+    // Внешний вид (для фронта): спрайт выбирается по типу, уровню, стихии и варианту внешности
     public string UnitType { get; set; } = "Dwarf";
     public HeroElement Element { get; set; } = HeroElement.Basic;
+    public HeroAppearance Appearance { get; set; } = HeroAppearance.Default;
     // HeroLevels.Min..HeroLevels.Max
     public int Level { get; set; } = 1;
     // Внутренний уровень прокачки за золото и опыт: 1..HeroUpgradeService.MaxLevel, растит HP и атаку.

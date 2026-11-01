@@ -29,7 +29,7 @@ public static class HeroGenerator
 
     public static Hero Create(Guid playerId, int rank, string element, Random random)
     {
-        rank = Math.Clamp(rank, HeroLevels.Min, HeroLevels.Max);
+        rank = Math.Clamp(rank, HeroLevels.Min, HeroLevels.Available);
         var role = StarterSquad.Roles[random.Next(StarterSquad.Roles.Length)];
         var heroElement = Enum.TryParse<HeroElement>(element, out var parsed) && parsed != HeroElement.Basic
             ? parsed
@@ -52,7 +52,8 @@ public static class HeroGenerator
             StartEnergy = 0,
             EnergyPerAttack = 20,
             SpellIds = ElementSpellBook.SpellsFor(heroElement, rank),
-            Passives = [PassiveBook.Random(random)]
+            Passives = [PassiveBook.Random(random)],
+            Appearance = HeroAppearances.Random(heroElement, random)
         };
     }
 }

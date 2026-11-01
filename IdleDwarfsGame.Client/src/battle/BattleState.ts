@@ -1,5 +1,5 @@
 import { reactive } from 'vue';
-import { AuraTarget, CombatLogEntry, CombatResult, CombatUnitInfo, HeroElement } from './types';
+import { AuraTarget, CombatLogEntry, CombatResult, CombatUnitInfo, HeroAppearance, HeroElement } from './types';
 
 export interface FloatingText {
   id: number;
@@ -36,6 +36,7 @@ export interface BattleUnit {
   name: string;
   unitType: string;
   element: HeroElement;
+  appearance?: HeroAppearance;
   level: number;
   team: number;
   position: number;
@@ -77,6 +78,7 @@ export function toBattleUnit(info: CombatUnitInfo): BattleUnit {
     unitType: info.unitType,
     // Если спрайта под стихию/уровень нет, sprites.ts подберёт ближайший
     element: info.element ?? 'Basic',
+    appearance: info.appearance,
     level: info.level,
     team: info.team,
     position: Math.min(Math.max(info.position, 1), 5),
