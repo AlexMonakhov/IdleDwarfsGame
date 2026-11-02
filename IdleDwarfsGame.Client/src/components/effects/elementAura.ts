@@ -3,9 +3,9 @@ import type { HeroElement } from '@/battle/types';
 
 // Эффекты CssAuraEffect: рамки аватара (FrameEffect) и стихийные ауры героев и боссов.
 // Стихийные есть только в CSS-версии — канвас-версия (CanvasAuraEffect) рисует лишь рамки аватара
-export type AuraEffect = FrameEffect | 'sparks' | 'leaves' | 'shadow' | 'prism';
+export type AuraEffect = FrameEffect | 'sparks' | 'leaves' | 'shadow' | 'prism' | 'blood';
 
-// Аура стихии: сапфир — снег, рубин — угли, топаз — искры, изумруд — листья, аметист — тени, бриллиант — радужный перелив
+// Аура стихии: сапфир — снег, рубин — угли, топаз — искры, изумруд — листья, аметист — тени, бриллиант — радужный перелив, гранат — кровавый туман
 export const ELEMENT_AURAS: Record<HeroElement, AuraEffect> = {
     Basic: 'none',
     Fire: 'embers',
@@ -14,10 +14,11 @@ export const ELEMENT_AURAS: Record<HeroElement, AuraEffect> = {
     Nature: 'leaves',
     Dark: 'shadow',
     Radiance: 'prism',
+    Blood: 'blood',
 };
 
 export const elementAura = (element?: string | null): AuraEffect =>
     ELEMENT_AURAS[element as HeroElement] ?? 'none';
 
 // С какого ранга карточка героя получает ауру своей стихии
-export const AURA_MIN_RANK = 5;
+export const AURA_MIN_RANK = 4;

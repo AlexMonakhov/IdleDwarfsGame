@@ -19,7 +19,7 @@ import { useSquadModal } from '@/composables/UseSquadModal';
 import { GuildBossesOverview, GuildBossInfo } from '@/models/types/Guild';
 import { RewardInfo } from '@/models/types/Inventory';
 import { GuildRun, formatTime } from './guildShared';
-import { arenaBackground, arenaBackgroundFilter } from '@/battle/arenaBackgrounds';
+import { arenaBackground } from '@/battle/arenaBackgrounds';
 
 // Боссы гильдии: общее на гильдию HP, удар раз в час, награда за убитого босса — раз в сутки на аккаунт
 const props = defineProps<{
@@ -179,7 +179,7 @@ const claim = async (boss: GuildBossInfo) => {
                 <div class="boss-card-arena" aria-hidden="true">
                     <div
                         class="boss-card-arena-image"
-                        :style="{ backgroundImage: `url(${arenaBackground(boss.background)})`, filter: arenaBackgroundFilter(boss.background) }"
+                        :style="{ backgroundImage: `url(${arenaBackground(boss.background)})` }"
                     ></div>
                 </div>
                 <div class="boss-card-top">
@@ -206,7 +206,7 @@ const claim = async (boss: GuildBossInfo) => {
                     </TooltipComponent>
                 </div>
 
-                <div class="boss-hp" :title="`${format(boss.currentHp)} / ${format(boss.maxHp)}`">
+                <div class="boss-hp" v-tooltip="`${format(boss.currentHp)} / ${format(boss.maxHp)}`">
                     <div class="boss-hp-fill" :style="{ width: `${hpPercent(boss)}%` }">
                         <span class="boss-hp-shine"></span>
                     </div>
@@ -251,7 +251,7 @@ const claim = async (boss: GuildBossInfo) => {
                             v-else
                             :color="'red'"
                             :disabled="!!busy || noSquad"
-                            :title="noSquad ? t('guild.bosses.noSquad') : undefined"
+                            v-tooltip="noSquad ? t('guild.bosses.noSquad') : undefined"
                             @click="attack(boss)"
                         >⚔ {{ t('guild.bosses.attack') }}</GemButton>
                     </template>

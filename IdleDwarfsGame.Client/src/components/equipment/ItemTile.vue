@@ -1,10 +1,11 @@
 <script lang="ts" setup>
-import { computed, ref } from 'vue';
+import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useItemDrag } from '@/composables/UseItemDrag';
 import { HeroInfo } from '@/models/types/Heroes';
 import { EquipmentInfo, canWear } from '@/models/types/Equipment';
-import { EQUIPMENT_ICONS, RARITY_COLORS } from '@/components/inventory/lootStyles';
+import GlassButton from '@/components/common/GlassButton.vue';
+import { ELEMENT_ICONS, RARITY_COLORS, getItemImage } from '@/components/inventory/lootStyles';
 import ItemTooltip from './ItemTooltip.vue';
 import { itemName } from './equipmentText';
 
@@ -21,80 +22,190 @@ const props = defineProps<{
 const { t } = useI18n();
 const { start, end } = useItemDrag();
 
-const anchor = ref<DOMRect | null>(null);
-
 const locked = computed(() => !!props.hero && !canWear(props.item, props.hero.element));
 
-const show = (event: MouseEvent) => {
-    anchor.value = (event.currentTarget as HTMLElement).getBoundingClientRect();
-};
-
-const hide = () => {
-    anchor.value = null;
-};
+// Кто может надеть. Пустой список — любой герой, значки не нужны
+const elementIcons = computed(() => props.item.elements.flatMap(element => {
+    const icon = ELEMENT_ICONS[element];
+    return icon ? [{ element, icon }] : [];
+}));
 
 const onDragStart = (event: DragEvent) => {
-    hide();
     start(event, props.item, !!props.compact);
 };
 </script>
 
 <template>
-    <div
-        class="item-tile"
-        :class="[`item-tile-${item.rarity}`, {
-            'item-tile-compact': compact,
-            'item-tile-locked': locked,
-            'item-tile-worn': !compact && item.heroId,
-        }]"
-        :style="{ '--rarity-color': RARITY_COLORS[item.rarity] }"
-        :draggable="draggable"
-        @dragstart="onDragStart"
-        @dragend="end"
-        @mouseenter="show"
-        @mouseleave="hide"
+    <ItemTooltip
+        class="item-tile-trigger"
+        :class="{ 'item-tile-trigger-compact': compact }"
+        :item="item"
+        :hero="hero"
+        :owner-name="ownerName"
     >
-        <span class="item-tile-icon">{{ EQUIPMENT_ICONS[item.type] }}</span>
-        <template v-if="!compact">
-            <span class="item-tile-name">{{ itemName(item) }}</span>
-            <span class="item-tile-rarity">{{ t(`rarity.${item.rarity}`) }}</span>
-            <span v-if="ownerName" class="item-tile-owner">{{ ownerName }}</span>
-        </template>
-        <ItemTooltip v-if="anchor" :item="item" :anchor="anchor" :hero="hero" :owner-name="ownerName" />
-    </div>
+        <div
+            class="item-tile"
+            :class="[`item-tile-${item.rarity}`, {
+                'item-tile-compact': compact,
+                'item-tile-locked': locked,
+                'item-tile-worn': !compact && item.heroId,
+            }]"
+            :style="{ '--rarity-color': RARITY_COLORS[item.rarity] }"
+            :draggable="draggable"
+            @dragstart="onDragStart"
+            @dragend="end"
+        >
+            <!-- Кристалл как у карточки дворфа, только почти прозрачный и окрашен в цвет редкости -->
+            <GlassButton tag="div" class="item-tile-glass">
+                <!-- draggable=false: иначе браузер потащит картинку, а не плитку -->
+                <img class="item-tile-image" :src="getItemImage(item.key)" alt="" draggable="false" />
+                <template v-if="!compact">
+                    <span class="item-tile-name">{{ itemName(item) }}</span>
+                    <span class="item-tile-rarity">{{ t(`rarity.${item.rarity}`) }}</span>
+                    <span v-if="ownerName" class="item-tile-owner">{{ ownerName }}</span>
+                </template>
+            </GlassButton>
+            <span v-if="!compact && elementIcons.length" class="item-tile-elements">
+                <img
+                    v-for="{ element, icon } in elementIcons"
+                    :key="element"
+                    :src="icon"
+                    :alt="t(`elements.${element}`)"
+                    draggable="false"
+                />
+            </span>
+        </div>
+    </ItemTooltip>
 </template>
 
 <style scoped>
+/* Обёртка подсказки не должна мешать: плитка тянется на всю высоту ряда, а в слоте — на весь слот */
+.dwarf-tooltip-wrapper.item-tile-trigger {
+    display: flex;
+    cursor: inherit;
+}
+
+.item-tile-trigger-compact {
+    width: 100%;
+    height: 100%;
+}
+
+/* Кто может надеть — значки стихий в левом верхнем углу стекла */
+.item-tile-elements {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    row-gap: 2px;
+    pointer-events: none;
+}
+
+.item-tile-elements img {
+    display: block;
+    width: 18px;
+    height: 18px;
+    filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.8));
+}
+
+/* Оправа и стекло как у карточки дворфа. Стекло почти прозрачное, сквозь него видно фон окна */
 .item-tile {
+    /* Насколько плотное стекло */
+    --glass-alpha: 18%;
+    --glass-top: color-mix(in srgb, var(--rarity-color) var(--glass-alpha), transparent);
+    --glass-mid: color-mix(in srgb, var(--rarity-color) calc(var(--glass-alpha) * 0.7), transparent);
+    --glass-bottom: color-mix(in srgb, var(--rarity-color) calc(var(--glass-alpha) * 0.4), rgba(10, 14, 24, 0.5));
     position: relative;
-    width: 112px;
-    min-height: 104px;
+    width: 124px;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    row-gap: 2px;
-    padding: 8px 6px;
-    border: 1px solid var(--rarity-color);
-    border-radius: 10px;
-    background: linear-gradient(180deg, rgba(14, 19, 34, 0.55), rgba(14, 19, 34, 0.85));
-    box-shadow: inset 0 0 12px color-mix(in srgb, var(--rarity-color) 25%, transparent);
+    padding: 8px;
+    border-radius: 14px;
+    box-shadow:
+        0 4px 3px 2px #181717,
+        0 3px 12px 2px rgba(0, 0, 0, 0.6);
     font-family: 'Arial', sans-serif;
     text-align: center;
-    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.6);
+    /* Стекло бывает любого цвета: читаемость держит обводка */
+    text-shadow: var(--text-outline);
     user-select: none;
-    transition: transform 0.15s ease, filter 0.15s ease;
+    transition: transform 0.2s cubic-bezier(0.34, 1.4, 0.64, 1), box-shadow 0.3s ease;
+}
+
+/* Металл только кольцом по краю: под стеклом его быть не должно */
+.item-tile::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    padding: 8px;
+    border-radius: inherit;
+    background: var(--metalic-background);
+    box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.8);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    pointer-events: none;
 }
 
 .item-tile:hover {
-    transform: translateY(-2px);
-    filter: brightness(1.15);
+    transform: translateY(-3px);
+    box-shadow:
+        0 4px 3px 2px #181717,
+        0 3px 18px 4px color-mix(in srgb, var(--rarity-color) 55%, transparent);
 }
 
-/* Артефакты — на красном фоне */
+/* Два класса — чтобы перебить размеры, скругление и оправу самого GlassButton */
+.item-tile .item-tile-glass {
+    --glass-glow: color-mix(in srgb, var(--rarity-color) 35%, transparent);
+    flex: 1;
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
+    justify-content: flex-start;
+    row-gap: 2px;
+    padding: 8px 4px;
+    border-radius: 8px;
+    box-shadow:
+        0 0 0 2px var(--rarity-color),
+        0 0 0 3px #333,
+        inset 0 2px 1px rgba(255, 255, 255, 0.35),
+        inset 0 -4px 8px rgba(0, 0, 0, 0.25),
+        inset 0 0 14px var(--glass-glow);
+}
+
+.item-tile:hover .item-tile-glass {
+    --glass-glow: color-mix(in srgb, var(--rarity-color) 70%, transparent);
+}
+
+.item-tile:hover .item-tile-glass::after {
+    transform: translateX(120%);
+}
+
+/* Блик по форме плитки и слабее: прозрачное стекло он бы засветил */
+.item-tile .item-tile-glass::before {
+    border-radius: 6px 6px 50% 50% / 6px 6px 30% 30%;
+    opacity: 0.35;
+}
+
+/* Содержимое над бликом; пробегающий отблеск — поверх всего */
+.item-tile-glass > * {
+    position: relative;
+    z-index: 1;
+}
+
+.item-tile .item-tile-glass::after {
+    z-index: 2;
+}
+
+/* Артефакты — стекло плотнее и краснее остальных */
 .item-tile-Artifact {
-    background: linear-gradient(180deg, #b91c1c, #450a0a);
-    box-shadow: inset 0 0 14px rgba(255, 120, 90, 0.55), 0 0 10px rgba(239, 68, 68, 0.6);
+    --glass-alpha: 55%;
+    box-shadow:
+        0 4px 3px 2px #181717,
+        0 0 12px 2px rgba(239, 68, 68, 0.6);
 }
 
 .item-tile-Artifact .item-tile-rarity {
@@ -102,7 +213,9 @@ const onDragStart = (event: DragEvent) => {
 }
 
 .item-tile-Legendary {
-    box-shadow: inset 0 0 14px color-mix(in srgb, var(--rarity-color) 40%, transparent), 0 0 8px color-mix(in srgb, var(--rarity-color) 45%, transparent);
+    box-shadow:
+        0 4px 3px 2px #181717,
+        0 0 10px 2px color-mix(in srgb, var(--rarity-color) 45%, transparent);
 }
 
 /* Не подходит выбранному герою по стихии */
@@ -114,15 +227,17 @@ const onDragStart = (event: DragEvent) => {
 .item-tile-worn::after {
     content: '✔';
     position: absolute;
-    top: 4px;
-    right: 6px;
+    top: 12px;
+    right: 13px;
+    z-index: 3;
     color: #86efac;
     font-size: 12px;
 }
 
-.item-tile-icon {
-    font-size: 28px;
-    line-height: 1.1;
+.item-tile-image {
+    width: 64px;
+    height: 64px;
+    object-fit: contain;
     filter: drop-shadow(0 0 5px var(--rarity-color));
 }
 
@@ -147,12 +262,29 @@ const onDragStart = (event: DragEvent) => {
     white-space: nowrap;
 }
 
-/* В слоте значок занимает весь слот */
-.item-tile-compact {
+/* В слоте своя рамка: остаётся только стекло с картинкой на весь слот */
+.item-tile-compact,
+.item-tile-compact:hover {
     width: 100%;
     height: 100%;
-    min-height: 0;
+    padding: 0;
+    box-shadow: none;
+}
+
+.item-tile-compact::before {
+    display: none;
+}
+
+.item-tile-compact .item-tile-glass {
     justify-content: center;
     padding: 0;
+    box-shadow:
+        inset 0 0 0 2px var(--rarity-color),
+        inset 0 0 14px var(--glass-glow);
+}
+
+.item-tile-compact .item-tile-image {
+    width: 44px;
+    height: 44px;
 }
 </style>

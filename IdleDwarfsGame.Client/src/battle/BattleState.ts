@@ -1,25 +1,30 @@
 import { reactive } from 'vue';
-import { AuraTarget, CombatLogEntry, CombatResult, CombatUnitInfo, HeroAppearance, HeroElement } from './types';
+import { AuraTarget, CombatLogEntry, CombatResult, CombatUnitInfo, HeroElement } from './types';
 
 export interface FloatingText {
   id: number;
   text: string;
-  kind: 'damage' | 'heal' | 'status' | 'immune';
+  kind: 'damage' | 'heal' | 'status' | 'immune' | 'cast';
   damageType?: string;
   crit?: boolean;
   // Сколько снято или вылечено: чем больше доля от здоровья юнита, тем крупнее цифра
   amount?: number;
+  // Свой цвет надписи, например цвет заклинания
+  color?: string;
   // Дорожка над юнитом: -1, 0 или 1
   lane: number;
 }
 
-export type FloatingTextDetails = Pick<FloatingText, 'damageType' | 'crit' | 'amount'>;
+export type FloatingTextDetails = Pick<FloatingText, 'damageType' | 'crit' | 'amount' | 'color'>;
 
 // Реплика в облачке над персонажем (см. DialogueService)
 export interface Speech {
   id: number;
   text: string;
 }
+
+// Подсветка юнита, чей сейчас ход
+export const TURN_COLOR = '#ffe8a3';
 
 // Роль юнита в текущем действии — по ней подсвечивается, кто кого бьёт
 export interface UnitFocus {
@@ -42,7 +47,6 @@ export interface BattleUnit {
   name: string;
   unitType: string;
   element: HeroElement;
-  appearance?: HeroAppearance;
   level: number;
   team: number;
   position: number;
@@ -84,7 +88,6 @@ export function toBattleUnit(info: CombatUnitInfo): BattleUnit {
     unitType: info.unitType,
     // Если спрайта под стихию/уровень нет, sprites.ts подберёт ближайший
     element: info.element ?? 'Basic',
-    appearance: info.appearance,
     level: info.level,
     team: info.team,
     position: Math.min(Math.max(info.position, 1), 5),

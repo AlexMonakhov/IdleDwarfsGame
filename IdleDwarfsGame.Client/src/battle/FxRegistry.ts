@@ -10,7 +10,7 @@ export const DAMAGE_COLORS: Record<string, string> = {
   Magical: '#c084fc',
   Fire: '#ff7a1a',
   Frost: '#7dd3fc',
-  Lightning: '#9be7ff',
+  Lightning: '#fde68a',
   Poison: '#84cc16',
   Bleed: '#ef4444',
   True: '#ffffff',
@@ -108,7 +108,7 @@ export interface StatusVisual {
 const FIRE = ['#fffbe0', '#ffe27a', '#ffb347', '#ff7a1a', '#e2401b', '#8a1f0f'];
 const ICE = ['#ffffff', '#e0f6ff', '#bae6fd', '#7dd3fc', '#38bdf8', '#1e40af'];
 const ARCANE = ['#ffffff', '#f5d0fe', '#e879f9', '#c084fc', '#9333ea', '#4c1d95'];
-const ELECTRIC = ['#ffffff', '#e0fbff', '#9be7ff', '#38bdf8', '#6366f1'];
+const TOPAZ = ['#ffffff', '#fff7d6', '#fde68a', '#ffb300', '#b45309'];
 const POISON = ['#f7fee7', '#d9f99d', '#a3e635', '#65a30d', '#365314'];
 const BLOOD = ['#fecaca', '#f87171', '#dc2626', '#991b1b', '#450a0a'];
 const SHADOW = ['#f3e8ff', '#c084fc', '#9333ea', '#6b21a8', '#3b0764', '#1e0538'];
@@ -148,7 +148,7 @@ export const HIT_VISUALS: Record<string, FxSpec[]> = {
     { type: 'explosion', duration: 600, args: { colors: ICE, count: 18, radius: 45, speed: 4, shards: true, gravity: 0.08 } },
   ],
   Lightning: [
-    { type: 'explosion', duration: 450, args: { colors: ELECTRIC, count: 22, radius: 50, speed: 6, gravity: 0 } },
+    { type: 'explosion', duration: 450, args: { colors: TOPAZ, count: 22, radius: 50, speed: 6, gravity: 0 } },
   ],
   Magical: [
     { type: 'explosion', duration: 550, args: { colors: ARCANE, count: 24, radius: 45, speed: 4 } },
@@ -179,8 +179,6 @@ const lvl = <T>(level: SpellLevel, values: [T, T, T]): T => values[level - 1];
 
 // Эффекты, которые добавляются начиная с уровня min
 const since = (level: SpellLevel, min: SpellLevel, specs: FxSpec[]): FxSpec[] => (level >= min ? specs : []);
-
-const TOPAZ = ['#ffffff', '#fff7d6', '#fde68a', '#ffb300', '#b45309'];
 
 // Искры, которые после попадания разлетаются дугой и осыпаются
 const sparkShower = (colors: string[], count: number): FxSpec => ({
@@ -239,15 +237,15 @@ const FROST_BOLT: SpellVisualOf = level => ({
 // Молния от кастера. 2 — после попадания разлетаются искры; 3 — молния толще и ветвится, искр много, по цели бегут дуги
 const LIGHTNING: SpellVisualOf = level => ({
   color: DAMAGE_COLORS.Lightning,
-  beam: { type: 'lightning', duration: 380, args: { color: '#9be7ff', jitter: 20, width: lvl(level, [10, 10, 16]), branches: lvl(level, [0, 0, 3]) } },
+  beam: { type: 'lightning', duration: 380, args: { color: '#fde68a', jitter: 20, width: lvl(level, [10, 10, 16]), branches: lvl(level, [0, 0, 3]) } },
   hitDelay: 120,
   impact: [
-    { type: 'explosion', duration: 500, args: { colors: ELECTRIC, count: 30, radius: 60, speed: 7, gravity: 0 } },
-    groundPulse('#9be7ff', 50, 500),
-    groundMark('burn', '#9be7ff', lvl(level, [38, 44, 54]), 1800),
-    ...since(level, 2, [sparkShower(ELECTRIC, lvl(level, [0, 14, 36]))]),
-    ...since(level, 3, [{ type: 'arcs', duration: 600, args: { color: '#9be7ff', count: 3, width: 55, height: 90 } }]),
-    ...since(level, 3, masteryBurst(ELECTRIC, '#e0fbff')),
+    { type: 'explosion', duration: 500, args: { colors: TOPAZ, count: 30, radius: 60, speed: 7, gravity: 0 } },
+    groundPulse('#fde68a', 50, 500),
+    groundMark('burn', '#fde68a', lvl(level, [38, 44, 54]), 1800),
+    ...since(level, 2, [sparkShower(TOPAZ, lvl(level, [0, 14, 36]))]),
+    ...since(level, 3, [{ type: 'arcs', duration: 600, args: { color: '#fde68a', count: 3, width: 55, height: 90 } }]),
+    ...since(level, 3, masteryBurst(TOPAZ, '#fff7d6')),
   ],
 });
 
@@ -400,16 +398,16 @@ const GLACIAL_PRISON: SpellVisualOf = level => ({
 // 2 — разряд толще и ветвистее; 3 — ещё толще, на каждой цели сыплются искры (электрошок)
 const CHAIN_LIGHTNING: SpellVisualOf = level => ({
   color: DAMAGE_COLORS.Lightning,
-  beam: { type: 'lightning', duration: 300, args: { color: '#7dd3fc', jitter: 22, width: lvl(level, [8, 10, 13]), branches: lvl(level, [1, 2, 3]) } },
+  beam: { type: 'lightning', duration: 300, args: { color: '#fde68a', jitter: 22, width: lvl(level, [8, 10, 13]), branches: lvl(level, [1, 2, 3]) } },
   from: 'chain',
   stagger: 150,
   hitDelay: 60,
   impact: [
-    { type: 'explosion', duration: 450, args: { colors: ELECTRIC, count: 20, radius: 45, speed: 6, gravity: 0 } },
-    { type: 'arcs', duration: 550, args: { color: '#9be7ff', count: lvl(level, [2, 3, 4]), width: 55, height: 90 } },
-    groundMark('burn', '#7dd3fc', lvl(level, [34, 40, 48]), 1800),
-    ...since(level, 3, [sparkShower(ELECTRIC, 18)]),
-    ...since(level, 3, masteryBurst(ELECTRIC, '#e0fbff')),
+    { type: 'explosion', duration: 450, args: { colors: TOPAZ, count: 20, radius: 45, speed: 6, gravity: 0 } },
+    { type: 'arcs', duration: 550, args: { color: '#fde68a', count: lvl(level, [2, 3, 4]), width: 55, height: 90 } },
+    groundMark('burn', '#fde68a', lvl(level, [34, 40, 48]), 1800),
+    ...since(level, 3, [sparkShower(TOPAZ, 18)]),
+    ...since(level, 3, masteryBurst(TOPAZ, '#fff7d6')),
   ],
 });
 
@@ -743,12 +741,12 @@ export const STATUS_VISUALS: Record<string, StatusVisual> = {
     tickFlash: '#a855f7',
     priority: 2,
   },
-  // Электрошок: по юниту пробегают искры, силуэт мерцает голубым
+  // Электрошок: по юниту пробегают искры, силуэт мерцает жёлтым
   Shock: {
-    aura: [{ type: 'sparkles', duration: 0, args: { color: '#9be7ff', rate: 0.35, width: 50, height: 80, shape: 'star', rise: 0.2 } }],
-    tint: { color: '#9be7ff', alpha: 0.2, pulse: 6 },
+    aura: [{ type: 'sparkles', duration: 0, args: { color: '#fde68a', rate: 0.35, width: 50, height: 80, shape: 'star', rise: 0.2 } }],
+    tint: { color: '#fde68a', alpha: 0.2, pulse: 6 },
     tick: HIT_VISUALS.Lightning,
-    tickFlash: '#e0fbff',
+    tickFlash: '#fff7d6',
     priority: 1,
   },
 };
@@ -784,7 +782,7 @@ const aura = (visual: Omit<AuraVisual, 'hit'>, hitShape: 'plus' | 'star' | 'dot'
 const AURA_FIRE = aura({ color: '#ff7a1a', glow: '#ffb347', accent: '#fff1a8', palette: FIRE, mote: 'ember', drift: -1.2, period: 1.6 }, 'dot');
 const AURA_FROST = aura({ color: '#38bdf8', glow: '#7dd3fc', accent: '#e0f6ff', palette: ICE, mote: 'flake', drift: 0.6, period: 2.6 }, 'star');
 const AURA_HEAL = aura({ color: '#22c55e', glow: '#4ade80', accent: '#dcfce7', palette: ['#f0fdf4', '#bbf7d0', '#4ade80', '#16a34a'], mote: 'plus', drift: -0.9, period: 2.2 }, 'plus');
-const AURA_LIGHTNING = aura({ color: '#38bdf8', glow: '#9be7ff', accent: '#ffffff', palette: ELECTRIC, mote: 'spark', drift: -0.5, period: 1.2 }, 'star');
+const AURA_LIGHTNING = aura({ color: '#ffb300', glow: '#fde68a', accent: '#ffffff', palette: TOPAZ, mote: 'spark', drift: -0.5, period: 1.2 }, 'star');
 const AURA_ARCANE = aura({ color: '#a855f7', glow: '#c084fc', accent: '#f5d0fe', palette: ARCANE, mote: 'spark', drift: -0.6, period: 2 }, 'star');
 const AURA_POISON = aura({ color: '#65a30d', glow: '#a3e635', accent: '#ecfccb', palette: POISON, mote: 'dot', drift: -0.5, period: 2.4 }, 'dot');
 const AURA_DAMAGE = aura({ color: '#dc2626', glow: '#f87171', accent: '#fecaca', palette: BLOOD, mote: 'ember', drift: -0.7, period: 1.8 }, 'dot');

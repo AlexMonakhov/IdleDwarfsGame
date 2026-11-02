@@ -11,7 +11,7 @@ import { elementColor } from '@/battle/sprites';
 import { CombatResult, HeroElement } from '@/battle/types';
 import { soundService } from '@/services/soundService/SoundService';
 import caveBackground from '@/assets/red_crystal_arena.png';
-import crystalsBackground from '@/assets/arena_blue_crystals.png';
+import crystalsBackground from '@/assets/arenas/arena_blue.png';
 
 // Маленькая арена для превью: проигрывает сцену по кругу тем же BattlePlayer, что и настоящий бой.
 // Новая сцена — новый компонент: родитель меняет key

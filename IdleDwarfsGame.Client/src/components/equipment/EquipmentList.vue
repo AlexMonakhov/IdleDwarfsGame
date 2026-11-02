@@ -3,7 +3,7 @@ import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { HeroInfo } from '@/models/types/Heroes';
 import { EQUIPMENT_TYPES, EquipmentInfo, EquipmentType } from '@/models/types/Equipment';
-import { EQUIPMENT_ICONS } from '@/components/inventory/lootStyles';
+import EquipmentIcon from './EquipmentIcon.vue';
 import ItemTile from './ItemTile.vue';
 
 // Предметы игрока с фильтром по виду. Без выбранного героя — только просмотр
@@ -42,9 +42,9 @@ const ownerName = (item: EquipmentInfo) =>
                 :key="type"
                 class="equipment-filter"
                 :class="{ 'equipment-filter-active': filter === type }"
-                :title="t(`equipment.types.${type}`)"
+                v-tooltip="t(`equipment.types.${type}`)"
                 @click="emit('update:filter', type)"
-            >{{ EQUIPMENT_ICONS[type] }} {{ t(`equipment.types.${type}`) }}</button>
+            ><EquipmentIcon :type="type" /> {{ t(`equipment.types.${type}`) }}</button>
         </div>
 
         <div v-if="!visible.length" class="equipment-empty">{{ t('equipment.empty') }}</div>

@@ -20,7 +20,7 @@
           FPS {{ fps }} · худший кадр {{ worstFrame.toFixed(1) }} мс · минимум FPS {{ minFps ?? '—' }}
         </div>
         <div class="stress-controls">
-          <button title="Клавиша H" @click="interfaceHidden = !interfaceHidden">{{ interfaceHidden ? 'Показать интерфейс' : 'Скрыть интерфейс' }}</button>
+          <button v-tooltip="'Клавиша H'" @click="interfaceHidden = !interfaceHidden">{{ interfaceHidden ? 'Показать интерфейс' : 'Скрыть интерфейс' }}</button>
           <button :class="{ active: manual }" @click="manual = !manual">{{ manual ? 'Ручной режим' : 'Автобой' }}</button>
           <button v-if="!manual" @click="paused = !paused">{{ paused ? 'Продолжить' : 'Пауза' }}</button>
           <button v-for="value in [1, 2, 4]" :key="value" :class="{ active: speed === value }" @click="speed = value">x{{ value }}</button>
@@ -29,6 +29,11 @@
           <button :class="{ active: flaresOn }" @click="flaresOn = !flaresOn">Вспышки</button>
           <button @click="clearStatuses()">Снять статусы</button>
           <button @click="minFps = null">Сбросить минимум</button>
+        </div>
+
+        <div class="stress-controls">
+          <span class="stress-controls-label">Арена</span>
+          <button v-for="item in ARENAS" :key="item.title" :class="{ active: arena === item }" @click="arena = item">{{ item.title }}</button>
         </div>
 
         <!-- Проверка спрайтов: юнит, цвет, уровень и анимация сразу у всех на арене -->
@@ -113,7 +118,7 @@
                 v-for="level in SPELL_LEVELS"
                 :key="level"
                 :disabled="casting.has(unit.id)"
-                :title="`${sample.name}, уровень ${level}`"
+                v-tooltip="`${sample.name}, уровень ${level}`"
                 @click="castSpell(unit, sample, level)"
               >{{ level }}</button>
             </div>
@@ -121,7 +126,7 @@
               v-if="aurasOn"
               class="stress-spells-aura"
               :disabled="casting.has(unit.id)"
-              title="Волна ауры"
+              v-tooltip="'Волна ауры'"
               @click="pulseAura(unit)"
             >✦</button>
           </div>
@@ -138,15 +143,14 @@ import { computed, nextTick, onBeforeUnmount, onMounted, provide, reactive, ref,
 import CanvasComponent from '@/components/canvas/CanvasComponent.vue';
 import CanvasLayer from '@/components/canvas/CanvasLayer.vue';
 import CharacterComponent from '@/components/character-component.vue';
-import { arenaBackground, arenaBackgroundFilter } from '@/battle/arenaBackgrounds';
-import { BattleUnit, addFloatingText, auraEffectOf, createBattleState, resetBattleState, teamUnits } from '@/battle/BattleState';
+import { BattleUnit, TURN_COLOR, addFloatingText, auraEffectOf, createBattleState, resetBattleState, teamUnits } from '@/battle/BattleState';
 import { BATTLE_FX_KEY, BattleFx } from '@/battle/BattleFx';
 import { STATUS_VISUALS, resolveAuraVisual, resolveSpellVisual } from '@/battle/FxRegistry';
 import { SpriteAnimation, SpritePose } from '@/battle/sprites';
 import { getUnitView } from '@/battle/UnitRegistry';
 import { useInterface } from '@/composables/UseInterface';
 import { EffectType } from '@/services/particleService/types/interfaces/canvas-interfaces';
-import { CombatUnitInfo, HeroAppearance, HeroElement } from '@/battle/types';
+import { CombatUnitInfo, HeroElement } from '@/battle/types';
 import { AURA_SAMPLES, AuraSample, HERO_KINDS, PREVIEW_LOOK_RANK, SPELL_LEVELS, SPELLS, SpellSample } from '@/components/collection/catalog';
 
 // Нагрузочный тест арены: 10 дворфов, у каждого аура и одно заклинание 3-го уровня.
@@ -158,7 +162,13 @@ const UNIT_SCALE = 0.8; // как на арене
 const SPELL_LEVEL = 3;
 const ATTACK = 80;
 const MAX_HP = 1200;
-const BACKGROUND = 'arena_blue_crystals';
+
+// Фоны для просмотра: все картинки assets/arenas как есть, без фильтров игровых арен. Новый файл появится здесь сам
+const arenaImages = require.context('@/assets/arenas', false, /\.(png|jpe?g|webp)$/);
+const ARENAS = arenaImages.keys().map(path => ({
+  title: path.replace(/^\.\/(arena_)?|\.\w+$/g, ''),
+  url: arenaImages(path) as string,
+}));
 
 // Мс при скорости x1
 const TURN_START = 300;
@@ -198,7 +208,7 @@ const SPRITE_UNITS: { title: string; type: string | null }[] = [
   { title: 'Вперемешку', type: null },
 ];
 // Как в отряде — у каждого стихия его заклинаний
-const SPRITE_ELEMENTS: { title: string; element: HeroElement | null; appearance?: HeroAppearance }[] = [
+const SPRITE_ELEMENTS: { title: string; element: HeroElement | null }[] = [
   { title: 'Как в отряде', element: null },
   { title: 'Без стихии', element: 'Basic' },
   { title: 'Огонь', element: 'Fire' },
@@ -206,7 +216,7 @@ const SPRITE_ELEMENTS: { title: string; element: HeroElement | null; appearance?
   { title: 'Молния', element: 'Lightning' },
   { title: 'Природа', element: 'Nature' },
   { title: 'Тьма', element: 'Dark' },
-  { title: 'Тьма, фиолетовый', element: 'Dark', appearance: 'Violet' },
+  { title: 'Кровь', element: 'Blood' },
   { title: 'Сияние', element: 'Radiance' },
 ];
 const POSES: (SpritePose & { title: string })[] = [
@@ -220,7 +230,6 @@ const POSES: (SpritePose & { title: string })[] = [
 
 interface Fighter {
   element: HeroElement;
-  appearance?: HeroAppearance;
   // Заклинание автобоя
   spell: SpellSample;
   // Все заклинания стихии — для ручного режима
@@ -236,13 +245,13 @@ const ROSTER: Fighter[] = ([
   { element: 'Frost', spell: SPELLS.blizzard },
   { element: 'Lightning', spell: SPELLS.chainLightning },
   { element: 'Nature', spell: SPELLS.healingRune },
-  { element: 'Dark', appearance: 'Violet', spell: SPELLS.lifeDrain },
+  { element: 'Blood', spell: SPELLS.lifeDrain },
   { element: 'Fire', spell: SPELLS.flameWave },
   { element: 'Frost', spell: SPELLS.glacialPrison },
   { element: 'Lightning', spell: SPELLS.thunderclap },
   { element: 'Dark', spell: SPELLS.hex },
   { element: 'Radiance', spell: SPELLS.dawnlight },
-] as Pick<Fighter, 'element' | 'appearance' | 'spell'>[]).map((fighter, i) => ({
+] as Pick<Fighter, 'element' | 'spell'>[]).map((fighter, i) => ({
   ...fighter,
   spells: spellsOf(fighter.element),
   aura: AURA_SAMPLES[i % AURA_SAMPLES.length],
@@ -255,7 +264,6 @@ const units: CombatUnitInfo[] = ROSTER.map((fighter, i) => ({
   name: fighter.spell.name,
   unitType: 'Dwarf',
   element: fighter.element,
-  appearance: fighter.appearance,
   level: PREVIEW_LOOK_RANK,
   team: i < 5 ? 1 : 2,
   position: (i % 5) + 1,
@@ -282,6 +290,7 @@ const casting = reactive(new Set<number>());
 const loading = ref(true);
 const aurasOn = ref(true);
 const statusesOn = ref(true);
+const arena = shallowRef(ARENAS.find(item => item.title === 'red') ?? ARENAS[0]);
 const spriteLevel = ref(PREVIEW_LOOK_RANK);
 const spriteUnit = shallowRef(SPRITE_UNITS[0]);
 const spriteElement = shallowRef(SPRITE_ELEMENTS[0]);
@@ -352,14 +361,13 @@ const spellColor = (sample: SpellSample) => resolveSpellVisual(sample.name, samp
 // Наведение на строку списка подсвечивает дворфа, который будет кастовать
 const highlight = (unit: BattleUnit, on: boolean) => {
   if (casting.has(unit.id)) return;
-  unit.focus = on ? { role: 'attacker', color: '#ffe8a3' } : null;
+  unit.focus = on ? { role: 'attacker', color: TURN_COLOR } : null;
 };
 
-const bgStyle = {
-  backgroundImage: `url('${arenaBackground(BACKGROUND)}')`,
+const bgStyle = computed(() => ({
+  backgroundImage: `url('${arena.value.url}')`,
   backgroundRepeat: 'round',
-  filter: arenaBackgroundFilter(BACKGROUND),
-};
+}));
 
 const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms / speed.value));
 const nextFrame = () => new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
@@ -414,7 +422,7 @@ const castSpell = async (caster: BattleUnit, sample = fighterOf(caster).spell, l
   caster.focus = { role: 'caster', color: visual.color };
   if (!support) targets.forEach(u => (u.focus = { role: 'target' }));
   view(caster)?.cast?.(visual.color);
-  addFloatingText(caster, FLOATING_TEXT, sample.name, 'status');
+  addFloatingText(caster, FLOATING_TEXT, sample.name, 'cast', { color: visual.color });
   fx.castCircle(el(caster), visual.color, CAST_WINDUP + 700);
   await wait(CAST_WINDUP);
 
@@ -472,7 +480,7 @@ const play = async () => {
       while (active && (paused.value || manual.value || loading.value)) await wait(100);
       if (!active) return;
 
-      unit.focus = { role: 'attacker', color: '#ffe8a3' };
+      unit.focus = { role: 'attacker', color: TURN_COLOR };
       await wait(TURN_START);
       if (aurasOn.value && auraEffectOf(unit)) {
         await pulseAura(unit);
@@ -561,7 +569,6 @@ watch([spriteLevel, spriteUnit, spriteElement], () => {
     u.level = spriteLevel.value;
     u.unitType = spriteUnit.value.type ?? UNIT_TYPES[(u.id - FIRST_ID) % UNIT_TYPES.length];
     u.element = spriteElement.value.element ?? fighterOf(u).element;
-    u.appearance = spriteElement.value.element ? spriteElement.value.appearance : fighterOf(u).appearance;
   });
   waitForSprites();
 });

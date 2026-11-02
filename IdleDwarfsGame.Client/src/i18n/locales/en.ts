@@ -110,6 +110,7 @@ const en = {
     Nature: 'Emerald · Nature',
     Dark: 'Amethyst · Darkness',
     Radiance: 'Diamond · Radiance',
+    Blood: 'Garnet · Blood',
   },
   squad: {
     header: 'squad',
@@ -164,6 +165,7 @@ const en = {
       Nature: 'Emerald dwarf',
       Dark: 'Amethyst dwarf',
       Radiance: 'Diamond dwarf',
+      Blood: 'Garnet dwarf',
     },
     target: 'Target',
     ally: 'Ally',
@@ -268,6 +270,7 @@ const en = {
     Emerald: 'Emerald',
     Diamond: 'Diamond',
     Amethyst: 'Amethyst',
+    Garnet: 'Garnet',
   },
   rarity: {
     Common: 'Common',

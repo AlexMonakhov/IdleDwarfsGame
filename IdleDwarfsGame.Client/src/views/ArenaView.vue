@@ -41,7 +41,7 @@
         <button :disabled="!state.playing" @click="skipFight()">{{ t('arena.skip') }}</button>
         <button v-for="value in [1, 2, 4]" :key="value" :class="{ active: speed === value }" @click="setSpeed(value)">x{{ value }}</button>
         <div class="sound-control">
-          <button :title="sound.muted ? t('arena.unmute') : t('arena.mute')" @click="soundService.toggleMute()">{{ sound.muted ? '🔇' : '🔊' }}</button>
+          <button v-tooltip="sound.muted ? t('arena.unmute') : t('arena.mute')" @click="soundService.toggleMute()">{{ sound.muted ? '🔇' : '🔊' }}</button>
           <input type="range" min="0" max="1" step="0.05" :value="sound.muted ? 0 : sound.volume" @input="onVolumeInput" />
         </div>
       </div>
@@ -49,7 +49,7 @@
       <div v-if="state.round" class="round-banner">
         {{ t('arena.round', { round: state.round }) }}
         <!-- Арена PvP наращивает весь урон каждые несколько раундов -->
-        <span v-if="state.damageBonus" :key="state.damageBonus" class="fury-badge" :title="t('arena.furyHint')">🔥 +{{ state.damageBonus }}%</span>
+        <span v-if="state.damageBonus" :key="state.damageBonus" class="fury-badge" v-tooltip="t('arena.furyHint')">🔥 +{{ state.damageBonus }}%</span>
       </div>
 
       <div v-if="error !== null" class="arena-message error">
@@ -115,7 +115,7 @@
 <script lang="ts" setup>
 import { computed, onBeforeUnmount, onMounted, provide, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { arenaBackground, arenaBackgroundFilter } from '@/battle/arenaBackgrounds';
+import { arenaBackground } from '@/battle/arenaBackgrounds';
 import CharacterComponent from '@/components/character-component.vue';
 import CombatApiService from '@/services/apiServices/CombatApiService';
 import CampaignApiService from '@/services/apiServices/CampaignApiService';
@@ -143,7 +143,7 @@ const { t, locale } = useI18n();
 // Размер юнитов на арене (1 — кадр 409.6px; по умолчанию у юнитов 0.65)
 const UNIT_SCALE = 0.8;
 
-const bgImage = ref('arena_blue_crystals');
+const bgImage = ref('lava');
 const layerRef = ref<InstanceType<typeof CanvasLayer> | null>(null);
 const floor = ref(2);
 const speed = ref(1);
@@ -191,7 +191,8 @@ const bgStyle = computed(() => ({
   // Ключи lava/ice приходят с сервера (Arena.Background, фон босса гильдии)
   backgroundImage: `url('${arenaBackground(bgImage.value)}')`,
   backgroundRepeat: 'round',
-  filter: arenaBackgroundFilter(bgImage.value),
+  // Фон приглушён, чтобы юниты и эффекты были заметнее
+  filter: 'saturate(0.5)',
 }));
 
 const setSpeed = (value: number) => {

@@ -88,7 +88,7 @@ onMounted(loadCampaign);
         <span>✦ {{ format(claimed.experience) }}</span>
         <span v-if="claimedChests">🎁 {{ claimedChests }}</span>
         <span v-if="claimed.chests.length" class="campaign-reward-hint">{{ t('rewards.chestsHint') }}</span>
-        <button class="campaign-reward-close" :title="t('common.close')" @click="claimed = null">✕</button>
+        <button class="campaign-reward-close" v-tooltip="t('common.close')" @click="claimed = null">✕</button>
     </div>
     <div v-if="claimError" class="campaign-message error">{{ t('rewards.claimError') }}</div>
 
@@ -123,7 +123,7 @@ onMounted(loadCampaign);
                     <CanvasComponent
                     :effects="[{ func: 'god-rays-radiance', padding: 40, isUnder: true },{ func: 'particles', padding: 100, isUnder: false }]"
                     >
-                        <IconButton inner class="stage-claim" :title="t('rewards.claim')" :disabled="claiming" @click="claimReward">
+                        <IconButton inner class="stage-claim" v-tooltip="t('rewards.claim')" :disabled="claiming" @click="claimReward">
                             <span class="stage-claim-icon">🎁</span>
                             <span class="stage-claim-label">{{ t('rewards.claim') }}</span>
                         </IconButton>
@@ -133,10 +133,10 @@ onMounted(loadCampaign);
                     <CanvasComponent
                     :effects="[{ func: 'god-rays-radiance', padding: 40, isUnder: true },{ func: 'particles', padding: 100, isUnder: false }]"
                     >
-                        <IconButton inner :title="stage.description" @click="startStage(stage)"><IconHelm size="60px" primary-color="rgb(217 215 178)" secondary-color="rgb(64 255 251)"></IconHelm></IconButton>
+                        <IconButton inner v-tooltip="stage.description" @click="startStage(stage)"><IconHelm size="60px" primary-color="rgb(217 215 178)" secondary-color="rgb(64 255 251)"></IconHelm></IconButton>
                     </CanvasComponent>
                     </CanvasLayer>
-                    <span v-else class="stage-lock" :title="t('campaign.locked')">🔒</span>
+                    <span v-else class="stage-lock" v-tooltip="t('campaign.locked')">🔒</span>
                 </template>
             </FightPreviewList>
 

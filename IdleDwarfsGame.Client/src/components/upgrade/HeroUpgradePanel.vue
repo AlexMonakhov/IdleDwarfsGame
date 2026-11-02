@@ -16,7 +16,7 @@ import { elementColor, spriteColor } from '@/battle/sprites';
 import { statusLabel } from '@/i18n';
 import { vDragScroll } from '@/directives/dragScroll';
 import caveBackground from '@/assets/red_crystal_arena.png';
-import crystalsBackground from '@/assets/arena_blue_crystals.png';
+import crystalsBackground from '@/assets/arenas/arena_blue.png';
 
 // Выбранный герой в окне прокачки: сцена со спрайтом, характеристики и кнопка повышения уровня
 const props = defineProps<{ hero: HeroInfo }>();
@@ -186,7 +186,7 @@ const hint = computed(() => {
                     v-if="row.next !== undefined"
                     class="stat-delta"
                     :class="{ 'stat-delta-zero': row.next === row.value }"
-                    :title="t('heroUpgrade.nextLevel')"
+                    v-tooltip="t('heroUpgrade.nextLevel')"
                 >+{{ format(row.next - row.value) }}</span>
             </div>
 
@@ -197,7 +197,7 @@ const hint = computed(() => {
             <div class="stat-group">
                 <span class="stat-label">{{ t('heroUpgrade.statNames.immunities') }}</span>
                 <span v-if="hero.immunities.length" class="stat-text stat-icons">
-                    <span v-for="name in hero.immunities" :key="name" :title="statusLabel(name)">
+                    <span v-for="name in hero.immunities" :key="name" v-tooltip="statusLabel(name)">
                         <component v-if="STATUS_ICONS[name]" :is="STATUS_ICONS[name]" size="16px" />
                         <template v-else>{{ statusLabel(name) }}</template>
                     </span>
@@ -235,10 +235,10 @@ const hint = computed(() => {
             <div class="upgrade-action">
                 <div v-if="upgrade.cost" class="upgrade-cost">
                     <span class="upgrade-cost-label">{{ t('heroUpgrade.cost') }}</span>
-                    <span class="upgrade-cost-gold" :class="{ 'upgrade-cost-lacking': lacksGold }" :title="t('resources.gold')">
+                    <span class="upgrade-cost-gold" :class="{ 'upgrade-cost-lacking': lacksGold }" v-tooltip="t('resources.gold')">
                         🪙 {{ format(upgrade.cost.gold) }}
                     </span>
-                    <span class="upgrade-cost-experience" :class="{ 'upgrade-cost-lacking': lacksExperience }" :title="t('resources.experience')">
+                    <span class="upgrade-cost-experience" :class="{ 'upgrade-cost-lacking': lacksExperience }" v-tooltip="t('resources.experience')">
                         ✦ {{ format(upgrade.cost.experience) }}
                     </span>
                 </div>
@@ -323,6 +323,7 @@ const hint = computed(() => {
 .upgrade-tag-yellow { color: var(--yellow-gem-color); }
 .upgrade-tag-green { color: var(--green-gem-color); }
 .upgrade-tag-purple { color: #c084fc; }
+.upgrade-tag-violet { color: var(--pink-gem-color); }
 .upgrade-tag-white { color: var(--white-gem-color); }
 .upgrade-tag-busy { color: #fde68a; }
 

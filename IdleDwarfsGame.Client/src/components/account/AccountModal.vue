@@ -141,7 +141,7 @@ const restartTutorial = () => {
                     <button
                         type="button"
                         class="sound-mute"
-                        :title="sound.musicMuted ? t('account.unmute') : t('account.mute')"
+                        v-tooltip="sound.musicMuted ? t('account.unmute') : t('account.mute')"
                         @click="soundService.setMusicMuted(!sound.musicMuted)"
                     >{{ sound.musicMuted ? '🔇' : '🔊' }}</button>
                     <input
@@ -157,7 +157,7 @@ const restartTutorial = () => {
                     <button
                         type="button"
                         class="sound-mute"
-                        :title="sound.muted ? t('account.unmute') : t('account.mute')"
+                        v-tooltip="sound.muted ? t('account.unmute') : t('account.mute')"
                         @click="soundService.toggleMute()"
                     >{{ sound.muted ? '🔇' : '🔊' }}</button>
                     <input

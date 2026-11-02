@@ -615,7 +615,7 @@ const modalStyle = computed<CSSProperties>(() => ({
               :class="{ 'modal-tab-active': tab.key === activeTab }"
               :style="{ '--tab-index': index }"
               :aria-selected="tab.key === activeTab"
-              :title="tab.label"
+              v-tooltip="tab.label"
               @click="selectTab(tab.key)"
             >
               <span class="modal-tab-body">

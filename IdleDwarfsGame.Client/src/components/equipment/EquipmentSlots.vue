@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n';
 import { useItemDrag } from '@/composables/UseItemDrag';
 import { HeroInfo } from '@/models/types/Heroes';
 import { EquipmentInfo, EquipmentSlot, EquipmentType, SLOT_TYPE, canWear } from '@/models/types/Equipment';
-import { EQUIPMENT_ICONS } from '@/components/inventory/lootStyles';
+import EquipmentIcon from './EquipmentIcon.vue';
 import ItemTile from './ItemTile.vue';
 
 // Слоты снаряжения поверх сцены с героем. Предмет кладут перетаскиванием;
@@ -72,14 +72,14 @@ const onClick = (slot: EquipmentSlot) => {
                 'gear-slot-rejects': dragged && !accepts(slot),
                 'gear-slot-hover': hoverSlot === slot,
             }"
-            :title="worn.get(slot) ? t('equipment.clickToRemove') : t(`equipment.slots.${slot}`)"
+            v-tooltip="worn.get(slot) ? t('equipment.clickToRemove') : t(`equipment.slots.${slot}`)"
             @dragover="onDragOver($event, slot)"
             @dragleave="hoverSlot = null"
             @drop.prevent="onDrop(slot)"
             @click="onClick(slot)"
         >
             <ItemTile v-if="worn.get(slot)" :item="worn.get(slot)!" compact draggable />
-            <span v-else class="gear-slot-empty">{{ EQUIPMENT_ICONS[SLOT_TYPE[slot]] }}</span>
+            <span v-else class="gear-slot-empty"><EquipmentIcon :type="SLOT_TYPE[slot]" /></span>
         </div>
     </div>
 </template>

@@ -53,20 +53,20 @@ const upgradeStars = computed<number[]>(() => {
         :draggable="!disabled && !selectable"
     >
         <!-- Ранг — по звезде за каждый, на верхней кромке оправы. TODO: заменить символ на иконку звезды -->
-        <span class="hero-card-rank" :title="t('heroUpgrade.rank', { rank: hero.level })">
+        <span class="hero-card-rank" v-tooltip="t('heroUpgrade.rank', { rank: hero.level })">
             <span v-for="index in hero.level" :key="index" class="hero-card-rank-star">★</span>
         </span>
         <!-- Кристалл как у вкладок модалки, только окрашен в цвет стихии героя -->
         <GlassButton tag="div" class="hero-card-glass" :active="selected">
             <!-- upgrade нет только у ответа старого сервера: карточка без звёзд прокачки, но не падает -->
-            <span v-if="hero.upgrade" class="hero-card-upgrade" :title="t('heroUpgrade.level', { level: hero.upgrade.level, max: hero.upgrade.maxLevel })">
+            <span v-if="hero.upgrade" class="hero-card-upgrade" v-tooltip="t('heroUpgrade.level', { level: hero.upgrade.level, max: hero.upgrade.maxLevel })">
                 <span v-for="(tier, index) in upgradeStars" :key="index" class="hero-card-upgrade-star" :class="`hero-card-upgrade-star-${tier}`">★</span>
             </span>
             <CssAuraEffect :effect="aura" :size="72">
                 <UnitPortrait :unit="hero" :size="72" :show-level="false" />
             </CssAuraEffect>
-            <div class="hero-card-name" :title="hero.name">{{ hero.name }}</div>
-            <div class="hero-card-power" :title="t('power.value', { power: hero.power.total })">⚔ {{ hero.power.total }}</div>
+            <div class="hero-card-name" v-tooltip="hero.name">{{ hero.name }}</div>
+            <div class="hero-card-power" v-tooltip="t('power.value', { power: hero.power.total })">⚔ {{ hero.power.total }}</div>
             <div v-if="hero.onExpedition" class="hero-card-busy">{{ t('squad.onExpedition') }}</div>
         </GlassButton>
     </div>
@@ -234,6 +234,7 @@ const upgradeStars = computed<number[]>(() => {
 .hero-card-yellow { --card-accent: var(--yellow-gem-color); }
 .hero-card-green { --card-accent: var(--green-gem-color); }
 .hero-card-purple { --card-accent: var(--purple-gem-color); }
+.hero-card-violet { --card-accent: var(--pink-gem-color); }
 
 /* Бриллиант — почти бесцветное стекло, цвет ему даёт радужный перелив */
 .hero-card-white {
@@ -243,7 +244,7 @@ const upgradeStars = computed<number[]>(() => {
     --glass-bottom: #2a3340;
 }
 
-/* ===== Высший ранг: отблеск бежит по кромке оправы, вокруг карточки дышит свечение стихии ===== */
+/* ===== С ранга AURA_MIN_RANK: отблеск бежит по кромке оправы, вокруг карточки дышит свечение стихии ===== */
 @property --prestige-angle {
     syntax: '<angle>';
     initial-value: 0deg;
@@ -349,7 +350,7 @@ const upgradeStars = computed<number[]>(() => {
     font-family: 'Arial', sans-serif;
     font-size: 13px;
     font-weight: bold;
-    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.8);
+    text-shadow: var(--text-outline);
 }
 
 .hero-card-power {
@@ -357,6 +358,6 @@ const upgradeStars = computed<number[]>(() => {
     font-family: 'Arial', sans-serif;
     font-size: 12px;
     font-weight: bold;
-    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.8);
+    text-shadow: var(--text-outline);
 }
 </style>

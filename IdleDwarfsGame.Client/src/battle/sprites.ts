@@ -1,4 +1,4 @@
-import { HeroAppearance, HeroElement } from './types';
+import { HeroElement } from './types';
 
 export type SpriteAnimation = 'idle' | 'walk' | 'attack' | 'victory' | 'death';
 
@@ -8,8 +8,8 @@ export interface SpritePose {
   variant: number;
 }
 
-// Цвет героя на спрайте. Basic — герои 1-го ранга без стихии, white — бриллиант (сияние), purple — тёмный герой тьмы.
-// Violet — светлый вариант тьмы, rainbow и negative — дворфы 5-го ранга. В именах файлов цвет бывает другим, см. SHEET_COLORS
+// Цвет героя на спрайте. Basic — герои 1-го ранга без стихии, white — бриллиант (сияние), purple — тьма.
+// Violet — кровь, rainbow и negative — дворфы 5-го ранга. В именах файлов цвет бывает другим, см. SHEET_COLORS
 export type SpriteColor = 'basic' | 'red' | 'blue' | 'yellow' | 'green' | 'purple' | 'white' | 'violet' | 'rainbow' | 'negative';
 
 export const ELEMENT_COLORS: Record<HeroElement, SpriteColor> = {
@@ -20,6 +20,7 @@ export const ELEMENT_COLORS: Record<HeroElement, SpriteColor> = {
   Nature: 'green',
   Dark: 'purple',
   Radiance: 'white',
+  Blood: 'violet',
 };
 
 export const elementColor = (element?: string | null): SpriteColor =>
@@ -29,12 +30,12 @@ const DEFAULT_UNIT = 'dwarf';
 // Высший ранг: здесь только два дворфа, свои для тьмы и для всех остальных стихий
 const TOP_RANK = 5;
 
-// Цвет спрайта героя: не только стихия, но и ранг с внешностью. Для рамок и фонов по стихии — elementColor
-export const spriteColor = (unit: { unitType?: string; element?: string | null; level: number; appearance?: HeroAppearance | null }): SpriteColor => {
+// Цвет спрайта героя: не только стихия, но и ранг. Для рамок и фонов по стихии — elementColor
+export const spriteColor = (unit: { unitType?: string; element?: string | null; level: number }): SpriteColor => {
   const color = elementColor(unit.element);
   if (unit.unitType && unit.unitType.toLowerCase() !== DEFAULT_UNIT) return color;
   if (unit.level >= TOP_RANK) return color === 'purple' ? 'negative' : 'rainbow';
-  return color === 'purple' && unit.appearance === 'Violet' ? 'violet' : color;
+  return color;
 };
 
 // Спрайт-листы: 5 колонок кадров по 409.6px (лист 2048x2048)
@@ -71,7 +72,7 @@ const drawByUrl = new Map<string, UnitDraw>();
 const SPRITE_FILE = /([a-z]+)_([a-z]+)_lvl(\d+)_([a-z]+)_(\d+)\.png$/;
 
 // Цвет в именах файлов на этом уровне листов, если он не совпадает с цветом героя.
-// Уровень 2: тёмного варианта тьмы ещё нет, оба рисуются одним листом
+// Уровень 2: своего листа у крови ещё нет, она рисуется листом тьмы
 const SHEET_COLORS: Record<number, Partial<Record<SpriteColor, string>>> = {
   2: { violet: 'purple' },
 };
@@ -170,7 +171,7 @@ export const getSpriteUrl = (animType: SpriteAnimation, color: SpriteColor, rank
 };
 
 // Иконки героев: голова с портрета, assets/portraits/icons/{цвет}_lvl{уровень}.png (собирает npm run portraits).
-// Цвет — как у спрайтов, кроме этих: герои без стихии нарисованы серыми, тёмный герой тьмы лежит в dark, светлый — в purple.
+// Цвет — как у спрайтов, кроме этих: герои без стихии нарисованы серыми, тьма лежит в dark, кровь — в purple.
 // Своего портрета у негативного дворфа ещё нет
 const PORTRAIT_FILE = /([a-z]+)_lvl(\d+)\.png$/;
 const PORTRAIT_COLORS: Partial<Record<SpriteColor, string>> = { basic: 'gray', purple: 'dark', violet: 'purple', negative: 'dark' };

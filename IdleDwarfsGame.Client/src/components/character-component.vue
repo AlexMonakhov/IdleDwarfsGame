@@ -3,7 +3,7 @@ import { ref, defineProps, computed, onMounted, onBeforeUnmount, inject, watch }
 import CharacterSkeleton from './character-skeleton.vue';
 import CharacterStats from './character-stats.vue';
 import { HeroModel } from '@/models/hero';
-import { BattleUnit, FloatingText, UnitStatus, auraEffectOf } from '@/battle/BattleState';
+import { BattleUnit, FloatingText, TURN_COLOR, UnitStatus, auraEffectOf } from '@/battle/BattleState';
 import { getUnitHead, getUnitSize, SpriteAnimation, SpritePose, spriteColor } from '@/battle/sprites';
 import { BATTLE_FX_KEY } from '@/battle/BattleFx';
 import { DAMAGE_COLORS, combineStatusVisuals, resolveAuraVisual } from '@/battle/FxRegistry';
@@ -86,7 +86,7 @@ const unitSize = computed(() => getUnitSize(props.unit.unitType));
 const wrapperStyle = computed(() => ({
   // Направление «лицом к врагу»: левая команда смотрит вправо
   '--face': props.rotate ? -1 : 1,
-  '--focus-color': props.unit.focus?.color ?? '#ffe8a3',
+  '--focus-color': props.unit.focus?.color ?? TURN_COLOR,
   // Во сколько раз юнит крупнее обычного (0.65): по нему растёт тень под ногами
   '--unit-size': ((props.scale ?? 0.65) / 0.65) * unitSize.value,
   // Голова крупного юнита выше: имя и полоски поднимаются, чтобы не лежать на ней
@@ -136,11 +136,11 @@ const floatingSize = (amount?: number) =>
   amount ? 0.85 + 0.65 * Math.sqrt(Math.min(amount / (props.unit.maxHp * 0.5), 1)) : 1;
 
 const floatingStyle = (text: FloatingText) => ({
-  '--float-color': text.kind === 'heal'
+  '--float-color': text.color ?? (text.kind === 'heal'
     ? DAMAGE_COLORS.Heal
     : text.kind === 'damage'
       ? DAMAGE_COLORS[text.damageType ?? 'Physical'] ?? '#fff'
-      : text.kind === 'immune' ? '#e5e7eb' : '#fde68a',
+      : text.kind === 'immune' ? '#e5e7eb' : '#fde68a'),
   '--float-size': floatingSize(text.amount),
   // Крайние дорожки расходятся в стороны, пока цифра летит вверх
   '--float-drift': `${text.lane * 16}px`,
@@ -217,7 +217,7 @@ defineExpose(view);
           <!-- Панель эффектов висит над именем и не сдвигает шапку, когда появляется -->
           <div v-if="hasStatuses" class="status-panel">
             <div class="status-panel-inner">
-              <span v-for="(status, name) in unit.statuses" :key="name" class="status-icon" :title="statusTitle(String(name), status)">
+              <span v-for="(status, name) in unit.statuses" :key="name" class="status-icon" v-tooltip="statusTitle(String(name), status)">
                 <component v-if="STATUS_ICONS[name]" :is="STATUS_ICONS[name]" size="16px" />
                 <template v-else>{{ name[0] }}</template>
                 <!-- Сверху сила за ход всех наложений, снизу оставшиеся ходы -->
@@ -253,7 +253,7 @@ defineExpose(view);
             <CharacterSkeleton
                   ref="skeletonRef"
                   :style="getSkeletonStyle"
-                  :key="`${unit.id}-${unit.level}-${unit.unitType}-${unit.element}-${unit.appearance}`"
+                  :key="`${unit.id}-${unit.level}-${unit.unitType}-${unit.element}`"
                   :sprite-src="props.sprite"
                   :model="model"
                   :frame-width="props.frameWidth ?? 409.6"
@@ -402,6 +402,11 @@ defineExpose(view);
   .floating-status, .floating-immune{
     font-size: 16px;
     -webkit-text-stroke-width: 3px;
+    animation-name: float-rise;
+  }
+  /* Название заклинания: главное событие хода, поэтому крупнее остальных надписей */
+  .floating-cast{
+    font-size: 26px;
     animation-name: float-rise;
   }
   @keyframes float-rise {

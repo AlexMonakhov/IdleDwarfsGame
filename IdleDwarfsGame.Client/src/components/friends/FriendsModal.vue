@@ -230,7 +230,7 @@ const footerText = computed(() => errorMessage.value ?? notice.value ?? '');
                     >
                         <span class="presence-dot" :class="{ 'presence-dot-online': friend.isOnline }"></span>
                         <div class="friend-main">
-                            <span class="friend-name" :title="t('friends.friendsSince', { date: formatDate(friend.friendsSince) })">
+                            <span class="friend-name" v-tooltip="t('friends.friendsSince', { date: formatDate(friend.friendsSince) })">
                                 {{ friend.username }}
                             </span>
                             <span class="friend-status">{{ statusText(friend) }}</span>
