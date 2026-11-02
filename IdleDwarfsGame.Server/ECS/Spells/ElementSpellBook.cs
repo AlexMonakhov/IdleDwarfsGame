@@ -1,5 +1,5 @@
-// Книга заклинаний стихии: три семейства спеллов, которые герой открывает с рангом (Hero.Level).
-// Ранг 1 — без стихии и без спеллов, дальше:
+// Книга заклинаний стихии: до трёх семейств спеллов, которые герой открывает с рангом (Hero.Level).
+// Ранг 1 — без стихии и без спеллов, дальше (у стихии с меньшим числом семейств лишних уровней просто нет):
 //   ранг 2 — первый спелл 1 уровня
 //   ранг 3 — первый 2 уровня, второй 1 уровня
 //   ранг 4 — первый 3 уровня, второй 2 уровня, третий 1 уровня
@@ -13,8 +13,9 @@ public static class ElementSpellBook
         [HeroElement.Frost] = [16, 19, 22],    // Frost Bolt, Blizzard, Glacial Prison
         [HeroElement.Lightning] = [4, 25, 28], // Lightning, Chain Lightning, Thunderclap
         [HeroElement.Nature] = [7, 31, 34],    // Healing Rune, Venom Thorns, Entangling Roots
-        [HeroElement.Dark] = [37, 40, 43],     // Shadow Bolt, Life Drain, Hex
-        [HeroElement.Radiance] = [46, 49, 52]  // Prism Ray, Radiant Nova, Dawnlight
+        [HeroElement.Dark] = [37, 43],         // Shadow Bolt, Hex
+        [HeroElement.Radiance] = [46, 49, 52], // Prism Ray, Radiant Nova, Dawnlight
+        [HeroElement.Blood] = [40]             // Life Drain
     };
 
     // Уровни семейств на каждом ранге; 0 — семейство ещё закрыто

@@ -108,7 +108,7 @@ public static class TestAccountsSeed
     // Одно заклинание: семейство из книги стихии героя (у героя без стихии — любое), уровень 1–3 случайный
     private static int RandomSpell(HeroElement element, Random random)
     {
-        // На 5-м ранге книга отдаёт все три семейства на 3-м уровне: Id первого уровня — на два меньше
+        // На 5-м ранге книга отдаёт все семейства на 3-м уровне: Id первого уровня — на два меньше
         var families = ElementSpellBook.SpellsFor(element, HeroLevels.Max).Select(id => id - 2).ToList();
         if (families.Count == 0)
             families = SpellRegistry.All.Values.Where(s => s.Level == 1).Select(s => s.Id).ToList();

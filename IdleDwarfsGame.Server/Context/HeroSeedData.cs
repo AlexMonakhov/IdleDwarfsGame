@@ -72,7 +72,7 @@ public static class HeroSeedData
             Name = "Morgra Duskvein", UnitType = "Dwarf", Element = HeroElement.Dark, Level = 4, PlaceInSquad = null,
             MaxHp = 150, Attack = 19, Speed = 6,
             MaxEnergy = 100, StartEnergy = 20, EnergyPerAttack = 20,
-            SpellIds = [39, 42, 45], // Shadow Bolt 3, Life Drain 3, Hex 3
+            SpellIds = [39, 45], // Shadow Bolt 3, Hex 3
             Immunities = ["Curse"]
         },
         new Hero

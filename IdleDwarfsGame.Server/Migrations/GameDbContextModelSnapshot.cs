@@ -120,6 +120,17 @@ namespace IdleDwarfsGame.Server.Migrations
                             EffectPower = 6,
                             Element = "Radiance",
                             Name = "Crystal Sanctum"
+                        },
+                        new
+                        {
+                            Id = 7,
+                            Background = "altar",
+                            Description = "Garnet runes open old wounds: every fighter bleeds at the start of each round.",
+                            EffectDuration = 1,
+                            EffectName = "Bleed",
+                            EffectPower = 4,
+                            Element = "Blood",
+                            Name = "Blood Altar"
                         });
                 });
 
@@ -992,13 +1003,6 @@ namespace IdleDwarfsGame.Server.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("Appearance")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(16)
-                        .HasColumnType("TEXT")
-                        .HasDefaultValue("Default");
-
                     b.Property<int>("Attack")
                         .HasColumnType("INTEGER");
 
@@ -1088,7 +1092,6 @@ namespace IdleDwarfsGame.Server.Migrations
                         new
                         {
                             Id = new Guid("11111111-0000-4000-8000-000000000001"),
-                            Appearance = "Default",
                             Attack = 14,
                             AuraDuration = 1,
                             AuraEffect = "Regen",
@@ -1115,7 +1118,6 @@ namespace IdleDwarfsGame.Server.Migrations
                         new
                         {
                             Id = new Guid("11111111-0000-4000-8000-000000000002"),
-                            Appearance = "Default",
                             Attack = 18,
                             AuraDuration = 1,
                             AuraInterval = 1,
@@ -1141,7 +1143,6 @@ namespace IdleDwarfsGame.Server.Migrations
                         new
                         {
                             Id = new Guid("11111111-0000-4000-8000-000000000003"),
-                            Appearance = "Default",
                             Attack = 16,
                             AuraDuration = 1,
                             AuraInterval = 1,
@@ -1167,7 +1168,6 @@ namespace IdleDwarfsGame.Server.Migrations
                         new
                         {
                             Id = new Guid("11111111-0000-4000-8000-000000000004"),
-                            Appearance = "Default",
                             Attack = 20,
                             AuraDuration = 1,
                             AuraInterval = 1,
@@ -1193,7 +1193,6 @@ namespace IdleDwarfsGame.Server.Migrations
                         new
                         {
                             Id = new Guid("11111111-0000-4000-8000-000000000005"),
-                            Appearance = "Default",
                             Attack = 12,
                             AuraDuration = 1,
                             AuraInterval = 1,
@@ -1219,7 +1218,6 @@ namespace IdleDwarfsGame.Server.Migrations
                         new
                         {
                             Id = new Guid("11111111-0000-4000-8000-000000000006"),
-                            Appearance = "Default",
                             Attack = 15,
                             AuraDuration = 1,
                             AuraInterval = 1,
@@ -1244,7 +1242,6 @@ namespace IdleDwarfsGame.Server.Migrations
                         new
                         {
                             Id = new Guid("11111111-0000-4000-8000-000000000007"),
-                            Appearance = "Default",
                             Attack = 19,
                             AuraDuration = 1,
                             AuraInterval = 1,
@@ -1261,7 +1258,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Passives = "",
                             PlayerId = new Guid("a1d2f3e4-0000-4000-8000-000000000001"),
                             Speed = 6,
-                            SpellIds = "39,42,45",
+                            SpellIds = "39,45",
                             StartEnergy = 20,
                             UnitType = "Dwarf",
                             UpgradeLevel = 1
@@ -1269,7 +1266,6 @@ namespace IdleDwarfsGame.Server.Migrations
                         new
                         {
                             Id = new Guid("11111111-0000-4000-8000-000000000008"),
-                            Appearance = "Default",
                             Attack = 17,
                             AuraDuration = 1,
                             AuraInterval = 1,
@@ -1294,7 +1290,6 @@ namespace IdleDwarfsGame.Server.Migrations
                         new
                         {
                             Id = new Guid("22222222-0000-4000-8000-000000000001"),
-                            Appearance = "Default",
                             Attack = 13,
                             AuraDuration = 1,
                             AuraInterval = 1,
@@ -1320,7 +1315,6 @@ namespace IdleDwarfsGame.Server.Migrations
                         new
                         {
                             Id = new Guid("22222222-0000-4000-8000-000000000002"),
-                            Appearance = "Default",
                             Attack = 10,
                             AuraDuration = 1,
                             AuraInterval = 1,
@@ -1346,7 +1340,6 @@ namespace IdleDwarfsGame.Server.Migrations
                         new
                         {
                             Id = new Guid("22222222-0000-4000-8000-000000000003"),
-                            Appearance = "Default",
                             Attack = 10,
                             AuraDuration = 1,
                             AuraInterval = 1,
@@ -1372,7 +1365,6 @@ namespace IdleDwarfsGame.Server.Migrations
                         new
                         {
                             Id = new Guid("22222222-0000-4000-8000-000000000004"),
-                            Appearance = "Default",
                             Attack = 12,
                             AuraDuration = 1,
                             AuraEffect = "Burn",
@@ -1399,7 +1391,6 @@ namespace IdleDwarfsGame.Server.Migrations
                         new
                         {
                             Id = new Guid("22222222-0000-4000-8000-000000000005"),
-                            Appearance = "Default",
                             Attack = 13,
                             AuraDuration = 1,
                             AuraInterval = 1,
@@ -1425,7 +1416,6 @@ namespace IdleDwarfsGame.Server.Migrations
                         new
                         {
                             Id = new Guid("33333333-0000-4000-8000-000000000001"),
-                            Appearance = "Default",
                             Attack = 11,
                             AuraDuration = 1,
                             AuraInterval = 1,
@@ -1450,7 +1440,6 @@ namespace IdleDwarfsGame.Server.Migrations
                         new
                         {
                             Id = new Guid("33333333-0000-4000-8000-000000000002"),
-                            Appearance = "Default",
                             Attack = 12,
                             AuraDuration = 1,
                             AuraInterval = 1,
@@ -1475,7 +1464,6 @@ namespace IdleDwarfsGame.Server.Migrations
                         new
                         {
                             Id = new Guid("33333333-0000-4000-8000-000000000101"),
-                            Appearance = "Default",
                             Attack = 16,
                             AuraDuration = 1,
                             AuraEffect = "Burn",
@@ -1501,7 +1489,6 @@ namespace IdleDwarfsGame.Server.Migrations
                         new
                         {
                             Id = new Guid("33333333-0000-4000-8000-000000000102"),
-                            Appearance = "Default",
                             Attack = 15,
                             AuraDuration = 1,
                             AuraEffect = "Frost",
@@ -1527,7 +1514,6 @@ namespace IdleDwarfsGame.Server.Migrations
                         new
                         {
                             Id = new Guid("44444444-0000-4000-8000-000000000001"),
-                            Appearance = "Default",
                             Attack = 13,
                             AuraDuration = 1,
                             AuraInterval = 1,
@@ -1552,7 +1538,6 @@ namespace IdleDwarfsGame.Server.Migrations
                         new
                         {
                             Id = new Guid("44444444-0000-4000-8000-000000000002"),
-                            Appearance = "Default",
                             Attack = 13,
                             AuraDuration = 1,
                             AuraInterval = 1,
@@ -1577,7 +1562,6 @@ namespace IdleDwarfsGame.Server.Migrations
                         new
                         {
                             Id = new Guid("44444444-0000-4000-8000-000000000003"),
-                            Appearance = "Default",
                             Attack = 12,
                             AuraDuration = 1,
                             AuraInterval = 1,
@@ -1602,7 +1586,6 @@ namespace IdleDwarfsGame.Server.Migrations
                         new
                         {
                             Id = new Guid("44444444-0000-4000-8000-000000000004"),
-                            Appearance = "Default",
                             Attack = 12,
                             AuraDuration = 1,
                             AuraInterval = 1,
@@ -1627,7 +1610,6 @@ namespace IdleDwarfsGame.Server.Migrations
                         new
                         {
                             Id = new Guid("44444444-0000-4000-8000-000000000005"),
-                            Appearance = "Default",
                             Attack = 13,
                             AuraDuration = 1,
                             AuraInterval = 1,
@@ -1652,7 +1634,6 @@ namespace IdleDwarfsGame.Server.Migrations
                         new
                         {
                             Id = new Guid("44444444-0000-4000-8000-000000000006"),
-                            Appearance = "Default",
                             Attack = 13,
                             AuraDuration = 1,
                             AuraInterval = 1,
