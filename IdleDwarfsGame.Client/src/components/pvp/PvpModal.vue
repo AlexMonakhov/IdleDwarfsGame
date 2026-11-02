@@ -10,7 +10,7 @@ import { PvpBattleInfo, PvpOpponentInfo, PvpOverview, PvpSeasonInfo, RankedOverv
 import type { CombatUnitInfo } from '@/battle/types';
 import type { ModalTab } from '@/models/types/Modal';
 import { forecastVerdict } from '@/battle/power';
-import { arenaBackground, arenaBackgroundFilter } from '@/battle/arenaBackgrounds';
+import { arenaBackground } from '@/battle/arenaBackgrounds';
 import { useSquadModal } from '@/composables/UseSquadModal';
 import { isRankedTab, PvpTab, usePvp } from '@/composables/UsePvp';
 import { formatTime } from '@/components/guild/guildShared';
@@ -222,7 +222,7 @@ const footerText = computed(() => {
                 <section class="pvp-arena" :class="{ 'pvp-arena-ranked': ranked }">
                     <div
                         class="pvp-arena-image"
-                        :style="{ backgroundImage: `url(${arenaBackground(current.arena.background)})`, filter: arenaBackgroundFilter(current.arena.background) }"
+                        :style="{ backgroundImage: `url(${arenaBackground(current.arena.background)})` }"
                         aria-hidden="true"
                     ></div>
                     <div class="pvp-arena-body">
@@ -318,7 +318,7 @@ const footerText = computed(() => {
                             <span
                                 class="pvp-diff"
                                 :class="diffClass(opponent)"
-                                :title="opponent.rating !== null ? t('pvp.ranked.diffHint') : t('pvp.diffHint')"
+                                v-tooltip="opponent.rating !== null ? t('pvp.ranked.diffHint') : t('pvp.diffHint')"
                             >{{ diffText(opponent) }}</span>
                         </div>
 
@@ -327,7 +327,7 @@ const footerText = computed(() => {
                         </div>
 
                         <div class="pvp-opponent-forecast">
-                            <span class="pvp-verdict" :class="`forecast-${verdict(opponent)}`" :title="t('power.chance', { chance: chance(opponent) })">
+                            <span class="pvp-verdict" :class="`forecast-${verdict(opponent)}`" v-tooltip="t('power.chance', { chance: chance(opponent) })">
                                 {{ t(`power.verdict.${verdict(opponent)}`) }} · {{ chance(opponent) }}%
                             </span>
                             <span class="pvp-stakes">
@@ -376,7 +376,7 @@ const footerText = computed(() => {
                 <div v-if="!history.length" class="pvp-empty">{{ t('pvp.noHistory') }}</div>
                 <ul class="pvp-list">
                     <li v-for="battle in history" :key="battle.id" class="pvp-battle" :class="battle.won ? 'pvp-battle-won' : 'pvp-battle-lost'">
-                        <span class="pvp-battle-icon" :title="battle.isAttack ? t('pvp.attack') : t('pvp.defence')">{{ battle.isAttack ? '⚔' : '🛡' }}</span>
+                        <span class="pvp-battle-icon" v-tooltip="battle.isAttack ? t('pvp.attack') : t('pvp.defence')">{{ battle.isAttack ? '⚔' : '🛡' }}</span>
                         <div class="pvp-battle-main">
                             <span class="pvp-opponent-name">
                                 {{ battle.isAttack ? t('pvp.attackedPlayer', { name: battle.opponentName }) : t('pvp.attackedBy', { name: battle.opponentName }) }}

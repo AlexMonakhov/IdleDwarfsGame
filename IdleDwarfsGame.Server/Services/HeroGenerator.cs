@@ -6,11 +6,11 @@ public static class HeroGenerator
     // +25% к базовым HP и атаке за каждый ранг выше первого: герой 4-го ранга примерно как герои демо-отряда
     public const double StatBonusPerRank = 0.25;
 
-    // Аметист и бриллиант редкие — как и их камни в сундуках гемов: выпадают вдвое реже остальных
+    // Аметист, гранат и бриллиант редкие: выпадают вдвое реже остальных
     private static readonly (HeroElement Element, int Weight)[] Elements =
     [
         (HeroElement.Fire, 2), (HeroElement.Frost, 2), (HeroElement.Lightning, 2), (HeroElement.Nature, 2),
-        (HeroElement.Dark, 1), (HeroElement.Radiance, 1)
+        (HeroElement.Dark, 1), (HeroElement.Blood, 1), (HeroElement.Radiance, 1)
     ];
 
     private static HeroElement RandomElement(Random random)
@@ -52,8 +52,7 @@ public static class HeroGenerator
             StartEnergy = 0,
             EnergyPerAttack = 20,
             SpellIds = ElementSpellBook.SpellsFor(heroElement, rank),
-            Passives = [PassiveBook.Random(random)],
-            Appearance = HeroAppearances.Random(heroElement, random)
+            Passives = [PassiveBook.Random(random)]
         };
     }
 }

@@ -12,7 +12,7 @@ import { useResources } from '@/composables/UseResources';
 import { HeroInfo } from '@/models/types/Heroes';
 import { estimateReward, ExpeditionBoard, ExpeditionInfo, ExpeditionStatus } from '@/models/types/Expeditions';
 import caveBackground from '@/assets/red_crystal_arena.png';
-import crystalsBackground from '@/assets/arena_blue_crystals.png';
+import crystalsBackground from '@/assets/arenas/arena_blue.png';
 
 const props = defineProps<{ modelValue: boolean }>();
 const emit = defineEmits<{ (e: 'update:modelValue', value: boolean): void }>();

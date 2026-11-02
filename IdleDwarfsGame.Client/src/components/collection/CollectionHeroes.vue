@@ -70,7 +70,7 @@ const avatar = (kind: HeroKind) => ({
                         @click="selectSpell(selected.kind, spell)"
                     >{{ spell.name }}</button>
                 </div>
-                <div class="spell-switcher" :title="t('collection.spellLevelHint')">
+                <div class="spell-switcher" v-tooltip="t('collection.spellLevelHint')">
                     <button
                         v-for="value in SPELL_LEVELS"
                         :key="value"
@@ -92,7 +92,7 @@ const avatar = (kind: HeroKind) => ({
             </span>
             <span v-if="current.statuses?.length" class="collection-chip">
                 <span class="collection-chip-label">{{ t('collection.statuses') }}</span>
-                <span v-for="name in current.statuses" :key="name" class="spell-status" :title="statusLabel(name)">
+                <span v-for="name in current.statuses" :key="name" class="spell-status" v-tooltip="statusLabel(name)">
                     <component v-if="STATUS_ICONS[name]" :is="STATUS_ICONS[name]" size="14px" />
                     {{ statusLabel(name) }}
                 </span>
@@ -115,7 +115,7 @@ const avatar = (kind: HeroKind) => ({
                 <div class="codex-hero-name">{{ t(`collection.heroNames.${kind.element}`) }}</div>
                 <div class="codex-hero-element">
                     {{ t(`elements.${kind.element}`) }}
-                    <span class="codex-hero-rank" :title="t('heroUpgrade.rank', { rank: PREVIEW_RANK })">{{ '★'.repeat(PREVIEW_RANK) }}</span>
+                    <span class="codex-hero-rank" v-tooltip="t('heroUpgrade.rank', { rank: PREVIEW_RANK })">{{ '★'.repeat(PREVIEW_RANK) }}</span>
                 </div>
                 <div class="codex-hero-spells">
                     <button
@@ -167,6 +167,7 @@ const avatar = (kind: HeroKind) => ({
 .codex-hero-yellow { --card-accent: var(--yellow-gem-color); }
 .codex-hero-green { --card-accent: var(--green-gem-color); }
 .codex-hero-purple { --card-accent: var(--purple-gem-color); }
+.codex-hero-violet { --card-accent: var(--pink-gem-color); }
 .codex-hero-white { --card-accent: var(--white-gem-color); }
 
 /* Аура стихии рисуется вокруг портрета и не должна наезжать на текст */

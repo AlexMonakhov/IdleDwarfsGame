@@ -8,9 +8,9 @@ const { user, level, selectedFrame } = useAccount();
 </script>
 
 <template>
-    <button type="button" class="account-button" :title="user ? user.username : t('account.settingsTitle')">
+    <button type="button" class="account-button" v-tooltip="user ? user.username : t('account.settingsTitle')">
         <AvatarFrame :effect="selectedFrame" :size="124">
-            <span v-if="user" class="account-level" :title="t('account.level', { level })">{{ level }}</span>
+            <span v-if="user" class="account-level" v-tooltip="t('account.level', { level })">{{ level }}</span>
             <span v-else class="account-level account-level-guest">⚙</span>
         </AvatarFrame>
     </button>

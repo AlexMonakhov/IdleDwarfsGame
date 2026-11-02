@@ -17,7 +17,7 @@ export interface ChestInfo {
 // Стопка предметов: в инвентаре quantity — сколько всего, в открытом сундуке — сколько выпало
 export interface ItemInfo {
     itemType: ItemType;
-    // Для гемов — камень: 'Ruby', 'Sapphire', 'Topaz', 'Emerald', 'Diamond', 'Amethyst'
+    // Для гемов — камень: 'Ruby', 'Sapphire', 'Topaz', 'Emerald', 'Diamond', 'Amethyst', 'Garnet'
     subType: string;
     rarity: Rarity;
     level: number;

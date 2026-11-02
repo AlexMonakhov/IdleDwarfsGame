@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <defs>
+    <!-- Градиент фона с белым отливом -->
+    <radialGradient id="radiant-bg" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="45%" stop-color="#d9f2ff" />
+      <stop offset="80%" stop-color="#99ccff" />
+      <stop offset="100%" stop-color="#4a709c" />
+    </radialGradient>
+
+    <!-- Переливающиеся градиенты для граней -->
+    <linearGradient id="prism-1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00ffff" />
+      <stop offset="50%" stop-color="#ff00ff" />
+      <stop offset="100%" stop-color="#ffff00" />
+    </linearGradient>
+
+    <linearGradient id="prism-2" x1="100%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="50%" stop-color="#9933ff" />
+      <stop offset="100%" stop-color="#00ffff" />
+    </linearGradient>
+
+    <linearGradient id="prism-3" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ff00aa" />
+      <stop offset="50%" stop-color="#00f0ff" />
+      <stop offset="100%" stop-color="#ffffff" />
+    </linearGradient>
+
+    <!-- Свечение -->
+    <filter id="radiant-glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="3" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+
+    <style>
+      @keyframes shimmer {
+        0% { opacity: 0.8; transform: rotate(0deg); }
+        50% { opacity: 1.0; transform: rotate(180deg); }
+        100% { opacity: 0.8; transform: rotate(360deg); }
+      }
+      .rainbow-facet {
+        animation: shimmer 6s infinite linear;
+        transform-origin: 50px 50px;
+      }
+    </style>
+  </defs>
+
+  <!-- Внешний круг с фирменной рамкой -->
+  <circle cx="50" cy="50" r="45" fill="url(#radiant-bg)" stroke="#fffde6" stroke-width="3" />
+  
+  <!-- Классическая форма бриллианта с радужными гранями -->
+  <g filter="url(#radiant-glow)">
+    <!-- Площадка (Верх) -->
+    <polygon points="35,32 65,32 58,40 42,40" fill="url(#prism-1)" />
+    
+    <!-- Корона (Верхние боковые грани) -->
+    <polygon points="20,40 35,32 42,40" fill="url(#prism-2)" />
+    <polygon points="65,32 80,40 58,40" fill="url(#prism-3)" />
+    <polygon points="35,32 65,32 50,22" fill="#ffffff" opacity="0.95" />
+    <polygon points="20,40 35,32 50,22" fill="url(#prism-1)" />
+    <polygon points="65,32 80,40 50,22" fill="url(#prism-2)" />
+
+    <!-- Рундист (Центральный пояс) -->
+    <polygon points="20,40 42,40 50,52 28,52" fill="url(#prism-3)" />
+    <polygon points="42,40 58,40 50,52" fill="#ffffff" opacity="0.95" />
+    <polygon points="58,40 80,40 72,52 50,52" fill="url(#prism-1)" />
+
+    <!-- Павильон (Нижняя чашечка к острию) -->
+    <polygon points="20,40 28,52 50,80" fill="url(#prism-2)" />
+    <polygon points="28,52 50,52 50,80" fill="url(#prism-1)" />
+    png<polygon points="50,52 72,52 50,80" fill="url(#prism-3)" />
+    <polygon points="72,52 80,40 50,80" fill="url(#prism-2)" />
+
+    <!-- Контурный рисунок граней -->
+    <path d="M 50,22 L 20,40 L 28,52 L 50,80 L 72,52 L 80,40 Z
+             M 35,32 L 65,32 L 80,40
+             M 35,32 L 20,40
+             M 50,22 L 35,32 L 42,40 L 50,22 L 58,40 L 65,32 L 50,22
+             M 42,40 L 58,40
+             M 28,52 L 50,52 L 72,52
+             M 42,40 L 50,52 L 58,40
+             M 50,52 L 50,80" fill="none" stroke="#ffffff" stroke-width="1.2" stroke-linejoin="round" />
+  </g>
+
+  <!-- Вспышки сияния -->
+  <path d="M 50,10 L 50,20 M 50,80 L 50,90 M 10,50 L 20,50 M 80,50 L 90,50" stroke="#ffffff" stroke-width="2" stroke-linecap="round" />
+  <circle cx="22" cy="25" r="2" fill="#ffffff" />
+  <circle cx="78" cy="75" r="2" fill="#ffffff" />
+</svg>

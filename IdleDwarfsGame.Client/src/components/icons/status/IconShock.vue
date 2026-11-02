@@ -10,13 +10,13 @@ const bgId = `shock-bg-${useId()}`;
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" :width="size" :height="size">
     <defs>
       <radialGradient :id="bgId" cx="50%" cy="50%" r="50%">
-        <stop offset="0%" stop-color="#9be7ff" />
-        <stop offset="65%" stop-color="#1d4ed8" />
-        <stop offset="100%" stop-color="#0b1a4a" />
+        <stop offset="0%" stop-color="#fde68a" />
+        <stop offset="65%" stop-color="#b45309" />
+        <stop offset="100%" stop-color="#451a03" />
       </radialGradient>
     </defs>
 
-    <circle cx="50" cy="50" r="45" :fill="`url(#${bgId})`" stroke="#e0fbff" stroke-width="3" />
+    <circle cx="50" cy="50" r="45" :fill="`url(#${bgId})`" stroke="#fff7d6" stroke-width="3" />
 
     <!-- Молния -->
     <polygon points="56,14 30,54 47,54 40,86 70,42 53,42 62,14" fill="#ffffff" stroke="#fff3a3" stroke-width="2" stroke-linejoin="round" />

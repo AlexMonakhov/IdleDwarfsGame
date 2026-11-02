@@ -78,7 +78,6 @@ export interface CombatUnitInfo {
   name: string;
   unitType: string;
   element: HeroElement;
-  appearance?: HeroAppearance;
   level: number;
   team: number;
   position: number;
@@ -110,14 +109,11 @@ export interface CombatPowerBreakdown {
 export type AuraTarget = 'Allies' | 'Enemies' | 'All';
 
 // Стихия героя (HeroElement.cs). На 1-м уровне у всех Basic
-export type HeroElement = 'Basic' | 'Fire' | 'Frost' | 'Lightning' | 'Nature' | 'Dark' | 'Radiance';
-
-// Вариант внешности внутри стихии (HeroAppearance.cs): Violet — светло-фиолетовый герой тьмы. На механику не влияет
-export type HeroAppearance = 'Default' | 'Violet';
+export type HeroElement = 'Basic' | 'Fire' | 'Frost' | 'Lightning' | 'Nature' | 'Dark' | 'Radiance' | 'Blood';
 
 // То, что нужно портрету: подходит и юнит боя, и герой из инвентаря
 export type PortraitUnit = Pick<CombatUnitInfo,
-  'name' | 'unitType' | 'element' | 'appearance' | 'level' | 'maxHp' | 'attack' | 'speed' | 'spells' | 'immunities' | 'aura' | 'isBoss' | 'power'>;
+  'name' | 'unitType' | 'element' | 'level' | 'maxHp' | 'attack' | 'speed' | 'spells' | 'immunities' | 'aura' | 'isBoss' | 'power'>;
 
 export interface CombatRewards {
   gold: number;

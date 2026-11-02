@@ -182,7 +182,7 @@ const imageSamples: { name: string; color: CardColor; back: CardBackOptions }[] 
 ];
 
 // Герой-заглушка каждой стихии на ранге, с которого карточка получает ауру
-const AURA_ELEMENTS: HeroElement[] = ['Fire', 'Frost', 'Lightning', 'Nature', 'Dark', 'Radiance'];
+const AURA_ELEMENTS: HeroElement[] = ['Fire', 'Frost', 'Lightning', 'Nature', 'Dark', 'Radiance', 'Blood'];
 const auraSamples: HeroInfo[] = AURA_ELEMENTS.map(element => ({
   id: `aura-${element}`,
   name: element,

@@ -71,7 +71,6 @@ public static class CombatSnapshot
                 Name = info.Name,
                 UnitType = info.UnitType,
                 Element = info.Element,
-                Appearance = info.Appearance,
                 Level = info.Level,
                 Team = world.Team[e.Id].TeamId,
                 Position = info.Position,

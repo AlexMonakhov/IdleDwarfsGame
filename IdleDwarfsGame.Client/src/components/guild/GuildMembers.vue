@@ -126,7 +126,7 @@ const leave = () => props.run('leave', async () => {
                 >
                     <span class="presence-dot" :class="{ 'presence-dot-online': member.isOnline }"></span>
                     <div class="guild-row-main">
-                        <span class="guild-row-name" :title="t('guild.joinedAt', { date: formatDate(member.joinedAt) })">
+                        <span class="guild-row-name" v-tooltip="t('guild.joinedAt', { date: formatDate(member.joinedAt) })">
                             {{ member.username }}
                             <span v-if="member.role === 'Leader'" class="guild-role">👑 {{ t('guild.roles.Leader') }}</span>
                             <span v-if="member.isMe" class="guild-you">{{ t('guild.you') }}</span>

@@ -195,8 +195,9 @@ export const HERO_KINDS: HeroKind[] = [
     { element: 'Frost', spells: [SPELLS.frostBolt, SPELLS.blizzard, SPELLS.glacialPrison] },
     { element: 'Lightning', spells: [SPELLS.lightning, SPELLS.chainLightning, SPELLS.thunderclap] },
     { element: 'Nature', spells: [SPELLS.healingRune, SPELLS.venomThorns, SPELLS.entanglingRoots] },
-    { element: 'Dark', spells: [SPELLS.shadowBolt, SPELLS.lifeDrain, SPELLS.hex] },
+    { element: 'Dark', spells: [SPELLS.shadowBolt, SPELLS.hex] },
     { element: 'Radiance', spells: [SPELLS.prismRay, SPELLS.radiantNova, SPELLS.dawnlight] },
+    { element: 'Blood', spells: [SPELLS.lifeDrain] },
 ];
 
 export interface AuraSample {

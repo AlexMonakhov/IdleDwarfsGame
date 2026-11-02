@@ -12,6 +12,7 @@ public static class CampaignSeedData
     public const int MarshArenaId = 4;
     public const int CryptArenaId = 5;
     public const int SanctumArenaId = 6;
+    public const int AltarArenaId = 7;
 
     // Шаблоны врагов башни
     private static readonly Guid OrcBrute = Guid.Parse("22222222-0000-4000-8000-000000000001");
@@ -110,6 +111,12 @@ public static class CampaignSeedData
             Id = SanctumArenaId, Name = "Crystal Sanctum", Background = "sanctum", Element = HeroElement.Radiance,
             Description = "Diamond light mends the wounds of every fighter — friend and foe — at the start of each round.",
             EffectName = "Regen", EffectPower = 6, EffectDuration = 1
+        },
+        new Arena
+        {
+            Id = AltarArenaId, Name = "Blood Altar", Background = "altar", Element = HeroElement.Blood,
+            Description = "Garnet runes open old wounds: every fighter bleeds at the start of each round.",
+            EffectName = "Bleed", EffectPower = 4, EffectDuration = 1
         }
     ];
 

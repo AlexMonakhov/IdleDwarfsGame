@@ -104,8 +104,8 @@ watchEffect(() => {
         </div>
         <div class="settings">
             <div v-if="isAuthenticated && resources" class="resources">
-                <span class="resource resource-gold" :title="t('resources.gold')">🪙 {{ resources.gold.toLocaleString(locale) }}</span>
-                <span class="resource resource-experience" :title="t('resources.experience')">✦ {{ resources.experience.toLocaleString(locale) }}</span>
+                <span class="resource resource-gold" v-tooltip="t('resources.gold')">🪙 {{ resources.gold.toLocaleString(locale) }}</span>
+                <span class="resource resource-experience" v-tooltip="t('resources.experience')">✦ {{ resources.experience.toLocaleString(locale) }}</span>
             </div>
             <AccountButton @click="accountOpen = true" />
         </div>

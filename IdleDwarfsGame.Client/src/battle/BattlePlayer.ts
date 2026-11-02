@@ -3,7 +3,7 @@ import { dialogueService } from '@/services/dialogueService/DialogueService';
 import { DamageSource } from '@/services/dialogueService/types';
 import { t } from '@/i18n';
 import { BattleFx } from './BattleFx';
-import { BattleState, BattleUnit, FloatingText, FloatingTextDetails, UnitFocus, addFloatingText, auraEffectOf, resetBattleState } from './BattleState';
+import { BattleState, BattleUnit, FloatingText, FloatingTextDetails, TURN_COLOR, UnitFocus, addFloatingText, auraEffectOf, resetBattleState } from './BattleState';
 import { DAMAGE_COLORS, STATUS_VISUALS, resolveAuraVisual, resolveSpellVisual } from './FxRegistry';
 import { CombatLogEntry, CombatResult, StatusEffectLogData } from './types';
 import { getUnitView } from './UnitRegistry';
@@ -47,9 +47,6 @@ const MIN_SPEECH_MS = 1500;
 
 // Дольше этого спрайты перед боем не ждём (медленная сеть): бой начнётся, недогруженные листы появятся по ходу
 const SPRITE_WAIT_MS = 15000;
-
-// Подсветка юнита, чей сейчас ход
-const TURN_COLOR = '#ffe8a3';
 
 let speechId = 0;
 
@@ -264,7 +261,7 @@ export class BattlePlayer {
 
     this.animate(cast.attackerId, v => v.cast?.(color));
     this.sound(s => s.cast());
-    this.float(cast.attackerId, cast.skillName, 'status');
+    this.float(cast.attackerId, cast.skillName, 'cast', { color });
     if (!this.skipping) {
       this.fx.castCircle(getUnitView(cast.attackerId)?.el?.(), color, TIMING.castWindup + 700);
     }

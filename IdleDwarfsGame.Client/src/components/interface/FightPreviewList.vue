@@ -70,7 +70,7 @@ const backgroundStyle = `url(${background}) center / cover no-repeat, radial-gra
                         </div>
                         <div v-if="props.forecast" class="preview-forecast">
                             <span class="forecast-power">⚔ {{ props.forecast.playerPower }}</span>
-                            <span class="forecast-verdict" :class="`forecast-${verdict}`" :title="t('power.chance', { chance })">
+                            <span class="forecast-verdict" :class="`forecast-${verdict}`" v-tooltip="t('power.chance', { chance })">
                                 {{ t(`power.verdict.${verdict}`) }} · {{ chance }}%
                             </span>
                             <span class="forecast-power">⚔ {{ props.forecast.enemyPower }}</span>

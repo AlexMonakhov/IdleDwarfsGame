@@ -36,7 +36,7 @@ public enum MaterialSubType
 }
 
 // Камни стихий (HeroElement): рубин — огонь, сапфир — мороз, топаз — молния, изумруд — природа,
-// аметист — тьма, алмаз (бриллиант) — сияние
+// аметист — тьма, алмаз (бриллиант) — сияние, гранат — кровь
 public enum GemType
 {
     Ruby,
@@ -44,7 +44,8 @@ public enum GemType
     Sapphire,
     Diamond,
     Amethyst,
-    Topaz
+    Topaz,
+    Garnet
 }
 
 // В DropEntry хранится числом, в PlayerItems — строкой: значения не переставлять и не переименовывать без миграции

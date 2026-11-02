@@ -102,21 +102,24 @@ const leaves = (): Particle[] => Array.from({ length: 9 }, (_, i) => ({
     },
 }));
 
-// Клубы тьмы поднимаются снизу и расползаются; каждая третья частица — яркая фиолетовая искра
-const shadow = (): Particle[] => Array.from({ length: 12 }, (_, i) => {
+// Клубы поднимаются снизу и расползаются; каждая третья частица — яркая искра
+const wisps = (cloudCore: string, cloudEdge: string, moteCore: string, moteEdge: string) => (): Particle[] => Array.from({ length: 12 }, (_, i) => {
     const mote = i % 3 === 2;
     return {
         style: {
             left: `${(12 + rand(i, 1) * 76).toFixed(1)}%`,
             bottom: `${(rand(i, 2) * 30).toFixed(1)}%`,
             '--wisp': (mote ? 0.03 + rand(i, 3) * 0.03 : 0.16 + rand(i, 3) * 0.14).toFixed(3),
-            '--wisp-core': mote ? '#f3e8ff' : '#7e22ce',
-            '--wisp-edge': mote ? '#c084fc' : 'rgba(46, 16, 101, 0.6)',
+            '--wisp-core': mote ? moteCore : cloudCore,
+            '--wisp-edge': mote ? moteEdge : cloudEdge,
             '--drift': `${((rand(i, 5) - 0.5) * 50).toFixed(1)}%`,
             ...timing(mote ? 1.8 + rand(i, 4) : 2.6 + rand(i, 4) * 2, i),
         },
     };
 });
+
+const shadow = wisps('#7e22ce', 'rgba(46, 16, 101, 0.6)', '#f3e8ff', '#c084fc');
+const blood = wisps('#be123c', 'rgba(76, 5, 25, 0.6)', '#ffe4e6', '#f472b6');
 
 // Радужные звёздочки мерцают по кругу, каждая своим цветом спектра
 const prism = (): Particle[] => Array.from({ length: 10 }, (_, i) => {
@@ -141,6 +144,7 @@ const PARTICLES: Record<AuraEffect, () => Particle[]> = {
     leaves,
     shadow,
     prism,
+    blood,
 };
 
 const particles = computed(() => PARTICLES[props.effect]());
@@ -356,7 +360,18 @@ const particles = computed(() => PARTICLES[props.effect]());
     animation: aura-spin 7s linear infinite reverse, aura-pulse 3s ease-in-out infinite;
 }
 
-.aura-shadow .aura-particle {
+/* ===== Кровь (гранат): то же кольцо, но малиновое и с быстрым пульсом ===== */
+.aura-blood .aura-halo {
+    background:
+        conic-gradient(from 0deg, transparent 0deg, rgba(233, 30, 99, 0.75) 60deg, transparent 140deg, transparent 200deg, rgba(190, 18, 60, 0.75) 260deg, transparent 330deg),
+        radial-gradient(closest-side, transparent 66%, rgba(76, 5, 25, 0.55) 80%, transparent 100%);
+    -webkit-mask: radial-gradient(closest-side, transparent 64%, #000 76%, #000 92%, transparent 100%);
+    mask: radial-gradient(closest-side, transparent 64%, #000 76%, #000 92%, transparent 100%);
+    animation: aura-spin 7s linear infinite, aura-pulse 1.6s ease-in-out infinite;
+}
+
+.aura-shadow .aura-particle,
+.aura-blood .aura-particle {
     width: calc(var(--size) * var(--wisp));
     height: calc(var(--size) * var(--wisp));
     border-radius: 50%;

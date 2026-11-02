@@ -129,7 +129,7 @@ const describe = (log: CombatLogEntry) => {
       class="feed-row"
       :class="[`feed-${slot.name}`, `feed-type-${item.type}`]"
       :style="rowStyle(slot)"
-      :title="describe(item.log)"
+      v-tooltip="describe(item.log)"
     >
       <span v-if="item.type === 'round'" class="feed-round">{{ t('arena.round', { round: item.log.round }) }}</span>
 

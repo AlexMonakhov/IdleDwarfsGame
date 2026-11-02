@@ -1,0 +1,113 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="100%" height="100%">
+  <defs>
+    <!-- Градиент внешней золотистой/розовой рамки -->
+    <linearGradient id="outerBorder" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ff99dd" />
+      <stop offset="50%" stop-color="#d4429b" />
+      <stop offset="100%" stop-color="#8a1c66" />
+    </linearGradient>
+
+    <!-- Тёмная разделительная обводка -->
+    <linearGradient id="darkBorder" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#4a0033" />
+      <stop offset="100%" stop-color="#240019" />
+    </linearGradient>
+
+    <!-- Радиальный градиент фона (светящийся центр) -->
+    <radialGradient id="bgGradient" cx="50%" cy="30%" r="50%" fx="50%" fy="30%">
+      <stop offset="0%" stop-color="#ff2a8d" />
+      <stop offset="40%" stop-color="#9b005c" />
+      <stop offset="75%" stop-color="#4a0033" />
+      <stop offset="100%" stop-color="#200016" />
+    </radialGradient>
+
+    <!-- Градиенты для граней кристалла -->
+    <!-- Левая грань -->
+    <linearGradient id="facetLeft" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#d8438c" />
+      <stop offset="100%" stop-color="#791449" />
+    </linearGradient>
+
+    <!-- Правая грань -->
+    <linearGradient id="facetRight" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#bd2c7d" />
+      <stop offset="100%" stop-color="#540832" />
+    </linearGradient>
+
+    <!-- Верхняя правая грань -->
+    <linearGradient id="facetTopRight" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e668a8" />
+      <stop offset="100%" stop-color="#a02667" />
+    </linearGradient>
+
+    <!-- Центральный ромб -->
+    <linearGradient id="facetCenter" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffb3da" />
+      <stop offset="50%" stop-color="#e06ba8" />
+      <stop offset="100%" stop-color="#992b67" />
+    </linearGradient>
+
+    <!-- Нижняя левая грань -->
+    <linearGradient id="facetBottomLeft" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#a82b6e" />
+      <stop offset="100%" stop-color="#4a0528" />
+    </linearGradient>
+
+    <!-- Нижняя правая грань -->
+    <linearGradient id="facetBottomRight" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#8e1e5b" />
+      <stop offset="100%" stop-color="#3b021f" />
+    </linearGradient>
+
+    <!-- Свечение вокруг белого контура -->
+    <filter id="whiteGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="5" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Внешнее кольцо-рамка -->
+  <circle cx="250" cy="250" r="235" fill="url(#outerBorder)" />
+  <circle cx="250" cy="250" r="215" fill="url(#darkBorder)" />
+  
+  <!-- Основной круглый фон с градиентом -->
+  <circle cx="250" cy="250" r="205" fill="url(#bgGradient)" />
+
+  <!-- Группа ромбовидного кристалла/капли -->
+  <g>
+    <!-- Грани кристалла -->
+    <!-- Левая грань -->
+    <path d="M 250 85 L 138 270 L 250 332 Z" fill="url(#facetLeft)" />
+    
+    <!-- Верхняя правая грань -->
+    <path d="M 250 85 L 362 270 L 250 332 Z" fill="url(#facetTopRight)" />
+    
+    <!-- Правая теневая часть верхней грани -->
+    <path d="M 250 85 L 362 270 L 250 270 Z" fill="url(#facetRight)" opacity="0.3" />
+
+    <!-- Нижняя левая грань -->
+    <path d="M 138 270 L 250 332 L 250 415 C 200 415 138 340 138 270 Z" fill="url(#facetBottomLeft)" />
+
+    <!-- Нижняя правая грань -->
+    <path d="M 362 270 L 250 332 L 250 415 C 300 415 362 340 362 270 Z" fill="url(#facetBottomRight)" />
+
+    <!-- Центральная ромбовидная грань -->
+    <path d="M 250 170 L 305 270 L 250 370 L 195 270 Z" fill="url(#facetCenter)" />
+
+    <!-- Белый внешний контур и внутренние линии граней с мягким свечением -->
+    <g stroke="#ffffff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" fill="none" filter="url(#whiteGlow)">
+      <!-- Внешний контур капли -->
+      <path d="M 250 85 
+               C 250 85, 362 200, 362 270 
+               C 362 360, 300 415, 250 415 
+               C 200 415, 138 360, 138 270 
+               C 138 200, 250 85, 250 85 Z" />
+      
+      <!-- Внутренние грани кристалла -->
+      <path d="M 250 85 L 250 370" />
+      <path d="M 138 270 L 250 170 L 362 270" />
+      <path d="M 138 270 L 250 370 L 362 270" />
+      <path d="M 250 370 L 250 415" />
+    </g>
+  </g>
+</svg>

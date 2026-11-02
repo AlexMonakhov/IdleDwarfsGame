@@ -110,6 +110,7 @@ const ru: LocaleMessages = {
     Nature: 'Изумруд · Природа',
     Dark: 'Аметист · Тьма',
     Radiance: 'Бриллиант · Сияние',
+    Blood: 'Гранат · Кровь',
   },
   squad: {
     header: 'отряд',
@@ -164,6 +165,7 @@ const ru: LocaleMessages = {
       Nature: 'Изумрудный дворф',
       Dark: 'Аметистовый дворф',
       Radiance: 'Бриллиантовый дворф',
+      Blood: 'Гранатовый дворф',
     },
     target: 'Цель',
     ally: 'Союзник',
@@ -268,6 +270,7 @@ const ru: LocaleMessages = {
     Emerald: 'Изумруд',
     Diamond: 'Алмаз',
     Amethyst: 'Аметист',
+    Garnet: 'Гранат',
   },
   rarity: {
     Common: 'Обычный',

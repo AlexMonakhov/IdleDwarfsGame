@@ -102,12 +102,6 @@ public class GameDbContext : DbContext
             .HasMaxLength(16)
             .HasDefaultValue(HeroElement.Basic);
 
-        modelBuilder.Entity<Hero>()
-            .Property(h => h.Appearance)
-            .HasConversion<string>()
-            .HasMaxLength(16)
-            .HasDefaultValue(HeroAppearance.Default);
-
         modelBuilder.Entity<Player>()
             .HasData(HeroSeedData.Players.Append(CampaignSeedData.Player).Append(GuildBossSeedData.Player).ToArray());
 

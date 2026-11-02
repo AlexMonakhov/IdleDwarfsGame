@@ -1,4 +1,4 @@
-import { CombatPowerBreakdown, HeroAppearance, HeroElement } from '@/battle/types';
+import { CombatPowerBreakdown, HeroElement } from '@/battle/types';
 import { EquipmentInfo, PassiveInfo } from '@/models/types/Equipment';
 import { PlayerResources } from '@/models/types/Expeditions';
 
@@ -8,7 +8,6 @@ export interface HeroInfo {
     name: string;
     unitType: string;
     element: HeroElement;
-    appearance?: HeroAppearance;
     level: number;
     // null — герой не в отряде
     placeInSquad: number | null;

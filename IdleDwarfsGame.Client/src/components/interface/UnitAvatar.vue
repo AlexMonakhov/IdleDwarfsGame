@@ -5,7 +5,7 @@ import { elementColor, getPortraitUrl, spriteColor } from '@/battle/sprites';
 
 // Только лицо юнита в кружке — без подсказки (её добавляет UnitPortrait)
 interface Props {
-    unit: Pick<PortraitUnit, 'name' | 'unitType' | 'element' | 'appearance' | 'level' | 'isBoss'>;
+    unit: Pick<PortraitUnit, 'name' | 'unitType' | 'element' | 'level' | 'isBoss'>;
     size?: number;
     showLevel?: boolean;
 }
@@ -72,6 +72,10 @@ const portraitStyle = computed(() => ({
 
 .portrait-white {
     background-color: #2b3440;
+}
+
+.portrait-violet {
+    background-color: #3a1b2a;
 }
 
 .portrait-boss {

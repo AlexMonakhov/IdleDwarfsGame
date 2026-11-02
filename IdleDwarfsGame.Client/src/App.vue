@@ -27,6 +27,7 @@ import InterfaceView from './views/InterfaceView.vue';
 }
 
 :root{
+    --text-outline: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 0 3px rgba(0, 0, 0, 0.9);
     --normal:#f5f5f5;
     --primary: #18c0c0;
     --secondary: #ec40fc;

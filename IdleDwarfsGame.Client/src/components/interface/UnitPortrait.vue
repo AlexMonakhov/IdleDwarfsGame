@@ -3,6 +3,7 @@ import { computed } from 'vue';
 import { PortraitUnit } from '@/battle/types';
 import { powerParts } from '@/battle/power';
 import { STATUS_ICONS } from '@/components/icons/status';
+import { ELEMENT_COLORS } from '@/components/inventory/lootStyles';
 import TooltipComponent from '@/components/common/TooltipComponent.vue';
 import UnitAvatar from './UnitAvatar.vue';
 import { useI18n } from 'vue-i18n';
@@ -29,7 +30,7 @@ const powerDetails = computed(() => powerParts(props.unit.power)
 </script>
 
 <template>
-    <TooltipComponent>
+    <TooltipComponent :accent="ELEMENT_COLORS[unit.element]">
         <UnitAvatar :unit="unit" :size="size" :show-level="showLevel" />
 
         <template #title>{{ unit.name }}<template v-if="unit.isBoss"> · {{ t('unit.boss') }}</template></template>
@@ -61,7 +62,6 @@ const powerDetails = computed(() => powerParts(props.unit.power)
 .portrait-power-parts {
     margin-bottom: 4px;
     font-size: 0.85em;
-    opacity: 0.8;
 }
 
 .portrait-immunities {
