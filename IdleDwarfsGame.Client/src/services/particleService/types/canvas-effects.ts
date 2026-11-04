@@ -1,4 +1,5 @@
 import { EffectStrategy, Particle, EmitterConfig } from './interfaces/canvas-interfaces';
+import { frameScale, perFrameFactor } from '../frameClock';
 
 export class ParticlesStrategy implements EffectStrategy {
   private emitterParticles = new Map<string, Particle[]>();
@@ -45,14 +46,13 @@ export class ParticlesStrategy implements EffectStrategy {
       });
     }
 
-    particles.forEach((p, i) => {
-      p.x += p.vx;
-      p.y += p.vy;
-      p.life -= p.maxLife;
-      if (p.life <= 0) particles.splice(i, 1);
-    });
+    for (const p of particles) {
+      p.x += p.vx * frameScale;
+      p.y += p.vy * frameScale;
+      p.life -= p.maxLife * frameScale;
+    }
 
-    this.emitterParticles.set(emitter.id, particles);
+    this.emitterParticles.set(emitter.id, particles.filter(p => p.life > 0));
   }
 
   draw(ctx: CanvasRenderingContext2D, emitter: EmitterConfig) {
@@ -83,7 +83,7 @@ export class GodRaysStrategy implements EffectStrategy {
   private readonly rayCount = 15;
 
   update() {
-    this.angle += 0.005;
+    this.angle += 0.005 * frameScale;
     this.pulse = Math.sin(Date.now() / 1000) * 0.2 + 0.8;
   }
 
@@ -129,7 +129,7 @@ export class GodRaysRadianceStrategy implements EffectStrategy {
   }
 
   update() {
-    this.angle += 0.001;
+    this.angle += 0.001 * frameScale;
     this.pulse = Math.sin(Date.now() / 1000) * 0.1 + 0.8;
   }
 
@@ -199,14 +199,17 @@ export const jaggedPath = (sx: number, sy: number, ex: number, ey: number, segme
   return points;
 };
 
-// Ломаная молния между startX/startY и endX/endY, перестраивается каждые несколько кадров.
+// Ломаная молния между startX/startY и endX/endY, перестраивается раз в REBUILD_MS (3 кадра при 60 Гц: на 120 Гц не мерцает вдвое чаще).
 // args: color, jitter, width (толщина свечения), branches (сколько коротких отростков)
+export const BOLT_REBUILD_MS = 50;
+
 export class LightningStrategy implements EffectStrategy {
-  private bolts = new Map<string, { points: BoltPath; forks: BoltPath[]; frame: number }>();
+  private bolts = new Map<string, { points: BoltPath; forks: BoltPath[]; rebuildAt: number }>();
 
   update(emitter: EmitterConfig) {
     const bolt = this.bolts.get(emitter.id);
-    if (bolt && bolt.frame++ % 3 !== 0) return;
+    const now = performance.now();
+    if (bolt && now < bolt.rebuildAt) return;
 
     const sx = emitter.startX ?? emitter.x;
     const sy = emitter.startY ?? emitter.y;
@@ -224,7 +227,7 @@ export class LightningStrategy implements EffectStrategy {
       return jaggedPath(from.x, from.y, from.x + Math.cos(angle) * reach, from.y + Math.sin(angle) * reach, 4, jitter * 0.4);
     });
 
-    this.bolts.set(emitter.id, { points, forks, frame: (bolt?.frame ?? 0) + 1 });
+    this.bolts.set(emitter.id, { points, forks, rebuildAt: now + BOLT_REBUILD_MS });
   }
 
   draw(ctx: CanvasRenderingContext2D, emitter: EmitterConfig) {
@@ -294,12 +297,13 @@ export class ImpactStrategy implements EffectStrategy {
       this.sparks.set(emitter.id, sparks);
     }
 
+    const drag = perFrameFactor(0.94);
     sparks.forEach(p => {
-      p.x += p.vx;
-      p.y += p.vy;
-      p.vx *= 0.94;
-      p.vy *= 0.94;
-      p.life -= p.maxLife;
+      p.x += p.vx * frameScale;
+      p.y += p.vy * frameScale;
+      p.vx *= drag;
+      p.vy *= drag;
+      p.life -= p.maxLife * frameScale;
     });
     this.sparks.set(emitter.id, sparks.filter(p => p.life > 0));
   }
