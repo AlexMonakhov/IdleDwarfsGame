@@ -1,4 +1,5 @@
 // Отряд, который получает каждый новый аккаунт: 5 базовых дворфов 1-го уровня, сразу расставленных по слотам.
+// Способностей у дворфов 1-го ранга нет (HeroGenerator.GrantAbilities)
 public static class StarterSquad
 {
     public const int Size = 5;
@@ -40,8 +41,7 @@ public static class StarterSquad
                 Speed = role.Speed,
                 MaxEnergy = 100,
                 StartEnergy = 0,
-                EnergyPerAttack = 20,
-                Passives = [PassiveBook.Random(random)]
+                EnergyPerAttack = 20
             })
             .ToList();
     }

@@ -23,15 +23,23 @@ public static class PassiveBook
 
     private static readonly HeroPassive[] All = Enum.GetValues<HeroPassive>();
 
-    // Отдельной прокачки у пассивок пока нет: уровень растёт с рангом, как и спеллы (ElementSpellBook)
-    public static int LevelFor(int rank) => rank switch
+    // Пассивка открывается с 3-го ранга: на нём её уровень 1–2, с 4-го — 1–3; 0 — пассивки нет.
+    // Выше этого уровень поднимают только слиянием извлечённых пассивок (AbilityService)
+    public static int MaxLevelFor(int rank) => rank switch
     {
-        <= 2 => 1,
-        <= 4 => 2,
+        <= 2 => 0,
+        3 => 2,
         _ => MaxLevel
     };
 
     public static HeroPassive Random(Random random) => All[random.Next(All.Length)];
+
+    // Случайный уровень пассивки дворфа этого ранга; 0 — пассивка ему не положена
+    public static int RandomLevel(int rank, Random random)
+    {
+        int max = MaxLevelFor(rank);
+        return max == 0 ? 0 : random.Next(MinLevel, max + 1);
+    }
 
     public static PassiveValues Values(HeroPassive passive, int level)
     {

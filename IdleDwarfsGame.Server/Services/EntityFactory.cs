@@ -85,11 +85,11 @@ public class EntityFactory : IEntityFactory
     public static AuraComponent? ResolveAura(Hero hero, GearComponent gear, int level = 1) =>
         WithGear(BaseAura(hero, level), gear);
 
-    // Пассивки героя: уровень по рангу, сверху — прибавка колец
+    // Пассивки героя на их уровне, сверху — прибавка колец
     public static PassiveComponent CreatePassives(Hero hero, GearComponent gear)
     {
         var component = new PassiveComponent();
-        int level = PassiveBook.LevelFor(hero.Level);
+        int level = hero.PassiveLevel;
         foreach (var passive in hero.Passives.Distinct())
         {
             var values = PassiveBook.Values(passive, level);

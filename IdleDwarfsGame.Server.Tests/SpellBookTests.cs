@@ -18,54 +18,61 @@ public class SpellBookTests
     };
 
     [Fact]
-    public void EveryElement_HasItsSpellFamiliesOnMaxRank()
+    public void EveryElement_HasItsSpellFamilies()
     {
         // У тьмы и крови семейств меньше: Life Drain ушёл от тьмы к крови
         var families = new Dictionary<HeroElement, int> { [HeroElement.Dark] = 2, [HeroElement.Blood] = 1 };
 
         foreach (var element in Enum.GetValues<HeroElement>().Where(e => e != HeroElement.Basic))
         {
-            var spells = ElementSpellBook.SpellsFor(element, HeroLevels.Max).Select(id => SpellRegistry.All[id]).ToList();
+            var spells = ElementSpellBook.FamiliesOf(element).Select(id => SpellRegistry.All[id]).ToList();
 
             Assert.Equal(families.GetValueOrDefault(element, 3), spells.Select(s => s.Name).Distinct().Count());
-            Assert.All(spells, s => Assert.Equal(3, s.Level));
+            Assert.All(spells, s => Assert.Equal(1, s.Level));
+            Assert.All(spells, s => Assert.Equal(element, ElementSpellBook.ElementOf(s.Id)));
         }
-    }
-
-    [Fact]
-    public void SpellBook_OpensSpellsWithRank()
-    {
-        Assert.Empty(ElementSpellBook.SpellsFor(HeroElement.Basic, HeroLevels.Max));
-        Assert.Empty(ElementSpellBook.SpellsFor(HeroElement.Fire, 1));
-
-        var counts = Enumerable.Range(HeroLevels.Min, HeroLevels.Max).Select(rank => ElementSpellBook.SpellsFor(HeroElement.Fire, rank).Count).ToList();
-        Assert.Equal(new[] { 0, 1, 2, 3, 3 }, counts);
-        Assert.Equal(new[] { 38, 43 }, ElementSpellBook.SpellsFor(HeroElement.Dark, 3)); // Shadow Bolt 2, Hex 1
-        Assert.Equal(new[] { 39, 44 }, ElementSpellBook.SpellsFor(HeroElement.Dark, 4)); // Shadow Bolt 3, Hex 2
+        Assert.Empty(ElementSpellBook.FamiliesOf(HeroElement.Basic));
     }
 
     [Theory]
-    [InlineData(1)]
-    [InlineData(2, 40)]
-    [InlineData(3, 41)]
-    [InlineData(4, 42)]
-    [InlineData(5, 42)]
-    public void BloodBook_IsLifeDrainGrowingWithRank(int rank, params int[] expected)
+    [InlineData(1, 0)]
+    [InlineData(2, 1)]
+    [InlineData(3, 2)]
+    [InlineData(4, 3)]
+    [InlineData(5, 3)]
+    public void SpellLevel_GrowsWithRank(int rank, int level)
     {
-        Assert.Equal(expected, ElementSpellBook.SpellsFor(HeroElement.Blood, rank));
+        Assert.Equal(level, ElementSpellBook.SpellLevelFor(rank));
     }
 
     [Fact]
-    public void GeneratedHero_GetsSpellsOfItsElement()
+    public void FamilyOf_FindsFirstLevelOfEverySpell()
     {
-        var hero = HeroGenerator.Create(Guid.NewGuid(), rank: 4, element: "Radiance", new Random(5));
-
-        Assert.Equal(HeroElement.Radiance, hero.Element);
-        Assert.Equal(ElementSpellBook.SpellsFor(HeroElement.Radiance, 4), hero.SpellIds);
-        Assert.Empty(HeroGenerator.Create(Guid.NewGuid(), rank: 1, element: "", new Random(5)).SpellIds);
+        Assert.Equal(37, ElementSpellBook.FamilyOf(39)); // Shadow Bolt 3
+        Assert.Equal(40, ElementSpellBook.FamilyOf(40)); // Life Drain 1
+        Assert.Null(ElementSpellBook.FamilyOf(999));
     }
 
-    // Случайная стихия героя из сундука: выпадают все, и каждый герой получает книгу своей стихии
+    // Дворф знает одно заклинание своей стихии, его уровень — по рангу
+    [Theory]
+    [InlineData(2)]
+    [InlineData(3)]
+    [InlineData(4)]
+    public void GeneratedHero_GetsOneSpellOfItsElement(int rank)
+    {
+        var random = new Random(5);
+        for (int i = 0; i < 50; i++)
+        {
+            var hero = HeroGenerator.Create(Guid.NewGuid(), rank, element: "Radiance", random);
+
+            var spell = SpellRegistry.All[Assert.Single(hero.SpellIds)];
+            Assert.Equal(rank - 1, spell.Level);
+            Assert.Equal(HeroElement.Radiance, ElementSpellBook.ElementOf(ElementSpellBook.FamilyOf(spell.Id)!.Value));
+        }
+        Assert.Empty(HeroGenerator.Create(Guid.NewGuid(), rank: 1, element: "", random).SpellIds);
+    }
+
+    // Случайная стихия героя из сундука: выпадают все, и каждый герой получает заклинание своей стихии
     [Fact]
     public void GeneratedHero_RandomElementCoversEveryElement()
     {
@@ -73,7 +80,7 @@ public class SpellBookTests
         var heroes = Enumerable.Range(0, 500).Select(_ => HeroGenerator.Create(Guid.NewGuid(), rank: 4, element: "", random)).ToList();
 
         Assert.Equal(Enum.GetValues<HeroElement>().Where(e => e != HeroElement.Basic).Order(), heroes.Select(h => h.Element).Distinct().Order());
-        Assert.All(heroes, h => Assert.Equal(ElementSpellBook.SpellsFor(h.Element, 4), h.SpellIds));
+        Assert.All(heroes, h => Assert.Contains(ElementSpellBook.FamilyOf(Assert.Single(h.SpellIds))!.Value, ElementSpellBook.FamiliesOf(h.Element)));
     }
 
     [Fact]

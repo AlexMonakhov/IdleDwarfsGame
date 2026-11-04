@@ -1,6 +1,7 @@
 import { CombatPowerBreakdown, HeroElement } from '@/battle/types';
 import { EquipmentInfo, PassiveInfo } from '@/models/types/Equipment';
 import { PlayerResources } from '@/models/types/Expeditions';
+import type { AbilityInfo } from '@/models/types/Abilities';
 
 // Герой в инвентаре (IdleDwarfsGame.Server/Controllers/Responses/HeroResponses.cs)
 export interface HeroInfo {
@@ -23,6 +24,8 @@ export interface HeroInfo {
     immunities: string[];
     aura?: string | null;
     passives: PassiveInfo[];
+    // Что можно извлечь, распылив дворфа: заклинания, пассивки, аура (иммунитеты не извлекаются)
+    abilities: AbilityInfo[];
     // Надетые предметы; maxHp, attack и остальное уже с их прибавкой
     equipment: EquipmentInfo[];
     power: CombatPowerBreakdown;

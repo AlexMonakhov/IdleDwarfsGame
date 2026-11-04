@@ -47,6 +47,7 @@ public class EquipmentTests : IDisposable
         int energy = 0,
         List<int>? spells = null,
         List<HeroPassive>? passives = null,
+        int passiveLevel = 1,
         params string[] items) => new()
     {
         Id = Guid.NewGuid(),
@@ -59,6 +60,7 @@ public class EquipmentTests : IDisposable
         StartEnergy = energy,
         SpellIds = spells ?? [],
         Passives = passives ?? [],
+        PassiveLevel = passiveLevel,
         Equipment = items.Select(key => new PlayerEquipment { Id = Guid.NewGuid(), ItemKey = key }).ToList()
     };
 
@@ -203,23 +205,23 @@ public class EquipmentTests : IDisposable
     public void Survival_ReducesDamageOnlyFromStrongerAttackers()
     {
         var world = new World();
-        int weak = Factory.CreateUnit(world, MakeHero(attack: 10, rank: 3, passives: [HeroPassive.SurvivalOfTheWeakest]), 1, 1);
+        int weak = Factory.CreateUnit(world, MakeHero(attack: 10, passives: [HeroPassive.SurvivalOfTheWeakest], passiveLevel: 2), 1, 1);
         int strong = Factory.CreateUnit(world, MakeHero(attack: 100), 2, 1);
         int weaker = Factory.CreateUnit(world, MakeHero(attack: 5), 2, 2);
 
-        // Ранг 3 — второй уровень пассивки, -10%
+        // Второй уровень пассивки — -10%
         Assert.Equal(90, world.ResolveHit(strong, weak, 100));
         Assert.Equal(100, world.ResolveHit(weaker, weak, 100));
     }
 
     [Theory]
     [InlineData(1, 5)]
-    [InlineData(3, 10)]
-    [InlineData(5, 15)]
-    public void PassiveLevel_GrowsWithRank(int rank, int percent)
+    [InlineData(2, 10)]
+    [InlineData(3, 15)]
+    public void PassiveLevel_SetsItsValues(int level, int percent)
     {
         var world = new World();
-        int id = Factory.CreateUnit(world, MakeHero(rank: rank, passives: [HeroPassive.SurvivalOfTheWeakest]), 1, 1);
+        int id = Factory.CreateUnit(world, MakeHero(passives: [HeroPassive.SurvivalOfTheWeakest], passiveLevel: level), 1, 1);
 
         Assert.Equal(percent, world.GetPassive(id, HeroPassive.SurvivalOfTheWeakest)!.Value.Percent);
     }
@@ -255,11 +257,11 @@ public class EquipmentTests : IDisposable
     [Fact]
     public void SharpTongue_BurnsOnEachBasicAttack()
     {
-        var (world, id, enemies) = Arena(MakeHero(rank: 3, passives: [HeroPassive.SharpTongue]));
+        var (world, id, enemies) = Arena(MakeHero(passives: [HeroPassive.SharpTongue], passiveLevel: 2));
 
         var context = BasicAttack(world, id);
 
-        // Ранг 3 — 20% от атаки на 1 ход
+        // Второй уровень — 20% от атаки на 1 ход
         var applied = Assert.Single(context.Logs, l => l.EventType == CombatEventType.StatusApplied);
         Assert.Equal(enemies[0], applied.TargetId);
         Assert.Equal("Passive", applied.Phase);
@@ -285,7 +287,7 @@ public class EquipmentTests : IDisposable
     [Fact]
     public void DoubleStrike_HitsTwice_AsSeparateActions_WithOneEnergyGain()
     {
-        var (world, id, enemies) = Arena(MakeHero(rank: 5, passives: [HeroPassive.DoubleStrike]));
+        var (world, id, enemies) = Arena(MakeHero(passives: [HeroPassive.DoubleStrike], passiveLevel: 3));
 
         var context = BasicAttack(world, id);
 
@@ -301,7 +303,7 @@ public class EquipmentTests : IDisposable
     [Fact]
     public void DoubleStrike_RingOfCleaving_HitsNextEnemyToo()
     {
-        var (world, id, enemies) = Arena(MakeHero(rank: 5, passives: [HeroPassive.DoubleStrike], items: "RingOfCleaving"));
+        var (world, id, enemies) = Arena(MakeHero(passives: [HeroPassive.DoubleStrike], passiveLevel: 3, items: "RingOfCleaving"));
 
         var context = BasicAttack(world, id);
 
@@ -312,7 +314,7 @@ public class EquipmentTests : IDisposable
     [Fact]
     public void DoubleStrike_StopsWhenNoEnemiesLeft()
     {
-        var (world, id, enemies) = Arena(MakeHero(rank: 5, passives: [HeroPassive.DoubleStrike]), enemies: 1);
+        var (world, id, enemies) = Arena(MakeHero(passives: [HeroPassive.DoubleStrike], passiveLevel: 3), enemies: 1);
         world.Health[enemies[0]].Current = 1;
 
         var context = BasicAttack(world, id);
@@ -326,7 +328,7 @@ public class EquipmentTests : IDisposable
         var world = new World();
         Factory.CreateUnit(world, MakeHero(rank: 5, hp: 500, attack: 40, spells: [12], passives: [HeroPassive.SharpTongue],
             items: ["ArmageddonBlade", "EmberCrown", "RingOfWildfire", "RingOfLingeringWords", "StormAmulet"]), 1, 1);
-        Factory.CreateUnit(world, MakeHero(rank: 5, hp: 500, attack: 40, passives: [HeroPassive.DoubleStrike], items: "RingOfCleaving"), 2, 1);
+        Factory.CreateUnit(world, MakeHero(hp: 500, attack: 40, passives: [HeroPassive.DoubleStrike], passiveLevel: 3, items: "RingOfCleaving"), 2, 1);
         Factory.CreateUnit(world, MakeHero(rank: 5, hp: 500, attack: 40, passives: [HeroPassive.SurvivalOfTheWeakest]), 2, 2);
 
         var result = new CombatEngine(new Random(1)).Run(world);
@@ -603,10 +605,12 @@ public class EquipmentTests : IDisposable
         Assert.Equal(dropped.Id, Assert.Single(await _service.GetMyAsync(_playerId)).Id);
     }
 
+    // Пассивка открывается с 3-го ранга: у стартового отряда 1-го ранга её нет
     [Fact]
-    public void NewHeroes_GetAPassive()
+    public void NewHeroes_GetAPassiveFromRankThree()
     {
-        Assert.All(StarterSquad.Create(Guid.NewGuid(), new Random(1)), h => Assert.Single(h.Passives));
+        Assert.All(StarterSquad.Create(Guid.NewGuid(), new Random(1)), h => Assert.Empty(h.Passives));
+        Assert.Empty(HeroGenerator.Create(Guid.NewGuid(), 2, string.Empty, new Random(1)).Passives);
         Assert.Single(HeroGenerator.Create(Guid.NewGuid(), 3, string.Empty, new Random(1)).Passives);
     }
 }

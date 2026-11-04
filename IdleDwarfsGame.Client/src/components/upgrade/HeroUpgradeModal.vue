@@ -7,8 +7,13 @@ import HeroCard from '@/components/inventory/HeroCard.vue';
 import HeroUpgradePanel from './HeroUpgradePanel.vue';
 import EquipmentList from '@/components/equipment/EquipmentList.vue';
 import { itemName } from '@/components/equipment/equipmentText';
+import AbilityExtractTab from '@/components/abilities/AbilityExtractTab.vue';
+import AbilityInventoryTab from '@/components/abilities/AbilityInventoryTab.vue';
+import HeroFusionTab from '@/components/abilities/HeroFusionTab.vue';
 import HeroesApiService from '@/services/apiServices/HeroesApiService';
 import EquipmentApiService from '@/services/apiServices/EquipmentApiService';
+import AbilitiesApiService from '@/services/apiServices/AbilitiesApiService';
+import { AbilityActionResult, AbilityInfo } from '@/models/types/Abilities';
 import { useResources } from '@/composables/UseResources';
 import { useItemDrag } from '@/composables/UseItemDrag';
 import { HeroInfo, HeroUpgradeResult } from '@/models/types/Heroes';
@@ -16,7 +21,8 @@ import { EquipmentChangeResult, EquipmentError, EquipmentInfo, EquipmentSlot, Eq
 import type { ModalTab } from '@/models/types/Modal';
 import { vDragScroll } from '@/directives/dragScroll';
 
-// Прокачка и снаряжение героев: справа список героев или предметов, по клику на героя слева выезжает его панель
+// Прокачка и снаряжение героев: справа список героев или предметов, по клику на героя слева выезжает его панель.
+// Ещё три вкладки — распыление дворфов: извлечение способностей, вставка и слияние способностей, слияние дворфов
 const props = defineProps<{ modelValue: boolean }>();
 const emit = defineEmits<{ (e: 'update:modelValue', value: boolean): void }>();
 
@@ -34,8 +40,10 @@ const loading = ref(false);
 const errorMessage = ref<string | null>(null);
 const selectedId = ref<string | null>(null);
 
-type UpgradeTab = 'heroes' | 'items';
-const TAB_ICONS: Record<UpgradeTab, string> = { heroes: '⚔', items: '🛡' };
+type UpgradeTab = 'heroes' | 'items' | 'extract' | 'abilities' | 'fusion';
+const TAB_ICONS: Record<UpgradeTab, string> = { heroes: '⚔', items: '🛡', extract: '⚗', abilities: '✦', fusion: '⚒' };
+// На этих вкладках своя раскладка, без панели героя
+const FORGE_TABS: UpgradeTab[] = ['extract', 'abilities', 'fusion'];
 
 const tab = ref<UpgradeTab>('heroes');
 const tabs = computed<ModalTab[]>(() => (Object.keys(TAB_ICONS) as UpgradeTab[]).map(key => ({
@@ -52,14 +60,16 @@ const items = ref<EquipmentInfo[]>([]);
 const itemFilter = ref<EquipmentType | null>(null);
 const changing = ref(false);
 const itemMessage = ref<{ text: string; error: boolean } | null>(null);
+const abilities = ref<AbilityInfo[]>([]);
 
 const load = async () => {
     loading.value = true;
     errorMessage.value = null;
     try {
-        [heroes.value, items.value] = await Promise.all([
+        [heroes.value, items.value, abilities.value] = await Promise.all([
             HeroesApiService.getMyHeroes(),
             EquipmentApiService.getMyEquipment(),
+            AbilitiesApiService.getMyAbilities(),
         ]);
         if (selectedId.value && !heroes.value.some(h => h.id === selectedId.value)) selectedId.value = null;
     } catch {
@@ -164,6 +174,22 @@ const onDropOnList = () => {
     if (item) unequip(item);
 };
 
+/* ===== Распыление ===== */
+const isForgeTab = computed(() => FORGE_TABS.includes(tab.value));
+
+// Дворфов распылили (извлечение, слияние): их предметы вернулись в инвентарь — перечитываем всё
+const onDissolved = (result: AbilityActionResult) => {
+    abilities.value = result.abilities;
+    load();
+};
+
+// Способность вставили: меняется только получивший её дворф
+const onAbilitiesChanged = (result: AbilityActionResult) => {
+    abilities.value = result.abilities;
+    const changed = result.hero;
+    if (changed) heroes.value = heroes.value.map(h => (h.id === changed.id ? changed : h));
+};
+
 // На вкладке предметов всегда есть выбранный герой, если он вообще есть: слоты живут на его панели
 watch([tab, sorted], () => {
     if (tab.value === 'items' && !selectedId.value) selectedId.value = sorted.value[0]?.id ?? null;
@@ -179,7 +205,20 @@ watch([tab, sorted], () => {
         width="min(1280px, calc(94vw - 140px))"
         height="min(780px, 90vh)"
     >
-        <div class="hero-upgrade" :class="{ 'hero-upgrade-selected': selected?.upgrade }">
+        <div v-if="isForgeTab" class="hero-upgrade">
+            <div v-if="loading && !heroes.length" class="hero-upgrade-hint hero-upgrade-hint-wide">{{ t('common.loading') }}</div>
+            <div v-else-if="errorMessage" class="hero-upgrade-hint hero-upgrade-hint-wide hero-upgrade-hint-error">{{ errorMessage }}</div>
+            <AbilityExtractTab v-else-if="tab === 'extract'" :heroes="heroes" @extracted="onDissolved" @stale="load" />
+            <AbilityInventoryTab
+                v-else-if="tab === 'abilities'"
+                :heroes="heroes"
+                :abilities="abilities"
+                @changed="onAbilitiesChanged"
+                @stale="load"
+            />
+            <HeroFusionTab v-else :heroes="heroes" @fused="onDissolved" @stale="load" />
+        </div>
+        <div v-else class="hero-upgrade" :class="{ 'hero-upgrade-selected': selected?.upgrade }">
             <Transition name="upgrade-panel">
                 <HeroUpgradePanel
                     v-if="selected?.upgrade"
@@ -260,6 +299,10 @@ watch([tab, sorted], () => {
 
 .hero-upgrade-hint-error {
     color: #ffb4b4;
+}
+
+.hero-upgrade-hint-wide {
+    flex: 1;
 }
 
 .hero-upgrade-grid {
