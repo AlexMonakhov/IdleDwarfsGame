@@ -27,10 +27,8 @@ public class EntityFactory : IEntityFactory
             Current = maxHp
         };
 
-        world.Attack[entity.Id] = new AttackComponent
-        {
-            Damage = BalanceCalculator.ScaleStat(HeroUpgradeService.ScaleStat(hero.Attack, upgradeLevel), level) + gear.Stats.Attack
-        };
+        int attackValue = BalanceCalculator.ScaleStat(HeroUpgradeService.ScaleStat(hero.Attack, upgradeLevel), level) + gear.Stats.Attack;
+        world.Attack[entity.Id] = new AttackComponent { Damage = attackValue, Base = attackValue };
 
         world.Speed[entity.Id] = new SpeedComponent
         {

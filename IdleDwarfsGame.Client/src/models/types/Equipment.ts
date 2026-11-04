@@ -26,7 +26,9 @@ export interface ItemStats {
     energyPerAttack: number;
 }
 
-export type HeroPassive = 'SurvivalOfTheWeakest' | 'SharpTongue' | 'DoubleStrike';
+export type HeroPassive =
+    | 'SurvivalOfTheWeakest' | 'SharpTongue' | 'DoubleStrike' | 'CriticalStrike' | 'Executioner' | 'Cleave' | 'Sorcerer'
+    | 'RuneResonance' | 'Vampirism' | 'StoneSkin' | 'Thorns' | 'LastStand' | 'Avenger' | 'ElementMastery';
 
 // Текст эффекта — equipment.effects.<kind>; какие поля заполнены, зависит от вида
 export interface ItemEffectInfo {

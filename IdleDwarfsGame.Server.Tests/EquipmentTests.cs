@@ -247,9 +247,16 @@ public class EquipmentTests : IDisposable
         Assert.Null(world.GetPassive(id, HeroPassive.SurvivalOfTheWeakest));
     }
 
-    private static CombatContext BasicAttack(World world, int attacker)
+    // Случайность, при которой срабатывает любой шанс (двойной удар, крит)
+    private sealed class AlwaysRandom : Random
     {
-        var context = new CombatContext { CurrentActor = attacker };
+        public override int Next(int maxValue) => 0;
+        public override double NextDouble() => 0;
+    }
+
+    private static CombatContext BasicAttack(World world, int attacker, bool lucky = false)
+    {
+        var context = new CombatContext { CurrentActor = attacker, Random = lucky ? new AlwaysRandom() : new Random(1) };
         new DamageSystem().Execute(world, context);
         return context;
     }
@@ -261,12 +268,12 @@ public class EquipmentTests : IDisposable
 
         var context = BasicAttack(world, id);
 
-        // Второй уровень — 20% от атаки на 1 ход
+        // Второй уровень — 15% от атаки на 2 хода
         var applied = Assert.Single(context.Logs, l => l.EventType == CombatEventType.StatusApplied);
         Assert.Equal(enemies[0], applied.TargetId);
         Assert.Equal("Passive", applied.Phase);
-        Assert.Equal(20, applied.AppliedEffects[0].Power);
-        Assert.Equal(1, applied.AppliedEffects[0].Duration);
+        Assert.Equal(15, applied.AppliedEffects[0].Power);
+        Assert.Equal(2, applied.AppliedEffects[0].Duration);
     }
 
     [Fact]
@@ -279,7 +286,7 @@ public class EquipmentTests : IDisposable
 
         var burns = context.Logs.Where(l => l.EventType == CombatEventType.StatusApplied).ToList();
         Assert.Equal(enemies.Take(2), burns.Select(l => l.TargetId));
-        Assert.All(burns, l => Assert.Equal(2, l.AppliedEffects[0].Duration));
+        Assert.All(burns, l => Assert.Equal(3, l.AppliedEffects[0].Duration));
         // (100 + 20 + 40) × (10% + 10%)
         Assert.All(burns, l => Assert.Equal(32, l.AppliedEffects[0].Power));
     }
@@ -289,12 +296,12 @@ public class EquipmentTests : IDisposable
     {
         var (world, id, enemies) = Arena(MakeHero(passives: [HeroPassive.DoubleStrike], passiveLevel: 3));
 
-        var context = BasicAttack(world, id);
+        var context = BasicAttack(world, id, lucky: true);
 
         var attacks = context.Logs.Where(l => l.EventType == CombatEventType.Attack).ToList();
         Assert.Equal(2, attacks.Count);
         Assert.All(attacks, l => Assert.Equal(enemies[0], l.TargetId));
-        Assert.Equal(100, attacks[1].Damage); // на 3 уровне пассивки второй удар в полную силу
+        Assert.Equal(100, attacks[1].Damage); // второй удар — в полную силу
         Assert.Equal(nameof(HeroPassive.DoubleStrike), attacks[1].SkillName);
         Assert.NotEqual(attacks[0].ActionId, attacks[1].ActionId);
         Assert.Equal(20, world.Energy[id].Current);
@@ -305,7 +312,7 @@ public class EquipmentTests : IDisposable
     {
         var (world, id, enemies) = Arena(MakeHero(passives: [HeroPassive.DoubleStrike], passiveLevel: 3, items: "RingOfCleaving"));
 
-        var context = BasicAttack(world, id);
+        var context = BasicAttack(world, id, lucky: true);
 
         var attacks = context.Logs.Where(l => l.EventType == CombatEventType.Attack).ToList();
         Assert.Equal([enemies[0], enemies[0], enemies[1]], attacks.Select(l => l.TargetId));
@@ -317,7 +324,7 @@ public class EquipmentTests : IDisposable
         var (world, id, enemies) = Arena(MakeHero(passives: [HeroPassive.DoubleStrike], passiveLevel: 3), enemies: 1);
         world.Health[enemies[0]].Current = 1;
 
-        var context = BasicAttack(world, id);
+        var context = BasicAttack(world, id, lucky: true);
 
         Assert.Single(context.Logs, l => l.EventType == CombatEventType.Attack);
     }

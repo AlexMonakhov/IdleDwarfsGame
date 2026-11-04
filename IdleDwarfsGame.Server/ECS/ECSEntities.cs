@@ -196,6 +196,8 @@ public class HealthComponent
 public class AttackComponent
 {
     public int Damage;
+    // Атака на старте боя: от неё считаются прибавки по ходу боя (Avenger)
+    public int Base;
 }
 
 public class SpeedComponent
