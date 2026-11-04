@@ -1,4 +1,5 @@
 // Стартовые данные: отряд демо-игрока и шаблоны врагов башни.
+// Статы демо-дворфов — профессия × множитель ранга (ProfessionBook, HeroLevels.RankFactor).
 // Враги лежат в той же таблице Heroes, но принадлежат служебному игроку EnemyPlayerId.
 public static class HeroSeedData
 {
@@ -17,8 +18,8 @@ public static class HeroSeedData
         new Hero
         {
             Id = Guid.Parse("11111111-0000-4000-8000-000000000001"), PlayerId = DemoPlayerId,
-            Name = "Brakk Ironbeard", UnitType = "Dwarf", Element = HeroElement.Fire, Level = 3, PlaceInSquad = 1,
-            MaxHp = 260, Attack = 14, Speed = 4,
+            Name = "Brakk Ironbeard", UnitType = "Dwarf", Profession = HeroProfession.Defender, Element = HeroElement.Fire, Level = 3, PlaceInSquad = 1,
+            MaxHp = 2828, Attack = 212, Speed = 3,
             MaxEnergy = 100, StartEnergy = 0, EnergyPerAttack = 20,
             Immunities = ["Stun"],
             // Защитник: регенерация всему отряду в начале раунда
@@ -27,8 +28,8 @@ public static class HeroSeedData
         new Hero
         {
             Id = Guid.Parse("11111111-0000-4000-8000-000000000002"), PlayerId = DemoPlayerId,
-            Name = "Dain Emberforge", UnitType = "Dwarf", Element = HeroElement.Fire, Level = 3, PlaceInSquad = 2,
-            MaxHp = 130, Attack = 18, Speed = 7,
+            Name = "Dain Emberforge", UnitType = "Dwarf", Profession = HeroProfession.Axeman, Element = HeroElement.Fire, Level = 3, PlaceInSquad = 2,
+            MaxHp = 2036, Attack = 353, Speed = 4,
             MaxEnergy = 100, StartEnergy = 20, EnergyPerAttack = 20,
             SpellIds = [2], // Fireball 2
             Immunities = ["Burn"]
@@ -36,23 +37,23 @@ public static class HeroSeedData
         new Hero
         {
             Id = Guid.Parse("11111111-0000-4000-8000-000000000003"), PlayerId = DemoPlayerId,
-            Name = "Thora Stormhammer", UnitType = "Dwarf", Element = HeroElement.Frost, Level = 3, PlaceInSquad = 3,
-            MaxHp = 150, Attack = 16, Speed = 6,
+            Name = "Thora Stormhammer", UnitType = "Dwarf", Profession = HeroProfession.Warrior, Element = HeroElement.Frost, Level = 3, PlaceInSquad = 3,
+            MaxHp = 2488, Attack = 283, Speed = 5,
             MaxEnergy = 100, StartEnergy = 0, EnergyPerAttack = 25,
             SpellIds = [4, 6] // Lightning 1, Lightning 3
         },
         new Hero
         {
             Id = Guid.Parse("11111111-0000-4000-8000-000000000004"), PlayerId = DemoPlayerId,
-            Name = "Grim Ashaxe", UnitType = "Dwarf", Element = HeroElement.Fire, Level = 3, PlaceInSquad = 4,
-            MaxHp = 180, Attack = 20, Speed = 5,
+            Name = "Grim Ashaxe", UnitType = "Dwarf", Profession = HeroProfession.Miner, Element = HeroElement.Fire, Level = 3, PlaceInSquad = 4,
+            MaxHp = 2262, Attack = 269, Speed = 6,
             MaxEnergy = 100, StartEnergy = 0, EnergyPerAttack = 20
         },
         new Hero
         {
             Id = Guid.Parse("11111111-0000-4000-8000-000000000005"), PlayerId = DemoPlayerId,
-            Name = "Runa Frostpick", UnitType = "Dwarf", Element = HeroElement.Frost, Level = 3, PlaceInSquad = 5,
-            MaxHp = 120, Attack = 12, Speed = 8,
+            Name = "Runa Frostpick", UnitType = "Dwarf", Profession = HeroProfession.Scout, Element = HeroElement.Frost, Level = 3, PlaceInSquad = 5,
+            MaxHp = 1810, Attack = 311, Speed = 8,
             MaxEnergy = 100, StartEnergy = 40, EnergyPerAttack = 20,
             SpellIds = [7] // Healing Rune 1
         },
@@ -60,8 +61,8 @@ public static class HeroSeedData
         new Hero
         {
             Id = Guid.Parse("11111111-0000-4000-8000-000000000006"), PlayerId = DemoPlayerId,
-            Name = "Oin Deepdelver", UnitType = "Dwarf", Element = HeroElement.Frost, Level = 3, PlaceInSquad = null,
-            MaxHp = 140, Attack = 15, Speed = 5,
+            Name = "Oin Deepdelver", UnitType = "Dwarf", Profession = HeroProfession.Miner, Element = HeroElement.Frost, Level = 3, PlaceInSquad = null,
+            MaxHp = 2262, Attack = 269, Speed = 6,
             MaxEnergy = 100, StartEnergy = 0, EnergyPerAttack = 20,
             SpellIds = [1]
         },
@@ -69,8 +70,8 @@ public static class HeroSeedData
         new Hero
         {
             Id = Guid.Parse("11111111-0000-4000-8000-000000000007"), PlayerId = DemoPlayerId,
-            Name = "Morgra Duskvein", UnitType = "Dwarf", Element = HeroElement.Dark, Level = 4, PlaceInSquad = null,
-            MaxHp = 150, Attack = 19, Speed = 6,
+            Name = "Morgra Duskvein", UnitType = "Dwarf", Profession = HeroProfession.Axeman, Element = HeroElement.Dark, Level = 4, PlaceInSquad = null,
+            MaxHp = 7024, Attack = 1219, Speed = 4,
             MaxEnergy = 100, StartEnergy = 20, EnergyPerAttack = 20,
             SpellIds = [39, 45], // Shadow Bolt 3, Hex 3
             Immunities = ["Curse"]
@@ -78,19 +79,19 @@ public static class HeroSeedData
         new Hero
         {
             Id = Guid.Parse("11111111-0000-4000-8000-000000000008"), PlayerId = DemoPlayerId,
-            Name = "Elda Brightfacet", UnitType = "Dwarf", Element = HeroElement.Radiance, Level = 4, PlaceInSquad = null,
-            MaxHp = 160, Attack = 17, Speed = 7,
+            Name = "Elda Brightfacet", UnitType = "Dwarf", Profession = HeroProfession.Warrior, Element = HeroElement.Radiance, Level = 4, PlaceInSquad = null,
+            MaxHp = 8584, Attack = 975, Speed = 5,
             MaxEnergy = 100, StartEnergy = 20, EnergyPerAttack = 20,
             SpellIds = [48, 51, 54], // Prism Ray 3, Radiant Nova 3, Dawnlight 3
             Immunities = ["Stun"]
         },
 
-        // ===== Враги башни (статы базовые, масштабируются этажом) =====
+        // ===== Враги башни (статы базовые, масштабируются этажом: BalanceCalculator) =====
         new Hero
         {
             Id = Guid.Parse("22222222-0000-4000-8000-000000000001"), PlayerId = EnemyPlayerId,
             Name = "Orc Brute", UnitType = "Orc", Element = HeroElement.Frost, Level = 4, PlaceInSquad = 1,
-            MaxHp = 210, Attack = 13, Speed = 3,
+            MaxHp = 1300, Attack = 95, Speed = 3,
             MaxEnergy = 100, StartEnergy = 0, EnergyPerAttack = 20,
             Immunities = ["Stun"]
         },
@@ -98,14 +99,14 @@ public static class HeroSeedData
         {
             Id = Guid.Parse("22222222-0000-4000-8000-000000000002"), PlayerId = EnemyPlayerId,
             Name = "Goblin Scout", UnitType = "Goblin", Element = HeroElement.Frost, Level = 4, PlaceInSquad = 2,
-            MaxHp = 90, Attack = 10, Speed = 9,
+            MaxHp = 560, Attack = 85, Speed = 9,
             MaxEnergy = 100, StartEnergy = 0, EnergyPerAttack = 20
         },
         new Hero
         {
             Id = Guid.Parse("22222222-0000-4000-8000-000000000003"), PlayerId = EnemyPlayerId,
             Name = "Goblin Shaman", UnitType = "Goblin", Element = HeroElement.Frost, Level = 4, PlaceInSquad = 3,
-            MaxHp = 85, Attack = 10, Speed = 7,
+            MaxHp = 520, Attack = 85, Speed = 7,
             MaxEnergy = 100, StartEnergy = 20, EnergyPerAttack = 20,
             SpellIds = [1] // Fireball 1
         },
@@ -113,7 +114,7 @@ public static class HeroSeedData
         {
             Id = Guid.Parse("22222222-0000-4000-8000-000000000004"), PlayerId = EnemyPlayerId,
             Name = "Orc Warlord", UnitType = "Orc", Element = HeroElement.Frost, Level = 4, PlaceInSquad = 4,
-            MaxHp = 180, Attack = 12, Speed = 4,
+            MaxHp = 1100, Attack = 95, Speed = 4,
             MaxEnergy = 100, StartEnergy = 0, EnergyPerAttack = 20,
             Immunities = ["Burn"],
             // Аура жара: поджигает врагов в начале раунда
@@ -123,7 +124,7 @@ public static class HeroSeedData
         {
             Id = Guid.Parse("22222222-0000-4000-8000-000000000005"), PlayerId = EnemyPlayerId,
             Name = "Skeleton Mage", UnitType = "Skeleton", Element = HeroElement.Frost, Level = 4, PlaceInSquad = 5,
-            MaxHp = 100, Attack = 13, Speed = 6,
+            MaxHp = 620, Attack = 100, Speed = 6,
             MaxEnergy = 100, StartEnergy = 0, EnergyPerAttack = 25,
             SpellIds = [5], // Lightning 2
             Immunities = ["Frost"]

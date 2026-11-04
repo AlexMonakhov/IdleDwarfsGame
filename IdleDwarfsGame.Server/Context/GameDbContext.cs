@@ -113,6 +113,12 @@ public class GameDbContext : DbContext
             .HasMaxLength(16)
             .HasDefaultValue(HeroElement.Basic);
 
+        // Профессию храним строкой, как и стихию; у монстров её нет
+        modelBuilder.Entity<Hero>()
+            .Property(h => h.Profession)
+            .HasConversion<string>()
+            .HasMaxLength(16);
+
         modelBuilder.Entity<Player>()
             .HasData(HeroSeedData.Players.Append(CampaignSeedData.Player).Append(GuildBossSeedData.Player).ToArray());
 

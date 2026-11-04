@@ -43,16 +43,36 @@ public class HeroUpgradeTests : IDisposable
     }
 
     [Fact]
-    public void Cost_GrowsWithLevelAndRank_AndStopsAtMax()
+    public void Cost_GrowsWithLevelAndRank_AndStopsAtRankMax()
     {
         var first = HeroUpgradeService.CostFor(rank: 1, level: 1)!;
-        Assert.Equal(30, first.Gold);
-        Assert.Equal(15, first.Experience);
+        Assert.Equal(60, first.Gold);
+        Assert.Equal(30, first.Experience);
 
-        Assert.True(HeroUpgradeService.CostFor(1, 10)!.Gold > first.Gold);
-        Assert.Equal(first.Gold * 3, HeroUpgradeService.CostFor(3, 1)!.Gold);
-        Assert.NotNull(HeroUpgradeService.CostFor(1, HeroUpgradeService.MaxLevel - 1));
-        Assert.Null(HeroUpgradeService.CostFor(1, HeroUpgradeService.MaxLevel));
+        Assert.True(HeroUpgradeService.CostFor(1, 9)!.Gold > first.Gold);
+        Assert.True(HeroUpgradeService.CostFor(3, 1)!.Gold > HeroUpgradeService.CostFor(2, 19)!.Gold);
+        Assert.NotNull(HeroUpgradeService.CostFor(1, 9));
+        Assert.Null(HeroUpgradeService.CostFor(1, 10));
+        Assert.NotNull(HeroUpgradeService.CostFor(4, 99));
+        Assert.Null(HeroUpgradeService.CostFor(4, 100));
+    }
+
+    [Theory]
+    [InlineData(1, 10)]
+    [InlineData(2, 20)]
+    [InlineData(3, 50)]
+    [InlineData(4, 100)]
+    public void MaxLevel_DependsOnRank(int rank, int maxLevel) =>
+        Assert.Equal(maxLevel, HeroUpgradeService.MaxLevelFor(rank));
+
+    [Fact]
+    public void NextRank_StartsWhereThePreviousOneEnds()
+    {
+        for (int rank = HeroLevels.Min; rank < HeroLevels.Max; rank++)
+        {
+            double maxed = HeroLevels.RankFactor(rank) * HeroUpgradeService.StatFactor(HeroUpgradeService.MaxLevelFor(rank));
+            Assert.Equal(maxed, HeroLevels.RankFactor(rank + 1), 6);
+        }
     }
 
     [Fact]
@@ -117,14 +137,16 @@ public class HeroUpgradeTests : IDisposable
     [Fact]
     public async Task Upgrade_StopsAtMaxLevel()
     {
-        for (int level = HeroUpgradeService.MinLevel; level < HeroUpgradeService.MaxLevel; level++)
+        int maxLevel = HeroUpgradeService.MaxLevelFor(_hero.Level);
+        for (int level = HeroUpgradeService.MinLevel; level < maxLevel; level++)
             await _service.UpgradeAsync(_playerId, _hero.Id);
 
         var error = await Assert.ThrowsAsync<HeroUpgradeException>(() => _service.UpgradeAsync(_playerId, _hero.Id));
         Assert.Equal(HeroUpgradeError.MaxLevel, error.Code);
 
         var info = HeroInfo.From(Factory, await _context.Heroes.AsNoTracking().SingleAsync(h => h.Id == _hero.Id));
-        Assert.Equal(HeroUpgradeService.MaxLevel, info.Upgrade.Level);
+        Assert.Equal(maxLevel, info.Upgrade.Level);
+        Assert.Equal(maxLevel, info.Upgrade.MaxLevel);
         Assert.Null(info.Upgrade.Cost);
         Assert.Null(info.Upgrade.Next);
     }

@@ -374,6 +374,7 @@ const en = {
       RingOfWildfire: 'Ring of Wildfire',
     },
   },
+  professions: { Defender: 'Defender', Warrior: 'Warrior', Axeman: 'Axeman', Miner: 'Miner', Scout: 'Scout' },
   passives: {
     names: {
       SurvivalOfTheWeakest: 'Survival of the Weakest',

@@ -5,6 +5,7 @@ public class HeroInfo
     public string Name { get; set; } = string.Empty;
     public string UnitType { get; set; } = string.Empty;
     public HeroElement Element { get; set; }
+    public HeroProfession? Profession { get; set; }
     public int Level { get; set; }
     // null — герой не в отряде
     public int? PlaceInSquad { get; set; }
@@ -30,6 +31,7 @@ public class HeroInfo
     {
         var gear = EquipmentCatalog.CollectGear(hero);
         var aura = EntityFactory.ResolveAura(hero, gear);
+        int upgradeLevel = HeroUpgradeService.ClampLevel(hero.Level, hero.UpgradeLevel);
 
         return new HeroInfo
         {
@@ -37,12 +39,13 @@ public class HeroInfo
             Name = hero.Name,
             UnitType = hero.UnitType,
             Element = hero.Element,
+            Profession = hero.Profession,
             Level = hero.Level,
             PlaceInSquad = hero.PlaceInSquad,
             OnExpedition = onExpedition,
             InMine = inMine,
-            MaxHp = HeroUpgradeService.ScaleStat(hero.MaxHp, hero.UpgradeLevel) + gear.Stats.MaxHp,
-            Attack = HeroUpgradeService.ScaleStat(hero.Attack, hero.UpgradeLevel) + gear.Stats.Attack,
+            MaxHp = HeroUpgradeService.ScaleStat(hero.MaxHp, upgradeLevel) + gear.Stats.MaxHp,
+            Attack = HeroUpgradeService.ScaleStat(hero.Attack, upgradeLevel) + gear.Stats.Attack,
             Speed = hero.Speed + gear.Stats.Speed,
             MaxEnergy = hero.MaxEnergy + gear.Stats.MaxEnergy,
             Spells = hero.SpellIds.Select(SpellRegistry.Describe).ToList(),

@@ -6,10 +6,12 @@ public class Hero
 
     // Внешний вид (для фронта): спрайт выбирается по типу, уровню и стихии
     public string UnitType { get; set; } = "Dwarf";
+    // Профессия дворфа задаёт базовые статы (ProfessionBook); у монстров её нет
+    public HeroProfession? Profession { get; set; }
     public HeroElement Element { get; set; } = HeroElement.Basic;
     // HeroLevels.Min..HeroLevels.Max
     public int Level { get; set; } = 1;
-    // Внутренний уровень прокачки за золото и опыт: 1..HeroUpgradeService.MaxLevel, растит HP и атаку.
+    // Внутренний уровень прокачки за золото и опыт: 1..HeroLevels.MaxUpgradeLevel(Level), растит HP и атаку.
     // Не путать с Level: тот меняет вид и способности, а этот сбрасывается при повышении Level
     public int UpgradeLevel { get; set; } = 1;
 

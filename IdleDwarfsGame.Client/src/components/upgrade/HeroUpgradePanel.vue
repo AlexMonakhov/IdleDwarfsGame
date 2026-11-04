@@ -145,6 +145,7 @@ const hint = computed(() => {
                 <div class="upgrade-stage-name">{{ hero.name }}</div>
                 <div class="upgrade-stage-tags">
                     <span class="upgrade-tag">{{ t('heroUpgrade.rank', { rank: hero.level }) }}</span>
+                    <span v-if="hero.profession" class="upgrade-tag">{{ t(`professions.${hero.profession}`) }}</span>
                     <span class="upgrade-tag" :class="`upgrade-tag-${color}`">{{ t(`elements.${hero.element}`) }}</span>
                     <span v-if="hero.onExpedition" class="upgrade-tag upgrade-tag-busy">{{ t('squad.onExpedition') }}</span>
                 </div>
@@ -222,7 +223,11 @@ const hint = computed(() => {
         <div class="upgrade-controls">
             <div class="upgrade-level">
                 <span class="upgrade-level-text">{{ t('heroUpgrade.level', { level: upgrade.level, max: upgrade.maxLevel }) }}</span>
-                <div class="upgrade-level-bar">
+                <!-- До 20 уровней — по ячейке на уровень, дальше ячейки слишком мелкие: сплошная полоска -->
+                <div v-if="upgrade.maxLevel > 20" class="upgrade-level-bar upgrade-level-bar-solid">
+                    <span class="upgrade-level-fill" :style="{ width: `${(upgrade.level / upgrade.maxLevel) * 100}%` }"></span>
+                </div>
+                <div v-else class="upgrade-level-bar">
                     <span
                         v-for="step in upgrade.maxLevel"
                         :key="step"
@@ -517,6 +522,22 @@ const hint = computed(() => {
     background: rgba(0, 0, 0, 0.55);
     box-shadow: inset 0 0 3px #000;
     transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+
+.upgrade-level-bar-solid {
+    height: 12px;
+    border-radius: 3px;
+    overflow: hidden;
+    background: rgba(0, 0, 0, 0.55);
+    box-shadow: inset 0 0 3px #000;
+}
+
+.upgrade-level-fill {
+    display: block;
+    height: 100%;
+    background: linear-gradient(to bottom, #fde68a, #f59e0b);
+    box-shadow: 0 0 6px rgba(245, 158, 11, 0.6);
+    transition: width 0.3s ease;
 }
 
 .upgrade-level-step-done {

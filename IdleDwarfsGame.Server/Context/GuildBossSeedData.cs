@@ -21,7 +21,7 @@ public static class GuildBossSeedData
         {
             Id = MossbackTroll, PlayerId = PlayerId,
             Name = "Mossback Troll", UnitType = "Troll", Element = HeroElement.Nature, Level = 4,
-            MaxHp = 210, Attack = 13, Speed = 3,
+            MaxHp = 1300, Attack = 100, Speed = 3,
             MaxEnergy = 100, StartEnergy = 0, EnergyPerAttack = 20,
             SpellIds = [31], // Venom Thorns 1
             Immunities = ["Stun", "Poison"]
@@ -30,7 +30,7 @@ public static class GuildBossSeedData
         {
             Id = RimehornYeti, PlayerId = PlayerId,
             Name = "Rimehorn Yeti", UnitType = "Yeti", Element = HeroElement.Frost, Level = 4,
-            MaxHp = 210, Attack = 13, Speed = 3,
+            MaxHp = 1300, Attack = 100, Speed = 3,
             MaxEnergy = 100, StartEnergy = 0, EnergyPerAttack = 20,
             SpellIds = [16], // Frost Bolt 1
             Immunities = ["Frost", "Freeze"]
@@ -41,7 +41,7 @@ public static class GuildBossSeedData
         {
             Id = AshmawWarlord, PlayerId = PlayerId,
             Name = "Ashmaw the Warlord", UnitType = "Orc", Element = HeroElement.Fire, Level = 4,
-            MaxHp = 180, Attack = 12, Speed = 4,
+            MaxHp = 1100, Attack = 95, Speed = 4,
             MaxEnergy = 100, StartEnergy = 0, EnergyPerAttack = 20,
             // Без ауры жара: лава и так поджигает весь отряд каждый раунд
             SpellIds = [10], // Flame Wave 1
@@ -51,7 +51,7 @@ public static class GuildBossSeedData
         {
             Id = GrukkStormcaller, PlayerId = PlayerId,
             Name = "Grukk Stormcaller", UnitType = "Ogre", Element = HeroElement.Lightning, Level = 4,
-            MaxHp = 180, Attack = 12, Speed = 4,
+            MaxHp = 1100, Attack = 95, Speed = 4,
             MaxEnergy = 100, StartEnergy = 0, EnergyPerAttack = 20,
             SpellIds = [25], // Chain Lightning 1
             Immunities = ["Shock", "Stun"]
@@ -62,7 +62,7 @@ public static class GuildBossSeedData
         {
             Id = NyxaraHollowQueen, PlayerId = PlayerId,
             Name = "Nyxara the Hollow Queen", UnitType = "Skeleton", Element = HeroElement.Dark, Level = 4,
-            MaxHp = 100, Attack = 13, Speed = 6,
+            MaxHp = 620, Attack = 105, Speed = 6,
             MaxEnergy = 100, StartEnergy = 0, EnergyPerAttack = 25,
             // Проклятие накладывает склеп, поэтому стрела без него
             SpellIds = [37], // Shadow Bolt 1
@@ -72,7 +72,7 @@ public static class GuildBossSeedData
         {
             Id = SeraphelShatteredLight, PlayerId = PlayerId,
             Name = "Seraphel the Shattered Light", UnitType = "Golem", Element = HeroElement.Radiance, Level = 4,
-            MaxHp = 100, Attack = 13, Speed = 6,
+            MaxHp = 620, Attack = 105, Speed = 6,
             MaxEnergy = 100, StartEnergy = 0, EnergyPerAttack = 25,
             SpellIds = [47], // Prism Ray 2
             Immunities = ["Stun", "Freeze"]

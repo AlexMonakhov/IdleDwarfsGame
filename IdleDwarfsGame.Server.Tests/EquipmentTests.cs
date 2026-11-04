@@ -148,8 +148,8 @@ public class EquipmentTests : IDisposable
 
         int plainDamage = plainContext.Logs.Single(l => l.EventType == CombatEventType.Damage).Damage;
         int gearedDamage = gearedContext.Logs.Single(l => l.EventType == CombatEventType.Damage).Damage;
-        // +6 атаки и +20% урона спелла
-        Assert.Equal((int)(106 * 1.2) * 120 / 100, gearedDamage);
+        // +60 атаки и +20% урона спелла
+        Assert.Equal((int)(160 * 1.2) * 120 / 100, gearedDamage);
         Assert.True(gearedDamage > plainDamage);
     }
 
@@ -161,8 +161,8 @@ public class EquipmentTests : IDisposable
         var hero = MakeHero(items: ["WarlordHelm", "HeartOfTheMountain"]);
         var (world, id, _) = Arena(hero);
 
-        Assert.Equal(100000 + 60 + 40, world.Health[id].Max);
-        Assert.Equal(103, world.Attack[id].Damage);
+        Assert.Equal(100000 + 480 + 320, world.Health[id].Max);
+        Assert.Equal(130, world.Attack[id].Damage);
         Assert.Equal(20, world.Energy[id].Current);
         Assert.Equal(25, world.Energy[id].GainPerAttack);
     }
@@ -280,8 +280,8 @@ public class EquipmentTests : IDisposable
         var burns = context.Logs.Where(l => l.EventType == CombatEventType.StatusApplied).ToList();
         Assert.Equal(enemies.Take(2), burns.Select(l => l.TargetId));
         Assert.All(burns, l => Assert.Equal(2, l.AppliedEffects[0].Duration));
-        // (100 + 2 + 4) × (10% + 10%)
-        Assert.All(burns, l => Assert.Equal(21, l.AppliedEffects[0].Power));
+        // (100 + 20 + 40) × (10% + 10%)
+        Assert.All(burns, l => Assert.Equal(32, l.AppliedEffects[0].Power));
     }
 
     [Fact]
@@ -357,8 +357,8 @@ public class EquipmentTests : IDisposable
     [Fact]
     public void Power_RingCountsOnlyWithItsPassive()
     {
-        var withPassive = CombatPower.OfHero(Factory, MakeHero(hp: 100, attack: 10, passives: [HeroPassive.SharpTongue], items: "RingOfWildfire"));
-        var withoutPassive = CombatPower.OfHero(Factory, MakeHero(hp: 100, attack: 10, passives: [HeroPassive.DoubleStrike], items: "RingOfWildfire"));
+        var withPassive = CombatPower.OfHero(Factory, MakeHero(hp: 1000, attack: 100, passives: [HeroPassive.SharpTongue], items: "RingOfWildfire"));
+        var withoutPassive = CombatPower.OfHero(Factory, MakeHero(hp: 1000, attack: 100, passives: [HeroPassive.DoubleStrike], items: "RingOfWildfire"));
 
         Assert.True(withPassive.Equipment > withoutPassive.Equipment);
     }
@@ -442,7 +442,7 @@ public class EquipmentTests : IDisposable
         var equipped = await _service.EquipAsync(_playerId, axe.Id, hero.Id, null);
 
         var info = Assert.Single(equipped.Heroes);
-        Assert.Equal(102, info.Attack);
+        Assert.Equal(120, info.Attack);
         Assert.Equal("RustyAxe", Assert.Single(info.Equipment).Key);
         var listed = Assert.Single(equipped.Items);
         Assert.Equal(hero.Id, listed.HeroId);
@@ -537,7 +537,7 @@ public class EquipmentTests : IDisposable
         var result = await _service.EquipAsync(_playerId, axe.Id, second.Id, null);
 
         Assert.Equal(2, result.Heroes.Count);
-        Assert.Equal(102, result.Heroes.Single(h => h.Id == second.Id).Attack);
+        Assert.Equal(120, result.Heroes.Single(h => h.Id == second.Id).Attack);
         Assert.Equal(100, result.Heroes.Single(h => h.Id == first.Id).Attack);
     }
 

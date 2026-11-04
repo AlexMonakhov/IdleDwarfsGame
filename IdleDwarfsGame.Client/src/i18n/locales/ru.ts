@@ -374,6 +374,7 @@ const ru: LocaleMessages = {
       RingOfWildfire: 'Кольцо лесного пожара',
     },
   },
+  professions: { Defender: 'Защитник', Warrior: 'Воин', Axeman: 'Секироносец', Miner: 'Рудокоп', Scout: 'Разведчик' },
   passives: {
     names: {
       SurvivalOfTheWeakest: 'Выживает слабейший',

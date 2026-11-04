@@ -4,8 +4,9 @@ public class EntityFactory : IEntityFactory
     {
         var entity = world.CreateEntity();
         var gear = EquipmentCatalog.CollectGear(hero);
+        int upgradeLevel = HeroUpgradeService.ClampLevel(hero.Level, hero.UpgradeLevel);
         // Сначала бонус прокачки героя, поверх него — масштабирование уровнем боя, сверху — предметы
-        int maxHp = BalanceCalculator.ScaleStat(HeroUpgradeService.ScaleStat(hero.MaxHp, hero.UpgradeLevel), level) + gear.Stats.MaxHp;
+        int maxHp = BalanceCalculator.ScaleStat(HeroUpgradeService.ScaleStat(hero.MaxHp, upgradeLevel), level) + gear.Stats.MaxHp;
 
         world.Info[entity.Id] = new UnitInfoComponent
         {
@@ -15,7 +16,8 @@ public class EntityFactory : IEntityFactory
             Element = hero.Element,
             Level = hero.Level,
             StatLevel = Math.Max(1, level),
-            UpgradeLevel = HeroUpgradeService.ClampLevel(hero.UpgradeLevel),
+            UpgradeLevel = upgradeLevel,
+            Profession = hero.Profession,
             Position = position
         };
 
@@ -27,7 +29,7 @@ public class EntityFactory : IEntityFactory
 
         world.Attack[entity.Id] = new AttackComponent
         {
-            Damage = BalanceCalculator.ScaleStat(HeroUpgradeService.ScaleStat(hero.Attack, hero.UpgradeLevel), level) + gear.Stats.Attack
+            Damage = BalanceCalculator.ScaleStat(HeroUpgradeService.ScaleStat(hero.Attack, upgradeLevel), level) + gear.Stats.Attack
         };
 
         world.Speed[entity.Id] = new SpeedComponent

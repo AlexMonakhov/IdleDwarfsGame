@@ -35,7 +35,7 @@ public static class CampaignSeedData
         {
             Id = FrostGoblin, PlayerId = CampaignPlayerId,
             Name = "Frost Goblin", UnitType = "Goblin", Element = HeroElement.Frost, Level = 4,
-            MaxHp = 95, Attack = 11, Speed = 8,
+            MaxHp = 600, Attack = 90, Speed = 8,
             MaxEnergy = 100, StartEnergy = 0, EnergyPerAttack = 20,
             Immunities = ["Frost"]
         },
@@ -43,7 +43,7 @@ public static class CampaignSeedData
         {
             Id = RimeSkeleton, PlayerId = CampaignPlayerId,
             Name = "Rime Skeleton", UnitType = "Skeleton", Element = HeroElement.Frost, Level = 4,
-            MaxHp = 120, Attack = 12, Speed = 5,
+            MaxHp = 740, Attack = 95, Speed = 5,
             MaxEnergy = 100, StartEnergy = 20, EnergyPerAttack = 20,
             SpellIds = [4], // Lightning 1
             Immunities = ["Frost"]
@@ -54,7 +54,7 @@ public static class CampaignSeedData
         {
             Id = GorrakBoss, PlayerId = CampaignPlayerId,
             Name = "Gorrak the Molten", UnitType = "Orc", Element = HeroElement.Fire, Level = 4,
-            MaxHp = 260, Attack = 16, Speed = 5,
+            MaxHp = 1600, Attack = 130, Speed = 5,
             MaxEnergy = 100, StartEnergy = 20, EnergyPerAttack = 20,
             SpellIds = [2], // Fireball 2
             Immunities = ["Burn", "Stun"],
@@ -65,7 +65,7 @@ public static class CampaignSeedData
         {
             Id = HrimgarBoss, PlayerId = CampaignPlayerId,
             Name = "Hrimgar the Frostbound", UnitType = "Skeleton", Element = HeroElement.Frost, Level = 4,
-            MaxHp = 240, Attack = 15, Speed = 6,
+            MaxHp = 1500, Attack = 125, Speed = 6,
             MaxEnergy = 100, StartEnergy = 20, EnergyPerAttack = 25,
             SpellIds = [6], // Lightning 3
             Immunities = ["Frost", "Stun"],

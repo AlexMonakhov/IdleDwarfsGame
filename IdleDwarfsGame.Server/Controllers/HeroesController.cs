@@ -83,7 +83,7 @@ public class HeroesController(
     public async Task<IActionResult> AddHero([FromBody] Hero hero)
     {
         hero.Level = Math.Clamp(hero.Level, HeroLevels.Min, HeroLevels.Available);
-        hero.UpgradeLevel = HeroUpgradeService.ClampLevel(hero.UpgradeLevel);
+        hero.UpgradeLevel = HeroUpgradeService.ClampLevel(hero.Level, hero.UpgradeLevel);
         hero.Element = HeroLevels.NormalizeElement(hero.Level, hero.Element);
         // Предметы выдаются только сундуками: через тело запроса их не создать
         hero.Equipment = [];
