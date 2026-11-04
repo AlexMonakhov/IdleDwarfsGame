@@ -6,12 +6,15 @@ public class ChestInfo
     public Guid Id { get; set; }
     public ChestType Type { get; set; }
     public int Level { get; set; }
+    // Basic — сундук без стихии
+    public HeroElement Element { get; set; }
 
     public static ChestInfo From(PlayerChest chest) => new()
     {
         Id = chest.Id,
         Type = chest.ChestDropTable.ChestType,
-        Level = chest.ChestDropTable.ChestLevel
+        Level = chest.ChestDropTable.ChestLevel,
+        Element = chest.ChestDropTable.Element
     };
 }
 

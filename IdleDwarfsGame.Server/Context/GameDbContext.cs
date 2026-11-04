@@ -29,6 +29,7 @@ public class GameDbContext : DbContext
     public DbSet<PlayerEquipment> PlayerEquipment => Set<PlayerEquipment>();
     public DbSet<PlayerReward> PlayerRewards => Set<PlayerReward>();
     public DbSet<PlayerRewardChest> PlayerRewardChests => Set<PlayerRewardChest>();
+    public DbSet<PlayerRewardItem> PlayerRewardItems => Set<PlayerRewardItem>();
     public DbSet<Guild> Guilds => Set<Guild>();
     public DbSet<GuildMember> GuildMembers => Set<GuildMember>();
     public DbSet<GuildJoinRequest> GuildJoinRequests => Set<GuildJoinRequest>();
@@ -41,6 +42,7 @@ public class GameDbContext : DbContext
     public DbSet<RankedSquad> RankedSquads => Set<RankedSquad>();
     public DbSet<Mine> Mines => Set<Mine>();
     public DbSet<PlayerAbility> PlayerAbilities => Set<PlayerAbility>();
+    public DbSet<PlayerTowerProgress> PlayerTowerProgress => Set<PlayerTowerProgress>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -166,9 +168,15 @@ public class GameDbContext : DbContext
             .Property(t => t.Rolls)
             .HasDefaultValue(1);
 
-        // Сундук определяется типом и уровнем — по ним награда находит таблицу
         modelBuilder.Entity<ChestDropTable>()
-            .HasIndex(t => new { t.ChestType, t.ChestLevel })
+            .Property(t => t.Element)
+            .HasConversion<string>()
+            .HasMaxLength(16)
+            .HasDefaultValue(HeroElement.Basic);
+
+        // Сундук определяется типом, уровнем и стихией — по ним награда находит таблицу
+        modelBuilder.Entity<ChestDropTable>()
+            .HasIndex(t => new { t.ChestType, t.ChestLevel, t.Element })
             .IsUnique();
 
         modelBuilder.Entity<ChestDropTable>()
@@ -525,6 +533,35 @@ public class GameDbContext : DbContext
             .HasConversion<string>()
             .HasMaxLength(16);
 
+        modelBuilder.Entity<PlayerRewardChest>()
+            .Property(c => c.Element)
+            .HasConversion<string>()
+            .HasMaxLength(16)
+            .HasDefaultValue(HeroElement.Basic);
+
+        modelBuilder.Entity<PlayerReward>()
+            .HasMany(r => r.Items)
+            .WithOne()
+            .HasForeignKey(i => i.RewardId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<PlayerRewardItem>()
+            .HasKey(i => i.Id);
+
+        modelBuilder.Entity<PlayerRewardItem>()
+            .Property(i => i.ItemType)
+            .HasConversion<string>()
+            .HasMaxLength(16);
+
+        modelBuilder.Entity<PlayerRewardItem>()
+            .Property(i => i.Rarity)
+            .HasConversion<string>()
+            .HasMaxLength(16);
+
+        modelBuilder.Entity<PlayerRewardItem>()
+            .Property(i => i.SubType)
+            .HasMaxLength(32);
+
         // ===== Гильдии =====
         modelBuilder.Entity<Guild>()
             .HasKey(g => g.Id);
@@ -862,5 +899,20 @@ public class GameDbContext : DbContext
 
         modelBuilder.Entity<PlayerAbility>()
             .HasIndex(a => a.PlayerId);
+
+        // ===== Бесконечная башня =====
+        // Одна строка на игрока в неделю — заодно защищает от двойного создания прогресса параллельными боями
+        modelBuilder.Entity<PlayerTowerProgress>()
+            .HasKey(p => new { p.PlayerId, p.WeekStart });
+
+        modelBuilder.Entity<PlayerTowerProgress>()
+            .Property(p => p.PlayerId)
+            .HasConversion<string>();
+
+        modelBuilder.Entity<PlayerTowerProgress>()
+            .HasOne<Player>()
+            .WithMany()
+            .HasForeignKey(p => p.PlayerId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

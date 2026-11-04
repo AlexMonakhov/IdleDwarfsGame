@@ -181,7 +181,8 @@ public static class CampaignGenerator
         }
     }
 
-    // Состав уровня: в начале главы трое, к середине четверо, к концу пятеро; на последнем — босс с охраной
+    // Состав уровня: в начале главы трое, к середине четверо, к концу пятеро; на последнем — босс с охраной.
+    // Босс — на 3-м слоте (правила расстановки — в шапке CampaignSeedData)
     public static IEnumerable<CampaignStageEnemy> StageEnemies()
     {
         for (int id = HandcraftedStages + 1; id <= TotalStages; id++)
@@ -189,7 +190,7 @@ public static class CampaignGenerator
             var region = RegionOf(id);
             int index = (id - 1) % ChapterSize;
             Guid[] line = index == ChapterSize - 1
-                ? [region.Tank, region.Boss, region.Caster, region.Elite]
+                ? [region.Tank, region.Caster, region.Boss, region.Elite]
                 : index switch
                 {
                     < 3 => [region.Tank, region.Melee, region.Caster],

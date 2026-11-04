@@ -75,6 +75,8 @@ const backgroundStyle = `url(${background}) center / cover no-repeat, radial-gra
                             </span>
                             <span class="forecast-power">⚔ {{ props.forecast.enemyPower }}</span>
                         </div>
+                        <!-- Под прогнозом — что-то своё для режима (награда этажа башни) -->
+                        <slot name="preview-footer"></slot>
                     </div>
                 </slot>
             </div>

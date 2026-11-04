@@ -50,6 +50,8 @@ export interface BattleUnit {
   level: number;
   team: number;
   position: number;
+  // Босс рисуется крупнее прислужников (character-component)
+  isBoss?: boolean;
   maxHp: number;
   hp: number;
   maxEnergy: number;
@@ -91,6 +93,7 @@ export function toBattleUnit(info: CombatUnitInfo): BattleUnit {
     level: info.level,
     team: info.team,
     position: Math.min(Math.max(info.position, 1), 5),
+    isBoss: info.isBoss ?? false,
     maxHp: info.maxHp,
     hp: info.hp,
     maxEnergy: info.maxEnergy,

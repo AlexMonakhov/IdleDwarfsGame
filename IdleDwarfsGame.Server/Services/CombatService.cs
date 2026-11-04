@@ -7,10 +7,14 @@ public class CombatService(
 )
 {
 
-    public async Task<CombatResult> StartTowerFight(Guid playerId, int floor)
+    // Этаж бесконечной башни: сценарий создаётся под бой, бой идёт на арене стихии этажа — с её эффектом
+    public async Task<CombatResult> StartTowerFight(Guid playerId, TowerFloorScenario scenario)
     {
-        var scenario = scenarios.OfType<TowerFloorScenario>().First();
-        return await ProcessCombat(playerId, floor, scenario, new List<IGlobalEffect> { new LavaArenaEffect() });
+        var globalEffects = new List<IGlobalEffect>();
+        if (ArenaStatusEffect.FromArena(scenario.Floor.Arena) is { } arenaEffect)
+            globalEffects.Add(arenaEffect);
+
+        return await ProcessCombat(playerId, scenario.Floor.Number, scenario, globalEffects);
     }
 
     public async Task<CombatResult> StartBossFight(Guid playerId, int difficulty)

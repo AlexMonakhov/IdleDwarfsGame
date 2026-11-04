@@ -42,26 +42,7 @@ public class InventoryRepository(GameDbContext context) : IInventoryRepository
             return false;
 
         foreach (var item in items)
-        {
-            // Такие же предметы уже есть — прибавляем к стопке, иначе заводим новую
-            int stacked = await context.PlayerItems
-                .Where(i => i.PlayerId == chest.PlayerId && i.ItemType == item.ItemType && i.SubType == item.SubType
-                    && i.Rarity == item.Rarity && i.Level == item.Level)
-                .ExecuteUpdateAsync(s => s.SetProperty(i => i.Quantity, i => i.Quantity + item.Amount));
-            if (stacked == 0)
-            {
-                context.PlayerItems.Add(new PlayerItem
-                {
-                    Id = Guid.NewGuid(),
-                    PlayerId = chest.PlayerId,
-                    ItemType = item.ItemType,
-                    SubType = item.SubType,
-                    Rarity = item.Rarity,
-                    Level = item.Level,
-                    Quantity = item.Amount
-                });
-            }
-        }
+            await PlayerItemStacks.AddAsync(context, chest.PlayerId, item);
 
         context.Heroes.AddRange(heroes);
         if (equipment != null)

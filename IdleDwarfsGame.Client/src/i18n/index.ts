@@ -59,4 +59,13 @@ export function setLocale(locale: AppLocale) {
 export const statusLabel = (name: string): string =>
   i18n.global.te(`statuses.${name}`) ? t(`statuses.${name}`) : name;
 
+// «Сундук гемов, уровень 2»; у сундука со стихией (бесконечности) — «Сундук бесконечности · Огонь, уровень 2»
+export const chestLabel = (chest: { type: string; level: number; element?: string }): string => {
+  const type = t(`chests.types.${chest.type}`);
+  const named = chest.element && chest.element !== 'Basic'
+    ? t('chests.withElement', { type, element: t(`elementNames.${chest.element}`) })
+    : type;
+  return t('chests.name', { type: named, level: chest.level });
+};
+
 export default i18n;

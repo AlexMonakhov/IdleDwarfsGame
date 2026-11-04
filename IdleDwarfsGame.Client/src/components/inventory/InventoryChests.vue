@@ -7,7 +7,9 @@ import HeroCard from '@/components/inventory/HeroCard.vue';
 import ItemTile from '@/components/equipment/ItemTile.vue';
 import InventoryApiService from '@/services/apiServices/InventoryApiService';
 import { ChestInfo, ChestOpenResult, ChestType } from '@/models/types/Inventory';
-import { CHEST_ICONS } from './lootStyles';
+import { CHEST_ICONS, ELEMENT_COLORS } from './lootStyles';
+import { HeroElement } from '@/battle/types';
+import { chestLabel } from '@/i18n';
 
 const emit = defineEmits<{ (e: 'opened'): void }>();
 
@@ -21,10 +23,10 @@ const opened = ref<ChestOpenResult | null>(null);
 
 // Одинаковые сундуки показываем одной карточкой со счётчиком, «Открыть» открывает один из них
 const groups = computed(() => {
-    const byKind = new Map<string, { type: ChestType; level: number; ids: string[] }>();
+    const byKind = new Map<string, { type: ChestType; level: number; element: HeroElement; ids: string[] }>();
     for (const chest of chests.value) {
-        const key = `${chest.type}-${chest.level}`;
-        const group = byKind.get(key) ?? { type: chest.type, level: chest.level, ids: [] };
+        const key = `${chest.type}-${chest.level}-${chest.element}`;
+        const group = byKind.get(key) ?? { type: chest.type, level: chest.level, element: chest.element, ids: [] };
         group.ids.push(chest.id);
         byKind.set(key, group);
     }
@@ -70,7 +72,7 @@ onMounted(load);
 
             <section v-if="opened" class="chest-result">
                 <div class="chest-result-title">
-                    {{ CHEST_ICONS[opened.chest.type] }} {{ t('chests.name', { type: t(`chests.types.${opened.chest.type}`), level: opened.chest.level }) }}
+                    {{ CHEST_ICONS[opened.chest.type] }} {{ chestLabel(opened.chest) }}
                     — {{ opened.items.length || opened.heroes.length || opened.equipment?.length ? t('chests.dropped') : t('chests.nothing') }}
                 </div>
                 <div class="inventory-grid">
@@ -84,9 +86,18 @@ onMounted(load);
                 {{ chests.length ? t('inventory.chestsCount', { count: chests.length }) : t('inventory.noChests') }}
             </div>
             <div class="inventory-grid">
-                <div v-for="group in groups" :key="group.key" class="chest-card">
+                <!-- Сундук со стихией (бесконечности) — в рамке её цвета и с её названием -->
+                <div
+                    v-for="group in groups"
+                    :key="group.key"
+                    class="chest-card"
+                    :style="group.element !== 'Basic' ? { borderColor: ELEMENT_COLORS[group.element] } : undefined"
+                >
                     <span class="chest-card-icon">{{ CHEST_ICONS[group.type] }}</span>
                     <span class="chest-card-name">{{ t(`chests.types.${group.type}`) }}</span>
+                    <span v-if="group.element !== 'Basic'" class="chest-card-element" :style="{ color: ELEMENT_COLORS[group.element] }">
+                        {{ t(`elementNames.${group.element}`) }}
+                    </span>
                     <span class="chest-card-level">{{ t('chests.level', { level: group.level }) }}</span>
                     <span v-if="group.ids.length > 1" class="chest-card-count">×{{ group.ids.length }}</span>
                     <button class="chest-card-open" :disabled="opening" @click="open(group.ids[0])">
@@ -172,6 +183,11 @@ onMounted(load);
     font-size: 13px;
     font-weight: 700;
     text-align: center;
+}
+
+.chest-card-element {
+    font-size: 12px;
+    font-weight: 700;
 }
 
 .chest-card-level {

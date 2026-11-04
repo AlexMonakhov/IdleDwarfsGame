@@ -72,6 +72,16 @@ public class CampaignTests
     }
 
     [Fact]
+    public void Bosses_StandInTheThirdSlot()
+    {
+        // Крупный босс на 3-м слоте (выше всех на арене) не перекрывает шапки соседей — см. шапку CampaignSeedData
+        var bosses = CampaignSeedData.StageEnemies.Where(e => e.IsBoss).ToList();
+        Assert.NotEmpty(bosses);
+        Assert.All(bosses, e => Assert.True(e.Position == 3, $"stage {e.StageId}: boss in slot {e.Position}"));
+        Assert.All(bosses.GroupBy(e => e.StageId), g => Assert.Single(g));
+    }
+
+    [Fact]
     public async Task Overview_ShowsCurrentStageAndNextLockedOnes()
     {
         var repository = new SeedCampaignRepository();
