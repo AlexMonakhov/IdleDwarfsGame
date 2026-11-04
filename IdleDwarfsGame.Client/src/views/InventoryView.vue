@@ -242,7 +242,7 @@ const statusText = computed(() => {
 
 <style scoped>
 .inventory-page {
-    height: 100vh;
+    height: var(--stage-h);
 }
 
 .inventory-section {

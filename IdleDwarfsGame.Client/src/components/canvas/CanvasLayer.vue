@@ -28,9 +28,10 @@ const props = withDefaults(defineProps<Props>(), {
 const handleResize = () => {
   // Теперь мы берем размеры не всего окна, а конкретно этой обертки
   if (wrapperRef.value && bgCanvasRef.value && fgCanvasRef.value) {
-    const rect = wrapperRef.value.getBoundingClientRect();
-    const width = Math.round(rect.width * 2);
-    const height = Math.round(rect.height * 2);
+    // Размер в вёрстке, а не getBoundingClientRect: тот уже умножен на масштаб интерфейса (.ui-stage, UseUiScale.ts),
+    // а канвас внутри сцены масштабируется вместе с ней — получилось бы масштабирование дважды
+    const width = wrapperRef.value.offsetWidth * 2;
+    const height = wrapperRef.value.offsetHeight * 2;
     // Присваивание width/height очищает канвас, поэтому трогаем только при реальном изменении
     for (const canvas of [bgCanvasRef.value, fgCanvasRef.value]) {
       if (canvas.width !== width) canvas.width = width;

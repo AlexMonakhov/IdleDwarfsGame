@@ -38,7 +38,7 @@ const panelStyle = computed<CSSProperties>(() => ({
   position: relative;
   z-index: 0;
   box-sizing: border-box;
-  max-width: calc(100vw - 60px);
+  max-width: calc(var(--stage-w) - 60px);
   padding-top: 80px;
   border-radius: var(--border-radius);
 }

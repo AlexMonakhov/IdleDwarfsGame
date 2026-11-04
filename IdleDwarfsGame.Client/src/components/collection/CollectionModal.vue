@@ -46,8 +46,8 @@ const activeTab = computed({
         v-model:active-tab="activeTab"
         :tabs="tabs"
         :header-message="t(`collection.tabs.${tab}`)"
-        width="min(1280px, calc(94vw - 140px))"
-        height="min(780px, 90vh)"
+        width="min(1280px, calc(calc(94 * var(--vw)) - 140px))"
+        height="min(780px, calc(90 * var(--vh)))"
     >
         <!-- Без KeepAlive: скрытая вкладка не должна крутить сцену превью со звуком -->
         <CollectionHeroes v-if="tab === 'heroes'" />

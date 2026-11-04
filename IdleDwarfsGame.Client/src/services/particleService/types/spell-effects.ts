@@ -1,5 +1,6 @@
 import { EffectStrategy, EmitterConfig, Particle } from './interfaces/canvas-interfaces';
-import { BoltPath, jaggedPath } from './canvas-effects';
+import { BOLT_REBUILD_MS, BoltPath, jaggedPath } from './canvas-effects';
+import { perFrameChance, perFrameCount } from '../frameClock';
 import {
   ParticleStore,
   clamp01,
@@ -55,7 +56,7 @@ export class FireWallStrategy extends ParticleStore<{ flames: Particle[]; embers
     const scale = height / 110;
 
     if (front.t < 1) {
-      for (let i = 0; i < rate; i++) {
+      for (let i = perFrameCount(rate); i > 0; i--) {
         // У самого фронта языки гуще и выше, позади — догорают пониже
         const back = Math.random() ** 2 * width * 2.2;
         const tall = 1 - (back / (width * 2.2)) * 0.6;
@@ -71,7 +72,7 @@ export class FireWallStrategy extends ParticleStore<{ flames: Particle[]; embers
         });
       }
 
-      if (Math.random() < 0.5) {
+      if (perFrameChance(0.5)) {
         state.embers.push({
           x: front.x + rand(-width * 0.5, width * 0.5),
           y: front.y - rand(0, height * 0.4),
@@ -84,7 +85,7 @@ export class FireWallStrategy extends ParticleStore<{ flames: Particle[]; embers
         });
       }
 
-      if (Math.random() < 0.35) {
+      if (perFrameChance(0.35)) {
         state.smoke.push({
           x: front.x - front.dir * rand(0, width),
           y: front.y - height * rand(0.6, 0.9),
@@ -228,7 +229,7 @@ export class StormStrategy extends ParticleStore<{ puffs: Particle[]; snow: Part
     const fall = Number(args.fall ?? 260);
     if (p > 0.12 && p < 0.85) {
       const rate = (width / 50) * Number(args.density ?? 1);
-      for (let i = 0; i < rate; i++) {
+      for (let i = perFrameCount(rate); i > 0; i--) {
         const vy = rand(5, 8);
         state.snow.push({
           x: emitter.x + rand(-width / 2, width / 2) - wind * 20,
@@ -688,7 +689,7 @@ export class DrainStrategy extends ParticleStore<DrainOrb[]> {
   update(emitter: EmitterConfig) {
     const orbs = this.store.get(emitter.id) ?? [];
     const p = progressOf(emitter);
-    if (p > 0.15 && p < 0.85 && Math.random() < Number(emitter.args?.rate ?? 0.7)) {
+    if (p > 0.15 && p < 0.85 && perFrameChance(Number(emitter.args?.rate ?? 0.7))) {
       orbs.push({ t: 1, speed: rand(0.018, 0.03), strand: Math.random(), size: rand(2.5, 4.5) });
     }
     for (const orb of orbs) orb.t -= orb.speed;
@@ -723,25 +724,23 @@ export class DrainStrategy extends ParticleStore<DrainOrb[]> {
       [1, rgba(color, 0)],
     ]);
 
+    // Ореол прядей — широкий полупрозрачный штрих, а не shadowBlur (см. LightningStrategy): путь строится раз на прядь
     const strands = Number(args.strands ?? 2);
     for (let s = 0; s < strands; s++) {
       const strand = s / strands;
-      for (const [width, style, alpha] of [[5, glow, 0.6], [1.8, core, 0.9]] as const) {
+      ctx.beginPath();
+      for (let i = 0; i <= 30; i++) {
+        const point = this.at(emitter, (i / 30) * reach, strand, time);
+        if (i === 0) ctx.moveTo(point.x, point.y);
+        else ctx.lineTo(point.x, point.y);
+      }
+      for (const [width, style, alpha] of [[14, color, 0.18], [5, glow, 0.6], [1.8, core, 0.9]] as const) {
         ctx.globalAlpha = opacity * fade * alpha;
         ctx.strokeStyle = style;
         ctx.lineWidth = width;
-        ctx.shadowColor = color;
-        ctx.shadowBlur = width * 2;
-        ctx.beginPath();
-        for (let i = 0; i <= 30; i++) {
-          const point = this.at(emitter, (i / 30) * reach, strand, time);
-          if (i === 0) ctx.moveTo(point.x, point.y);
-          else ctx.lineTo(point.x, point.y);
-        }
         ctx.stroke();
       }
     }
-    ctx.shadowBlur = 0;
 
     for (const orb of this.store.get(emitter.id) ?? []) {
       const point = this.at(emitter, orb.t, orb.strand, time);
@@ -896,7 +895,7 @@ export class SigilStrategy extends ParticleStore {
     const pose = this.pose(emitter);
     const radius = Number(emitter.args?.radius ?? 30);
     // С печати стекают капли тьмы
-    if (pose.alpha > 0.5 && !pose.falling && Math.random() < 0.35) {
+    if (pose.alpha > 0.5 && !pose.falling && perFrameChance(0.35)) {
       drips.push({
         x: pose.x + rand(-radius * 0.6, radius * 0.6),
         y: pose.y + radius * 0.5,
@@ -1051,11 +1050,15 @@ export class NovaStrategy extends ParticleStore {
       ctx.translate(sx, sy + Number(args.groundOffset ?? 60));
       ctx.scale(1, 0.25);
       ctx.strokeStyle = color;
-      ctx.shadowColor = color;
-      ctx.shadowBlur = 12;
-      ctx.lineWidth = 6 * fade + 1;
       ctx.beginPath();
       ctx.arc(0, 0, Math.max(shell, 1), 0, Math.PI * 2);
+      // Ореол — широкий полупрозрачный штрих того же круга, а не shadowBlur: размытие эллипса во весь экран каждый кадр дорогое
+      const ringAlpha = ctx.globalAlpha;
+      ctx.globalAlpha = ringAlpha * 0.25;
+      ctx.lineWidth = 6 * fade + 22;
+      ctx.stroke();
+      ctx.globalAlpha = ringAlpha;
+      ctx.lineWidth = 6 * fade + 1;
       ctx.stroke();
       ctx.restore();
     }
@@ -1083,7 +1086,7 @@ export class LightPillarStrategy extends ParticleStore {
     const args = emitter.args ?? {};
     const width = Number(args.width ?? 70);
     const height = Number(args.height ?? 320);
-    if (progressOf(emitter) < 0.7 && Math.random() < Number(args.rate ?? 0.6)) {
+    if (progressOf(emitter) < 0.7 && perFrameChance(Number(args.rate ?? 0.6))) {
       motes.push({
         x: emitter.x + rand(-width * 0.35, width * 0.35),
         y: emitter.y - rand(height * 0.3, height),
@@ -1151,11 +1154,12 @@ export class LightPillarStrategy extends ParticleStore {
  * args: color, count, width, height
  */
 export class ArcsStrategy implements EffectStrategy {
-  private arcs = new Map<string, { paths: BoltPath[]; frame: number }>();
+  private arcs = new Map<string, { paths: BoltPath[]; rebuildAt: number }>();
 
   update(emitter: EmitterConfig) {
     const state = this.arcs.get(emitter.id);
-    if (state && state.frame++ % 3 !== 0) return;
+    const now = performance.now();
+    if (state && now < state.rebuildAt) return;
 
     const args = emitter.args ?? {};
     const rx = Number(args.width ?? 50) / 2;
@@ -1169,7 +1173,7 @@ export class ArcsStrategy implements EffectStrategy {
         5, 7,
       );
     });
-    this.arcs.set(emitter.id, { paths, frame: (state?.frame ?? 0) + 1 });
+    this.arcs.set(emitter.id, { paths, rebuildAt: now + BOLT_REBUILD_MS });
   }
 
   draw(ctx: CanvasRenderingContext2D, emitter: EmitterConfig) {
@@ -1227,7 +1231,7 @@ export class CometStrategy extends ParticleStore<{ sparks: Particle[]; smoke: Pa
     const head = this.head(emitter);
 
     if (head.raw < 1) {
-      for (let i = 0; i < 4; i++) {
+      for (let i = perFrameCount(4); i > 0; i--) {
         const back = head.angle + Math.PI + rand(-0.4, 0.4);
         const v = rand(1, 4);
         state.sparks.push({
@@ -1241,7 +1245,7 @@ export class CometStrategy extends ParticleStore<{ sparks: Particle[]; smoke: Pa
           color: palette[0],
         });
       }
-      if (args.smoke !== false && Math.random() < 0.6) {
+      if (args.smoke !== false && perFrameChance(0.6)) {
         state.smoke.push({
           x: head.x + rand(-size * 0.4, size * 0.4),
           y: head.y + rand(-size * 0.4, size * 0.4),

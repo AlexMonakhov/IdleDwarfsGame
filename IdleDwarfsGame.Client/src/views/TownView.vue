@@ -216,8 +216,8 @@ const animationObject2 = computed(() => {
 
 <style lang="scss">
 .town {
-    width: 100vw;
-    height: 100vh;
+    width: var(--stage-w);
+    height: var(--stage-h);
     position: fixed;
     background-color: darkcyan;
     overflow-y: auto;

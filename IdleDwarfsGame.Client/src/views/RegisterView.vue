@@ -119,7 +119,7 @@ const onSubmit = async () => {
 
 <style scoped>
 .auth-page {
-  height: 100vh;
+  height: var(--stage-h);
 }
 
 .auth-form {

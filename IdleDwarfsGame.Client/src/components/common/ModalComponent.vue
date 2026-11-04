@@ -192,7 +192,18 @@ const modalStyle = computed<CSSProperties>(() => ({
 
   position: fixed;
 
-  inset: 0;
+  /* Модалка телепортируется в body, мимо .ui-stage из App.vue: масштабируется сама тем же способом */
+  top: 0;
+
+  left: 0;
+
+  width: var(--stage-w);
+
+  height: var(--stage-h);
+
+  transform: scale(var(--ui-scale));
+
+  transform-origin: 0 0;
 
   background: rgba(0, 0, 0, 0.65);
 

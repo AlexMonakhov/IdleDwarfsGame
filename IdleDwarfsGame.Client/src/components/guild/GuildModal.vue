@@ -136,8 +136,8 @@ const footerText = computed(() => errorMessage.value ?? notice.value ?? '');
         v-model:active-tab="activeTab"
         :tabs="tabs"
         :header-message="header"
-        :width="guild ? 'min(900px, calc(94vw - 140px))' : 'min(680px, 94vw)'"
-        height="min(940px, 92vh)"
+        :width="guild ? 'min(900px, calc(calc(94 * var(--vw)) - 140px))' : 'min(680px, calc(94 * var(--vw)))'"
+        height="min(940px, calc(92 * var(--vh)))"
     >
         <div v-if="loading && !overview" class="guild-loading">{{ t('common.loading') }}</div>
 

@@ -78,10 +78,21 @@ export class BattleFx {
     const anchorY = anchor === 'head' && el.dataset.head
       ? Number(el.dataset.head)
       : UNIT_ANCHORS.feet + (UNIT_ANCHORS[anchor] - UNIT_ANCHORS.feet) * this.unitSize(el);
+    // Экранные пиксели → пиксели канваса: канвас масштабирован вместе с интерфейсом (UseUiScale.ts)
+    const k = canvasRect.width ? canvas.width / canvasRect.width : 1;
     return {
-      x: rect.left + rect.width * (0.5 + UNIT_FACE_SHIFT * face) - canvasRect.left,
-      y: rect.top + rect.height * anchorY - canvasRect.top,
+      x: (rect.left + rect.width * (0.5 + UNIT_FACE_SHIFT * face) - canvasRect.left) * k,
+      y: (rect.top + rect.height * anchorY - canvasRect.top) * k,
     };
+  }
+
+  // Высота кадра юнита в пикселях канваса (как и координаты point): на экране она умножена на масштаб интерфейса
+  private unitHeight(el: UnitEl) {
+    const height = el?.getBoundingClientRect().height;
+    if (!height) return 290;
+    const canvas = this.service()?.getCanvas('foreground');
+    const canvasWidth = canvas?.getBoundingClientRect().width;
+    return canvas && canvasWidth ? height * (canvas.width / canvasWidth) : height;
   }
 
   // Во сколько раз юнит крупнее обычного (data-size на его рамке)
@@ -274,7 +285,7 @@ export class BattleFx {
 
   // От центра юнита до его ног, px: по нему эффекты на кастере находят землю
   private groundOffset(el: UnitEl) {
-    const height = el?.getBoundingClientRect().height || 290;
+    const height = this.unitHeight(el);
     return height * this.unitSize(el) * (UNIT_ANCHORS.feet - UNIT_ANCHORS.center);
   }
 
@@ -327,7 +338,7 @@ export class BattleFx {
 
   // Размеры сферы — от высоты кадра юнита (босс крупнее — и сфера больше)
   private auraArgs(el: HTMLElement, visual: AuraVisual) {
-    const height = (el.getBoundingClientRect().height || 290) * this.unitSize(el);
+    const height = this.unitHeight(el) * this.unitSize(el);
     return {
       color: visual.color,
       glow: visual.glow,

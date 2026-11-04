@@ -27,6 +27,7 @@ import {
   ArcsStrategy,
   CometStrategy,
 } from '@/services/particleService/types/spell-effects';
+import { tickFrameClock } from '@/services/particleService/frameClock';
 
 export class GlobalParticleService {
   private bgCanvas: HTMLCanvasElement | null = null;
@@ -34,6 +35,8 @@ export class GlobalParticleService {
   private bgCtx: CanvasRenderingContext2D | null = null;
   private fgCtx: CanvasRenderingContext2D | null = null;
   private animationId: number | null = null;
+  // Канвасы уже пусты: пока эмиттеров нет, кадр можно не чистить
+  private cleared = false;
 
   private emitters: Map<string, EmitterConfig> = new Map();
 
@@ -205,12 +208,20 @@ export class GlobalParticleService {
   }
 
   private startLoop() {
-    const render = () => {
+    const render = (frameTime: number = performance.now()) => {
       if (!this.bgCtx || !this.fgCtx || !this.bgCanvas || !this.fgCanvas) return;
+      tickFrameClock(frameTime);
+
+      // Пустой кадр после пустого не трогаем: очистка двух канвасов вчетверо больше арены — лишняя работа в простое
+      if (this.emitters.size === 0 && this.cleared) {
+        this.animationId = requestAnimationFrame(render);
+        return;
+      }
 
       const frameStarted = this.profiling ? performance.now() : 0;
       this.bgCtx.clearRect(0, 0, this.bgCanvas.width, this.bgCanvas.height);
       this.fgCtx.clearRect(0, 0, this.fgCanvas.width, this.fgCanvas.height);
+      this.cleared = this.emitters.size === 0;
 
       const now = performance.now();
       const toRemove: string[] = [];

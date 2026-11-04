@@ -26,7 +26,7 @@ const route = useRoute();
 
 <style scoped>
 .not-found-page {
-  height: 100vh;
+  height: var(--stage-h);
 }
 
 .not-found-code {

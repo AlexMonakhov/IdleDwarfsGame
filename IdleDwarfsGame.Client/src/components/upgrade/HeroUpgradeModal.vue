@@ -202,8 +202,8 @@ watch([tab, sorted], () => {
         v-model:active-tab="activeTab"
         :tabs="tabs"
         :header-message="t('heroUpgrade.header')"
-        width="min(1280px, calc(94vw - 140px))"
-        height="min(780px, 90vh)"
+        width="min(1280px, calc(calc(94 * var(--vw)) - 140px))"
+        height="min(780px, calc(90 * var(--vh)))"
     >
         <div v-if="isForgeTab" class="hero-upgrade">
             <div v-if="loading && !heroes.length" class="hero-upgrade-hint hero-upgrade-hint-wide">{{ t('common.loading') }}</div>

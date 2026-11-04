@@ -187,8 +187,8 @@ const statusText = computed(() => {
     <ModalComponent
         v-model="open"
         :header-message="t('squad.header')"
-        width="min(960px, 94vw)"
-        height="min(800px, 90vh)"
+        width="min(960px, calc(94 * var(--vw)))"
+        height="min(800px, calc(90 * var(--vh)))"
     >
         <div class="squad">
             <div v-if="loading && !heroes.length" class="inventory-hint">{{ t('common.loading') }}</div>

@@ -1,4 +1,5 @@
 import { EffectStrategy, EmitterConfig, Particle } from './interfaces/canvas-interfaces';
+import { frameScale, perFrameChance, perFrameCount, perFrameFactor } from '../frameClock';
 
 // Боевые эффекты арены. Время жизни one-shot эффекта задаётся travelDuration эмиттера,
 // у постоянных аур (follow) оно не используется.
@@ -19,15 +20,19 @@ export const progressOf = (emitter: EmitterConfig) => {
 export const paletteColor = (palette: string[], life: number) =>
   palette[Math.min(palette.length - 1, Math.floor((1 - clamp01(life)) * palette.length))];
 
+// Скорость, гравитация, сопротивление, усадка и угасание заданы «за кадр при 60 Гц» и приводятся к длине кадра (frameClock)
 export const stepParticles = (particles: Particle[], drag = 1, gravity = 0, shrink = 1) => {
+  const k = frameScale;
+  const dragK = perFrameFactor(drag);
+  const shrinkK = perFrameFactor(shrink);
   for (const p of particles) {
-    p.x += p.vx;
-    p.y += p.vy;
-    p.vx *= drag;
-    p.vy = p.vy * drag + gravity;
-    p.size *= shrink;
-    p.life -= p.maxLife;
-    if (p.spin) p.rotation = (p.rotation ?? 0) + p.spin;
+    p.x += p.vx * k;
+    p.y += p.vy * k;
+    p.vx *= dragK;
+    p.vy = p.vy * dragK + gravity * k;
+    p.size *= shrinkK;
+    p.life -= p.maxLife * k;
+    if (p.spin) p.rotation = (p.rotation ?? 0) + p.spin * k;
   }
   return particles.filter(p => p.life > 0 && p.size > 0.3);
 };
@@ -93,7 +98,7 @@ export class ProjectileStrategy extends ParticleStore<{ trail: Particle[]; angle
       const palette: string[] = args.trail ?? FIRE_PALETTE;
       const rate = Number(args.trailRate ?? 3);
       const back = state.angle + Math.PI;
-      for (let i = 0; i < rate; i++) {
+      for (let i = perFrameCount(rate); i > 0; i--) {
         const spread = rand(-0.5, 0.5);
         const speed = rand(0.6, 2);
         state.trail.push({
@@ -441,7 +446,7 @@ export class FlamesStrategy extends ParticleStore {
     const spawning = !args.burst || progressOf(emitter) < 0.5;
     if (spawning) {
       const rate = Number(args.rate ?? 2);
-      const count = Math.floor(rate) + (Math.random() < rate % 1 ? 1 : 0);
+      const count = perFrameCount(rate);
       for (let i = 0; i < count; i++) {
         // Ближе к центру языки пламени гуще
         const offset = (Math.random() + Math.random() - 1) * width * 0.5;
@@ -541,7 +546,7 @@ export class FrostAuraStrategy extends ParticleStore {
     const width = Number(args.width ?? 70);
     const height = Number(args.height ?? 110);
 
-    if (Math.random() < Number(args.rate ?? 0.35)) {
+    if (perFrameChance(Number(args.rate ?? 0.35))) {
       particles.push({
         x: emitter.x + rand(-width / 2, width / 2),
         y: emitter.y - height / 2 + rand(0, height * 0.4),
@@ -557,7 +562,7 @@ export class FrostAuraStrategy extends ParticleStore {
     }
 
     for (const p of particles) {
-      p.vx += Math.sin(performance.now() / 400 + p.size) * 0.01;
+      p.vx += Math.sin(performance.now() / 400 + p.size) * 0.01 * frameScale;
     }
     this.store.set(emitter.id, stepParticles(particles));
   }
@@ -734,7 +739,7 @@ export class SparklesStrategy extends ParticleStore<{ particles: Particle[]; bur
 
     const once = args.once === true;
     if (!once || progressOf(emitter) < 0.4) {
-      if (Math.random() < Number(args.rate ?? 0.5)) spawn();
+      if (perFrameChance(Number(args.rate ?? 0.5))) spawn();
     }
 
     state.particles = stepParticles(state.particles, 0.99);
@@ -893,7 +898,7 @@ export class AuraSphereStrategy extends ParticleStore {
     const ry = Number(args.ry ?? 80);
     const drift = Number(args.drift ?? -1);
 
-    if (Math.random() < Number(args.rate ?? 0.25)) {
+    if (perFrameChance(Number(args.rate ?? 0.25))) {
       // Поднимающиеся частицы рождаются в нижней части сферы, падающие — в верхней
       const a = Math.random() * Math.PI * 2;
       const r = Math.sqrt(Math.random()) * 0.8;
@@ -912,7 +917,7 @@ export class AuraSphereStrategy extends ParticleStore {
     }
 
     for (const p of particles) {
-      p.vx += Math.sin(performance.now() / 500 + p.size * 3) * 0.008;
+      p.vx += Math.sin(performance.now() / 500 + p.size * 3) * 0.008 * frameScale;
     }
     this.store.set(emitter.id, stepParticles(particles, 0.995));
   }

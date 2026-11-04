@@ -86,18 +86,20 @@ const resolvePoints = (effect: EffectConfig, rect: DOMRect) => {
   const canvasRect = canvasNode?.getBoundingClientRect();
   const offsetX = canvasRect?.left ?? 0;
   const offsetY = canvasRect?.top ?? 0;
+  // Экранные пиксели → пиксели канваса: канвас масштабирован вместе с интерфейсом (UseUiScale.ts)
+  const k = canvasNode && canvasRect?.width ? canvasNode.width / canvasRect.width : 1;
 
-  const localX = rect.left + rect.width / 2 - offsetX;
-  const localY = rect.top + rect.height / 2 - offsetY;
+  const localX = (rect.left + rect.width / 2 - offsetX) * k;
+  const localY = (rect.top + rect.height / 2 - offsetY) * k;
 
   const fromPoint = resolveCenter(effect.from ?? effect.args?.from);
   const toPoint = resolveCenter(effect.to ?? effect.args?.to);
 
   return {
-    startX: fromPoint ? fromPoint.x - offsetX : localX,
-    startY: fromPoint ? fromPoint.y - offsetY : localY,
-    endX: toPoint ? toPoint.x - offsetX : localX,
-    endY: toPoint ? toPoint.y - offsetY : localY,
+    startX: fromPoint ? (fromPoint.x - offsetX) * k : localX,
+    startY: fromPoint ? (fromPoint.y - offsetY) * k : localY,
+    endX: toPoint ? (toPoint.x - offsetX) * k : localX,
+    endY: toPoint ? (toPoint.y - offsetY) * k : localY,
   };
 };
 

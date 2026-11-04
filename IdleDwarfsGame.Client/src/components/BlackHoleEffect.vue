@@ -185,7 +185,7 @@ onBeforeUnmount(() => {
 <style scoped>
 .canvas-wrapper {
   width: 100%;
-  height: 100vh;
+  height: var(--stage-h);
   background-color: #0a0514; 
   overflow: hidden;
   display: flex;

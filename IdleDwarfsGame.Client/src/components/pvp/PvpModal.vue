@@ -210,8 +210,8 @@ const footerText = computed(() => {
         v-model:active-tab="activeTab"
         :tabs="tabs"
         :header-message="header"
-        width="min(900px, calc(94vw - 140px))"
-        height="min(940px, 92vh)"
+        width="min(900px, calc(calc(94 * var(--vw)) - 140px))"
+        height="min(940px, calc(92 * var(--vh)))"
     >
         <div v-if="loading && !current" class="pvp-hint pvp-page">{{ t('pvp.searching') }}</div>
 

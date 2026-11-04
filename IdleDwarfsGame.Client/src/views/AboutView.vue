@@ -54,8 +54,8 @@
   <ModalComponent
     v-model="campaignDialogOpen"
     :header-message="t('campaign.header')"
-    width="min(980px, 94vw)"
-    height="min(760px, 86vh)"
+    width="min(980px, calc(94 * var(--vw)))"
+    height="min(760px, calc(86 * var(--vh)))"
   >
     <FightPreviewListContainer></FightPreviewListContainer>
   </ModalComponent>
@@ -225,7 +225,7 @@ const onStageClick = (n: number) => {
 .about-container {
   position: relative;
   width: 100%;
-  height: 100vh;
+  height: var(--stage-h);
   overflow-x: auto;
   overflow-y: hidden;
   white-space: nowrap;
