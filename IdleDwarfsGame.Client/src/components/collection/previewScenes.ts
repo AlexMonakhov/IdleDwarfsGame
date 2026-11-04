@@ -177,6 +177,21 @@ class SceneBuilder {
         this.push({ eventType: 'StatusApplied', attackerId, targetId, skillName, appliedEffects: [statusData(name, status)] });
     }
 
+    // Весь урон, который статус ещё нанесёт: сила за ход × оставшиеся ходы
+    remaining(targetId: number, name: string) {
+        const status = this.statuses.get(`${targetId}:${name}`);
+        return status ? status.power * status.turns : 0;
+    }
+
+    // Статус снят заклинанием (Жатва душ): запись в группе каста, фаза Action
+    consume(attackerId: number, targetId: number, name: string, skillName: string) {
+        const key = `${targetId}:${name}`;
+        const status = this.statuses.get(key);
+        if (!status) return;
+        this.statuses.delete(key);
+        this.push({ eventType: 'StatusExpired', attackerId, targetId, skillName, activeEffects: [statusData(name, status)] });
+    }
+
     hasStatus(targetId: number, name: string) {
         return this.statuses.has(`${targetId}:${name}`);
     }
@@ -277,9 +292,15 @@ export function spellScene(element: HeroElement, sample: SpellSample, level: num
     const afflicted = hit.slice(0, spell.statusTargets ?? hit.length);
 
     const skill = { skillName: sample.name };
+    // Сжигаемый статус уже висит на целях — сцена начинается с его наложения
+    const consumes = spell.consumes;
+    if (consumes) hit.forEach(id => scene.applyStatus(CASTER, id, consumes, '', 2));
     scene.cast(CASTER, hit[0], sample, level);
+    if (spell.selfDamage) scene.damage(CASTER, CASTER, MAX_HP * spell.selfDamage, sample.damageType, skill);
     for (const id of hit) {
-        if (spell.damage) scene.damage(CASTER, id, ATTACK * spell.damage, sample.damageType, skill);
+        const burst = consumes ? scene.remaining(id, consumes) : 0;
+        if (spell.damage) scene.damage(CASTER, id, ATTACK * spell.damage + burst, sample.damageType, skill);
+        if (consumes) scene.consume(CASTER, id, consumes, sample.name);
         if (afflicted.includes(id)) statuses.forEach(name => scene.applyStatus(CASTER, id, name, sample.name));
         if (healsAlly && spell.heal) scene.heal(CASTER, id, ATTACK * spell.heal, skill);
     }

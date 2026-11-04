@@ -90,6 +90,16 @@ const avatar = (kind: HeroKind) => ({
             <span v-if="current.heal" class="collection-chip" :style="{ '--chip-color': DAMAGE_COLORS.Heal }">
                 {{ current.damage ? t('collection.selfHealing') : t('collection.healing') }}
             </span>
+            <span v-if="current.selfDamage" class="collection-chip" :style="{ '--chip-color': DAMAGE_COLORS.Bleed }">
+                {{ t('collection.selfDamage') }}
+            </span>
+            <span v-if="current.consumes" class="collection-chip">
+                <span class="collection-chip-label">{{ t('collection.consumes') }}</span>
+                <span class="spell-status" v-tooltip="statusLabel(current.consumes)">
+                    <component v-if="STATUS_ICONS[current.consumes]" :is="STATUS_ICONS[current.consumes]" size="14px" />
+                    {{ statusLabel(current.consumes) }}
+                </span>
+            </span>
             <span v-if="current.statuses?.length" class="collection-chip">
                 <span class="collection-chip-label">{{ t('collection.statuses') }}</span>
                 <span v-for="name in current.statuses" :key="name" class="spell-status" v-tooltip="statusLabel(name)">

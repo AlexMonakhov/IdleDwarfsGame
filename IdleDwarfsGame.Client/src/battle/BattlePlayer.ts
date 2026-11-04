@@ -16,7 +16,14 @@ interface DamageOptions {
 }
 
 // Записи, которые входят в группу каста (идут после SkillCast с тем же ActionId)
-const CAST_GROUP_EVENTS = new Set(['Damage', 'Heal', 'StatusApplied', 'Immune']);
+const CAST_GROUP_EVENTS = new Set(['Damage', 'Heal', 'StatusApplied', 'Immune', 'StatusExpired']);
+
+// Запись относится к касту: статус, снятый самим заклинанием (Жатва душ сжигает проклятие), идёт в фазе Action,
+// а истечение статусов в конце хода кастера (TurnEnd) — уже отдельное событие
+const inCastGroup = (entry: CombatLogEntry, cast: CombatLogEntry) =>
+  entry.actionId === cast.actionId
+  && CAST_GROUP_EVENTS.has(entry.eventType)
+  && (entry.eventType !== 'StatusExpired' || entry.phase === 'Action');
 
 // События срабатывания статуса: по их ActiveEffects обновляются цифры на иконке
 const STATUS_TICK_EVENTS = new Set(['StatusTick', 'Heal', 'Stunned']);
@@ -116,7 +123,7 @@ export class BattlePlayer {
       if (log.eventType === 'SkillCast') {
         const group: CombatLogEntry[] = [];
         let j = i + 1;
-        while (j < logs.length && logs[j].actionId === log.actionId && CAST_GROUP_EVENTS.has(logs[j].eventType)) {
+        while (j < logs.length && inCastGroup(logs[j], log)) {
           group.push(logs[j++]);
         }
         await this.playCast(log, group);
@@ -267,9 +274,21 @@ export class BattlePlayer {
     }
     await this.delay(TIMING.castWindup);
 
+    // Плата здоровьем (Кровавая цена) — урон кастера по самому себе: показываем сразу, до доставки
+    const isSacrifice = (e: CombatLogEntry) => e.eventType === 'Damage' && e.targetId === cast.attackerId;
+    const sacrifice = group.filter(isSacrifice);
+    if (sacrifice.length) {
+      sacrifice.forEach(entry => {
+        this.show(entry);
+        this.applyDamage(entry, { silent: true });
+      });
+      if (!this.skipping) this.fx.play(visual.sacrifice, getUnitView(cast.attackerId)?.el?.());
+      await this.delay(visual.sacrificeDelay ?? 0);
+    }
+
     // Записи группируем по цели: заклинание до неё дошло — применяем всё, что к ней относится
     const byTarget = new Map<number, CombatLogEntry[]>();
-    for (const entry of group) {
+    for (const entry of group.filter(e => !isSacrifice(e))) {
       const entries = byTarget.get(entry.targetId) ?? [];
       entries.push(entry);
       byTarget.set(entry.targetId, entries);
@@ -303,6 +322,7 @@ export class BattlePlayer {
       else if (entry.eventType === 'Heal') this.applyHeal(entry);
       else if (entry.eventType === 'StatusApplied') this.applyStatus(entry);
       else if (entry.eventType === 'Immune') this.applyImmune(entry);
+      else if (entry.eventType === 'StatusExpired') this.removeStatus(entry);
     }
   }
 

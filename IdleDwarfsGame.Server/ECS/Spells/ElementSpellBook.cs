@@ -16,9 +16,9 @@ public static class ElementSpellBook
         [HeroElement.Frost] = [16, 19, 22],    // Frost Bolt, Blizzard, Glacial Prison
         [HeroElement.Lightning] = [4, 25, 28], // Lightning, Chain Lightning, Thunderclap
         [HeroElement.Nature] = [7, 31, 34],    // Healing Rune, Venom Thorns, Entangling Roots
-        [HeroElement.Dark] = [37, 43],         // Shadow Bolt, Hex
+        [HeroElement.Dark] = [37, 43, 55],     // Shadow Bolt, Hex, Soul Harvest
         [HeroElement.Radiance] = [46, 49, 52], // Prism Ray, Radiant Nova, Dawnlight
-        [HeroElement.Blood] = [40]             // Life Drain
+        [HeroElement.Blood] = [40, 58, 61]     // Life Drain, Hemorrhage, Blood Price
     };
 
     public static IReadOnlyCollection<HeroElement> Elements => Families.Keys;

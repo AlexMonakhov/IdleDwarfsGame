@@ -20,14 +20,11 @@ public class SpellBookTests
     [Fact]
     public void EveryElement_HasItsSpellFamilies()
     {
-        // У тьмы и крови семейств меньше: Life Drain ушёл от тьмы к крови
-        var families = new Dictionary<HeroElement, int> { [HeroElement.Dark] = 2, [HeroElement.Blood] = 1 };
-
         foreach (var element in Enum.GetValues<HeroElement>().Where(e => e != HeroElement.Basic))
         {
             var spells = ElementSpellBook.FamiliesOf(element).Select(id => SpellRegistry.All[id]).ToList();
 
-            Assert.Equal(families.GetValueOrDefault(element, 3), spells.Select(s => s.Name).Distinct().Count());
+            Assert.Equal(3, spells.Select(s => s.Name).Distinct().Count());
             Assert.All(spells, s => Assert.Equal(1, s.Level));
             Assert.All(spells, s => Assert.Equal(element, ElementSpellBook.ElementOf(s.Id)));
         }
@@ -87,7 +84,7 @@ public class SpellBookTests
     public void RegistryIds_MatchSpellIds()
     {
         Assert.All(SpellRegistry.All, pair => Assert.Equal(pair.Key, pair.Value.Id));
-        Assert.Equal(54, SpellRegistry.All.Count);
+        Assert.Equal(63, SpellRegistry.All.Count);
     }
 
     // Каждый спелл каждого уровня кастуется в настоящем бою, а бой проигрывается по логам без расхождений
@@ -135,6 +132,98 @@ public class SpellBookTests
         var heal = Assert.Single(context.Logs, l => l.EventType == CombatEventType.Heal);
         Assert.Equal(casterId, heal.TargetId);
         Assert.True(heal.Heal > 0);
+    }
+
+    // Один каст спелла кастером в позиции 1 против врагов с заданным HP
+    private static (World world, CombatContext context, int casterId, List<int> enemies) CastOnce(int spellId, int casterHp = 200, int enemies = 3)
+    {
+        var world = new World();
+        var caster = MakeHero("Caster", hp: casterHp);
+        caster.SpellIds = [spellId];
+        caster.StartEnergy = 100;
+        int casterId = Factory.CreateUnit(world, caster, 1, 1);
+        var enemyIds = Enumerable.Range(1, enemies).Select(p => Factory.CreateUnit(world, MakeHero($"E{p}", hp: 1000), 2, p)).ToList();
+        return (world, new CombatContext { CurrentActor = casterId }, casterId, enemyIds);
+    }
+
+    private static void Cast(World world, CombatContext context, int casterId)
+    {
+        world.TurnState[casterId].CanAct = true;
+        new SpellSystem(SpellRegistry.All, new Random(1)).Execute(world, context);
+    }
+
+    [Fact]
+    public void SoulHarvest_PrefersCursed_DetonatesAndRemovesCurse()
+    {
+        var (world, context, casterId, enemies) = CastOnce(57); // Soul Harvest 3: три цели, возврат энергии
+        int cursed = enemies[2];
+        new CurseEffect(turns: 3, damagePerTurn: 10).ApplyEffect(world, cursed, new CombatContext(), casterId);
+
+        Cast(world, context, casterId);
+
+        var hits = context.Logs.Where(l => l.EventType == CombatEventType.Damage).ToList();
+        int baseDamage = (int)(20 * 0.9);
+        Assert.Equal(baseDamage + 30, Assert.Single(hits, h => h.TargetId == cursed).Damage);
+        Assert.All(hits.Where(h => h.TargetId != cursed), h => Assert.Equal(baseDamage, h.Damage));
+        Assert.Empty(world.StatusEffects[cursed].ActiveEffects);
+        Assert.Contains(context.Logs, l => l.EventType == CombatEventType.StatusExpired && l.TargetId == cursed);
+        // 100 - 45 за каст + 10 за снятое проклятие
+        Assert.Equal(65, world.Energy[casterId].Current);
+    }
+
+    [Fact]
+    public void SoulHarvest_FirstPicksCursedEnemies()
+    {
+        var (world, context, casterId, enemies) = CastOnce(55, enemies: 4); // две цели
+        new CurseEffect().ApplyEffect(world, enemies[1], new CombatContext(), casterId);
+        new CurseEffect().ApplyEffect(world, enemies[3], new CombatContext(), casterId);
+
+        Cast(world, context, casterId);
+
+        var targets = context.Logs.Where(l => l.EventType == CombatEventType.Damage).Select(l => l.TargetId).Order();
+        Assert.Equal(new[] { enemies[1], enemies[3] }, targets);
+    }
+
+    [Fact]
+    public void Hemorrhage_BleedsItsTargets()
+    {
+        var (world, context, casterId, _) = CastOnce(60); // Hemorrhage 3: три цели
+        Cast(world, context, casterId);
+
+        var hits = context.Logs.Where(l => l.EventType == CombatEventType.Damage).ToList();
+        Assert.Equal(3, hits.Count);
+        Assert.All(hits, h => Assert.Equal(DamageType.Bleed, h.DamageType));
+        Assert.All(hits, h => Assert.IsType<BleedEffect>(Assert.Single(world.StatusEffects[h.TargetId].ActiveEffects)));
+    }
+
+    [Fact]
+    public void BloodPrice_CasterPaysHp_BeforeHittingEveryEnemy()
+    {
+        var (world, context, casterId, enemies) = CastOnce(63, casterHp: 200); // Blood Price 3
+        Cast(world, context, casterId);
+
+        var damage = context.Logs.Where(l => l.EventType == CombatEventType.Damage).ToList();
+        Assert.Equal(casterId, damage[0].TargetId);
+        Assert.Equal(20, damage[0].Damage);
+        Assert.Equal(180, world.Health[casterId].Current);
+        Assert.Equal(enemies, damage.Skip(1).Select(d => d.TargetId));
+        Assert.All(enemies, id => Assert.IsType<BleedEffect>(Assert.Single(world.StatusEffects[id].ActiveEffects)));
+    }
+
+    [Fact]
+    public void BloodPrice_NeverKillsCaster()
+    {
+        var (world, context, casterId, _) = CastOnce(61);
+        world.Health[casterId].Current = 5;
+        Cast(world, context, casterId);
+
+        Assert.Equal(1, world.Health[casterId].Current);
+        world.Health[casterId].Current = 1;
+        var again = new CombatContext { CurrentActor = casterId };
+        world.Energy[casterId].Current = 100;
+        Cast(world, again, casterId);
+        Assert.Equal(1, world.Health[casterId].Current);
+        Assert.DoesNotContain(again.Logs, l => l.EventType == CombatEventType.Damage && l.TargetId == casterId);
     }
 
     [Fact]
