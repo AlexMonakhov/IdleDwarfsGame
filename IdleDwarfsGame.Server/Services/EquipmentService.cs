@@ -88,9 +88,10 @@ public class EquipmentService(
     private async Task<EquipmentChangeResult> ChangeResultAsync(Guid playerId, List<Hero> changed)
     {
         var busy = await expeditions.GetBusyHeroIdsAsync(playerId);
+        var mining = await heroes.GetMiningHeroIdsAsync(playerId);
         return new EquipmentChangeResult
         {
-            Heroes = changed.Select(h => HeroInfo.From(entityFactory, h, busy.Contains(h.Id))).ToList(),
+            Heroes = changed.Select(h => HeroInfo.From(entityFactory, h, busy.Contains(h.Id), mining.Contains(h.Id))).ToList(),
             Items = await GetMyAsync(playerId)
         };
     }

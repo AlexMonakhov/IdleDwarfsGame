@@ -93,6 +93,7 @@ watchEffect(() => {
             <GemButton v-if="isAuthenticated" @click="collectionOpen = true" :color="'yellow'">{{ t('nav.collection') }}</GemButton>
             <GemButton v-if="isAuthenticated" @click="upgradeOpen = true" :color="'green'">{{ t('nav.upgrade') }}</GemButton>
             <GemButton v-if="isAuthenticated" @click="expeditionsOpen = true" :color="'yellow'">{{ t('nav.expeditions') }}</GemButton>
+            <GemButton v-if="isAuthenticated && route.name != 'mining'" @click="router.push('/mining')" :color="'yellow'">{{ t('nav.mining') }}</GemButton>
             <GemButton v-if="isAuthenticated" @click="friendsOpen = true" :color="'green'" :badge-count="incomingFriendRequests">{{ t('nav.friends') }}</GemButton>
             <GemButton v-if="isAuthenticated" @click="guildOpen = true" :color="'blue'">{{ t('nav.guild') }}</GemButton>
             <GemButton v-if="isAuthenticated" @click="pvpOpen = true" :color="'red'">{{ t('nav.pvp') }}</GemButton>

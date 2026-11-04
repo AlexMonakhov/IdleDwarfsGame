@@ -101,8 +101,9 @@ public class HeroesController(
     private async Task<List<HeroInfo>> ToInfoAsync(Guid playerId, IEnumerable<Hero> heroes)
     {
         var busy = await expeditionRepository.GetBusyHeroIdsAsync(playerId);
+        var mining = await heroesRepository.GetMiningHeroIdsAsync(playerId);
         return heroes
-            .Select(hero => HeroInfo.From(entityFactory, hero, busy.Contains(hero.Id)))
+            .Select(hero => HeroInfo.From(entityFactory, hero, busy.Contains(hero.Id), mining.Contains(hero.Id)))
             .ToList();
     }
 

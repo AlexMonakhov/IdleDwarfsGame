@@ -44,14 +44,28 @@ public class HeroesRepository : IHeroesRepository
         if (squad.Count > 0)
             return squad;
 
-        // Герои в экспедиции в запасной отряд не попадают (в настоящий отряд их не пускает SaveSquadAsync)
+        // Герои в экспедиции и в шахтах в запасной отряд не попадают (в настоящий отряд их не пускает SaveSquadAsync)
         var busy = await BusyHeroIds(heroes.Select(h => h.Id).ToList()).ToListAsync();
         return heroes.Where(h => !busy.Contains(h.Id)).OrderBy(h => h.Name).Take(maxSize).ToList();
     }
 
+    public async Task<HashSet<Guid>> GetMiningHeroIdsAsync(Guid playerId)
+    {
+        var ids = await _context.Mines
+            .Where(m => m.PlayerId == playerId && m.HeroId != null)
+            .Select(m => m.HeroId!.Value)
+            .ToListAsync();
+
+        return ids.ToHashSet();
+    }
+
+    // Заняты герои в экспедиции и дворфы, работающие в шахтах
     private IQueryable<Guid> BusyHeroIds(List<Guid> heroIds) => _context.ExpeditionHeroes
         .Where(h => heroIds.Contains(h.HeroId))
-        .Select(h => h.HeroId);
+        .Select(h => h.HeroId)
+        .Concat(_context.Mines
+            .Where(m => m.HeroId != null && heroIds.Contains(m.HeroId.Value))
+            .Select(m => m.HeroId!.Value));
 
     public async Task CreateAsync(Hero hero)
     {
@@ -95,7 +109,7 @@ public class HeroesRepository : IHeroesRepository
         }
 
         if (await BusyHeroIds([heroId]).AnyAsync())
-            throw new InvalidOperationException($"Hero {heroId} is on an expedition");
+            throw new InvalidOperationException($"Hero {heroId} is on an expedition or in a mine");
 
         // Ensure no other hero of the same player occupies that slot
         var existing = await _context.Heroes
@@ -134,7 +148,7 @@ public class HeroesRepository : IHeroesRepository
         if (busy.Count > 0)
         {
             var names = heroes.Where(h => busy.Contains(h.Id)).Select(h => h.Name);
-            throw new InvalidOperationException($"Heroes on an expedition can't join the squad: {string.Join(", ", names)}");
+            throw new InvalidOperationException($"Heroes on an expedition or in a mine can't join the squad: {string.Join(", ", names)}");
         }
 
         var places = slots

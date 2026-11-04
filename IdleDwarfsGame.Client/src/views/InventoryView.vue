@@ -6,7 +6,7 @@ import GemButton from '@/components/common/GemButton.vue';
 import PanelComponent from '@/components/common/PanelComponent.vue';
 import HeroCard from '@/components/inventory/HeroCard.vue';
 import HeroesApiService from '@/services/apiServices/HeroesApiService';
-import { HeroInfo, SQUAD_SIZE } from '@/models/types/Heroes';
+import { HeroInfo, SQUAD_SIZE, isBusy } from '@/models/types/Heroes';
 import { vDragScroll } from '@/directives/dragScroll';
 
 const { t } = useI18n();
@@ -31,7 +31,7 @@ const squadPower = computed(() => slotHeroes.value.reduce((sum, hero) => sum + (
 // Все, кто не в отряде: сильные сверху, ушедшие в экспедицию — в конце
 const reserve = computed(() => heroes.value
     .filter(h => !slots.value.includes(h.id))
-    .sort((a, b) => Number(a.onExpedition) - Number(b.onExpedition) || b.level - a.level || a.name.localeCompare(b.name)));
+    .sort((a, b) => Number(isBusy(a)) - Number(isBusy(b)) || b.level - a.level || a.name.localeCompare(b.name)));
 
 const dirty = computed(() => slots.value.some((id, i) => id !== savedSlots.value[i]));
 const hasHero = computed(() => slots.value.some(id => id !== null));
@@ -63,8 +63,9 @@ const hoverSlot = ref<number | null>(null);
 const hoverReserve = ref(false);
 
 const onDragStart = (event: DragEvent, heroId: string, fromSlot: number | null) => {
-    // Герой в экспедиции не может встать в отряд
-    if (heroById.value.get(heroId)?.onExpedition) {
+    // Герой в экспедиции или в шахте не может встать в отряд
+    const hero = heroById.value.get(heroId);
+    if (hero && isBusy(hero)) {
         event.preventDefault();
         return;
     }
@@ -119,7 +120,7 @@ const removeFromSquad = (index: number) => {
 
 // Герой из списка встаёт в первый свободный слот
 const addToSquad = (hero: HeroInfo) => {
-    if (hero.onExpedition) return;
+    if (isBusy(hero)) return;
     notice.value = null;
     const free = slots.value.indexOf(null);
     if (free === -1) {
@@ -216,7 +217,7 @@ const statusText = computed(() => {
                             :key="hero.id"
                             :hero="hero"
                             :dragging="drag?.heroId === hero.id"
-                            :disabled="hero.onExpedition"
+                            :disabled="isBusy(hero)"
                             @dragstart="onDragStart($event, hero.id, null)"
                             @dragend="onDragEnd"
                             @click="addToSquad(hero)"

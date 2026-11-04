@@ -9,7 +9,7 @@ import ExpeditionScene from '@/components/expeditions/ExpeditionScene.vue';
 import ExpeditionsApiService from '@/services/apiServices/ExpeditionsApiService';
 import HeroesApiService from '@/services/apiServices/HeroesApiService';
 import { useResources } from '@/composables/UseResources';
-import { HeroInfo } from '@/models/types/Heroes';
+import { HeroInfo, isBusy } from '@/models/types/Heroes';
 import { estimateReward, ExpeditionBoard, ExpeditionInfo, ExpeditionStatus } from '@/models/types/Expeditions';
 import caveBackground from '@/assets/red_crystal_arena.png';
 import crystalsBackground from '@/assets/arenas/arena_blue.png';
@@ -131,7 +131,7 @@ const heroById = computed(() => new Map(heroes.value.map(h => [h.id, h])));
 // В задание идут только герои из инвентаря: отряд остаётся дома. Ушедшие в экспедицию видны, но недоступны
 const reserve = computed(() => heroes.value
     .filter(h => h.placeInSquad === null)
-    .sort((a, b) => Number(a.onExpedition) - Number(b.onExpedition) || b.power.total - a.power.total || a.name.localeCompare(b.name)));
+    .sort((a, b) => Number(isBusy(a)) - Number(isBusy(b)) || b.power.total - a.power.total || a.name.localeCompare(b.name)));
 
 const partyHeroes = computed(() => party.value.map(id => (id ? heroById.value.get(id) ?? null : null)));
 const partyIds = computed(() => party.value.filter((id): id is string => id !== null));
@@ -141,7 +141,7 @@ const estimate = computed(() => (selected.value ? estimateReward(selected.value.
 const isInParty = (heroId: string) => party.value.includes(heroId);
 
 const toggleHero = (hero: HeroInfo) => {
-    if (hero.onExpedition || busy.value) return;
+    if (isBusy(hero) || busy.value) return;
     const next = [...party.value];
     const index = next.indexOf(hero.id);
     if (index >= 0) {
@@ -288,7 +288,7 @@ const footerText = computed(() => {
                             :key="hero.id"
                             :hero="hero"
                             selectable
-                            :disabled="hero.onExpedition"
+                            :disabled="isBusy(hero)"
                             :selected="isInParty(hero.id)"
                             :class="{ 'hero-picked': isInParty(hero.id) }"
                             @click="toggleHero(hero)"

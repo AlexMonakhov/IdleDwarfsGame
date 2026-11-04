@@ -1683,6 +1683,62 @@ namespace IdleDwarfsGame.Server.Migrations
                     b.ToTable("PlayerChests");
                 });
 
+            modelBuilder.Entity("Mine", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid?>("HeroId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("LastDigAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Level")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("PlayerId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Plot")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("SpeedLevel")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("StorageLevel")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<double>("Stored")
+                        .HasColumnType("REAL");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("YieldLevel")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HeroId")
+                        .IsUnique();
+
+                    b.HasIndex("PlayerId", "Plot")
+                        .IsUnique();
+
+                    b.ToTable("Mines");
+                });
+
             modelBuilder.Entity("Player", b =>
                 {
                     b.Property<string>("Id")
@@ -3591,6 +3647,20 @@ namespace IdleDwarfsGame.Server.Migrations
                     b.Navigation("ChestDropTable");
 
                     b.Navigation("Player");
+                });
+
+            modelBuilder.Entity("Mine", b =>
+                {
+                    b.HasOne("Hero", null)
+                        .WithMany()
+                        .HasForeignKey("HeroId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Player", null)
+                        .WithMany()
+                        .HasForeignKey("PlayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("PlayerCampaignProgress", b =>

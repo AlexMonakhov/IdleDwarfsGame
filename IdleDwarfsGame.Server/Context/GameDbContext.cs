@@ -39,6 +39,7 @@ public class GameDbContext : DbContext
     public DbSet<PvpBattle> PvpBattles => Set<PvpBattle>();
     public DbSet<PvpSeasonScore> PvpSeasonScores => Set<PvpSeasonScore>();
     public DbSet<RankedSquad> RankedSquads => Set<RankedSquad>();
+    public DbSet<Mine> Mines => Set<Mine>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -783,5 +784,41 @@ public class GameDbContext : DbContext
             .WithMany()
             .HasForeignKey(s => s.UserId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        // ===== Шахты =====
+        modelBuilder.Entity<Mine>()
+            .HasKey(m => m.Id);
+
+        modelBuilder.Entity<Mine>()
+            .Property(m => m.PlayerId)
+            .HasConversion<string>();
+
+        modelBuilder.Entity<Mine>()
+            .Property(m => m.Type)
+            .HasConversion<string>()
+            .HasMaxLength(16);
+
+        modelBuilder.Entity<Mine>()
+            .HasOne<Player>()
+            .WithMany()
+            .HasForeignKey(m => m.PlayerId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Герой исчез — шахта остаётся без дворфа
+        modelBuilder.Entity<Mine>()
+            .HasOne<Hero>()
+            .WithMany()
+            .HasForeignKey(m => m.HeroId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        // Одна шахта на место — заодно защищает от двойной постройки
+        modelBuilder.Entity<Mine>()
+            .HasIndex(m => new { m.PlayerId, m.Plot })
+            .IsUnique();
+
+        // Дворф работает только в одной шахте. Шахты без дворфа (null) индекс не ограничивает
+        modelBuilder.Entity<Mine>()
+            .HasIndex(m => m.HeroId)
+            .IsUnique();
     }
 }

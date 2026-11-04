@@ -82,6 +82,8 @@ builder.Services.AddScoped<CampaignService>();
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddScoped<IExpeditionRepository, ExpeditionRepository>();
 builder.Services.AddScoped<ExpeditionService>();
+builder.Services.AddScoped<IMiningRepository, MiningRepository>();
+builder.Services.AddScoped<MiningService>();
 builder.Services.AddScoped<IUserSessionRepository, UserSessionRepository>();
 builder.Services.AddScoped<SessionService>();
 builder.Services.AddScoped<IFriendRepository, FriendRepository>();

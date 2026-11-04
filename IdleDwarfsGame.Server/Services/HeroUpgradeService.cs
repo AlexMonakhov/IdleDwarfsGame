@@ -102,9 +102,10 @@ public class HeroUpgradeService(
         }
 
         var busy = await expeditions.GetBusyHeroIdsAsync(playerId);
+        var mining = await heroes.GetMiningHeroIdsAsync(playerId);
         return new HeroUpgradeResult
         {
-            Hero = HeroInfo.From(entityFactory, hero, busy.Contains(hero.Id)),
+            Hero = HeroInfo.From(entityFactory, hero, busy.Contains(hero.Id), mining.Contains(hero.Id)),
             Resources = await players.GetResourcesAsync(playerId) ?? new PlayerResources()
         };
     }

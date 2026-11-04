@@ -86,6 +86,10 @@ public class ExpeditionService(
         if (heroIds.Any(busy.Contains))
             throw new InvalidOperationException("One of the heroes is already on an expedition");
 
+        var mining = await heroes.GetMiningHeroIdsAsync(playerId);
+        if (heroIds.Any(mining.Contains))
+            throw new InvalidOperationException("One of the heroes works in a mine");
+
         int power = selected.Sum(h => CombatPower.OfHero(entityFactory, h).Total);
         var reward = RewardFor(expedition.DurationHours, power);
 
