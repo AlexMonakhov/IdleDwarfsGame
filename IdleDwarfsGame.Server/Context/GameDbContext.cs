@@ -40,6 +40,7 @@ public class GameDbContext : DbContext
     public DbSet<PvpSeasonScore> PvpSeasonScores => Set<PvpSeasonScore>();
     public DbSet<RankedSquad> RankedSquads => Set<RankedSquad>();
     public DbSet<Mine> Mines => Set<Mine>();
+    public DbSet<PlayerAbility> PlayerAbilities => Set<PlayerAbility>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -95,6 +96,15 @@ public class GameDbContext : DbContext
         modelBuilder.Entity<Hero>()
             .Property(h => h.UpgradeLevel)
             .HasDefaultValue(HeroUpgradeService.MinLevel);
+
+        // Уровни пассивки и ауры старых героев выставляет миграция AddAbilities
+        modelBuilder.Entity<Hero>()
+            .Property(h => h.PassiveLevel)
+            .HasDefaultValue(PassiveBook.MinLevel);
+
+        modelBuilder.Entity<Hero>()
+            .Property(h => h.AuraLevel)
+            .HasDefaultValue(AuraBook.MinLevel);
 
         // Стихию храним строкой ("Fire"), чтобы порядок значений в енаме можно было менять
         modelBuilder.Entity<Hero>()
@@ -820,5 +830,31 @@ public class GameDbContext : DbContext
         modelBuilder.Entity<Mine>()
             .HasIndex(m => m.HeroId)
             .IsUnique();
+
+        // ===== Извлечённые способности =====
+        modelBuilder.Entity<PlayerAbility>()
+            .HasKey(a => a.Id);
+
+        modelBuilder.Entity<PlayerAbility>()
+            .Property(a => a.PlayerId)
+            .HasConversion<string>();
+
+        modelBuilder.Entity<PlayerAbility>()
+            .Property(a => a.Kind)
+            .HasConversion<string>()
+            .HasMaxLength(16);
+
+        modelBuilder.Entity<PlayerAbility>()
+            .Property(a => a.Key)
+            .HasMaxLength(32);
+
+        modelBuilder.Entity<PlayerAbility>()
+            .HasOne<Player>()
+            .WithMany()
+            .HasForeignKey(a => a.PlayerId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<PlayerAbility>()
+            .HasIndex(a => a.PlayerId);
     }
 }

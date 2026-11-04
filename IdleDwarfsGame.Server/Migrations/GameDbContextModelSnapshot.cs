@@ -1015,6 +1015,11 @@ namespace IdleDwarfsGame.Server.Migrations
                     b.Property<int>("AuraInterval")
                         .HasColumnType("INTEGER");
 
+                    b.Property<int>("AuraLevel")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(1);
+
                     b.Property<int>("AuraPower")
                         .HasColumnType("INTEGER");
 
@@ -1050,6 +1055,11 @@ namespace IdleDwarfsGame.Server.Migrations
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("TEXT");
+
+                    b.Property<int>("PassiveLevel")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(1);
 
                     b.Property<string>("Passives")
                         .IsRequired()
@@ -1096,6 +1106,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             AuraDuration = 1,
                             AuraEffect = "Regen",
                             AuraInterval = 1,
+                            AuraLevel = 1,
                             AuraPower = 4,
                             AuraTarget = 0,
                             AuraTrigger = 1,
@@ -1106,6 +1117,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             MaxEnergy = 100,
                             MaxHp = 260,
                             Name = "Brakk Ironbeard",
+                            PassiveLevel = 1,
                             Passives = "",
                             PlaceInSquad = 1,
                             PlayerId = new Guid("a1d2f3e4-0000-4000-8000-000000000001"),
@@ -1121,6 +1133,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Attack = 18,
                             AuraDuration = 1,
                             AuraInterval = 1,
+                            AuraLevel = 1,
                             AuraPower = 0,
                             AuraTarget = 0,
                             AuraTrigger = 1,
@@ -1131,6 +1144,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             MaxEnergy = 100,
                             MaxHp = 130,
                             Name = "Dain Emberforge",
+                            PassiveLevel = 1,
                             Passives = "",
                             PlaceInSquad = 2,
                             PlayerId = new Guid("a1d2f3e4-0000-4000-8000-000000000001"),
@@ -1146,6 +1160,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Attack = 16,
                             AuraDuration = 1,
                             AuraInterval = 1,
+                            AuraLevel = 1,
                             AuraPower = 0,
                             AuraTarget = 0,
                             AuraTrigger = 1,
@@ -1156,6 +1171,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             MaxEnergy = 100,
                             MaxHp = 150,
                             Name = "Thora Stormhammer",
+                            PassiveLevel = 1,
                             Passives = "",
                             PlaceInSquad = 3,
                             PlayerId = new Guid("a1d2f3e4-0000-4000-8000-000000000001"),
@@ -1171,6 +1187,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Attack = 20,
                             AuraDuration = 1,
                             AuraInterval = 1,
+                            AuraLevel = 1,
                             AuraPower = 0,
                             AuraTarget = 0,
                             AuraTrigger = 1,
@@ -1181,6 +1198,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             MaxEnergy = 100,
                             MaxHp = 180,
                             Name = "Grim Ashaxe",
+                            PassiveLevel = 1,
                             Passives = "",
                             PlaceInSquad = 4,
                             PlayerId = new Guid("a1d2f3e4-0000-4000-8000-000000000001"),
@@ -1196,6 +1214,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Attack = 12,
                             AuraDuration = 1,
                             AuraInterval = 1,
+                            AuraLevel = 1,
                             AuraPower = 0,
                             AuraTarget = 0,
                             AuraTrigger = 1,
@@ -1206,6 +1225,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             MaxEnergy = 100,
                             MaxHp = 120,
                             Name = "Runa Frostpick",
+                            PassiveLevel = 1,
                             Passives = "",
                             PlaceInSquad = 5,
                             PlayerId = new Guid("a1d2f3e4-0000-4000-8000-000000000001"),
@@ -1221,6 +1241,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Attack = 15,
                             AuraDuration = 1,
                             AuraInterval = 1,
+                            AuraLevel = 1,
                             AuraPower = 0,
                             AuraTarget = 0,
                             AuraTrigger = 1,
@@ -1231,6 +1252,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             MaxEnergy = 100,
                             MaxHp = 140,
                             Name = "Oin Deepdelver",
+                            PassiveLevel = 1,
                             Passives = "",
                             PlayerId = new Guid("a1d2f3e4-0000-4000-8000-000000000001"),
                             Speed = 5,
@@ -1245,6 +1267,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Attack = 19,
                             AuraDuration = 1,
                             AuraInterval = 1,
+                            AuraLevel = 1,
                             AuraPower = 0,
                             AuraTarget = 0,
                             AuraTrigger = 1,
@@ -1255,6 +1278,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             MaxEnergy = 100,
                             MaxHp = 150,
                             Name = "Morgra Duskvein",
+                            PassiveLevel = 1,
                             Passives = "",
                             PlayerId = new Guid("a1d2f3e4-0000-4000-8000-000000000001"),
                             Speed = 6,
@@ -1269,6 +1293,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Attack = 17,
                             AuraDuration = 1,
                             AuraInterval = 1,
+                            AuraLevel = 1,
                             AuraPower = 0,
                             AuraTarget = 0,
                             AuraTrigger = 1,
@@ -1279,6 +1304,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             MaxEnergy = 100,
                             MaxHp = 160,
                             Name = "Elda Brightfacet",
+                            PassiveLevel = 1,
                             Passives = "",
                             PlayerId = new Guid("a1d2f3e4-0000-4000-8000-000000000001"),
                             Speed = 7,
@@ -1293,6 +1319,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Attack = 13,
                             AuraDuration = 1,
                             AuraInterval = 1,
+                            AuraLevel = 1,
                             AuraPower = 0,
                             AuraTarget = 0,
                             AuraTrigger = 1,
@@ -1303,6 +1330,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             MaxEnergy = 100,
                             MaxHp = 210,
                             Name = "Orc Brute",
+                            PassiveLevel = 1,
                             Passives = "",
                             PlaceInSquad = 1,
                             PlayerId = new Guid("e0e0e0e0-0000-4000-8000-000000000002"),
@@ -1318,6 +1346,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Attack = 10,
                             AuraDuration = 1,
                             AuraInterval = 1,
+                            AuraLevel = 1,
                             AuraPower = 0,
                             AuraTarget = 0,
                             AuraTrigger = 1,
@@ -1328,6 +1357,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             MaxEnergy = 100,
                             MaxHp = 90,
                             Name = "Goblin Scout",
+                            PassiveLevel = 1,
                             Passives = "",
                             PlaceInSquad = 2,
                             PlayerId = new Guid("e0e0e0e0-0000-4000-8000-000000000002"),
@@ -1343,6 +1373,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Attack = 10,
                             AuraDuration = 1,
                             AuraInterval = 1,
+                            AuraLevel = 1,
                             AuraPower = 0,
                             AuraTarget = 0,
                             AuraTrigger = 1,
@@ -1353,6 +1384,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             MaxEnergy = 100,
                             MaxHp = 85,
                             Name = "Goblin Shaman",
+                            PassiveLevel = 1,
                             Passives = "",
                             PlaceInSquad = 3,
                             PlayerId = new Guid("e0e0e0e0-0000-4000-8000-000000000002"),
@@ -1369,6 +1401,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             AuraDuration = 1,
                             AuraEffect = "Burn",
                             AuraInterval = 1,
+                            AuraLevel = 1,
                             AuraPower = 3,
                             AuraTarget = 1,
                             AuraTrigger = 1,
@@ -1379,6 +1412,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             MaxEnergy = 100,
                             MaxHp = 180,
                             Name = "Orc Warlord",
+                            PassiveLevel = 1,
                             Passives = "",
                             PlaceInSquad = 4,
                             PlayerId = new Guid("e0e0e0e0-0000-4000-8000-000000000002"),
@@ -1394,6 +1428,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Attack = 13,
                             AuraDuration = 1,
                             AuraInterval = 1,
+                            AuraLevel = 1,
                             AuraPower = 0,
                             AuraTarget = 0,
                             AuraTrigger = 1,
@@ -1404,6 +1439,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             MaxEnergy = 100,
                             MaxHp = 100,
                             Name = "Skeleton Mage",
+                            PassiveLevel = 1,
                             Passives = "",
                             PlaceInSquad = 5,
                             PlayerId = new Guid("e0e0e0e0-0000-4000-8000-000000000002"),
@@ -1419,6 +1455,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Attack = 11,
                             AuraDuration = 1,
                             AuraInterval = 1,
+                            AuraLevel = 1,
                             AuraPower = 0,
                             AuraTarget = 0,
                             AuraTrigger = 1,
@@ -1429,6 +1466,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             MaxEnergy = 100,
                             MaxHp = 95,
                             Name = "Frost Goblin",
+                            PassiveLevel = 1,
                             Passives = "",
                             PlayerId = new Guid("c0c0c0c0-0000-4000-8000-000000000003"),
                             Speed = 8,
@@ -1443,6 +1481,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Attack = 12,
                             AuraDuration = 1,
                             AuraInterval = 1,
+                            AuraLevel = 1,
                             AuraPower = 0,
                             AuraTarget = 0,
                             AuraTrigger = 1,
@@ -1453,6 +1492,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             MaxEnergy = 100,
                             MaxHp = 120,
                             Name = "Rime Skeleton",
+                            PassiveLevel = 1,
                             Passives = "",
                             PlayerId = new Guid("c0c0c0c0-0000-4000-8000-000000000003"),
                             Speed = 5,
@@ -1468,6 +1508,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             AuraDuration = 1,
                             AuraEffect = "Burn",
                             AuraInterval = 1,
+                            AuraLevel = 1,
                             AuraPower = 4,
                             AuraTarget = 1,
                             AuraTrigger = 1,
@@ -1478,6 +1519,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             MaxEnergy = 100,
                             MaxHp = 260,
                             Name = "Gorrak the Molten",
+                            PassiveLevel = 1,
                             Passives = "",
                             PlayerId = new Guid("c0c0c0c0-0000-4000-8000-000000000003"),
                             Speed = 5,
@@ -1493,6 +1535,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             AuraDuration = 1,
                             AuraEffect = "Frost",
                             AuraInterval = 1,
+                            AuraLevel = 1,
                             AuraPower = 3,
                             AuraTarget = 1,
                             AuraTrigger = 1,
@@ -1503,6 +1546,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             MaxEnergy = 100,
                             MaxHp = 240,
                             Name = "Hrimgar the Frostbound",
+                            PassiveLevel = 1,
                             Passives = "",
                             PlayerId = new Guid("c0c0c0c0-0000-4000-8000-000000000003"),
                             Speed = 6,
@@ -1517,6 +1561,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Attack = 13,
                             AuraDuration = 1,
                             AuraInterval = 1,
+                            AuraLevel = 1,
                             AuraPower = 0,
                             AuraTarget = 0,
                             AuraTrigger = 1,
@@ -1527,6 +1572,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             MaxEnergy = 100,
                             MaxHp = 210,
                             Name = "Mossback Troll",
+                            PassiveLevel = 1,
                             Passives = "",
                             PlayerId = new Guid("b0b0b0b0-0000-4000-8000-000000000004"),
                             Speed = 3,
@@ -1541,6 +1587,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Attack = 13,
                             AuraDuration = 1,
                             AuraInterval = 1,
+                            AuraLevel = 1,
                             AuraPower = 0,
                             AuraTarget = 0,
                             AuraTrigger = 1,
@@ -1551,6 +1598,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             MaxEnergy = 100,
                             MaxHp = 210,
                             Name = "Rimehorn Yeti",
+                            PassiveLevel = 1,
                             Passives = "",
                             PlayerId = new Guid("b0b0b0b0-0000-4000-8000-000000000004"),
                             Speed = 3,
@@ -1565,6 +1613,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Attack = 12,
                             AuraDuration = 1,
                             AuraInterval = 1,
+                            AuraLevel = 1,
                             AuraPower = 0,
                             AuraTarget = 0,
                             AuraTrigger = 1,
@@ -1575,6 +1624,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             MaxEnergy = 100,
                             MaxHp = 180,
                             Name = "Ashmaw the Warlord",
+                            PassiveLevel = 1,
                             Passives = "",
                             PlayerId = new Guid("b0b0b0b0-0000-4000-8000-000000000004"),
                             Speed = 4,
@@ -1589,6 +1639,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Attack = 12,
                             AuraDuration = 1,
                             AuraInterval = 1,
+                            AuraLevel = 1,
                             AuraPower = 0,
                             AuraTarget = 0,
                             AuraTrigger = 1,
@@ -1599,6 +1650,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             MaxEnergy = 100,
                             MaxHp = 180,
                             Name = "Grukk Stormcaller",
+                            PassiveLevel = 1,
                             Passives = "",
                             PlayerId = new Guid("b0b0b0b0-0000-4000-8000-000000000004"),
                             Speed = 4,
@@ -1613,6 +1665,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Attack = 13,
                             AuraDuration = 1,
                             AuraInterval = 1,
+                            AuraLevel = 1,
                             AuraPower = 0,
                             AuraTarget = 0,
                             AuraTrigger = 1,
@@ -1623,6 +1676,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             MaxEnergy = 100,
                             MaxHp = 100,
                             Name = "Nyxara the Hollow Queen",
+                            PassiveLevel = 1,
                             Passives = "",
                             PlayerId = new Guid("b0b0b0b0-0000-4000-8000-000000000004"),
                             Speed = 6,
@@ -1637,6 +1691,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Attack = 13,
                             AuraDuration = 1,
                             AuraInterval = 1,
+                            AuraLevel = 1,
                             AuraPower = 0,
                             AuraTarget = 0,
                             AuraTrigger = 1,
@@ -1647,6 +1702,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             MaxEnergy = 100,
                             MaxHp = 100,
                             Name = "Seraphel the Shattered Light",
+                            PassiveLevel = 1,
                             Passives = "",
                             PlayerId = new Guid("b0b0b0b0-0000-4000-8000-000000000004"),
                             Speed = 6,
@@ -1795,6 +1851,36 @@ namespace IdleDwarfsGame.Server.Migrations
                             Name = "Guild Bosses",
                             Rating = 0
                         });
+                });
+
+            modelBuilder.Entity("PlayerAbility", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Level")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("PlayerId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PlayerId");
+
+                    b.ToTable("PlayerAbilities");
                 });
 
             modelBuilder.Entity("PlayerCampaignProgress", b =>
@@ -3656,6 +3742,15 @@ namespace IdleDwarfsGame.Server.Migrations
                         .HasForeignKey("HeroId")
                         .OnDelete(DeleteBehavior.SetNull);
 
+                    b.HasOne("Player", null)
+                        .WithMany()
+                        .HasForeignKey("PlayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("PlayerAbility", b =>
+                {
                     b.HasOne("Player", null)
                         .WithMany()
                         .HasForeignKey("PlayerId")

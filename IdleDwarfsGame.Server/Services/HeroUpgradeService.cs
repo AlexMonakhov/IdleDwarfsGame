@@ -17,7 +17,7 @@ public class HeroUpgradeException(HeroUpgradeError code, string message) : Inval
 // Прокачка героя: золото и опыт аккаунта поднимают внутренний уровень героя (UpgradeLevel) с MinLevel до MaxLevel.
 // Каждый уровень даёт +StatBonusPerLevel к базовым HP и атаке. Цена растёт с уровнем медленнее квадрата
 // и линейно — с рангом героя (Level 1..5): прокачка героя высокого ранга дороже.
-// Следующий шаг (позже): 5 героев одного вида на MaxLevel → ранг героя выше, а UpgradeLevel снова MinLevel
+// Ранг поднимает слияние пяти дворфов одного ранга (AbilityService.FuseAsync): новый дворф начинает с MinLevel
 public class HeroUpgradeService(
     IHeroesRepository heroes,
     IPlayerRepository players,

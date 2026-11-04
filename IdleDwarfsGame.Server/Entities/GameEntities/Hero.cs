@@ -40,9 +40,12 @@ public class Hero
     public int AuraDuration { get; set; } = 1;
     // Аура срабатывает раз в столько своих триггеров (раундов или ходов носителя): 1 — каждый, 2 — через один
     public int AuraInterval { get; set; } = 1;
+    // Уровень ауры из AuraBook (1..AuraBook.MaxLevel): с ним аура извлекается из дворфа
+    public int AuraLevel { get; set; } = AuraBook.MinLevel;
 
-    // PassiveComponent: уровень пассивок зависит от ранга (PassiveBook.LevelFor)
+    // PassiveComponent: пассивка дворфа и её уровень (1..PassiveBook.MaxLevel)
     public List<HeroPassive> Passives { get; set; } = new();
+    public int PassiveLevel { get; set; } = PassiveBook.MinLevel;
 
     // Надетые предметы. Попадают и в снимок отряда рейтинговой арены (RankedSquad)
     public List<PlayerEquipment> Equipment { get; set; } = new();

@@ -20,6 +20,8 @@ public class HeroInfo
     public List<string> Immunities { get; set; } = new();
     public string? Aura { get; set; }
     public List<PassiveInfo> Passives { get; set; } = new();
+    // Способности, которые можно извлечь, распылив дворфа (AbilityService)
+    public List<AbilityInfo> Abilities { get; set; } = new();
     public List<EquipmentInfo> Equipment { get; set; } = new();
     public CombatPowerBreakdown Power { get; set; } = new();
     public HeroUpgradeInfo Upgrade { get; set; } = new();
@@ -50,12 +52,13 @@ public class HeroInfo
                 .Select(p => new PassiveInfo
                 {
                     Passive = p.Key,
-                    Level = PassiveBook.LevelFor(hero.Level),
+                    Level = Math.Clamp(hero.PassiveLevel, PassiveBook.MinLevel, PassiveBook.MaxLevel),
                     Percent = p.Value.Percent,
                     Turns = p.Value.Turns,
                     Targets = p.Value.Targets
                 })
                 .ToList(),
+            Abilities = AbilityInfo.Of(hero),
             Equipment = hero.Equipment.Select(EquipmentInfo.From).OfType<EquipmentInfo>().ToList(),
             Power = CombatPower.OfHero(factory, hero),
             Upgrade = HeroUpgradeService.Describe(factory, hero)

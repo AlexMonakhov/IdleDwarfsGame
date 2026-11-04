@@ -1,11 +1,14 @@
-// Книга заклинаний стихии: до трёх семейств спеллов, которые герой открывает с рангом (Hero.Level).
-// Ранг 1 — без стихии и без спеллов, дальше (у стихии с меньшим числом семейств лишних уровней просто нет):
-//   ранг 2 — первый спелл 1 уровня
-//   ранг 3 — первый 2 уровня, второй 1 уровня
-//   ранг 4 — первый 3 уровня, второй 2 уровня, третий 1 уровня
-//   ранг 5 — все три на 3 уровне
+// Книга заклинаний стихии: до трёх семейств спеллов. Дворф знает одно заклинание своей стихии,
+// его уровень зависит от ранга (Hero.Level). У стихии с меньшим числом семейств выбор просто меньше:
+//   ранг 1 — без стихии и без спелла
+//   ранг 2 — спелл 1 уровня
+//   ранг 3 — спелл 2 уровня
+//   ранг 4 и выше — спелл 3 уровня
+// Другие спеллы дворф получает только вставкой извлечённых способностей (AbilityService)
 public static class ElementSpellBook
 {
+    public const int MaxLevel = 3;
+
     // Id первого уровня каждого семейства (см. SpellRegistry)
     private static readonly Dictionary<HeroElement, int[]> Families = new()
     {
@@ -18,28 +21,31 @@ public static class ElementSpellBook
         [HeroElement.Blood] = [40]             // Life Drain
     };
 
-    // Уровни семейств на каждом ранге; 0 — семейство ещё закрыто
-    private static readonly int[][] LevelsByRank =
-    [
-        [0, 0, 0], // ранг 1
-        [1, 0, 0], // ранг 2
-        [2, 1, 0], // ранг 3
-        [3, 2, 1], // ранг 4
-        [3, 3, 3]  // ранг 5
-    ];
-
     public static IReadOnlyCollection<HeroElement> Elements => Families.Keys;
 
-    public static List<int> SpellsFor(HeroElement element, int rank)
-    {
-        if (!Families.TryGetValue(element, out var families))
-            return [];
+    // Id первого уровня семейств стихии; у Basic семейств нет
+    public static IReadOnlyList<int> FamiliesOf(HeroElement element) =>
+        Families.TryGetValue(element, out var families) ? families : [];
 
-        var levels = LevelsByRank[Math.Clamp(rank, HeroLevels.Min, HeroLevels.Max) - HeroLevels.Min];
-        return families
-            .Zip(levels)
-            .Where(f => f.Second > 0)
-            .Select(f => SpellRegistry.IdOf(f.First, f.Second))
-            .ToList();
+    // Уровень спелла дворфа этого ранга; 0 — спелла нет
+    public static int SpellLevelFor(int rank) => Math.Clamp(rank - HeroLevels.Min, 0, MaxLevel);
+
+    // Случайное заклинание стихии под ранг; null — дворфу этого ранга или стихии спелл не положен
+    public static int? RandomSpell(HeroElement element, int rank, Random random)
+    {
+        var families = FamiliesOf(element);
+        int level = SpellLevelFor(rank);
+        if (families.Count == 0 || level == 0)
+            return null;
+
+        return SpellRegistry.IdOf(families[random.Next(families.Count)], level);
     }
+
+    // Id первого уровня семейства, к которому относится спелл; null — такого спелла нет
+    public static int? FamilyOf(int spellId) =>
+        SpellRegistry.All.TryGetValue(spellId, out var spell) ? spellId - (spell.Level - 1) : null;
+
+    // Стихия, в книге которой лежит семейство; Basic — ни в одной
+    public static HeroElement ElementOf(int familyId) =>
+        Families.FirstOrDefault(f => f.Value.Contains(familyId)).Key;
 }
