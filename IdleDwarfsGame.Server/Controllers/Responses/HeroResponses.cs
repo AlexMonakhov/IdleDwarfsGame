@@ -10,6 +10,8 @@ public class HeroInfo
     public int? PlaceInSquad { get; set; }
     // Герой в экспедиции: виден в инвентаре, но не может участвовать в других активностях
     public bool OnExpedition { get; set; }
+    // Дворф работает в шахте — так же занят, как в экспедиции
+    public bool InMine { get; set; }
     public int MaxHp { get; set; }
     public int Attack { get; set; }
     public int Speed { get; set; }
@@ -22,7 +24,7 @@ public class HeroInfo
     public CombatPowerBreakdown Power { get; set; } = new();
     public HeroUpgradeInfo Upgrade { get; set; } = new();
 
-    public static HeroInfo From(IEntityFactory factory, Hero hero, bool onExpedition = false)
+    public static HeroInfo From(IEntityFactory factory, Hero hero, bool onExpedition = false, bool inMine = false)
     {
         var gear = EquipmentCatalog.CollectGear(hero);
         var aura = EntityFactory.ResolveAura(hero, gear);
@@ -36,6 +38,7 @@ public class HeroInfo
             Level = hero.Level,
             PlaceInSquad = hero.PlaceInSquad,
             OnExpedition = onExpedition,
+            InMine = inMine,
             MaxHp = HeroUpgradeService.ScaleStat(hero.MaxHp, hero.UpgradeLevel) + gear.Stats.MaxHp,
             Attack = HeroUpgradeService.ScaleStat(hero.Attack, hero.UpgradeLevel) + gear.Stats.Attack,
             Speed = hero.Speed + gear.Stats.Speed,
