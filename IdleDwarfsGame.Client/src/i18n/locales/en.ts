@@ -490,6 +490,8 @@ const en = {
       confirm: 'Dissolve {count} dwarfs?',
       fusing: 'Fusing...',
       done: 'New dwarf: {name}, rank {rank}',
+      refund: '{percent}% of the upgrade investment comes back: 🪙 {gold}, ✦ {experience}',
+      refunded: 'Refunded: 🪙 {gold}, ✦ {experience}.',
       clear: 'Clear',
     },
     errors: {

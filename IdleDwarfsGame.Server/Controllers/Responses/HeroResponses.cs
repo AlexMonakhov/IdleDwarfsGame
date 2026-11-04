@@ -77,6 +77,8 @@ public class HeroUpgradeInfo
     // null — уровень максимальный
     public HeroUpgradeCost? Cost { get; set; }
     public HeroUpgradePreview? Next { get; set; }
+    // Сколько вложено в прокачку: при слиянии вернётся HeroUpgradeService.FusionRefund от этого
+    public HeroUpgradeCost Invested { get; set; } = new();
 }
 
 public class HeroUpgradeCost

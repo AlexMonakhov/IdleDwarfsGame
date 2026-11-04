@@ -490,6 +490,8 @@ const ru: LocaleMessages = {
       confirm: 'Распылить {count} дворфов?',
       fusing: 'Сливаем...',
       done: 'Новый дворф: {name}, {rank} ранг',
+      refund: 'Вернётся {percent}% вложенного в прокачку: 🪙 {gold}, ✦ {experience}',
+      refunded: 'Возвращено: 🪙 {gold}, ✦ {experience}.',
       clear: 'Очистить',
     },
     errors: {

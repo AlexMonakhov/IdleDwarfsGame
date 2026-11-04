@@ -46,6 +46,8 @@ export interface HeroUpgradeInfo {
     cost: HeroUpgradeCost | null;
     // Статы и мощь после следующего уровня
     next: HeroUpgradePreview | null;
+    // Сколько вложено в прокачку: при слиянии вернётся FUSION_REFUND от этого
+    invested: HeroUpgradeCost;
 }
 
 export interface HeroUpgradeCost {

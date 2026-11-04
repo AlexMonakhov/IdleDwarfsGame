@@ -69,12 +69,21 @@ public class AbilityRepository(GameDbContext context) : IAbilityRepository
         return true;
     }
 
-    public async Task<bool> FuseAsync(Guid playerId, IReadOnlyList<Guid> heroIds, Hero result)
+    public async Task<bool> FuseAsync(Guid playerId, IReadOnlyList<Guid> heroIds, Hero result, HeroUpgradeCost refund)
     {
         await using var transaction = await context.Database.BeginTransactionAsync();
 
         if (!await DissolveAsync(playerId, heroIds))
             return false;
+
+        if (refund.Gold > 0 || refund.Experience > 0)
+        {
+            await context.Players
+                .Where(p => p.Id == playerId)
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(p => p.Gold, p => p.Gold + refund.Gold)
+                    .SetProperty(p => p.Experience, p => p.Experience + refund.Experience));
+        }
 
         context.Heroes.Add(result);
         await context.SaveChangesAsync();

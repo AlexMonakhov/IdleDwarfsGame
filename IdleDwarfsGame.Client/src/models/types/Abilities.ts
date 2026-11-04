@@ -1,5 +1,6 @@
 import type { AuraTarget, HeroElement } from '@/battle/types';
-import type { HeroInfo } from '@/models/types/Heroes';
+import type { HeroInfo, HeroUpgradeCost } from '@/models/types/Heroes';
+import type { PlayerResources } from '@/models/types/Expeditions';
 
 // Способности дворфов (IdleDwarfsGame.Server/Services/AbilityService.cs): извлекаются распылением дворфа,
 // вставляются другому, две одинаковые сливаются в одну уровнем выше. Иммунитеты не извлекаются
@@ -9,6 +10,8 @@ export const ABILITY_KINDS: AbilityKind[] = ['Spell', 'Passive', 'Aura'];
 
 // Сколько дворфов одного ранга сливаются в одного рангом выше
 export const FUSION_SIZE = 5;
+// Доля вложенного в прокачку слитых дворфов, которая возвращается игроку (HeroUpgradeService.FusionRefund)
+export const FUSION_REFUND = 0.3;
 // Выше этого ранга дворфов пока не выдают — их не получить и слиянием
 export const MAX_FUSION_RANK = 4;
 
@@ -38,6 +41,9 @@ export interface AbilityInfo {
 export interface AbilityActionResult {
     abilities: AbilityInfo[];
     hero: HeroInfo | null;
+    // Только у слияния: возврат за прокачку слитых дворфов и ресурсы после него
+    refund?: HeroUpgradeCost | null;
+    resources?: PlayerResources | null;
 }
 
 // Коды отказа сервера: по ним показываем текст abilities.errors.<code>

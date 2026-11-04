@@ -91,7 +91,14 @@ public class HeroUpgradeService(
             };
         }
 
-        return new HeroUpgradeInfo { Level = level, MaxLevel = MaxLevelFor(hero.Level), Cost = cost, Next = next };
+        return new HeroUpgradeInfo
+        {
+            Level = level,
+            MaxLevel = MaxLevelFor(hero.Level),
+            Cost = cost,
+            Next = next,
+            Invested = Invested(hero.Level, level)
+        };
     }
 
     public async Task<HeroUpgradeResult> UpgradeAsync(Guid playerId, Guid heroId)

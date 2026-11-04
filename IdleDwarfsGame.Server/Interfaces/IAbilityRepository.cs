@@ -20,5 +20,6 @@ public interface IAbilityRepository
     /// In one transaction: removes the heroes (their items go back to the inventory) and adds the result.
     /// Returns false and changes nothing if one of them is gone or became busy.
     /// </summary>
-    Task<bool> FuseAsync(Guid playerId, IReadOnlyList<Guid> heroIds, Hero result);
+    // refund — золото и опыт, которые вернутся игроку за прокачку слитых дворфов
+    Task<bool> FuseAsync(Guid playerId, IReadOnlyList<Guid> heroIds, Hero result, HeroUpgradeCost refund);
 }
