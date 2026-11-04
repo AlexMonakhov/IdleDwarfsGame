@@ -5,14 +5,15 @@ public class RadiantNova : BaseSpell
 
     public override DamageType DamageType => DamageType.Radiant;
 
-    private double DamageMultiplier => 0.4 + 0.1 * Level;
+    // 80% / 100% / 120% атаки по каждому врагу
+    private double DamageMultiplier => 0.6 + 0.2 * Level;
 
-    // 0 / 20% / 30% атаки каждому союзнику
+    // 0 / 30% / 50% атаки каждому союзнику
     private double HealMultiplier => Level switch
     {
         1 => 0,
-        2 => 0.2,
-        _ => 0.3
+        2 => 0.3,
+        _ => 0.5
     };
 
     public override void Execute(World world, int casterId, CombatContext context)

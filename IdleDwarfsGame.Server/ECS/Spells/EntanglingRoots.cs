@@ -8,7 +8,13 @@ public class EntanglingRoots : BaseSpell
     public override DamageType DamageType => DamageType.Poison;
 
     private int TargetCount => Level == 1 ? 1 : 2;
-    private double DamageMultiplier => 0.5 + 0.1 * Level;
+    // 170% / 150% / 180% атаки (со 2 уровня целей две)
+    private double DamageMultiplier => Level switch
+    {
+        1 => 1.7,
+        2 => 1.5,
+        _ => 1.8
+    };
 
     private bool Poisons => Level == 3;
     private static int PoisonDamage(int attack) => (int)(attack * 0.2);

@@ -6,9 +6,15 @@ public class Hemorrhage : BaseSpell
 
     public override DamageType DamageType => DamageType.Bleed;
 
-    private double DamageMultiplier => 0.6 + 0.1 * Level;
+    // 100% / 120% / 110% атаки (на 3 уровне целей три) и кровотечение 20% / 30% / 35% атаки
+    private double DamageMultiplier => Level switch
+    {
+        1 => 1.0,
+        2 => 1.2,
+        _ => 1.1
+    };
     private int TargetCount => Level == 3 ? 3 : 2;
-    private int BleedDamage(int attack) => (int)(attack * (0.15 + 0.05 * Level));
+    private int BleedDamage(int attack) => (int)(attack * Level switch { 1 => 0.2, 2 => 0.3, _ => 0.35 });
 
     protected override List<int> GetTargets(World world, int casterId, Random random) =>
         GetRandomTargets(GetAliveEnemies(world, casterId), TargetCount, random);

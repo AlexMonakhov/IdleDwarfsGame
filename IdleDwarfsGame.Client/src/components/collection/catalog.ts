@@ -41,73 +41,73 @@ export const SPELLS: Record<string, SpellSample> = {
     fireball: {
         key: 'fireball', name: 'Fireball', damageType: 'Fire',
         levels: [
-            { damage: 1.2, statuses: ['Burn'] },
-            { damage: 0.8, statuses: ['Burn'], targets: 3 },
-            { damage: 0.6, statuses: ['Burn'], targets: 3 },
+            { damage: 1.4, statuses: ['Burn'] },
+            { damage: 0.85, statuses: ['Burn'], targets: 3 },
+            { damage: 0.75, statuses: ['Burn'], targets: 3 },
         ],
     },
     flameWave: {
         key: 'flameWave', name: 'Flame Wave', damageType: 'Fire',
         levels: [
-            { damage: 0.7, targets: 2 },
-            { damage: 0.75, targets: 3 },
-            { damage: 0.7, statuses: ['Burn'], targets: 3 },
+            { damage: 1.1, statuses: ['Burn'], targets: 2 },
+            { damage: 1.05, statuses: ['Burn'], targets: 3 },
+            { damage: 0.9, statuses: ['Burn'], targets: 3 },
         ],
     },
     meteor: {
         key: 'meteor', name: 'Meteor', damageType: 'Fire',
         levels: [
-            { damage: 2 },
-            { damage: 2.4, statuses: ['Burn'] },
-            { damage: 2.8, statuses: ['Burn'] },
+            { damage: 2.6 },
+            { damage: 3.2, statuses: ['Burn'] },
+            { damage: 4, statuses: ['Burn'] },
         ],
     },
     frostBolt: {
         key: 'frostBolt', name: 'Frost Bolt', damageType: 'Frost',
         levels: [
-            { damage: 1.1, statuses: ['Frost'] },
-            { damage: 1.25, statuses: ['Frost'] },
-            { damage: 1.4, statuses: ['Frost'] },
+            { damage: 1.6, statuses: ['Frost'] },
+            { damage: 1.9, statuses: ['Frost'] },
+            { damage: 2.3, statuses: ['Frost'] },
         ],
     },
     blizzard: {
         key: 'blizzard', name: 'Blizzard', damageType: 'Frost',
         levels: [
-            { damage: 0.45, statuses: ['Frost'], targets: 3 },
-            { damage: 0.55, statuses: ['Frost'], targets: 3 },
-            { damage: 0.65, statuses: ['Frost'], targets: 3 },
+            { damage: 0.9, statuses: ['Frost'], targets: 3 },
+            { damage: 1.15, statuses: ['Frost'], targets: 3 },
+            { damage: 1.45, statuses: ['Frost'], targets: 3 },
         ],
     },
     glacialPrison: {
         key: 'glacialPrison', name: 'Glacial Prison', damageType: 'Frost',
         levels: [
-            { damage: 0.8, statuses: ['Freeze'] },
-            { damage: 1, statuses: ['Freeze'] },
-            { damage: 1, statuses: ['Freeze'], targets: 2 },
+            { damage: 2, statuses: ['Freeze'] },
+            { damage: 2.7, statuses: ['Freeze'] },
+            { damage: 2.3, statuses: ['Freeze'], targets: 2 },
         ],
     },
     lightning: {
         key: 'lightning', name: 'Lightning', damageType: 'Lightning',
         levels: [
-            { damage: 1.3 },
-            { damage: 0.9, targets: 2 },
-            { damage: 0.9, statuses: ['Stun'], targets: 2 },
+            { damage: 2 },
+            { damage: 1.7, targets: 2 },
+            { damage: 1.9, statuses: ['Stun'], targets: 2 },
         ],
     },
     chainLightning: {
         key: 'chainLightning', name: 'Chain Lightning', damageType: 'Lightning',
         levels: [
-            { damage: 0.7, targets: 2 },
-            { damage: 0.7, targets: 3 },
-            { damage: 0.7, statuses: ['Shock'], targets: 4 },
+            { damage: 1.3, targets: 2 },
+            { damage: 1.3, targets: 3 },
+            { damage: 1.25, statuses: ['Shock'], targets: 4 },
         ],
     },
     thunderclap: {
         key: 'thunderclap', name: 'Thunderclap', damageType: 'Lightning',
         levels: [
-            { damage: 0.4, statuses: ['Stun'], targets: 3, statusTargets: 1 },
-            { damage: 0.5, statuses: ['Stun'], targets: 3, statusTargets: 1 },
-            { damage: 0.6, statuses: ['Stun'], targets: 3, statusTargets: 1 },
+            { damage: 0.9, statuses: ['Stun'], targets: 3, statusTargets: 1 },
+            { damage: 1.15, statuses: ['Stun'], targets: 3, statusTargets: 1 },
+            { damage: 1.45, statuses: ['Stun'], targets: 3, statusTargets: 1 },
         ],
     },
     healingRune: {
@@ -121,90 +121,90 @@ export const SPELLS: Record<string, SpellSample> = {
     venomThorns: {
         key: 'venomThorns', name: 'Venom Thorns', damageType: 'Poison',
         levels: [
-            { damage: 0.8, statuses: ['Poison'] },
-            { damage: 0.8, statuses: ['Poison'], targets: 2 },
-            { damage: 0.8, statuses: ['Poison'], targets: 3 },
+            { damage: 1.1, statuses: ['Poison'] },
+            { damage: 1, statuses: ['Poison'], targets: 2 },
+            { damage: 0.95, statuses: ['Poison'], targets: 3 },
         ],
     },
     entanglingRoots: {
         key: 'entanglingRoots', name: 'Entangling Roots', damageType: 'Poison',
         levels: [
-            { damage: 0.6, statuses: ['Stun'] },
-            { damage: 0.7, statuses: ['Stun'], targets: 2 },
-            { damage: 0.8, statuses: ['Stun', 'Poison'], targets: 2 },
+            { damage: 1.7, statuses: ['Stun'] },
+            { damage: 1.5, statuses: ['Stun'], targets: 2 },
+            { damage: 1.8, statuses: ['Stun', 'Poison'], targets: 2 },
         ],
     },
     shadowBolt: {
         key: 'shadowBolt', name: 'Shadow Bolt', damageType: 'Dark',
         levels: [
-            { damage: 1.2 },
-            { damage: 1.4, statuses: ['Curse'] },
-            { damage: 1.6, statuses: ['Curse'] },
+            { damage: 1.75 },
+            { damage: 1.8, statuses: ['Curse'] },
+            { damage: 2, statuses: ['Curse'] },
         ],
     },
     lifeDrain: {
         key: 'lifeDrain', name: 'Life Drain', damageType: 'Bleed',
         levels: [
-            { damage: 0.9, heal: 0.45 },
-            { damage: 1.1, heal: 0.66 },
-            { damage: 1.3, heal: 0.91 },
+            { damage: 2, heal: 1 },
+            { damage: 2.5, heal: 1.25 },
+            { damage: 3.1, heal: 1.55 },
         ],
     },
     hex: {
         key: 'hex', name: 'Hex', damageType: 'Dark',
         levels: [
-            { damage: 0.3, statuses: ['Curse'], targets: 3 },
-            { damage: 0.3, statuses: ['Curse'], targets: 3 },
-            { damage: 0.3, statuses: ['Curse'], targets: 3 },
+            { damage: 0.4, statuses: ['Curse'], targets: 3 },
+            { damage: 0.5, statuses: ['Curse'], targets: 3 },
+            { damage: 0.6, statuses: ['Curse'], targets: 3 },
         ],
     },
     // Урон — без сгоревшего проклятия: его остаток на сцене добавляется к удару отдельно (SceneBuilder)
     soulHarvest: {
         key: 'soulHarvest', name: 'Soul Harvest', damageType: 'Dark',
         levels: [
-            { damage: 0.7, consumes: 'Curse', targets: 2 },
-            { damage: 0.8, consumes: 'Curse', targets: 2 },
-            { damage: 0.9, consumes: 'Curse', targets: 3 },
+            { damage: 1.5, consumes: 'Curse', targets: 2 },
+            { damage: 1.9, consumes: 'Curse', targets: 2 },
+            { damage: 1.9, consumes: 'Curse', targets: 3 },
         ],
     },
     hemorrhage: {
         key: 'hemorrhage', name: 'Hemorrhage', damageType: 'Bleed',
         levels: [
-            { damage: 0.7, statuses: ['Bleed'], targets: 2 },
-            { damage: 0.8, statuses: ['Bleed'], targets: 2 },
-            { damage: 0.9, statuses: ['Bleed'], targets: 3 },
+            { damage: 1, statuses: ['Bleed'], targets: 2 },
+            { damage: 1.2, statuses: ['Bleed'], targets: 2 },
+            { damage: 1.1, statuses: ['Bleed'], targets: 3 },
         ],
     },
     bloodPrice: {
         key: 'bloodPrice', name: 'Blood Price', damageType: 'Bleed',
         levels: [
-            { damage: 0.7, selfDamage: 0.1, targets: 3 },
-            { damage: 0.85, selfDamage: 0.1, targets: 3 },
-            { damage: 1, selfDamage: 0.1, statuses: ['Bleed'], targets: 3 },
+            { damage: 0.95, selfDamage: 0.1, targets: 3 },
+            { damage: 1.2, selfDamage: 0.1, targets: 3 },
+            { damage: 1.5, selfDamage: 0.1, statuses: ['Bleed'], targets: 3 },
         ],
     },
     prismRay: {
         key: 'prismRay', name: 'Prism Ray', damageType: 'Radiant',
         levels: [
-            { damage: 1.3 },
-            { damage: 1.5 },
-            { damage: 1.5, targets: 2 },
+            { damage: 1.9 },
+            { damage: 2.35 },
+            { damage: 1.95, targets: 2 },
         ],
     },
     radiantNova: {
         key: 'radiantNova', name: 'Radiant Nova', damageType: 'Radiant',
         levels: [
-            { damage: 0.5, targets: 3 },
-            { damage: 0.6, heal: 0.2, targets: 3 },
-            { damage: 0.7, heal: 0.3, targets: 3 },
+            { damage: 0.8, targets: 3 },
+            { damage: 1, heal: 0.3, targets: 3 },
+            { damage: 1.2, heal: 0.5, targets: 3 },
         ],
     },
     dawnlight: {
         key: 'dawnlight', name: 'Dawnlight', damageType: 'Radiant',
         levels: [
-            { heal: 0.6, statuses: ['Regen'], targets: 3 },
-            { heal: 0.8, statuses: ['Regen'], targets: 3 },
-            { heal: 1, statuses: ['Regen'], targets: 3 },
+            { heal: 0.7, statuses: ['Regen'], targets: 3 },
+            { heal: 0.9, statuses: ['Regen'], targets: 3 },
+            { heal: 1.1, statuses: ['Regen'], targets: 3 },
         ],
     },
 };

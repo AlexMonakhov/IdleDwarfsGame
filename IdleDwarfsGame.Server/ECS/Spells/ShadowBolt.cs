@@ -7,10 +7,17 @@ public class ShadowBolt : BaseSpell
 
     public override DamageType DamageType => DamageType.Dark;
 
-    private double DamageMultiplier => 1.0 + 0.2 * Level;
+    // 175% / 180% / 200% атаки
+    private double DamageMultiplier => Level switch
+    {
+        1 => 1.75,
+        2 => 1.8,
+        _ => 2.0
+    };
 
+    // Проклятие 15% / 25% атаки за ход
     private bool Curses => Level >= 2;
-    private int CurseDamage(int attack) => (int)(attack * (0.1 + 0.05 * Level));
+    private int CurseDamage(int attack) => (int)(attack * (Level >= 3 ? 0.25 : 0.15));
 
     protected override List<int> GetTargets(World world, int casterId, Random random) =>
         GetRandomTargets(GetAliveEnemies(world, casterId), 1, random);

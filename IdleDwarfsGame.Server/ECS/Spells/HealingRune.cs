@@ -7,8 +7,9 @@ public class HealingRune : BaseSpell
 
     public override DamageType DamageType => DamageType.Magical;
 
+    // Лечение 200% / 250% / 300% атаки и регенерация 10% / 15% / 20% атаки за ход
     private int HealAmount(int attack) => (int)(attack * (1.5 + 0.5 * Level));
-    private int RegenPerTurn => 4 * Level;
+    private int RegenPerTurn(int attack) => (int)(attack * (0.05 + 0.05 * Level));
 
     public override void Execute(World world, int casterId, CombatContext context)
     {
@@ -20,7 +21,7 @@ public class HealingRune : BaseSpell
 
         HealTarget(world, casterId, target.Id, HealAmount(world.Attack[casterId].Damage), context);
 
-        new RegenEffect(turns: RegenTurns, healPerTurn: RegenPerTurn).ApplyEffect(world, target.Id, context, casterId);
+        new RegenEffect(turns: RegenTurns, healPerTurn: RegenPerTurn(world.Attack[casterId].Damage)).ApplyEffect(world, target.Id, context, casterId);
     }
 
     protected override List<int> GetTargets(World world, int casterId, Random random) => new();
@@ -28,5 +29,5 @@ public class HealingRune : BaseSpell
     protected override int GetDamage(World world, int casterId, int targetId) => 0;
 
     public override SpellEstimate Estimate(int casterAttack, int enemyCount) =>
-        new(Healing: HealAmount(casterAttack) + RegenTurns * RegenPerTurn);
+        new(Healing: HealAmount(casterAttack) + RegenTurns * RegenPerTurn(casterAttack));
 }

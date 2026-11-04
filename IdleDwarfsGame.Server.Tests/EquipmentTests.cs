@@ -149,7 +149,7 @@ public class EquipmentTests : IDisposable
         int plainDamage = plainContext.Logs.Single(l => l.EventType == CombatEventType.Damage).Damage;
         int gearedDamage = gearedContext.Logs.Single(l => l.EventType == CombatEventType.Damage).Damage;
         // +60 атаки и +20% урона спелла
-        Assert.Equal((int)(160 * 1.2) * 120 / 100, gearedDamage);
+        Assert.Equal((int)(160 * 1.4) * 120 / 100, gearedDamage);
         Assert.True(gearedDamage > plainDamage);
     }
 

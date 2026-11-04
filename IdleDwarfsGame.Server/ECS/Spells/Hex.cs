@@ -1,12 +1,13 @@
-// Порча: слабый удар по всем врагам и проклятие, которое тикает тьмой и вытягивает энергию
+// Порча: лёгкий удар по всем врагам и проклятие, которое тикает тьмой и вытягивает энергию
 public class Hex : BaseSpell
 {
-    private const double DamageMultiplier = 0.3;
 
     public Hex(int level = 1) : base(level + 42, "Hex", level, 50) { }
 
     public override DamageType DamageType => DamageType.Dark;
 
+    // 40% / 50% / 60% атаки сразу и проклятие 20% / 25% / 30% атаки за ход
+    private double DamageMultiplier => 0.3 + 0.1 * Level;
     private int CurseTurns => Level == 3 ? 3 : 2;
     private int CurseDamage(int attack) => (int)(attack * (0.15 + 0.05 * Level));
 

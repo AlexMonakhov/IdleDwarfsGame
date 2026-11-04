@@ -7,7 +7,13 @@ public class FrostBolt : BaseSpell
 
     public override DamageType DamageType => DamageType.Frost;
 
-    private double DamageMultiplier => 0.95 + 0.15 * Level;
+    // 160% / 190% / 230% атаки
+    private double DamageMultiplier => Level switch
+    {
+        1 => 1.6,
+        2 => 1.9,
+        _ => 2.3
+    };
     private int FrostSlow => 15 + 5 * Level;
 
     protected override List<int> GetTargets(World world, int casterId, Random random) =>

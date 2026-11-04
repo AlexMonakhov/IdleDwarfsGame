@@ -12,17 +12,17 @@ public class Fireball : BaseSpell
         _ => null
     };
 
+    // 140% / 85% / 75% атаки по каждой цели
     private double DamageMultiplier => Level switch
     {
-        1 => 1.2,
-        2 => 0.8,
-        3 => 0.6,
-        _ => 1
+        1 => 1.4,
+        2 => 0.85,
+        _ => 0.75
     };
 
-    // 1 — поджигает на 1 ход фиксированным уроном, дальше на 2 хода уроном 30% от атаки кастера
-    private int BurnTurns => Level == 1 ? 1 : 2;
-    private int BurnDamage(int attack) => Level == 1 ? 10 : (int)(attack * 0.3);
+    // Поджигает на 2 хода уроном 10% от атаки кастера
+    private const int BurnTurns = 2;
+    private static int BurnDamage(int attack) => (int)(attack * 0.1);
 
     protected override List<int> GetTargets(World world, int casterId, Random random)
     {

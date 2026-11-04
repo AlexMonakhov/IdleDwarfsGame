@@ -5,11 +5,18 @@ public class Meteor : BaseSpell
 
     public override DamageType DamageType => DamageType.Fire;
 
-    private double DamageMultiplier => 1.6 + 0.4 * Level;
+    // 260% / 320% / 400% атаки: каст копит три удара, поэтому бьёт как четыре с лишним
+    private double DamageMultiplier => Level switch
+    {
+        1 => 2.6,
+        2 => 3.2,
+        _ => 4.0
+    };
 
+    // Горение 15% атаки: 2 хода на 2 уровне, 3 — на 3-м
     private bool Burns => Level >= 2;
-    private static int BurnDamage(int attack) => (int)(attack * 0.25);
-    private const int BurnTurns = 2;
+    private static int BurnDamage(int attack) => (int)(attack * 0.15);
+    private int BurnTurns => Level >= 3 ? 3 : 2;
 
     protected override List<int> GetTargets(World world, int casterId, Random random) =>
         GetAliveEnemies(world, casterId)

@@ -6,7 +6,13 @@ public class GlacialPrison : BaseSpell
     public override DamageType DamageType => DamageType.Frost;
 
     private int TargetCount => Level == 3 ? 2 : 1;
-    private double DamageMultiplier => Level == 1 ? 0.8 : 1.0;
+    // 200% / 270% / 230% атаки (на 3 уровне целей две)
+    private double DamageMultiplier => Level switch
+    {
+        1 => 2.0,
+        2 => 2.7,
+        _ => 2.3
+    };
 
     protected override List<int> GetTargets(World world, int casterId, Random random) =>
         GetRandomTargets(GetAliveEnemies(world, casterId), TargetCount, random);

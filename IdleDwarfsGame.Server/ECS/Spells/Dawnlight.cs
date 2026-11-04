@@ -7,8 +7,9 @@ public class Dawnlight : BaseSpell
 
     public override DamageType DamageType => DamageType.Radiant;
 
-    private double HealMultiplier => 0.4 + 0.2 * Level;
-    private int RegenPerTurn => 3 * Level;
+    // Лечение 70% / 90% / 110% атаки каждому и регенерация 10% / 15% / 20% атаки за ход
+    private double HealMultiplier => 0.5 + 0.2 * Level;
+    private int RegenPerTurn(int attack) => (int)(attack * (0.05 + 0.05 * Level));
 
     public override void Execute(World world, int casterId, CombatContext context)
     {
@@ -19,7 +20,7 @@ public class Dawnlight : BaseSpell
         foreach (var ally in allies)
         {
             HealTarget(world, casterId, ally.Id, heal, context);
-            new RegenEffect(turns: RegenTurns, healPerTurn: RegenPerTurn).ApplyEffect(world, ally.Id, context, casterId);
+            new RegenEffect(turns: RegenTurns, healPerTurn: RegenPerTurn(world.Attack[casterId].Damage)).ApplyEffect(world, ally.Id, context, casterId);
         }
     }
 
@@ -29,5 +30,5 @@ public class Dawnlight : BaseSpell
 
     // Союзников в среднем бою столько же, сколько врагов
     public override SpellEstimate Estimate(int casterAttack, int enemyCount) =>
-        new(Healing: enemyCount * ((int)(casterAttack * HealMultiplier) + RegenTurns * RegenPerTurn));
+        new(Healing: enemyCount * ((int)(casterAttack * HealMultiplier) + RegenTurns * RegenPerTurn(casterAttack)));
 }

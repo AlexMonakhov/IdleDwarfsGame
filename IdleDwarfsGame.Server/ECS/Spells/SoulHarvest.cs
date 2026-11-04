@@ -10,7 +10,8 @@ public class SoulHarvest : BaseSpell
 
     public override DamageType DamageType => DamageType.Dark;
 
-    private double DamageMultiplier => 0.6 + 0.1 * Level;
+    // 150% / 190% / 190% атаки (на 3 уровне целей три) плюс весь оставшийся урон проклятия
+    private double DamageMultiplier => Level == 1 ? 1.5 : 1.9;
     private int TargetCount => Level == 3 ? 3 : 2;
     private bool RefundsEnergy => Level >= 3;
 
