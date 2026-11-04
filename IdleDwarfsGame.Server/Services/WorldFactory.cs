@@ -34,9 +34,11 @@ public class WorldFactory : IWorldFactory
     }
 }
 
+// Рост статов врагов с уровнем (уровень кампании, этаж башни, уровень босса): ×LevelMultiplier за уровень.
+// Статы дворфов растут так же: ×1.045 за уровень — это примерно +4.5% атаки и HP, т.е. ~+9% силы за уровень
 public static class BalanceCalculator
 {
-    private const double LevelMultiplier = 1.2;
+    private const double LevelMultiplier = 1.045;
 
     public static int ScaleStat(int baseValue, int level)
     {

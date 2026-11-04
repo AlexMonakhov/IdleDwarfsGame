@@ -177,7 +177,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Id = 2,
                             ArenaId = 1,
                             Description = "An orc leads scouts through the smouldering tunnels.",
-                            EnemyLevel = 1,
+                            EnemyLevel = 2,
                             Name = "Smouldering Tunnels",
                             Type = 0
                         },
@@ -186,7 +186,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Id = 3,
                             ArenaId = 1,
                             Description = "A skeleton mage has joined the orcs in the hall of ash.",
-                            EnemyLevel = 2,
+                            EnemyLevel = 3,
                             Name = "Cinder Hall",
                             Type = 0
                         },
@@ -195,7 +195,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Id = 4,
                             ArenaId = 1,
                             Description = "The orc warlord's camp. His aura sets everything ablaze.",
-                            EnemyLevel = 2,
+                            EnemyLevel = 5,
                             Name = "Warlord's Camp",
                             Type = 0
                         },
@@ -204,7 +204,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Id = 5,
                             ArenaId = 1,
                             Description = "Gorrak the Molten guards the heart of the forge.",
-                            EnemyLevel = 2,
+                            EnemyLevel = 5,
                             Name = "Heart of the Forge",
                             Type = 1
                         },
@@ -213,7 +213,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Id = 6,
                             ArenaId = 2,
                             Description = "Frost goblins lie in ambush at the pass.",
-                            EnemyLevel = 3,
+                            EnemyLevel = 8,
                             Name = "Frozen Pass",
                             Type = 0
                         },
@@ -222,7 +222,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Id = 7,
                             ArenaId = 2,
                             Description = "The rime caverns are crawling with undead.",
-                            EnemyLevel = 3,
+                            EnemyLevel = 9,
                             Name = "Rime Caverns",
                             Type = 0
                         },
@@ -231,7 +231,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Id = 8,
                             ArenaId = 2,
                             Description = "A mixed warband holds the bridge across the glacier.",
-                            EnemyLevel = 3,
+                            EnemyLevel = 9,
                             Name = "Glacier Bridge",
                             Type = 0
                         },
@@ -240,7 +240,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Id = 9,
                             ArenaId = 2,
                             Description = "The last line of defence before the frost lord's lair.",
-                            EnemyLevel = 3,
+                            EnemyLevel = 10,
                             Name = "Hall of Whispers",
                             Type = 0
                         },
@@ -249,7 +249,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Id = 10,
                             ArenaId = 2,
                             Description = "Hrimgar the Frostbound awaits on his throne of ice.",
-                            EnemyLevel = 3,
+                            EnemyLevel = 13,
                             Name = "Throne of Frost",
                             Type = 1
                         });
@@ -464,6 +464,24 @@ namespace IdleDwarfsGame.Server.Migrations
                             HpMultiplier = 1.0,
                             IsBoss = false,
                             Position = 3,
+                            StageId = 6
+                        },
+                        new
+                        {
+                            Id = 604,
+                            HeroId = new Guid("22222222-0000-4000-8000-000000000001"),
+                            HpMultiplier = 1.0,
+                            IsBoss = false,
+                            Position = 4,
+                            StageId = 6
+                        },
+                        new
+                        {
+                            Id = 605,
+                            HeroId = new Guid("22222222-0000-4000-8000-000000000003"),
+                            HpMultiplier = 1.0,
+                            IsBoss = false,
+                            Position = 5,
                             StageId = 6
                         },
                         new
@@ -1328,7 +1346,7 @@ namespace IdleDwarfsGame.Server.Migrations
                         new
                         {
                             Id = new Guid("22222222-0000-4000-8000-000000000001"),
-                            Attack = 95,
+                            Attack = 70,
                             AuraDuration = 1,
                             AuraInterval = 1,
                             AuraLevel = 1,
@@ -1340,7 +1358,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Immunities = "Stun",
                             Level = 4,
                             MaxEnergy = 100,
-                            MaxHp = 1300,
+                            MaxHp = 1000,
                             Name = "Orc Brute",
                             PassiveLevel = 1,
                             Passives = "",
@@ -1355,7 +1373,7 @@ namespace IdleDwarfsGame.Server.Migrations
                         new
                         {
                             Id = new Guid("22222222-0000-4000-8000-000000000002"),
-                            Attack = 85,
+                            Attack = 70,
                             AuraDuration = 1,
                             AuraInterval = 1,
                             AuraLevel = 1,
@@ -1367,7 +1385,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Immunities = "",
                             Level = 4,
                             MaxEnergy = 100,
-                            MaxHp = 560,
+                            MaxHp = 480,
                             Name = "Goblin Scout",
                             PassiveLevel = 1,
                             Passives = "",
@@ -1382,7 +1400,7 @@ namespace IdleDwarfsGame.Server.Migrations
                         new
                         {
                             Id = new Guid("22222222-0000-4000-8000-000000000003"),
-                            Attack = 85,
+                            Attack = 65,
                             AuraDuration = 1,
                             AuraInterval = 1,
                             AuraLevel = 1,
@@ -1394,7 +1412,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Immunities = "",
                             Level = 4,
                             MaxEnergy = 100,
-                            MaxHp = 520,
+                            MaxHp = 440,
                             Name = "Goblin Shaman",
                             PassiveLevel = 1,
                             Passives = "",
@@ -1409,12 +1427,12 @@ namespace IdleDwarfsGame.Server.Migrations
                         new
                         {
                             Id = new Guid("22222222-0000-4000-8000-000000000004"),
-                            Attack = 95,
+                            Attack = 75,
                             AuraDuration = 1,
                             AuraEffect = "Burn",
                             AuraInterval = 1,
                             AuraLevel = 1,
-                            AuraPower = 10,
+                            AuraPower = 8,
                             AuraTarget = 1,
                             AuraTrigger = 1,
                             Element = "Frost",
@@ -1422,7 +1440,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Immunities = "Burn",
                             Level = 4,
                             MaxEnergy = 100,
-                            MaxHp = 1100,
+                            MaxHp = 800,
                             Name = "Orc Warlord",
                             PassiveLevel = 1,
                             Passives = "",
@@ -1437,7 +1455,7 @@ namespace IdleDwarfsGame.Server.Migrations
                         new
                         {
                             Id = new Guid("22222222-0000-4000-8000-000000000005"),
-                            Attack = 100,
+                            Attack = 75,
                             AuraDuration = 1,
                             AuraInterval = 1,
                             AuraLevel = 1,
@@ -1449,7 +1467,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Immunities = "Frost",
                             Level = 4,
                             MaxEnergy = 100,
-                            MaxHp = 620,
+                            MaxHp = 480,
                             Name = "Skeleton Mage",
                             PassiveLevel = 1,
                             Passives = "",
@@ -1464,7 +1482,7 @@ namespace IdleDwarfsGame.Server.Migrations
                         new
                         {
                             Id = new Guid("33333333-0000-4000-8000-000000000001"),
-                            Attack = 90,
+                            Attack = 95,
                             AuraDuration = 1,
                             AuraInterval = 1,
                             AuraLevel = 1,
@@ -1476,7 +1494,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Immunities = "Frost",
                             Level = 4,
                             MaxEnergy = 100,
-                            MaxHp = 600,
+                            MaxHp = 720,
                             Name = "Frost Goblin",
                             PassiveLevel = 1,
                             Passives = "",
@@ -1490,7 +1508,7 @@ namespace IdleDwarfsGame.Server.Migrations
                         new
                         {
                             Id = new Guid("33333333-0000-4000-8000-000000000002"),
-                            Attack = 95,
+                            Attack = 100,
                             AuraDuration = 1,
                             AuraInterval = 1,
                             AuraLevel = 1,
@@ -1502,7 +1520,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Immunities = "Frost",
                             Level = 4,
                             MaxEnergy = 100,
-                            MaxHp = 740,
+                            MaxHp = 840,
                             Name = "Rime Skeleton",
                             PassiveLevel = 1,
                             Passives = "",
@@ -1516,7 +1534,7 @@ namespace IdleDwarfsGame.Server.Migrations
                         new
                         {
                             Id = new Guid("33333333-0000-4000-8000-000000000101"),
-                            Attack = 130,
+                            Attack = 110,
                             AuraDuration = 1,
                             AuraEffect = "Burn",
                             AuraInterval = 1,
@@ -1529,7 +1547,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Immunities = "Burn,Stun",
                             Level = 4,
                             MaxEnergy = 100,
-                            MaxHp = 1600,
+                            MaxHp = 1300,
                             Name = "Gorrak the Molten",
                             PassiveLevel = 1,
                             Passives = "",

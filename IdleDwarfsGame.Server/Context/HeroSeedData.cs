@@ -91,7 +91,7 @@ public static class HeroSeedData
         {
             Id = Guid.Parse("22222222-0000-4000-8000-000000000001"), PlayerId = EnemyPlayerId,
             Name = "Orc Brute", UnitType = "Orc", Element = HeroElement.Frost, Level = 4, PlaceInSquad = 1,
-            MaxHp = 1300, Attack = 95, Speed = 3,
+            MaxHp = 1000, Attack = 70, Speed = 3,
             MaxEnergy = 100, StartEnergy = 0, EnergyPerAttack = 20,
             Immunities = ["Stun"]
         },
@@ -99,14 +99,14 @@ public static class HeroSeedData
         {
             Id = Guid.Parse("22222222-0000-4000-8000-000000000002"), PlayerId = EnemyPlayerId,
             Name = "Goblin Scout", UnitType = "Goblin", Element = HeroElement.Frost, Level = 4, PlaceInSquad = 2,
-            MaxHp = 560, Attack = 85, Speed = 9,
+            MaxHp = 480, Attack = 70, Speed = 9,
             MaxEnergy = 100, StartEnergy = 0, EnergyPerAttack = 20
         },
         new Hero
         {
             Id = Guid.Parse("22222222-0000-4000-8000-000000000003"), PlayerId = EnemyPlayerId,
             Name = "Goblin Shaman", UnitType = "Goblin", Element = HeroElement.Frost, Level = 4, PlaceInSquad = 3,
-            MaxHp = 520, Attack = 85, Speed = 7,
+            MaxHp = 440, Attack = 65, Speed = 7,
             MaxEnergy = 100, StartEnergy = 20, EnergyPerAttack = 20,
             SpellIds = [1] // Fireball 1
         },
@@ -114,17 +114,17 @@ public static class HeroSeedData
         {
             Id = Guid.Parse("22222222-0000-4000-8000-000000000004"), PlayerId = EnemyPlayerId,
             Name = "Orc Warlord", UnitType = "Orc", Element = HeroElement.Frost, Level = 4, PlaceInSquad = 4,
-            MaxHp = 1100, Attack = 95, Speed = 4,
+            MaxHp = 800, Attack = 75, Speed = 4,
             MaxEnergy = 100, StartEnergy = 0, EnergyPerAttack = 20,
             Immunities = ["Burn"],
             // Аура жара: поджигает врагов в начале раунда
-            AuraEffect = "Burn", AuraTarget = AuraTarget.Enemies, AuraTrigger = TriggerPhase.OnRoundStart, AuraPower = 10, AuraDuration = 1
+            AuraEffect = "Burn", AuraTarget = AuraTarget.Enemies, AuraTrigger = TriggerPhase.OnRoundStart, AuraPower = 8, AuraDuration = 1
         },
         new Hero
         {
             Id = Guid.Parse("22222222-0000-4000-8000-000000000005"), PlayerId = EnemyPlayerId,
             Name = "Skeleton Mage", UnitType = "Skeleton", Element = HeroElement.Frost, Level = 4, PlaceInSquad = 5,
-            MaxHp = 620, Attack = 100, Speed = 6,
+            MaxHp = 480, Attack = 75, Speed = 6,
             MaxEnergy = 100, StartEnergy = 0, EnergyPerAttack = 25,
             SpellIds = [5], // Lightning 2
             Immunities = ["Frost"]

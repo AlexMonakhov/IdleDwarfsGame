@@ -5,8 +5,8 @@ using IdleDwarfsGame.Server.Enums;
 // одним отрядом за бой (FightRounds раундов) его не убить, бьёт вся гильдия.
 // У каждого уровня несколько вариантов «босс + арена его стихии», они сменяют друг друга по суткам.
 // Бой идёт на арене варианта — с её эффектом.
-// Стартовый отряд (TmpGuildBalance) наносит за бой ~700 урона лёгкому, ~490–540 среднему и ~340–390 сложному боссу,
-// то есть стартовым отрядам нужно ~28, ~75–82 и ~260–290 ударов
+// Запас HP подобран симуляцией (BalanceSimulation.Report): лёгкого босса отряд 1-го ранга 10-го уровня
+// снимает за ~30 попыток, среднего отряд 2-го ранга 20-го уровня — за ~75, сложного отряд 3-го ранга 25-го уровня — за ~260
 public static class GuildBosses
 {
     // Сколько раундов длится один бой с боссом. Обычные бои идут до CombatContext.DefaultMaxRounds,
@@ -27,7 +27,7 @@ public static class GuildBosses
                 new(GuildBossSeedData.MossbackTroll, CampaignSeedData.MarshArenaId),
                 new(GuildBossSeedData.RimehornYeti, CampaignSeedData.IceArenaId)
             ],
-            Level: 2, MaxHp: 20_000,
+            Level: 10, MaxHp: 300_000,
             Gold: 400, Experience: 200,
             Chests: [(ChestType.Gem, 1)]),
         new(GuildBossTier.Medium,
@@ -36,7 +36,7 @@ public static class GuildBosses
                 new(GuildBossSeedData.AshmawWarlord, CampaignSeedData.LavaArenaId),
                 new(GuildBossSeedData.GrukkStormcaller, CampaignSeedData.StormArenaId)
             ],
-            Level: 5, MaxHp: 40_000,
+            Level: 20, MaxHp: 1_800_000,
             Gold: 1200, Experience: 600,
             Chests: [(ChestType.Gem, 2), (ChestType.Hero, 1)]),
         new(GuildBossTier.Hard,
@@ -45,7 +45,7 @@ public static class GuildBosses
                 new(GuildBossSeedData.NyxaraHollowQueen, CampaignSeedData.CryptArenaId),
                 new(GuildBossSeedData.SeraphelShatteredLight, CampaignSeedData.SanctumArenaId)
             ],
-            Level: 8, MaxHp: 100_000,
+            Level: 35, MaxHp: 7_500_000,
             Gold: 3000, Experience: 1500,
             Chests: [(ChestType.Gem, 3), (ChestType.Hero, 2)])
     ];

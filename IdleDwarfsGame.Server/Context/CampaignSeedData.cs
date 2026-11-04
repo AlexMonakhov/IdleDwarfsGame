@@ -35,7 +35,7 @@ public static class CampaignSeedData
         {
             Id = FrostGoblin, PlayerId = CampaignPlayerId,
             Name = "Frost Goblin", UnitType = "Goblin", Element = HeroElement.Frost, Level = 4,
-            MaxHp = 600, Attack = 90, Speed = 8,
+            MaxHp = 720, Attack = 95, Speed = 8,
             MaxEnergy = 100, StartEnergy = 0, EnergyPerAttack = 20,
             Immunities = ["Frost"]
         },
@@ -43,7 +43,7 @@ public static class CampaignSeedData
         {
             Id = RimeSkeleton, PlayerId = CampaignPlayerId,
             Name = "Rime Skeleton", UnitType = "Skeleton", Element = HeroElement.Frost, Level = 4,
-            MaxHp = 740, Attack = 95, Speed = 5,
+            MaxHp = 840, Attack = 100, Speed = 5,
             MaxEnergy = 100, StartEnergy = 20, EnergyPerAttack = 20,
             SpellIds = [4], // Lightning 1
             Immunities = ["Frost"]
@@ -54,7 +54,7 @@ public static class CampaignSeedData
         {
             Id = GorrakBoss, PlayerId = CampaignPlayerId,
             Name = "Gorrak the Molten", UnitType = "Orc", Element = HeroElement.Fire, Level = 4,
-            MaxHp = 1600, Attack = 130, Speed = 5,
+            MaxHp = 1300, Attack = 110, Speed = 5,
             MaxEnergy = 100, StartEnergy = 20, EnergyPerAttack = 20,
             SpellIds = [2], // Fireball 2
             Immunities = ["Burn", "Stun"],
@@ -123,15 +123,15 @@ public static class CampaignSeedData
     public static CampaignStage[] Stages =>
     [
         Stage(1, "Ember Gate", "Goblins guard the entrance to the fire caves.", StageType.Mobs, 1, LavaArenaId),
-        Stage(2, "Smouldering Tunnels", "An orc leads scouts through the smouldering tunnels.", StageType.Mobs, 1, LavaArenaId),
-        Stage(3, "Cinder Hall", "A skeleton mage has joined the orcs in the hall of ash.", StageType.Mobs, 2, LavaArenaId),
-        Stage(4, "Warlord's Camp", "The orc warlord's camp. His aura sets everything ablaze.", StageType.Mobs, 2, LavaArenaId),
-        Stage(5, "Heart of the Forge", "Gorrak the Molten guards the heart of the forge.", StageType.Boss, 2, LavaArenaId),
-        Stage(6, "Frozen Pass", "Frost goblins lie in ambush at the pass.", StageType.Mobs, 3, IceArenaId),
-        Stage(7, "Rime Caverns", "The rime caverns are crawling with undead.", StageType.Mobs, 3, IceArenaId),
-        Stage(8, "Glacier Bridge", "A mixed warband holds the bridge across the glacier.", StageType.Mobs, 3, IceArenaId),
-        Stage(9, "Hall of Whispers", "The last line of defence before the frost lord's lair.", StageType.Mobs, 3, IceArenaId),
-        Stage(10, "Throne of Frost", "Hrimgar the Frostbound awaits on his throne of ice.", StageType.Boss, 3, IceArenaId)
+        Stage(2, "Smouldering Tunnels", "An orc leads scouts through the smouldering tunnels.", StageType.Mobs, 2, LavaArenaId),
+        Stage(3, "Cinder Hall", "A skeleton mage has joined the orcs in the hall of ash.", StageType.Mobs, 3, LavaArenaId),
+        Stage(4, "Warlord's Camp", "The orc warlord's camp. His aura sets everything ablaze.", StageType.Mobs, 5, LavaArenaId),
+        Stage(5, "Heart of the Forge", "Gorrak the Molten guards the heart of the forge.", StageType.Boss, 5, LavaArenaId),
+        Stage(6, "Frozen Pass", "Frost goblins lie in ambush at the pass.", StageType.Mobs, 8, IceArenaId),
+        Stage(7, "Rime Caverns", "The rime caverns are crawling with undead.", StageType.Mobs, 9, IceArenaId),
+        Stage(8, "Glacier Bridge", "A mixed warband holds the bridge across the glacier.", StageType.Mobs, 9, IceArenaId),
+        Stage(9, "Hall of Whispers", "The last line of defence before the frost lord's lair.", StageType.Mobs, 10, IceArenaId),
+        Stage(10, "Throne of Frost", "Hrimgar the Frostbound awaits on his throne of ice.", StageType.Boss, 13, IceArenaId)
     ];
 
     public static CampaignStageEnemy[] StageEnemies =>
@@ -161,6 +161,8 @@ public static class CampaignSeedData
         Enemy(6, 1, FrostGoblin),
         Enemy(6, 2, RimeSkeleton),
         Enemy(6, 3, GoblinScout),
+        Enemy(6, 4, OrcBrute),
+        Enemy(6, 5, GoblinShaman),
 
         Enemy(7, 1, OrcBrute),
         Enemy(7, 2, FrostGoblin),
@@ -183,6 +185,8 @@ public static class CampaignSeedData
         Enemy(10, 2, HrimgarBoss, isBoss: true, hpMultiplier: 1.75)
     ];
 
+    // Уровень врагов растёт быстрее номера уровня: каждый уровень врагов — +4.5% к их статам (BalanceCalculator).
+    // Подобран симуляцией (BalanceSimulation): уровень кампании N проходится отрядом, прокачанным примерно до N-1
     private static CampaignStage Stage(int id, string name, string description, StageType type, int enemyLevel, int arenaId) => new()
     {
         Id = id, Name = name, Description = description, Type = type, EnemyLevel = enemyLevel, ArenaId = arenaId
