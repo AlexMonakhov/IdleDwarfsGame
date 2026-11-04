@@ -333,56 +333,59 @@ onBeforeUnmount(() => player.stop());
 
 .grid-item {
   position: absolute;
+  /* Насколько каждый отряд отодвинут от центра: расстановка слотов внутри отряда не меняется,
+     растёт только промежуток между командами, чтобы удары передних слотов не пересекались */
+  --squad-shift: 5%;
 }
 
 .grid-item-left-1 {
   top: 50%;
-  left: 35%;
+  left: calc(35% - var(--squad-shift));
 }
 
 .grid-item-left-2 {
   top: 65%;
-  left: 30%;
+  left: calc(30% - var(--squad-shift));
 }
 
 .grid-item-left-3 {
   top: 45%;
-  left: 25%;
+  left: calc(25% - var(--squad-shift));
 }
 
 .grid-item-left-4 {
   top: 55%;
-  left: 20%;
+  left: calc(20% - var(--squad-shift));
 }
 
 .grid-item-left-5 {
   top: 65%;
-  left: 15%;
+  left: calc(15% - var(--squad-shift));
 }
 
 .grid-item-right-1 {
   top: 50%;
-  right: 35%;
+  right: calc(35% - var(--squad-shift));
 }
 
 .grid-item-right-2 {
   top: 65%;
-  right: 30%;
+  right: calc(30% - var(--squad-shift));
 }
 
 .grid-item-right-3 {
   top: 45%;
-  right: 25%;
+  right: calc(25% - var(--squad-shift));
 }
 
 .grid-item-right-4 {
   top: 55%;
-  right: 20%;
+  right: calc(20% - var(--squad-shift));
 }
 
 .grid-item-right-5 {
   top: 65%;
-  right: 15%;
+  right: calc(15% - var(--squad-shift));
 }
 
 .arena-controls {

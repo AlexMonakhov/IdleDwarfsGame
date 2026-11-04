@@ -245,10 +245,10 @@ const ROSTER: Fighter[] = ([
   { element: 'Frost', spell: SPELLS.blizzard },
   { element: 'Lightning', spell: SPELLS.chainLightning },
   { element: 'Nature', spell: SPELLS.healingRune },
-  { element: 'Blood', spell: SPELLS.lifeDrain },
-  { element: 'Fire', spell: SPELLS.flameWave },
+  { element: 'Blood', spell: SPELLS.bloodPrice },
+  { element: 'Blood', spell: SPELLS.hemorrhage },
   { element: 'Frost', spell: SPELLS.glacialPrison },
-  { element: 'Lightning', spell: SPELLS.thunderclap },
+  { element: 'Dark', spell: SPELLS.soulHarvest },
   { element: 'Dark', spell: SPELLS.hex },
   { element: 'Radiance', spell: SPELLS.dawnlight },
 ] as Pick<Fighter, 'element' | 'spell'>[]).map((fighter, i) => ({
@@ -392,6 +392,11 @@ const applyStatus = (unit: BattleUnit, name: string) => {
   if (statusesOn.value) unit.statuses[name] = { turns: 2, power: 0, stacks: 1 };
 };
 
+// Заклинание сжигает статус на цели (Жатва душ — проклятие)
+const consumeStatus = (unit: BattleUnit, name: string) => {
+  delete unit.statuses[name];
+};
+
 const clearStatuses = () => allUnits().forEach(u => (u.statuses = {}));
 watch(statusesOn, on => !on && clearStatuses());
 
@@ -402,12 +407,15 @@ function shuffled<T>(items: T[]): T[] {
     .map(({ item }) => item);
 }
 
-// Лечащее заклинание — в союзников (не в себя), остальные — во врагов
-const pickTargets = (caster: BattleUnit, support: boolean, count: number) => {
+// Лечащее заклинание — в союзников (не в себя), остальные — во врагов.
+// Заклинание, сжигающее статус, сначала берёт тех, на ком он висит
+const pickTargets = (caster: BattleUnit, support: boolean, count: number, prefer?: string) => {
   const pool = support
     ? teamUnits(state, caster.team).filter(u => u.id !== caster.id)
     : teamUnits(state, 3 - caster.team);
-  return shuffled(pool).slice(0, count);
+  const ordered = shuffled(pool);
+  if (prefer) ordered.sort((a, b) => Number(!!b.statuses[prefer]) - Number(!!a.statuses[prefer]));
+  return ordered.slice(0, count);
 };
 
 // Каст как в BattlePlayer.playCast: подсветка, круг под кастером, визуал заклинания, попадания по мере доставки
@@ -417,7 +425,7 @@ const castSpell = async (caster: BattleUnit, sample = fighterOf(caster).spell, l
   const spell = sample.levels[level - 1];
   const support = !spell.damage;
   const visual = resolveSpellVisual(sample.name, sample.damageType, level);
-  const targets = pickTargets(caster, support, spell.targets ?? 1);
+  const targets = pickTargets(caster, support, spell.targets ?? 1, spell.consumes);
 
   caster.focus = { role: 'caster', color: visual.color };
   if (!support) targets.forEach(u => (u.focus = { role: 'target' }));
@@ -426,10 +434,18 @@ const castSpell = async (caster: BattleUnit, sample = fighterOf(caster).spell, l
   fx.castCircle(el(caster), visual.color, CAST_WINDUP + 700);
   await wait(CAST_WINDUP);
 
+  // Плата здоровьем — до доставки, как в BattlePlayer.playCast
+  if (spell.selfDamage) {
+    damage(caster, Math.round(MAX_HP * spell.selfDamage), sample.damageType);
+    fx.play(visual.sacrifice, el(caster));
+    await wait(visual.sacrificeDelay ?? 0);
+  }
+
   const hits = fx.spell(el(caster), targets.map(el), visual);
   await Promise.all(targets.map(async (target, i) => {
     await hits[i];
     if (spell.damage) damage(target, Math.round(ATTACK * spell.damage), sample.damageType);
+    if (spell.consumes) consumeStatus(target, spell.consumes);
     if (support && spell.heal) heal(target, Math.round(ATTACK * spell.heal));
     spell.statuses?.forEach(name => applyStatus(target, name));
   }));
@@ -610,18 +626,21 @@ onBeforeUnmount(() => {
 
 .grid-item {
   position: absolute;
+  /* Насколько каждый отряд отодвинут от центра: расстановка слотов внутри отряда не меняется,
+     растёт только промежуток между командами, чтобы удары передних слотов не пересекались */
+  --squad-shift: 5%;
 }
 
-.grid-item-left-1 { top: 50%; left: 35%; }
-.grid-item-left-2 { top: 65%; left: 30%; }
-.grid-item-left-3 { top: 45%; left: 25%; }
-.grid-item-left-4 { top: 55%; left: 20%; }
-.grid-item-left-5 { top: 65%; left: 15%; }
-.grid-item-right-1 { top: 50%; right: 35%; }
-.grid-item-right-2 { top: 65%; right: 30%; }
-.grid-item-right-3 { top: 45%; right: 25%; }
-.grid-item-right-4 { top: 55%; right: 20%; }
-.grid-item-right-5 { top: 65%; right: 15%; }
+.grid-item-left-1 { top: 50%; left: calc(35% - var(--squad-shift)); }
+.grid-item-left-2 { top: 65%; left: calc(30% - var(--squad-shift)); }
+.grid-item-left-3 { top: 45%; left: calc(25% - var(--squad-shift)); }
+.grid-item-left-4 { top: 55%; left: calc(20% - var(--squad-shift)); }
+.grid-item-left-5 { top: 65%; left: calc(15% - var(--squad-shift)); }
+.grid-item-right-1 { top: 50%; right: calc(35% - var(--squad-shift)); }
+.grid-item-right-2 { top: 65%; right: calc(30% - var(--squad-shift)); }
+.grid-item-right-3 { top: 45%; right: calc(25% - var(--squad-shift)); }
+.grid-item-right-4 { top: 55%; right: calc(20% - var(--squad-shift)); }
+.grid-item-right-5 { top: 65%; right: calc(15% - var(--squad-shift)); }
 
 /* Поверх канваса эффектов (z-index 9999 в CanvasLayer) */
 .stress-panel {

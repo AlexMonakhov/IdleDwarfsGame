@@ -79,6 +79,10 @@ export interface SpellVisual {
   healDelay?: number;
   // Радиус вспышки света на цели в миг попадания, px; по умолчанию — по уровню заклинания (FLARE_BY_LEVEL)
   flare?: number;
+  // Кастер платит за заклинание своим здоровьем (Кровавая цена): эффекты на нём в миг платы,
+  // доставка к целям начинается через sacrificeDelay мс
+  sacrifice?: FxSpec[];
+  sacrificeDelay?: number;
 }
 
 export interface SpriteTint {
@@ -567,6 +571,105 @@ const HEX: SpellVisualOf = level => ({
   ],
 });
 
+// Под каждым врагом загорается круг, по цели проходит призрачная коса, и души тянутся лентой к кастеру.
+// Проклятие на цели сгорает разом — тёмная вспышка. 2 — коса шире, на цели вспыхивает тёмное пламя;
+// 3 — двойной взмах крест-накрест, поток душ гуще (возврат энергии)
+const SOUL_HARVEST: SpellVisualOf = level => ({
+  color: '#7e22ce',
+  stagger: 130,
+  telegraph: [
+    { type: 'ring', anchor: 'feet', layer: 'background', duration: 1100, args: { color: '#a855f7', radius: lvl(level, [52, 58, 66]), mode: 'rune', width: 4 } },
+  ],
+  beam: {
+    type: 'drain',
+    duration: 1200,
+    padding: 60,
+    args: { color: '#a855f7', glow: '#6b21a8', core: '#f3e8ff', amplitude: lvl(level, [12, 14, 18]), rate: lvl(level, [0.5, 0.7, 1]), strands: lvl(level, [1, 2, 3]) },
+  },
+  hitDelay: 300,
+  impact: [
+    // Призрачная коса: широкий бледно-фиолетовый росчерк
+    { type: 'slash', duration: 480, padding: 80, args: { color: '#d8b4fe', radius: lvl(level, [110, 125, 140]), width: lvl(level, [18, 22, 26]), count: lvl(level, [1, 1, 2]) } },
+    { type: 'explosion', duration: 750, padding: 70, args: { colors: SHADOW, count: lvl(level, [26, 32, 40]), radius: 50, speed: 4, gravity: -0.08, ring: '#c084fc', smoke: true, smokeColor: 'rgba(30, 5, 56, 1)' } },
+    // Души поднимаются с цели
+    { type: 'sparkles', duration: 1000, args: { color: '#e9d5ff', burst: lvl(level, [8, 12, 16]), rate: 0.4, once: true, width: 55, height: 90, shape: 'dot', rise: 1.3 } },
+    groundMark('stain', '#581c87', lvl(level, [44, 50, 58]), 2600),
+    ...since(level, 2, [{ type: 'flames', duration: 700, args: { burst: true, rate: 5, width: 55, height: 100, size: 9, colors: SHADOW, glow: 'rgba(126, 34, 206, 0.45)' } }]),
+    ...since(level, 3, masteryBurst(SHADOW, '#f3e8ff')),
+  ],
+});
+
+/* ===== Кровь ===== */
+// Залп кровавых осколков-лезвий в каждую цель: каждое режет и брызжет кровью, на земле остаются лужи.
+// 1 — два осколка в цель, 2 — три, 3 — четыре покрупнее
+const HEMORRHAGE: SpellVisualOf = level => ({
+  color: '#dc2626',
+  projectile: {
+    type: 'projectile',
+    duration: 380,
+    args: { core: '#fecaca', glow: '#b91c1c', trail: BLOOD, size: lvl(level, [7, 8, 10]), arc: 25, trailRate: 2, rise: 0, shape: 'shard' },
+  },
+  volley: {
+    count: lvl(level, [2, 3, 4]),
+    interval: 80,
+    spread: 16,
+    hit: [{ type: 'explosion', duration: 420, args: { colors: BLOOD, count: 8, radius: 22, speed: 2.5, gravity: 0.25, ring: false } }],
+  },
+  stagger: 70,
+  impact: [
+    // Порез
+    { type: 'slash', duration: 380, padding: 60, args: { color: '#f87171', radius: lvl(level, [70, 80, 95]), width: lvl(level, [10, 12, 16]), count: 1 } },
+    { type: 'explosion', duration: 700, args: { colors: BLOOD, count: lvl(level, [22, 28, 36]), radius: 40, speed: 4, gravity: 0.3, ring: false } },
+    // Капли стекают вниз
+    { type: 'sparkles', duration: 900, args: { color: '#ef4444', burst: lvl(level, [6, 9, 12]), rate: 0.3, once: true, width: 50, height: 70, shape: 'dot', rise: -1.1 } },
+    groundMark('stain', '#7f1d1d', lvl(level, [38, 44, 52])),
+    ...since(level, 3, masteryBurst(BLOOD, '#fecaca')),
+  ],
+});
+
+// Кастер платит кровью: из него бьёт фонтан крови, и экран на миг краснеет. Затем под каждым врагом
+// из земли вырываются кровавые шипы, пронзают его и осыпаются каплями.
+// 2 — шипов больше, они выше и брызгают; 3 — шипы массивнее, второе кольцо, брызги во все стороны (кровотечение)
+const BLOOD_PRICE: SpellVisualOf = level => ({
+  color: '#b91c1c',
+  sacrifice: [
+    { type: 'explosion', duration: 750, padding: 90, args: { colors: BLOOD, count: lvl(level, [26, 32, 40]), radius: 45, speed: 5, gravity: 0.3, ring: false } },
+    { type: 'flames', duration: 650, args: { burst: true, rate: 6, width: 45, height: 110, size: 8, colors: BLOOD, glow: 'rgba(185, 28, 28, 0.5)' } },
+    groundPulse('#dc2626', 60, 600),
+    groundMark('stain', '#7f1d1d', 46, 2400),
+    { type: 'screen-flash', duration: 500, args: { color: '#dc2626', alpha: lvl(level, [0.12, 0.16, 0.22]) } },
+  ],
+  sacrificeDelay: 280,
+  stagger: 90,
+  telegraph: [
+    { type: 'ring', anchor: 'feet', layer: 'background', duration: 1100, args: { color: '#dc2626', radius: lvl(level, [55, 60, 72]), mode: 'rune', width: 4 } },
+    {
+      type: 'ice-prison',
+      anchor: 'feet',
+      duration: 1100,
+      padding: 160,
+      args: {
+        colors: BLOOD,
+        gravity: 0.32,
+        radius: 34,
+        height: lvl(level, [105, 125, 140]),
+        count: lvl(level, [7, 10, 12]),
+        thick: lvl(level, [0.9, 1, 1.4]),
+        outer: lvl(level, [0, 0, 9]),
+        burst: lvl(level, [0, 12, 32]),
+        shatter: 0.6,
+      },
+    },
+  ],
+  hitDelay: 290,
+  impact: [
+    { type: 'explosion', duration: 700, anchor: 'feet', args: { colors: BLOOD, count: lvl(level, [24, 30, 38]), radius: 50, speed: 4.5, gravity: 0.28, ring: false } },
+    groundPulse('#b91c1c', lvl(level, [65, 75, 90]), 650),
+    groundMark('stain', '#7f1d1d', lvl(level, [50, 58, 70]), 3000),
+    ...since(level, 3, masteryBurst(BLOOD, '#fecaca')),
+  ],
+});
+
 /* ===== Сияние ===== */
 // Почти прямой белый луч и радужные искры на цели. 2 — луч толще; 3 — ещё толще, на цели радужный венец искр
 const PRISM_RAY: SpellVisualOf = level => ({
@@ -652,6 +755,9 @@ export const SPELL_VISUALS: Record<string, SpellVisualOf> = {
   'Shadow Bolt': SHADOW_BOLT,
   'Life Drain': LIFE_DRAIN,
   Hex: HEX,
+  'Soul Harvest': SOUL_HARVEST,
+  Hemorrhage: HEMORRHAGE,
+  'Blood Price': BLOOD_PRICE,
   'Prism Ray': PRISM_RAY,
   'Radiant Nova': RADIANT_NOVA,
   Dawnlight: DAWNLIGHT,

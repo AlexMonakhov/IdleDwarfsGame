@@ -34,6 +34,7 @@ public abstract class BaseSpell : ISpell
 
         // 1. Лог каста — фронт проигрывает анимацию каста и снаряды ко всем целям
         LogCast(world, casterId, context, targets);
+        OnCast(world, casterId, context);
 
         foreach (var targetId in targets)
         {
@@ -145,6 +146,11 @@ public abstract class BaseSpell : ISpell
 
     // Свой урон для каждого спелла
     protected abstract int GetDamage(World world, int casterId, int targetId);
+
+    // Сразу после лога каста, до попаданий (плата кровью у Blood Price). Спелл от предмета (CastTriggered) его не вызывает
+    protected virtual void OnCast(World world, int casterId, CombatContext context)
+    {
+    }
 
     // Виртуальный метод для эффектов. По умолчанию ничего не делает.
     protected virtual void ApplyEffects(World world, int casterId, int targetId, CombatContext context)

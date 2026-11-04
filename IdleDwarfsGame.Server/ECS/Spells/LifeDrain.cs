@@ -1,9 +1,9 @@
-// Похищение жизни: тёмный урон по одной цели, часть урона лечит кастера
+// Похищение жизни: урон кровью по одной цели, часть урона лечит кастера
 public class LifeDrain : BaseSpell
 {
     public LifeDrain(int level = 1) : base(level + 39, "Life Drain", level, 40) { }
 
-    public override DamageType DamageType => DamageType.Dark;
+    public override DamageType DamageType => DamageType.Bleed;
 
     private double DamageMultiplier => 0.7 + 0.2 * Level;
 

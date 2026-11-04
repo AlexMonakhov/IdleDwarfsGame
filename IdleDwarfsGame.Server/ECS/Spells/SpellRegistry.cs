@@ -20,7 +20,10 @@ public static class SpellRegistry
         new Hex(1), new Hex(2), new Hex(3),                                     // 43, 44, 45
         new PrismRay(1), new PrismRay(2), new PrismRay(3),                      // 46, 47, 48
         new RadiantNova(1), new RadiantNova(2), new RadiantNova(3),             // 49, 50, 51
-        new Dawnlight(1), new Dawnlight(2), new Dawnlight(3)                    // 52, 53, 54
+        new Dawnlight(1), new Dawnlight(2), new Dawnlight(3),                   // 52, 53, 54
+        new SoulHarvest(1), new SoulHarvest(2), new SoulHarvest(3),             // 55, 56, 57
+        new Hemorrhage(1), new Hemorrhage(2), new Hemorrhage(3),                // 58, 59, 60
+        new BloodPrice(1), new BloodPrice(2), new BloodPrice(3)                 // 61, 62, 63
     }.ToDictionary(s => s.Id);
 
     public static string Describe(int spellId) =>

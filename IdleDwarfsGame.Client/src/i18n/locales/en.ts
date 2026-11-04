@@ -174,6 +174,8 @@ const en = {
     statuses: 'Applies:',
     healing: 'Heals',
     selfHealing: 'Heals the caster',
+    selfDamage: 'Costs health',
+    consumes: 'Consumes:',
     spellLevel: 'Lv. {level}',
     spellLevelHint: 'Spell level',
     damageTypes: {
@@ -203,6 +205,9 @@ const en = {
       entanglingRoots: 'Roots grab the front line and stun it; at level 3 they also poison.',
       shadowBolt: 'A clot of darkness; from level 2 it curses the target.',
       lifeDrain: 'Drains life from an enemy and heals the caster.',
+      soulHarvest: 'A shadow scythe strikes cursed enemies first: their curse bursts at once, refunding energy at level 3.',
+      hemorrhage: 'Blood shards cut several enemies and make them bleed.',
+      bloodPrice: 'The caster pays with health as blood spikes pierce every enemy. At level 3 the enemies bleed.',
       hex: 'A weak strike on all enemies and a curse that ticks with darkness.',
       prismRay: 'A pure beam of light; at level 3 it hits two enemies.',
       radiantNova: 'A flash of light hits all enemies; from level 2 it heals allies.',

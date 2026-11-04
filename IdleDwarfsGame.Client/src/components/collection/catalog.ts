@@ -15,6 +15,10 @@ export interface SpellLevelSample {
     targets?: number;
     // На сколько из поражённых ложатся статусы (у оглушения с шансом — не на всех); по умолчанию на всех
     statusTargets?: number;
+    // Статус, который висит на целях до каста и сгорает от попадания (Жатва душ снимает проклятие)
+    consumes?: string;
+    // Плата здоровьем кастера перед ударом — доля его максимального HP (Кровавая цена)
+    selfDamage?: number;
 }
 
 export interface SpellSample {
@@ -139,7 +143,7 @@ export const SPELLS: Record<string, SpellSample> = {
         ],
     },
     lifeDrain: {
-        key: 'lifeDrain', name: 'Life Drain', damageType: 'Dark',
+        key: 'lifeDrain', name: 'Life Drain', damageType: 'Bleed',
         levels: [
             { damage: 0.9, heal: 0.45 },
             { damage: 1.1, heal: 0.66 },
@@ -152,6 +156,31 @@ export const SPELLS: Record<string, SpellSample> = {
             { damage: 0.3, statuses: ['Curse'], targets: 3 },
             { damage: 0.3, statuses: ['Curse'], targets: 3 },
             { damage: 0.3, statuses: ['Curse'], targets: 3 },
+        ],
+    },
+    // Урон — без сгоревшего проклятия: его остаток на сцене добавляется к удару отдельно (SceneBuilder)
+    soulHarvest: {
+        key: 'soulHarvest', name: 'Soul Harvest', damageType: 'Dark',
+        levels: [
+            { damage: 0.7, consumes: 'Curse', targets: 2 },
+            { damage: 0.8, consumes: 'Curse', targets: 2 },
+            { damage: 0.9, consumes: 'Curse', targets: 3 },
+        ],
+    },
+    hemorrhage: {
+        key: 'hemorrhage', name: 'Hemorrhage', damageType: 'Bleed',
+        levels: [
+            { damage: 0.7, statuses: ['Bleed'], targets: 2 },
+            { damage: 0.8, statuses: ['Bleed'], targets: 2 },
+            { damage: 0.9, statuses: ['Bleed'], targets: 3 },
+        ],
+    },
+    bloodPrice: {
+        key: 'bloodPrice', name: 'Blood Price', damageType: 'Bleed',
+        levels: [
+            { damage: 0.7, selfDamage: 0.1, targets: 3 },
+            { damage: 0.85, selfDamage: 0.1, targets: 3 },
+            { damage: 1, selfDamage: 0.1, statuses: ['Bleed'], targets: 3 },
         ],
     },
     prismRay: {
@@ -195,9 +224,9 @@ export const HERO_KINDS: HeroKind[] = [
     { element: 'Frost', spells: [SPELLS.frostBolt, SPELLS.blizzard, SPELLS.glacialPrison] },
     { element: 'Lightning', spells: [SPELLS.lightning, SPELLS.chainLightning, SPELLS.thunderclap] },
     { element: 'Nature', spells: [SPELLS.healingRune, SPELLS.venomThorns, SPELLS.entanglingRoots] },
-    { element: 'Dark', spells: [SPELLS.shadowBolt, SPELLS.hex] },
+    { element: 'Dark', spells: [SPELLS.shadowBolt, SPELLS.hex, SPELLS.soulHarvest] },
     { element: 'Radiance', spells: [SPELLS.prismRay, SPELLS.radiantNova, SPELLS.dawnlight] },
-    { element: 'Blood', spells: [SPELLS.lifeDrain] },
+    { element: 'Blood', spells: [SPELLS.lifeDrain, SPELLS.hemorrhage, SPELLS.bloodPrice] },
 ];
 
 export interface AuraSample {

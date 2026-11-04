@@ -364,6 +364,25 @@ const iceRing = (count: number, radius: number, height: number, thick: number, l
     };
   });
 
+const pick = (palette: string[]) => palette[Math.floor(Math.random() * palette.length)];
+
+// Цвета темницы: по умолчанию лёд; своя палитра (светлый → тёмный) красит свечение у ног, тело шипов и блик
+const prisonLook = (colors?: string[]) => {
+  if (!colors?.length) {
+    return {
+      floor: ['#e0f6ff', '#7dd3fc', '#38bdf8'],
+      body: ['rgba(14, 116, 144, 0.6)', 'rgba(125, 211, 252, 0.75)', 'rgba(240, 249, 255, 0.95)'],
+      edge: '#ffffff',
+    };
+  }
+  const at = (share: number) => colors[Math.min(colors.length - 1, Math.round(share * (colors.length - 1)))];
+  return {
+    floor: [at(0.25), at(0.5), at(0.75)],
+    body: [rgba(at(1), 0.75), rgba(at(0.6), 0.85), rgba(at(0), 0.95)],
+    edge: at(0),
+  };
+};
+
 // Доля жизни, к которой шипы выросли и темница сомкнулась
 const PRISON_CLOSED = 0.26;
 
@@ -371,7 +390,9 @@ const PRISON_CLOSED = 0.26;
  * Ледяная темница: из-под ног цели вырастает частокол ледяных шипов, держится и раскалывается.
  * args: radius, height, count, shatter (доля жизни, когда лёд раскалывается),
  *       thick (множитель ширины шипов), outer (шипов во внешнем кольце пониже),
- *       burst (сколько ледяной крошки брызжет во все стороны, когда темница смыкается)
+ *       burst (сколько ледяной крошки брызжет во все стороны, когда темница смыкается),
+ *       colors (палитра от светлого к тёмному — шипы не изо льда, а, например, из крови; по умолчанию лёд),
+ *       gravity (как быстро падают осколки: у крови — тяжёлые капли)
  */
 export class IcePrisonStrategy extends ParticleStore<{ spikes: IceSpike[]; shards: Particle[]; closed: boolean; shattered: boolean }> {
   update(emitter: EmitterConfig) {
@@ -379,6 +400,7 @@ export class IcePrisonStrategy extends ParticleStore<{ spikes: IceSpike[]; shard
     const radius = Number(args.radius ?? 40);
     const height = Number(args.height ?? 120);
     const thick = Number(args.thick ?? 1);
+    const palette: string[] = args.colors ?? ICE;
     let state = this.store.get(emitter.id);
 
     if (!state) {
@@ -403,7 +425,7 @@ export class IcePrisonStrategy extends ParticleStore<{ spikes: IceSpike[]; shard
           life: 1,
           maxLife: rand(0.02, 0.035),
           size: rand(2.5, 6),
-          color: ICE[Math.floor(Math.random() * ICE.length)],
+          color: pick(palette),
           rotation: a,
           spin: rand(-0.3, 0.3),
         });
@@ -423,7 +445,7 @@ export class IcePrisonStrategy extends ParticleStore<{ spikes: IceSpike[]; shard
             life: 1,
             maxLife: rand(0.025, 0.045),
             size: rand(4, 8),
-            color: ICE[Math.floor(Math.random() * ICE.length)],
+            color: pick(palette),
             rotation: Math.random() * Math.PI * 2,
             spin: rand(-0.3, 0.3),
           });
@@ -431,7 +453,7 @@ export class IcePrisonStrategy extends ParticleStore<{ spikes: IceSpike[]; shard
       }
     }
 
-    state.shards = stepParticles(state.shards, 0.97, 0.22);
+    state.shards = stepParticles(state.shards, 0.97, Number(args.gravity ?? 0.22));
     this.store.set(emitter.id, state);
   }
 
@@ -441,6 +463,7 @@ export class IcePrisonStrategy extends ParticleStore<{ spikes: IceSpike[]; shard
     const args = emitter.args ?? {};
     const opacity = emitter.opacity ?? 1;
     const radius = Number(args.radius ?? 40);
+    const look = prisonLook(args.colors);
     const shatter = Number(args.shatter ?? 0.75);
     const p = progressOf(emitter);
     const time = performance.now();
@@ -450,9 +473,9 @@ export class IcePrisonStrategy extends ParticleStore<{ spikes: IceSpike[]; shard
     ctx.globalCompositeOperation = 'lighter';
     ctx.globalAlpha = opacity * envelope(p, 0.1, 0.25);
     fillEllipseGradient(ctx, x, y, radius * 1.6, radius * 0.45, [
-      [0, rgba('#e0f6ff', 0.5)],
-      [0.6, rgba('#7dd3fc', 0.25)],
-      [1, rgba('#38bdf8', 0)],
+      [0, rgba(look.floor[0], 0.5)],
+      [0.6, rgba(look.floor[1], 0.25)],
+      [1, rgba(look.floor[2], 0)],
     ]);
 
     if (p < shatter) {
@@ -471,9 +494,9 @@ export class IcePrisonStrategy extends ParticleStore<{ spikes: IceSpike[]; shard
         ctx.globalCompositeOperation = 'source-over';
         ctx.globalAlpha = opacity * (s.depth > 0 ? 0.7 : 0.5);
         const body = ctx.createLinearGradient(bx, by, tipX, tipY);
-        body.addColorStop(0, 'rgba(14, 116, 144, 0.6)');
-        body.addColorStop(0.6, 'rgba(125, 211, 252, 0.75)');
-        body.addColorStop(1, 'rgba(240, 249, 255, 0.95)');
+        body.addColorStop(0, look.body[0]);
+        body.addColorStop(0.6, look.body[1]);
+        body.addColorStop(1, look.body[2]);
         ctx.fillStyle = body;
         ctx.beginPath();
         ctx.moveTo(bx - s.width / 2, by);
@@ -486,7 +509,7 @@ export class IcePrisonStrategy extends ParticleStore<{ spikes: IceSpike[]; shard
         // Блик по грани
         ctx.globalCompositeOperation = 'lighter';
         ctx.globalAlpha = opacity * (0.45 + Math.sin(time / 120 + s.dx) * 0.15 + crack * 0.5);
-        ctx.strokeStyle = '#ffffff';
+        ctx.strokeStyle = look.edge;
         ctx.lineWidth = 1.5;
         ctx.beginPath();
         ctx.moveTo(bx - s.width * 0.1, by);
