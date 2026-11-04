@@ -83,15 +83,34 @@ const wrapperClasses = computed(() => [
 
 const unitSize = computed(() => getUnitSize(props.unit.unitType));
 
-const wrapperStyle = computed(() => ({
-  // Направление «лицом к врагу»: левая команда смотрит вправо
-  '--face': props.rotate ? -1 : 1,
-  '--focus-color': props.unit.focus?.color ?? TURN_COLOR,
-  // Во сколько раз юнит крупнее обычного (0.65): по нему растёт тень под ногами
-  '--unit-size': ((props.scale ?? 0.65) / 0.65) * unitSize.value,
-  // Голова крупного юнита выше: имя и полоски поднимаются, чтобы не лежать на ней
-  '--header-top': `${2 - (unitSize.value - 1) * 20}%`,
-}));
+// Босс рисуется крупнее прислужников. В отличие от размера по типу юнита (getUnitSize — тот же кадр, спрайт в нём крупнее)
+// растёт вся рамка: и кадр, и шапка, и точки привязки эффектов (BattleFx берёт их от рамки)
+const BOSS_SCALE = 1.7;
+const bossScale = computed(() => (props.unit.isBoss ? BOSS_SCALE : 1));
+const drawScale = computed(() => (props.scale ?? 0.65) * bossScale.value);
+// Где ноги — в долях высоты рамки (как у тени)
+const FEET_Y = 0.8;
+const PADDING = 1.1;
+
+const wrapperStyle = computed(() => {
+  // Рамка босса выросла вправо и вниз — отрицательные отступы возвращают ноги на место и оставляют
+  // в раскладке арены обычный размер, чтобы босс не сдвигал соседей
+  const grow = bossScale.value - 1;
+  const width = (props.frameWidth ?? 409.6) * (props.scale ?? 0.65) * PADDING;
+  const height = (props.frameHeight ?? 409.6) * (props.scale ?? 0.65) * PADDING;
+  return {
+    // Направление «лицом к врагу»: левая команда смотрит вправо
+    '--face': props.rotate ? -1 : 1,
+    '--focus-color': props.unit.focus?.color ?? TURN_COLOR,
+    // Во сколько раз юнит крупнее обычного (0.65): по нему растёт тень под ногами
+    '--unit-size': (drawScale.value / 0.65) * unitSize.value,
+    // Голова крупного юнита выше: имя и полоски поднимаются, чтобы не лежать на ней
+    '--header-top': `${2 - (unitSize.value - 1) * 20}%`,
+    ...(grow > 0 && {
+      margin: `${-height * grow * FEET_Y}px ${-width * grow / 2}px ${-height * grow * (1 - FEET_Y)}px`,
+    }),
+  };
+});
 
 // Постоянные эффекты статусов (пламя, снежинки, звёзды стана) — пока статус висит на юните
 const auras = new Map<string, string[]>();
@@ -261,8 +280,8 @@ defineExpose(view);
                   :frame-count="props.frameCount ?? 24"
                   :fps="16"
                   :columns="5"
-                  :scale="props.scale ?? 0.65"
-                  :padding="1.1"
+                  :scale="drawScale"
+                  :padding="PADDING"
                   :tint="spriteTint"
                   :speed="statusVisual.animSpeed"
                   :paused="!unit.alive"
@@ -278,12 +297,14 @@ defineExpose(view);
     width: min-content;
     position: relative;
   }
+  /* Шапка, цифры и реплики — над телом своего юнита, а на арене (--unit-overlay-z) — над телами всех юнитов:
+     тела там сортируются по глубине слота (--depth), а шапка большого босса не должна прятать соседей */
   .character-header{
     position: absolute;
     top: var(--header-top, 2%);
     left: 25%;
     width: 50%;
-    z-index: 2;
+    z-index: calc(var(--unit-overlay-z, 0) + 2);
     text-align: center;
   }
   /* Над панелью статусов (она выше шапки примерно на 30px) */
@@ -292,7 +313,7 @@ defineExpose(view);
     top: -34px;
     left: 50%;
     transform: translate(-50%, -100%);
-    z-index: 4;
+    z-index: calc(var(--unit-overlay-z, 0) + 4);
     pointer-events: none;
   }
   .speech-leave-active{
@@ -370,7 +391,7 @@ defineExpose(view);
     position: absolute;
     inset: 15% 0 auto 0;
     height: 0;
-    z-index: 3;
+    z-index: calc(var(--unit-overlay-z, 0) + 3);
     pointer-events: none;
   }
   /* Длительность анимаций совпадает с временем жизни цифры (TIMING.floatingText в BattlePlayer) */
@@ -454,6 +475,8 @@ defineExpose(view);
   .sprite-box{
     position: relative;
     isolation: isolate;
+    /* На арене — глубина слота: кто ниже на экране, тот поверх (ArenaView) */
+    z-index: var(--depth, auto);
   }
   .unit-body{
     position: relative;

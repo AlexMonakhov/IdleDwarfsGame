@@ -1,5 +1,6 @@
 // Сундуки, предметы и награды
 // (IdleDwarfsGame.Server/Controllers/Responses/InventoryResponses.cs, RewardResponses.cs)
+import { HeroElement } from '@/battle/types';
 import { EquipmentInfo } from '@/models/types/Equipment';
 import { PlayerResources } from '@/models/types/Expeditions';
 import { HeroInfo } from '@/models/types/Heroes';
@@ -12,6 +13,8 @@ export interface ChestInfo {
     id: string;
     type: ChestType;
     level: number;
+    // Стихия сундука бесконечности; 'Basic' — сундук без стихии
+    element: HeroElement;
 }
 
 // Стопка предметов: в инвентаре quantity — сколько всего, в открытом сундуке — сколько выпало
@@ -40,12 +43,15 @@ export interface ChestOpenResult {
 export interface RewardChestInfo {
     type: ChestType;
     level: number;
+    element: HeroElement;
 }
 
 export interface RewardInfo {
     gold: number;
     experience: number;
     chests: RewardChestInfo[];
+    // Предметы сразу в инвентарь (камни башни)
+    items: ItemInfo[];
 }
 
 export interface RewardClaimResult {

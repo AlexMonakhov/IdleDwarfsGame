@@ -113,8 +113,7 @@ body {
   height: var(--stage-h);
   transform: scale(var(--ui-scale));
   transform-origin: 0 0;
-  overflow-x: hidden;
-  overflow-y: auto;
+  overflow: hidden;
 }
 
 /* v-drag-scroll (src/directives/dragScroll.ts): прокрутка без полосы — колесом и перетаскиванием мыши */

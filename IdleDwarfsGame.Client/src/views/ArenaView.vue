@@ -31,13 +31,14 @@
         </div>
         <div v-else-if="guildBossTier" class="floor-select">{{ t('arena.guildBoss', { tier: t(`guild.bosses.tiers.${guildBossTier}`) }) }}</div>
         <div v-else-if="stageId" class="floor-select">{{ t('arena.stage', { id: stageId }) }}</div>
+        <div v-else-if="towerFloor" class="floor-select">{{ t('arena.tower', { floor: towerFloor }) }}</div>
         <label v-else class="floor-select">
           {{ t('arena.floor') }}
           <input v-model.number="floor" type="number" min="1" max="50" :disabled="state.playing" />
         </label>
         <!-- По боссу гильдии бьют раз в час из окна гильдии, соперника PvP выбирают в окне PvP — повтора здесь нет -->
         <button v-if="!guildBossTier && !pvpOpponentId" :disabled="state.playing || loading" @click="startArenaFight()">{{ t('arena.startFight') }}</button>
-        <button v-if="!stageId && !guildBossTier && !pvpOpponentId" :disabled="state.playing || loading" @click="startBossFight()">{{ t('arena.boss') }}</button>
+        <button v-if="!stageId && !towerFloor && !guildBossTier && !pvpOpponentId" :disabled="state.playing || loading" @click="startBossFight()">{{ t('arena.boss') }}</button>
         <button :disabled="!state.playing" @click="skipFight()">{{ t('arena.skip') }}</button>
         <button v-for="value in [1, 2, 4]" :key="value" :class="{ active: speed === value }" @click="setSpeed(value)">x{{ value }}</button>
         <div class="sound-control">
@@ -94,10 +95,14 @@
         </div>
         <div v-if="campaignResult?.firstClear" class="result-rewards">{{ t('arena.stageCleared', { id: campaignResult.stageId }) }}</div>
         <div v-if="campaignResult?.firstClear" class="result-rewards">{{ t('arena.rewardWaiting') }}</div>
+        <div v-if="towerResult?.cleared" class="result-rewards">{{ t('arena.towerCleared', { floor: towerResult.floor }) }}</div>
+        <div v-if="towerResult?.cleared" class="result-rewards">{{ t('arena.towerRewardWaiting') }}</div>
         <div class="result-rounds">{{ t('arena.rounds', { rounds: result?.rounds ?? 0 }) }}</div>
         <!-- Следующий бой кампании начнётся только после получения награды за этот уровень -->
         <button v-if="state.finished && campaignResult?.firstClear" class="result-next" @click="goToCampaign()">{{ t('arena.toCampaign') }}</button>
         <button v-else-if="nextStageId" class="result-next" @click="goToNextStage()">{{ t('arena.nextStage') }}</button>
+        <!-- Башня: после победы — забрать награду, после поражения — сменить отряд и попробовать снова -->
+        <button v-if="towerFloor" class="result-next" @click="goToTower()">{{ t('arena.toTower') }}</button>
       </div>
 
       <CombatLogFeed v-if="result" :logs="result.logs" :shown-logs="state.shownLogs" :units="state.units" :speed="speed" />
@@ -120,6 +125,8 @@ import CharacterComponent from '@/components/character-component.vue';
 import CombatApiService from '@/services/apiServices/CombatApiService';
 import CampaignApiService from '@/services/apiServices/CampaignApiService';
 import { CampaignFightResult } from '@/models/types/Campaign';
+import TowerApiService from '@/services/apiServices/TowerApiService';
+import { TowerFightResult } from '@/models/types/Tower';
 import GuildApiService from '@/services/apiServices/GuildApiService';
 import { GuildBossAttackResult, GuildBossTier } from '@/models/types/Guild';
 import { guildErrorText } from '@/components/guild/guildShared';
@@ -161,6 +168,10 @@ const nextStageId = computed(() => {
   const next = campaignResult.value?.currentStageId;
   return state.finished && next && next !== campaignResult.value?.stageId ? next : null;
 });
+
+// Режим бесконечной башни: /arena?tower=7 — бой за этаж башни этой недели
+const towerFloor = computed(() => Number(route.query.tower) || null);
+const towerResult = ref<TowerFightResult | null>(null);
 
 // Режим босса гильдии: /arena?guildBoss=Easy&attack=<метка> — удар по общему боссу гильдии
 const GUILD_BOSS_TIERS: GuildBossTier[] = ['Easy', 'Medium', 'Hard'];
@@ -246,6 +257,14 @@ const startCampaignFight = (id: number) => playFight(async () => {
   return fight.combat;
 });
 
+const startTowerFight = (floor: number) => playFight(async () => {
+  towerResult.value = null;
+  const fight = await TowerApiService.fight(floor);
+  towerResult.value = fight;
+  bgImage.value = fight.arena.background;
+  return fight.combat;
+});
+
 const startGuildBossFight = (tier: GuildBossTier) => playFight(async () => {
   // Метку удара убираем сразу: перезагрузка страницы не должна бить босса ещё раз
   router.replace({ query: { guildBoss: tier } });
@@ -271,6 +290,7 @@ const startPvpFight = (opponentId: string, ranked: boolean) => playFight(async (
 const startArenaFight = () => {
   if (pvpOpponentId.value) return startPvpFight(pvpOpponentId.value, pvpRanked.value);
   if (guildBossTier.value) return startGuildBossFight(guildBossTier.value);
+  if (towerFloor.value) return startTowerFight(towerFloor.value);
   return stageId.value
     ? startCampaignFight(stageId.value)
     : playFight(() => CombatApiService.start({ floor: floor.value }));
@@ -298,6 +318,8 @@ const goToNextStage = async () => {
 };
 // Список кампании (и кнопка получения награды) — на странице «О игре»
 const goToCampaign = () => router.push({ name: 'about' });
+// Там же башня: окно башни откроется сразу
+const goToTower = () => router.push({ name: 'about', query: { tower: '1' } });
 const skipFight = () => player.skip();
 
 onMounted(() => {
@@ -331,6 +353,13 @@ onBeforeUnmount(() => player.stop());
   z-index: -1;
 }
 
+/* Свой контекст наложения: глубина юнитов не поднимает их над кнопками и итогом боя.
+   Тела юнитов сортируются по --depth слота, а шапки, цифры и реплики всех юнитов (--unit-overlay-z) — над всеми телами */
+.grid {
+  isolation: isolate;
+  --unit-overlay-z: 100;
+}
+
 .grid-item {
   position: absolute;
   /* Насколько каждый отряд отодвинут от центра: расстановка слотов внутри отряда не меняется,
@@ -338,54 +367,66 @@ onBeforeUnmount(() => player.stop());
   --squad-shift: 5%;
 }
 
+/* Глубина тела (character-component): кто ниже на экране, тот ближе и рисуется поверх (--depth — top слота).
+   z-index на самом слоте нельзя: он запер бы в слоте и шапку. У слотов 2 и 5 высота одна — поверх тот, что ближе к центру (2-й) */
 .grid-item-left-1 {
   top: 50%;
   left: calc(35% - var(--squad-shift));
+  --depth: 50;
 }
 
 .grid-item-left-2 {
   top: 65%;
   left: calc(30% - var(--squad-shift));
+  --depth: 66;
 }
 
 .grid-item-left-3 {
   top: 45%;
   left: calc(25% - var(--squad-shift));
+  --depth: 45;
 }
 
 .grid-item-left-4 {
   top: 55%;
   left: calc(20% - var(--squad-shift));
+  --depth: 55;
 }
 
 .grid-item-left-5 {
   top: 65%;
   left: calc(15% - var(--squad-shift));
+  --depth: 65;
 }
 
 .grid-item-right-1 {
   top: 50%;
   right: calc(35% - var(--squad-shift));
+  --depth: 50;
 }
 
 .grid-item-right-2 {
   top: 65%;
   right: calc(30% - var(--squad-shift));
+  --depth: 66;
 }
 
 .grid-item-right-3 {
   top: 45%;
   right: calc(25% - var(--squad-shift));
+  --depth: 45;
 }
 
 .grid-item-right-4 {
   top: 55%;
   right: calc(20% - var(--squad-shift));
+  --depth: 55;
 }
 
 .grid-item-right-5 {
   top: 65%;
   right: calc(15% - var(--squad-shift));
+  --depth: 65;
 }
 
 .arena-controls {

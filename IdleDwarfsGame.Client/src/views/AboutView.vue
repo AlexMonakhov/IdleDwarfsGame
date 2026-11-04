@@ -59,6 +59,15 @@
   >
     <FightPreviewListContainer></FightPreviewListContainer>
   </ModalComponent>
+
+  <ModalComponent
+    v-model="infinityTowerDialogOpen"
+    :header-message="t('tower.header')"
+    width="min(980px, calc(94 * var(--vw)))"
+    height="min(760px, calc(86 * var(--vh)))"
+  >
+    <TowerContainer></TowerContainer>
+  </ModalComponent>
 </template>
 
 <script lang="ts" setup>
@@ -71,9 +80,12 @@ import infinityTower from "@/assets/infinity-tower.png";
 import infinityTowerHover from "@/assets/infinity-tower-hover.png";
 import ModalComponent from '@/components/common/ModalComponent.vue';
 import FightPreviewListContainer from '@/components/interface/FightPreviewListContainer.vue';
+import TowerContainer from '@/components/tower/TowerContainer.vue';
 import { useI18n } from 'vue-i18n';
+import { useRoute } from 'vue-router';
 
 const { t } = useI18n();
+const route = useRoute();
 
 
 // --- НАСТРОЙКИ ---
@@ -96,7 +108,8 @@ const scrollLeftState = ref(0);
 const opacity = ref(0);
 const campaignDialogOpen = ref(false);
 const campaignHovered = ref(false);
-const infinityTowerDialogOpen = ref(false);
+// /about?tower=1 — возврат с арены после боя в башне: окно башни открывается сразу
+const infinityTowerDialogOpen = ref(!!route.query.tower);
 const infinityTowerHovered = ref(false);
 
 // Параллакс смещение

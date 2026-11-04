@@ -631,16 +631,18 @@ onBeforeUnmount(() => {
   --squad-shift: 5%;
 }
 
-.grid-item-left-1 { top: 50%; left: calc(35% - var(--squad-shift)); }
-.grid-item-left-2 { top: 65%; left: calc(30% - var(--squad-shift)); }
-.grid-item-left-3 { top: 45%; left: calc(25% - var(--squad-shift)); }
-.grid-item-left-4 { top: 55%; left: calc(20% - var(--squad-shift)); }
-.grid-item-left-5 { top: 65%; left: calc(15% - var(--squad-shift)); }
-.grid-item-right-1 { top: 50%; right: calc(35% - var(--squad-shift)); }
-.grid-item-right-2 { top: 65%; right: calc(30% - var(--squad-shift)); }
-.grid-item-right-3 { top: 45%; right: calc(25% - var(--squad-shift)); }
-.grid-item-right-4 { top: 55%; right: calc(20% - var(--squad-shift)); }
-.grid-item-right-5 { top: 65%; right: calc(15% - var(--squad-shift)); }
+/* Глубина как на арене: тело ниже на экране — поверх; у 2-го и 5-го слота высота одна — поверх 2-й. Шапки — над всеми телами */
+.grid { isolation: isolate; --unit-overlay-z: 100; }
+.grid-item-left-1 { top: 50%; left: calc(35% - var(--squad-shift)); --depth: 50; }
+.grid-item-left-2 { top: 65%; left: calc(30% - var(--squad-shift)); --depth: 66; }
+.grid-item-left-3 { top: 45%; left: calc(25% - var(--squad-shift)); --depth: 45; }
+.grid-item-left-4 { top: 55%; left: calc(20% - var(--squad-shift)); --depth: 55; }
+.grid-item-left-5 { top: 65%; left: calc(15% - var(--squad-shift)); --depth: 65; }
+.grid-item-right-1 { top: 50%; right: calc(35% - var(--squad-shift)); --depth: 50; }
+.grid-item-right-2 { top: 65%; right: calc(30% - var(--squad-shift)); --depth: 66; }
+.grid-item-right-3 { top: 45%; right: calc(25% - var(--squad-shift)); --depth: 45; }
+.grid-item-right-4 { top: 55%; right: calc(20% - var(--squad-shift)); --depth: 55; }
+.grid-item-right-5 { top: 65%; right: calc(15% - var(--squad-shift)); --depth: 65; }
 
 /* Поверх канваса эффектов (z-index 9999 в CanvasLayer) */
 .stress-panel {

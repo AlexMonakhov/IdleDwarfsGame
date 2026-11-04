@@ -11,6 +11,7 @@ import { CampaignOverview, CampaignStageInfo } from "@/models/types/Campaign";
 import { RewardInfo } from "@/models/types/Inventory";
 import { useResources } from "@/composables/UseResources";
 import { useI18n } from "vue-i18n";
+import { chestLabel } from "@/i18n";
 
 const { t, locale } = useI18n();
 const { set: setResources } = useResources();
@@ -70,9 +71,7 @@ const claimReward = async () => {
     await loadCampaign();
 };
 
-const claimedChests = computed(() => (claimed.value?.chests ?? [])
-    .map(chest => t('chests.name', { type: t(`chests.types.${chest.type}`), level: chest.level }))
-    .join(', '));
+const claimedChests = computed(() => (claimed.value?.chests ?? []).map(chestLabel).join(', '));
 
 const format = (value: number) => value.toLocaleString(locale.value);
 
