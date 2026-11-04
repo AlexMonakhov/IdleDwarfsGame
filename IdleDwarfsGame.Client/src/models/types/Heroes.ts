@@ -13,6 +13,8 @@ export interface HeroInfo {
     placeInSquad: number | null;
     // Герой в экспедиции: виден, но не может участвовать в других активностях
     onExpedition: boolean;
+    // Дворф работает в шахте — так же занят, как в экспедиции
+    inMine: boolean;
     maxHp: number;
     attack: number;
     speed: number;
@@ -58,6 +60,9 @@ export interface HeroUpgradeResult {
 export type HeroUpgradeError = 'HeroNotFound' | 'MaxLevel' | 'NotEnoughGold' | 'NotEnoughExperience' | 'LevelChanged';
 
 export const SQUAD_SIZE = 5;
+
+// Герой в экспедиции или в шахте: виден в списках, но в отряд и на задания не идёт
+export const isBusy = (hero: HeroInfo) => hero.onExpedition || hero.inMine;
 
 // Состав отряда по слотам: [i] — id героя на месте i + 1, null — место пустое
 export const squadSlotIds = (heroes: HeroInfo[]): (string | null)[] => {

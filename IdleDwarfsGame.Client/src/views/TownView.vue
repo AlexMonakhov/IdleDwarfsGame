@@ -191,6 +191,7 @@ const auraSamples: HeroInfo[] = AURA_ELEMENTS.map(element => ({
   level: AURA_MIN_RANK,
   placeInSquad: null,
   onExpedition: false,
+  inMine: false,
   maxHp: 200,
   attack: 20,
   speed: 6,

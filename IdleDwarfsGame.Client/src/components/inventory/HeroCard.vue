@@ -68,6 +68,7 @@ const upgradeStars = computed<number[]>(() => {
             <div class="hero-card-name" v-tooltip="hero.name">{{ hero.name }}</div>
             <div class="hero-card-power" v-tooltip="t('power.value', { power: hero.power.total })">⚔ {{ hero.power.total }}</div>
             <div v-if="hero.onExpedition" class="hero-card-busy">{{ t('squad.onExpedition') }}</div>
+            <div v-else-if="hero.inMine" class="hero-card-busy">{{ t('squad.inMine') }}</div>
         </GlassButton>
     </div>
 </template>

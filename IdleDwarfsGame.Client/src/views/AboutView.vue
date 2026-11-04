@@ -36,6 +36,17 @@
           class="campaign-picture" 
         />
       </div>
+
+      <div class="interactive-layer">
+        <img 
+          :src="infinityTowerHovered ? infinityTowerHover : infinityTower"
+          @mouseenter="infinityTowerHovered = true"
+          @mouseleave="infinityTowerHovered = false"
+          @click.capture="infinityTowerDialogOpen = true"
+          @dragstart.prevent 
+          class="infinity-tower-picture" 
+        />
+      </div>
     </div>
   </div>
 
@@ -52,11 +63,12 @@
 
 <script lang="ts" setup>
 import { ref, onMounted, onUnmounted, nextTick } from 'vue';
-import background from "@/assets/background4.png";
+import background from "@/assets/background5.png";
 import backgroundsky from "@/assets/backgroundsky.png";
-import backgroundskynight from "@/assets/backgroundskynight.jpg";
 import campaign from "@/assets/campaign-dark.png";
 import campaignHover from "@/assets/campaign-hover.png";
+import infinityTower from "@/assets/infinity-tower.png";
+import infinityTowerHover from "@/assets/infinity-tower-hover.png";
 import ModalComponent from '@/components/common/ModalComponent.vue';
 import FightPreviewListContainer from '@/components/interface/FightPreviewListContainer.vue';
 import { useI18n } from 'vue-i18n';
@@ -84,6 +96,8 @@ const scrollLeftState = ref(0);
 const opacity = ref(0);
 const campaignDialogOpen = ref(false);
 const campaignHovered = ref(false);
+const infinityTowerDialogOpen = ref(false);
+const infinityTowerHovered = ref(false);
 
 // Параллакс смещение
 const bgOffset = ref(0);
@@ -264,6 +278,17 @@ const onStageClick = (n: number) => {
   position: absolute;
   top: 59%;
   left: 49.5%;
+  width: 10%;
+  height: auto;
+  transform: translate(-50%, -100%);
+  cursor: pointer;
+  pointer-events: auto; /* Разрешаем клики по картинке */
+}
+
+.infinity-tower-picture {
+  position: absolute;
+  top: 59%;
+  left: 60%;
   width: 10%;
   height: auto;
   transform: translate(-50%, -100%);
