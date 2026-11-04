@@ -57,6 +57,31 @@ public class BalanceSimulation(ITestOutputHelper output)
         return new Outcome((double)wins / fights, (double)rounds / fights);
     }
 
+    // Этаж башни недели week: стихия этажа зависит от недели, поэтому по умолчанию — неделя, где круг начинается с огня
+    // Самая трудная для отряда стихия этажа по всем неделям круга: этаж должен проходиться при любой стихии
+    public static Outcome WorstTowerWeek(List<Hero> squad, int floor, int fights = Fights) =>
+        Enumerable.Range(0, InfinityTower.ElementOrder.Length)
+            .Select(i => Tower(squad, floor, InfinityTower.RotationStart.AddDays(7 * i), fights))
+            .MinBy(o => o.WinRate)!;
+
+    public static Outcome Tower(List<Hero> squad, int floor, DateTime? week = null, int fights = Fights)
+    {
+        var towerFloor = InfinityTower.Floor(week ?? InfinityTower.RotationStart, floor);
+        var scenario = new TowerFloorScenario(Factory, towerFloor);
+        int wins = 0, rounds = 0;
+        for (int seed = 0; seed < fights; seed++)
+        {
+            var world = new World();
+            Factory.CreateSquad(world, squad, teamId: 1);
+            scenario.SpawnEnemies(world);
+            world.AddGlobalEffect(ArenaStatusEffect.FromArena(towerFloor.Arena)!);
+            var context = new CombatEngine(new Random(seed)).Run(world);
+            if (context.Win) wins++;
+            rounds += context.CurrentRound;
+        }
+        return new Outcome((double)wins / fights, (double)rounds / fights);
+    }
+
     // Средний урон отряда по боссу гильдии за одну попытку
     public static double GuildBossDamage(List<Hero> squad, GuildBossDefinition definition, int fights = 20)
     {
@@ -102,6 +127,31 @@ public class BalanceSimulation(ITestOutputHelper output)
         {
             var cells = reference.Select(r => Campaign(Squad(r.Rank, r.Level), stageId, 20)).Select(o => $"{o.WinRate * 100,3:F0}% {o.Rounds,3:F0}");
             output.WriteLine($"{stageId,5} {CampaignGenerator.EnemyLevelFor(stageId),3} | " + string.Join(" | ", cells));
+        }
+
+        output.WriteLine("");
+        output.WriteLine("Combat power of the reference squads (sum of the five dwarfs)");
+        foreach (var (name, rank, level) in reference.Prepend(("r1 l1", 1, 1)))
+        {
+            var squad = rank == 1 ? Starters(level) : Squad(rank, level);
+            output.WriteLine($"{name,8}: {squad.Sum(h => CombatPower.OfHero(Factory, h).Total),12:N0}");
+        }
+        output.WriteLine("Combat power of the chapter bosses' lineups");
+        foreach (int stageId in new[] { 1, 10, 50, 150, 250, 350, 500 })
+        {
+            var repository = new CampaignTests.SeedCampaignRepository();
+            var world = new World();
+            new CampaignScenario(repository, Factory).SpawnEnemies(world, repository.Stage(stageId));
+            output.WriteLine($"stage {stageId,3}: {world.Entities.Sum(e => CombatPower.Of(world, e.Id).Total),12:N0}");
+        }
+
+        output.WriteLine("");
+        output.WriteLine("Infinity tower, first floors and block bosses (worst element of the week rotation): win% / rounds");
+        output.WriteLine("floor  EL | " + string.Join(" | ", reference.Select(r => $"{r.Name,8}")));
+        foreach (int floor in new[] { 1, 3, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50 })
+        {
+            var cells = reference.Select(r => WorstTowerWeek(Squad(r.Rank, r.Level), floor, 10)).Select(o => $"{o.WinRate * 100,3:F0}% {o.Rounds,3:F0}");
+            output.WriteLine($"{floor,5} {InfinityTower.EnemyLevelFor(floor),3} | " + string.Join(" | ", cells));
         }
 
         output.WriteLine("");
@@ -157,6 +207,32 @@ public class CampaignBalanceTests
             Assert.True(outcome.WinRate >= 0.95, $"stage {stageId}: {outcome.WinRate:P0}");
             Assert.True(outcome.Rounds <= 9, $"stage {stageId}: {outcome.Rounds:F1} rounds");
         }
+    }
+}
+
+// Контрольные точки башни: какой отряд проходит босса блока при любой стихии недели, а какой ни при одной.
+// Башня идёт за прогрессом игрока — каждый следующий шаг прокачки открывает заметно больше этажей
+public class TowerBalanceTests
+{
+    private const int Fights = 10;
+
+    [Theory]
+    [InlineData(5, 3, 1, 2, 1)]
+    [InlineData(15, 3, 50, 3, 1)]
+    [InlineData(30, 4, 25, 4, 1)]
+    [InlineData(35, 4, 50, 4, 25)]
+    [InlineData(40, 4, 100, 4, 50)]
+    public void BlockBoss_IsWonByTheReferenceSquadOnly(int floor, int rank, int level, int weakRank, int weakLevel)
+    {
+        List<BalanceSimulation.Outcome> Weeks(List<Hero> squad) => Enumerable.Range(0, InfinityTower.ElementOrder.Length)
+            .Select(i => BalanceSimulation.Tower(squad, floor, InfinityTower.RotationStart.AddDays(7 * i), Fights))
+            .ToList();
+
+        double strong = Weeks(BalanceSimulation.Squad(rank, level)).Min(o => o.WinRate);
+        double weak = Weeks(BalanceSimulation.Squad(weakRank, weakLevel)).Max(o => o.WinRate);
+
+        Assert.True(strong >= 0.5, $"rank {rank} lvl {level}: {strong:P0}");
+        Assert.True(weak <= 0.1, $"rank {weakRank} lvl {weakLevel}: {weak:P0}");
     }
 }
 

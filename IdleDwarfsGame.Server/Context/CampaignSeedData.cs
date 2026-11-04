@@ -2,6 +2,14 @@
 // уровни 11..CampaignGenerator.TotalStages генерирует CampaignGenerator — главами по регионам стихий.
 // Боссы и монстры регионов — шаблоны в таблице Heroes у служебного игрока CampaignPlayerId,
 // часть мобов переиспользует шаблоны врагов башни (HeroSeedData.EnemyPlayerId).
+//
+// Как заполнять состав уровня (HandcraftedEnemies, CampaignGenerator.StageEnemies, InfinityTower.Lineups):
+// - Позиции 1..5; первая — передняя линия, по ней же враги выбирают, кого бить первым (ECSWorld.GetPosition).
+//   Пропуски допустимы: слот просто пустует.
+// - Босс в составе с другими врагами — всегда на 3-м слоте. Босс рисуется в 1.7 раза крупнее (character-component),
+//   а 3-й слот стоит выше всех на арене: так его шапка не перекрывает шапки соседей. Одиночный босс (гильдия,
+//   BossScenario) стоит на 1-м. Уровней с двумя боссами пока нет — если понадобятся, расстановку придётся придумать заново.
+//   Правило проверяют CampaignTests.Bosses_StandInTheThirdSlot и TowerTests.Floors_FourMobFloorsThenBossOfTheSameElement
 public static class CampaignSeedData
 {
     public static readonly Guid CampaignPlayerId = Guid.Parse("c0c0c0c0-0000-4000-8000-000000000003");
@@ -164,8 +172,8 @@ public static class CampaignSeedData
         Enemy(4, 5, SkeletonMage),
 
         Enemy(5, 1, OrcBrute),
-        Enemy(5, 2, GorrakBoss, isBoss: true, hpMultiplier: 2),
-        Enemy(5, 3, GoblinShaman),
+        Enemy(5, 2, GoblinShaman),
+        Enemy(5, 3, GorrakBoss, isBoss: true, hpMultiplier: 2),
 
         Enemy(6, 1, FrostGoblin),
         Enemy(6, 2, RimeSkeleton),
@@ -191,7 +199,7 @@ public static class CampaignSeedData
         Enemy(9, 5, SkeletonMage),
 
         Enemy(10, 1, OrcBrute),
-        Enemy(10, 2, HrimgarBoss, isBoss: true, hpMultiplier: 1.75)
+        Enemy(10, 3, HrimgarBoss, isBoss: true, hpMultiplier: 1.75)
     ];
 
     // Уровень врагов растёт быстрее номера уровня: каждый уровень врагов — +4.5% к их статам (BalanceCalculator).

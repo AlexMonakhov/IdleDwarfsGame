@@ -8,6 +8,7 @@ public class RewardRepository(GameDbContext context) : IRewardRepository
         return await context.PlayerRewards
             .AsNoTracking()
             .Include(r => r.Chests)
+            .Include(r => r.Items)
             .Where(r => r.PlayerId == playerId && r.Source == source && r.ClaimedAt == null)
             .OrderByDescending(r => r.CreatedAt)
             .FirstOrDefaultAsync();
@@ -18,6 +19,7 @@ public class RewardRepository(GameDbContext context) : IRewardRepository
         var reward = await context.PlayerRewards
             .AsNoTracking()
             .Include(r => r.Chests)
+            .Include(r => r.Items)
             .FirstOrDefaultAsync(r => r.Id == rewardId && r.PlayerId == playerId && r.ClaimedAt == null);
         if (reward == null)
             return null;
@@ -54,10 +56,10 @@ public static class RewardGrant
         {
             // Без таблицы дропа сундук не открыть — откатываем всю выдачу, а не теряем сундук молча
             var tableId = await context.ChestDropTables
-                .Where(t => t.ChestType == chest.ChestType && t.ChestLevel == chest.ChestLevel)
+                .Where(t => t.ChestType == chest.ChestType && t.ChestLevel == chest.ChestLevel && t.Element == chest.Element)
                 .Select(t => (Guid?)t.Id)
                 .FirstOrDefaultAsync()
-                ?? throw new InvalidOperationException($"Chest drop table for {chest.ChestType} level {chest.ChestLevel} not found");
+                ?? throw new InvalidOperationException($"Chest drop table for {chest.ChestType} level {chest.ChestLevel} ({chest.Element}) not found");
 
             context.PlayerChests.Add(new PlayerChest
             {
@@ -67,6 +69,37 @@ public static class RewardGrant
                 IsOpened = false
             });
         }
+
+        // Камни из награды (у одной награды стопки не повторяются — TowerRewards их уже сложил)
+        foreach (var item in reward.Items)
+            await PlayerItemStacks.AddAsync(context, playerId, new LootDrop(item.ItemType, item.SubType, item.Rarity, item.Level, item.Quantity));
+
         await context.SaveChangesAsync();
+    }
+}
+
+// Стопки предметов в инвентаре (PlayerItems): такие же предметы уже есть — прибавляем к стопке, иначе заводим новую.
+// Новая стопка только добавляется в контекст — сохраняет вызывающий
+public static class PlayerItemStacks
+{
+    public static async Task AddAsync(GameDbContext context, Guid playerId, LootDrop item)
+    {
+        int stacked = await context.PlayerItems
+            .Where(i => i.PlayerId == playerId && i.ItemType == item.ItemType && i.SubType == item.SubType
+                && i.Rarity == item.Rarity && i.Level == item.Level)
+            .ExecuteUpdateAsync(s => s.SetProperty(i => i.Quantity, i => i.Quantity + item.Amount));
+        if (stacked > 0)
+            return;
+
+        context.PlayerItems.Add(new PlayerItem
+        {
+            Id = Guid.NewGuid(),
+            PlayerId = playerId,
+            ItemType = item.ItemType,
+            SubType = item.SubType,
+            Rarity = item.Rarity,
+            Level = item.Level,
+            Quantity = item.Amount
+        });
     }
 }

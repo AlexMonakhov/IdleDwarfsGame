@@ -4,8 +4,9 @@
 // масштабирование уровнем, множитель HP босса (а позже и предметы) уже применены фабрикой.
 //
 // Модель: юнит наносит Offense урона за раунд, лечит Healing за раунд и выдерживает Hp урона.
-// Мощь = Hp + (Offense + Healing) × FightRounds — сколько юнит выдержит и сколько сделает за типичный бой.
+// Мощь = (Hp + (Offense + Healing) × FightRounds) / Scale — сколько юнит выдержит и сколько сделает за типичный бой.
 // Она аддитивна: мощь отряда — сумма мощи героев, а +N атаки всегда даёт одинаковую прибавку.
+// Scale только сжимает число для показа: стартовый отряд ~850, дворфы 4-го ранга 100-го уровня ~89 тыс.
 // Ориентир по симуляции: при мощи отряда не ниже мощи врагов бой обычно выигран, в пределах ±10% — риск.
 //
 // Точный шанс победы даёт Forecast: он прогоняет настоящий CombatEngine на фиксированных сидах.
@@ -13,6 +14,10 @@ public static class CombatPower
 {
     // Типичная длина боя в раундах: вес урона относительно HP, окно для лечения и стартовой энергии
     public const int FightRounds = 8;
+
+    // Во сколько раз мощь меньше «сырой» оценки (HP + урон за бой). На неё же рассчитана награда экспедиций
+    // (ExpeditionService.GoldPerPowerPerHour): поменяв масштаб, поправь и её
+    public const double Scale = 10;
 
     // «Средний» бой для мощи вне конкретного боя: сколько целей у массовых спеллов и аур
     public const int ReferenceTargets = 3;
@@ -143,7 +148,7 @@ public static class CombatPower
     private static int Power(UnitProfile unit)
     {
         var (offense, healing, hp) = Evaluate(unit);
-        return (int)Math.Round(hp + (offense + healing * HealingEfficiency) * FightRounds);
+        return (int)Math.Round((hp + (offense + healing * HealingEfficiency) * FightRounds) / Scale);
     }
 
     private static (double Offense, double Healing, double Hp) Evaluate(UnitProfile unit)

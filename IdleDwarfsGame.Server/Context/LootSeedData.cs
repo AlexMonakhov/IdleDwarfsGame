@@ -9,6 +9,9 @@ public static class LootSeedData
     // Сундуки каких уровней может выдать кампания (CampaignRewards.ChestLevelFor) — для них таблицы обязаны быть
     public const int MaxChestLevel = 5;
 
+    // Сундуки бесконечности (и сундук снаряжения рядом с ними) башня выдаёт только до этого уровня (TowerRewards.ChestLevelFor)
+    public const int MaxInfinityChestLevel = 3;
+
     // Камни стихий, из которых выпадают обычные гемы
     private static readonly GemType[] ElementGems = [GemType.Ruby, GemType.Sapphire, GemType.Topaz, GemType.Emerald];
 
@@ -122,22 +125,70 @@ public static class LootSeedData
             .. EquipmentOf(Rarity.Mythic, 0.45),
             .. EquipmentOf(Rarity.Legendary, 0.40),
             .. EquipmentOf(Rarity.Artifact, 0.15)
-        ])
+        ]),
+
+        // ===== Сундуки бесконечности (босс башни, TowerRewards): своя таблица на каждую стихию.
+        // Герой и камни — только этой стихии, снаряжение — общее =====
+        .. InfinityTower.ElementOrder.SelectMany(element => new TableDefinition[]
+        {
+            new(ChestType.Infinity, 1, Rolls: 2,
+            [
+                Hero(rank: 2, 0.15, element),
+                Hero(rank: 3, 0.03, element),
+                Gem(InfinityTower.GemOf(element), Rarity.Common, 0.55, 3, 6),
+                Gem(InfinityTower.GemOf(element), Rarity.Uncommon, 0.30, 1, 2),
+                Gem(InfinityTower.GemOf(element), Rarity.Rare, 0.05, 1, 1),
+                .. EquipmentOf(Rarity.Uncommon, 0.15),
+                .. EquipmentOf(Rarity.Rare, 0.05),
+                .. EquipmentOf(Rarity.Mythic, 0.01)
+            ], element),
+            new(ChestType.Infinity, 2, Rolls: 3,
+            [
+                Hero(rank: 2, 0.12, element),
+                Hero(rank: 3, 0.10, element),
+                Hero(rank: 4, 0.02, element),
+                Gem(InfinityTower.GemOf(element), Rarity.Common, 0.35, 4, 8),
+                Gem(InfinityTower.GemOf(element), Rarity.Uncommon, 0.35, 2, 3),
+                Gem(InfinityTower.GemOf(element), Rarity.Rare, 0.12, 1, 2),
+                Gem(InfinityTower.GemOf(element), Rarity.Mythic, 0.02, 1, 1),
+                .. EquipmentOf(Rarity.Uncommon, 0.10),
+                .. EquipmentOf(Rarity.Rare, 0.10),
+                .. EquipmentOf(Rarity.Mythic, 0.04),
+                .. EquipmentOf(Rarity.Legendary, 0.01)
+            ], element),
+            new(ChestType.Infinity, 3, Rolls: 3,
+            [
+                Hero(rank: 3, 0.15, element),
+                Hero(rank: 4, 0.06, element),
+                Gem(InfinityTower.GemOf(element), Rarity.Common, 0.25, 6, 10),
+                Gem(InfinityTower.GemOf(element), Rarity.Uncommon, 0.35, 3, 4),
+                Gem(InfinityTower.GemOf(element), Rarity.Rare, 0.20, 1, 2),
+                Gem(InfinityTower.GemOf(element), Rarity.Mythic, 0.06, 1, 1),
+                .. EquipmentOf(Rarity.Rare, 0.15),
+                .. EquipmentOf(Rarity.Mythic, 0.08),
+                .. EquipmentOf(Rarity.Legendary, 0.03),
+                .. EquipmentOf(Rarity.Artifact, 0.005)
+            ], element)
+        })
     ];
 
-    public static Guid TableId(ChestType type, int level) =>
-        Guid.Parse($"c4e50000-0000-4000-8000-{(int)type:D6}{level:D6}");
+    // Стихия занимает две старшие цифры уровня: у сундуков без стихии (Basic = 0) Id те же, что и до стихий
+    public static Guid TableId(ChestType type, int level, HeroElement element = HeroElement.Basic) =>
+        Guid.Parse($"c4e50000-0000-4000-8000-{(int)type:D6}{(int)element:D2}{level:D4}");
 
     public static ChestDropTable[] Tables => Definitions
-        .Select(d => new ChestDropTable { Id = TableId(d.Type, d.Level), ChestType = d.Type, ChestLevel = d.Level, Rolls = d.Rolls })
+        .Select(d => new ChestDropTable
+        {
+            Id = TableId(d.Type, d.Level, d.Element), ChestType = d.Type, ChestLevel = d.Level, Element = d.Element, Rolls = d.Rolls
+        })
         .ToArray();
 
     // Записи с внешним ключом на таблицу: для HasData у owned-сущностей ключ владельца задаётся явно
     public static object[] Entries => Definitions
         .SelectMany(d => d.Entries.Select((e, index) => (object)new
         {
-            Id = Guid.Parse($"c4e50001-0000-4000-8000-{(int)d.Type:D4}{d.Level:D4}{index:D4}"),
-            ChestDropTableId = TableId(d.Type, d.Level),
+            Id = Guid.Parse($"c4e50001-0000-4000-8000-{(int)d.Type:D4}{(int)d.Element:D2}{d.Level:D2}{index:D4}"),
+            ChestDropTableId = TableId(d.Type, d.Level, d.Element),
             e.Probability,
             e.MinAmount,
             e.MaxAmount,
@@ -152,18 +203,20 @@ public static class LootSeedData
     public static List<ChestDropTable> TablesWithEntries() => Definitions
         .Select(d => new ChestDropTable
         {
-            Id = TableId(d.Type, d.Level),
+            Id = TableId(d.Type, d.Level, d.Element),
             ChestType = d.Type,
             ChestLevel = d.Level,
+            Element = d.Element,
             Rolls = d.Rolls,
             Entries = d.Entries
         })
         .ToList();
 
-    // Ранг героя задаёт и редкость записи — фронт красит выпавшего героя по ней
-    private static DropEntry Hero(int rank, double probability) => new()
+    // Ранг героя задаёт и редкость записи — фронт красит выпавшего героя по ней. Без стихии — случайная (HeroGenerator)
+    private static DropEntry Hero(int rank, double probability, HeroElement element = HeroElement.Basic) => new()
     {
         ItemType = ItemType.Hero,
+        SubType = element == HeroElement.Basic ? string.Empty : element.ToString(),
         ItemLevel = rank,
         Rarity = (Rarity)Math.Clamp(rank - 1, (int)Rarity.Common, (int)Rarity.Legendary),
         Probability = probability,
@@ -198,5 +251,5 @@ public static class LootSeedData
         });
     }
 
-    private record TableDefinition(ChestType Type, int Level, int Rolls, DropEntry[] Entries);
+    private record TableDefinition(ChestType Type, int Level, int Rolls, DropEntry[] Entries, HeroElement Element = HeroElement.Basic);
 }

@@ -48,11 +48,12 @@ public class CombatPowerTests
     [Fact]
     public void Stats_MorePowerForMoreHpAttackAndSpeed()
     {
-        int basePower = PowerOf(MakeHero()).Total;
+        // Статы в масштабе дворфов (статы ×10 после баланса): на крошечных прибавка скорости меньше единицы мощи (CombatPower.Scale)
+        int basePower = PowerOf(MakeHero(hp: 1000, attack: 100)).Total;
 
-        Assert.True(PowerOf(MakeHero(hp: 120)).Total > basePower);
-        Assert.True(PowerOf(MakeHero(attack: 12)).Total > basePower);
-        Assert.True(PowerOf(MakeHero(speed: 8)).Total > basePower);
+        Assert.True(PowerOf(MakeHero(hp: 1200, attack: 100)).Total > basePower);
+        Assert.True(PowerOf(MakeHero(hp: 1000, attack: 120)).Total > basePower);
+        Assert.True(PowerOf(MakeHero(hp: 1000, attack: 100, speed: 8)).Total > basePower);
     }
 
     [Fact]
