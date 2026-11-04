@@ -23,7 +23,7 @@ public static class HeroSeedData
             MaxEnergy = 100, StartEnergy = 0, EnergyPerAttack = 20,
             Immunities = ["Stun"],
             // Защитник: регенерация всему отряду в начале раунда
-            AuraEffect = "Regen", AuraTarget = AuraTarget.Allies, AuraTrigger = TriggerPhase.OnRoundStart, AuraPower = 4, AuraDuration = 1
+            AuraEffect = "Regen", AuraTarget = AuraTarget.Allies, AuraTrigger = TriggerPhase.OnRoundStart, AuraPower = 10, AuraDuration = 1
         },
         new Hero
         {
@@ -118,7 +118,7 @@ public static class HeroSeedData
             MaxEnergy = 100, StartEnergy = 0, EnergyPerAttack = 20,
             Immunities = ["Burn"],
             // Аура жара: поджигает врагов в начале раунда
-            AuraEffect = "Burn", AuraTarget = AuraTarget.Enemies, AuraTrigger = TriggerPhase.OnRoundStart, AuraPower = 3, AuraDuration = 1
+            AuraEffect = "Burn", AuraTarget = AuraTarget.Enemies, AuraTrigger = TriggerPhase.OnRoundStart, AuraPower = 10, AuraDuration = 1
         },
         new Hero
         {

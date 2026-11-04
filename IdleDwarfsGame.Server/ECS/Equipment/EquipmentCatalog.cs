@@ -43,11 +43,11 @@ public static class EquipmentCatalog
         new("MinerHelm", EquipmentType.Helmet, Rarity.Uncommon, new(MaxHp: 200), AnyElement,
             [new AuraPowerEffect(15)]),
         new("EmberCrown", EquipmentType.Helmet, Rarity.Rare, new(MaxHp: 240), [HeroElement.Fire],
-            [new AuraGrantEffect("Burn", AuraTarget.Enemies, Power: 3), new AuraPowerEffect(20)]),
+            [new AuraGrantEffect("Burn", AuraTarget.Enemies, Power: 8), new AuraPowerEffect(20)]),
         new("FrostCrown", EquipmentType.Helmet, Rarity.Rare, new(MaxHp: 240), [HeroElement.Frost],
             [new AuraGrantEffect("Frost", AuraTarget.Enemies, Power: 5), new AuraPowerEffect(20)]),
         new("GroveCirclet", EquipmentType.Helmet, Rarity.Mythic, new(MaxHp: 360), [HeroElement.Nature, HeroElement.Radiance],
-            [new AuraGrantEffect("Regen", AuraTarget.Allies, Power: 3), new AuraDurationEffect(1)]),
+            [new AuraGrantEffect("Regen", AuraTarget.Allies, Power: 10), new AuraDurationEffect(1)]),
         new("WarlordHelm", EquipmentType.Helmet, Rarity.Legendary, new(MaxHp: 480, Attack: 30), AnyElement,
             [new AuraPowerEffect(40), new AuraIntervalEffect(1)]),
 

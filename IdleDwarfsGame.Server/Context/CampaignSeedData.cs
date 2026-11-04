@@ -5,7 +5,7 @@ public static class CampaignSeedData
 {
     public static readonly Guid CampaignPlayerId = Guid.Parse("c0c0c0c0-0000-4000-8000-000000000003");
 
-    // По арене на каждую стихию. Кампания пока идёт на лаве и льду, остальные — арены боссов гильдии (GuildBosses)
+    // По арене на каждую стихию. EffectPower — процент от максимального HP бойца (у мороза — замедления), см. ArenaStatusEffect. Кампания пока идёт на лаве и льду, остальные — арены боссов гильдии (GuildBosses)
     public const int LavaArenaId = 1;
     public const int IceArenaId = 2;
     public const int StormArenaId = 3;
@@ -59,7 +59,7 @@ public static class CampaignSeedData
             SpellIds = [2], // Fireball 2
             Immunities = ["Burn", "Stun"],
             // Раскалённая аура: поджигает весь отряд игрока в начале раунда
-            AuraEffect = "Burn", AuraTarget = AuraTarget.Enemies, AuraTrigger = TriggerPhase.OnRoundStart, AuraPower = 4, AuraDuration = 1
+            AuraEffect = "Burn", AuraTarget = AuraTarget.Enemies, AuraTrigger = TriggerPhase.OnRoundStart, AuraPower = 12, AuraDuration = 1
         },
         new Hero
         {
@@ -70,7 +70,7 @@ public static class CampaignSeedData
             SpellIds = [6], // Lightning 3
             Immunities = ["Frost", "Stun"],
             // Ледяное дыхание: морозит весь отряд игрока в начале раунда
-            AuraEffect = "Frost", AuraTarget = AuraTarget.Enemies, AuraTrigger = TriggerPhase.OnRoundStart, AuraPower = 3, AuraDuration = 1
+            AuraEffect = "Frost", AuraTarget = AuraTarget.Enemies, AuraTrigger = TriggerPhase.OnRoundStart, AuraPower = 10, AuraDuration = 1
         }
     ];
 
@@ -80,7 +80,7 @@ public static class CampaignSeedData
         {
             Id = LavaArenaId, Name = "Lava Arena", Background = "lava", Element = HeroElement.Fire,
             Description = "Molten stone burns every fighter at the start of each round.",
-            EffectName = "Burn", EffectPower = 5, EffectDuration = 1
+            EffectName = "Burn", EffectPower = 2, EffectDuration = 1
         },
         new Arena
         {
@@ -92,31 +92,31 @@ public static class CampaignSeedData
         {
             Id = StormArenaId, Name = "Storm Peak", Background = "storm", Element = HeroElement.Lightning,
             Description = "Lightning strikes the summit and shocks every fighter at the start of each round.",
-            EffectName = "Shock", EffectPower = 4, EffectDuration = 1
+            EffectName = "Shock", EffectPower = 2, EffectDuration = 1
         },
         new Arena
         {
             Id = MarshArenaId, Name = "Venom Marsh", Background = "marsh", Element = HeroElement.Nature,
             Description = "Toxic fumes rise from the bog and poison every fighter at the start of each round.",
-            EffectName = "Poison", EffectPower = 4, EffectDuration = 1
+            EffectName = "Poison", EffectPower = 2, EffectDuration = 1
         },
         new Arena
         {
             Id = CryptArenaId, Name = "Shadow Crypt", Background = "crypt", Element = HeroElement.Dark,
             Description = "Amethyst shadows curse every fighter at the start of each round, draining life and energy.",
-            EffectName = "Curse", EffectPower = 4, EffectDuration = 1
+            EffectName = "Curse", EffectPower = 2, EffectDuration = 1
         },
         new Arena
         {
             Id = SanctumArenaId, Name = "Crystal Sanctum", Background = "sanctum", Element = HeroElement.Radiance,
             Description = "Diamond light mends the wounds of every fighter — friend and foe — at the start of each round.",
-            EffectName = "Regen", EffectPower = 6, EffectDuration = 1
+            EffectName = "Regen", EffectPower = 3, EffectDuration = 1
         },
         new Arena
         {
             Id = AltarArenaId, Name = "Blood Altar", Background = "altar", Element = HeroElement.Blood,
             Description = "Garnet runes open old wounds: every fighter bleeds at the start of each round.",
-            EffectName = "Bleed", EffectPower = 4, EffectDuration = 1
+            EffectName = "Bleed", EffectPower = 2, EffectDuration = 1
         }
     ];
 

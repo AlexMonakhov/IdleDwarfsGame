@@ -173,7 +173,7 @@ public class EquipmentTests : IDisposable
         var plain = MakeHero(items: "EmberCrown");
         var granted = Arena(plain).World.Auras.Values.Single();
         Assert.Equal("Burn", granted.EffectName);
-        Assert.Equal(4, granted.Power); // 3 × 120% с округлением
+        Assert.Equal(10, granted.Power); // 8% от 100 атаки × 120% с округлением
 
         var own = MakeHero(items: "WarlordHelm");
         own.AuraEffect = "Regen";
@@ -182,7 +182,7 @@ public class EquipmentTests : IDisposable
         own.AuraInterval = 2;
         var boosted = Arena(own).World.Auras.Values.Single();
         Assert.Equal("Regen", boosted.EffectName);
-        Assert.Equal(14, boosted.Power);
+        Assert.Equal(18, boosted.Power); // 10% от 130 атаки (шлем +30) × 140%
         Assert.Equal(1, boosted.Interval);
     }
 

@@ -38,6 +38,7 @@ public class Hero
     public string? AuraEffect { get; set; }
     public AuraTarget AuraTarget { get; set; }
     public TriggerPhase AuraTrigger { get; set; } = TriggerPhase.OnRoundStart;
+    // Процент (AuraBook): урон или лечение за ход — доля атаки носителя, у мороза — процент замедления
     public int AuraPower { get; set; }
     public int AuraDuration { get; set; } = 1;
     // Аура срабатывает раз в столько своих триггеров (раундов или ходов носителя): 1 — каждый, 2 — через один

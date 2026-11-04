@@ -30,8 +30,9 @@ public class HeroInfo
     public static HeroInfo From(IEntityFactory factory, Hero hero, bool onExpedition = false, bool inMine = false)
     {
         var gear = EquipmentCatalog.CollectGear(hero);
-        var aura = EntityFactory.ResolveAura(hero, gear);
         int upgradeLevel = HeroUpgradeService.ClampLevel(hero.Level, hero.UpgradeLevel);
+        int attack = HeroUpgradeService.ScaleStat(hero.Attack, upgradeLevel) + gear.Stats.Attack;
+        var aura = EntityFactory.ResolveAura(hero, gear, attack);
 
         return new HeroInfo
         {
@@ -45,7 +46,7 @@ public class HeroInfo
             OnExpedition = onExpedition,
             InMine = inMine,
             MaxHp = HeroUpgradeService.ScaleStat(hero.MaxHp, upgradeLevel) + gear.Stats.MaxHp,
-            Attack = HeroUpgradeService.ScaleStat(hero.Attack, upgradeLevel) + gear.Stats.Attack,
+            Attack = attack,
             Speed = hero.Speed + gear.Stats.Speed,
             MaxEnergy = hero.MaxEnergy + gear.Stats.MaxEnergy,
             Spells = hero.SpellIds.Select(SpellRegistry.Describe).ToList(),

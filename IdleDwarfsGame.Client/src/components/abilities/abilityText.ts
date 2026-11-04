@@ -32,7 +32,7 @@ export const abilityText = (ability: AbilityInfo): string => {
                 targets: ability.targets,
             });
         default:
-            return t('abilities.auraText', {
+            return t(ability.key === 'Frost' ? 'abilities.auraTextFrost' : 'abilities.auraText', {
                 effect: statusLabel(ability.key),
                 power: ability.power,
                 turns: ability.duration,

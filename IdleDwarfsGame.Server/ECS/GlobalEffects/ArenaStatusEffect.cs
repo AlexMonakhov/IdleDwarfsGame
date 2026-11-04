@@ -1,4 +1,6 @@
 // Эффект арены: в начале каждого раунда вешает статус на всех живых участников боя.
+// Power — процент: урон или лечение за ход — доля максимального HP каждого бойца (так арена одинаково
+// ощутима и в начале, и в конце кампании), у мороза — процент замедления энергии.
 // Статус создаётся по имени (StatusEffectFactory), поэтому арены можно описывать данными в БД.
 public class ArenaStatusEffect : IGlobalEffect
 {
@@ -26,6 +28,12 @@ public class ArenaStatusEffect : IGlobalEffect
             ? null
             : new ArenaStatusEffect(arena.Name, arena.EffectName, arena.EffectPower, arena.EffectDuration);
 
+    // Сила статуса на конкретном бойце
+    public int PowerFor(World world, int entityId) =>
+        AuraBook.PowerIsPercentOfAttack(EffectName)
+            ? Math.Max(1, (int)Math.Round(world.Health[entityId].Max * Power / 100.0, MidpointRounding.AwayFromZero))
+            : Power;
+
     public void Apply(World world, CombatContext context)
     {
         if (!context.IsNewRound) return;
@@ -39,7 +47,8 @@ public class ArenaStatusEffect : IGlobalEffect
         // Арена бьёт каждый раунд, как аура, — и копится с тем же потолком
         foreach (var entity in aliveEntities)
         {
-            StatusEffectFactory.Create(EffectName, Power, Duration).ApplyEffect(world, entity.Id, context, stackLimit: AuraComponent.StackLimit);
+            StatusEffectFactory.Create(EffectName, PowerFor(world, entity.Id), Duration)
+                .ApplyEffect(world, entity.Id, context, stackLimit: AuraComponent.StackLimit);
         }
     }
 }

@@ -10,17 +10,26 @@ public static class AuraBook
 
     public record Definition(string Effect, AuraTarget Target, int[] PowerByLevel, int Duration = 1);
 
-    // Сила как у аур шлемов (EquipmentCatalog) на 1-м уровне. Мороз — процент замедления, остальное — урон или лечение за ход
+    // Сила в процентах: урон или лечение за ход — доля атаки носителя (EntityFactory), мороз — процент замедления энергии
     private static readonly Dictionary<string, Definition> Definitions = new Definition[]
     {
-        new("Burn", AuraTarget.Enemies, [3, 5, 7]),
+        new("Burn", AuraTarget.Enemies, [8, 12, 16]),
         new("Frost", AuraTarget.Enemies, [5, 8, 12]),
-        new("Shock", AuraTarget.Enemies, [3, 5, 7]),
-        new("Poison", AuraTarget.Enemies, [3, 5, 7]),
-        new("Curse", AuraTarget.Enemies, [3, 5, 7]),
-        new("Bleed", AuraTarget.Enemies, [3, 5, 7]),
-        new("Regen", AuraTarget.Allies, [3, 5, 8])
+        new("Shock", AuraTarget.Enemies, [8, 12, 16]),
+        new("Poison", AuraTarget.Enemies, [8, 12, 16]),
+        new("Curse", AuraTarget.Enemies, [8, 12, 16]),
+        new("Bleed", AuraTarget.Enemies, [8, 12, 16]),
+        new("Regen", AuraTarget.Allies, [10, 15, 20])
     }.ToDictionary(d => d.Effect);
+
+    // Мороз не наносит урона: его сила — сам процент замедления, а не доля атаки
+    public static bool PowerIsPercentOfAttack(string effect) => effect != "Frost";
+
+    // Сила статуса ауры за ход для носителя с такой атакой
+    public static int Resolve(string effect, int percent, int attack) =>
+        PowerIsPercentOfAttack(effect)
+            ? Math.Max(1, (int)Math.Round(attack * percent / 100.0, MidpointRounding.AwayFromZero))
+            : percent;
 
     private static readonly Dictionary<HeroElement, string> ByElement = new()
     {
