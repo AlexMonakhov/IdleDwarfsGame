@@ -20,7 +20,7 @@ public static class GuildBossSeedData
         new Hero
         {
             Id = MossbackTroll, PlayerId = PlayerId,
-            Name = "Mossback Troll", UnitType = "Troll", Element = HeroElement.Nature, Level = 4,
+            Name = "Mossback Troll", UnitType = "Golem", Element = HeroElement.Nature, Level = 4,
             MaxHp = 1300, Attack = 100, Speed = 3,
             MaxEnergy = 100, StartEnergy = 0, EnergyPerAttack = 20,
             SpellIds = [31], // Venom Thorns 1
@@ -29,7 +29,7 @@ public static class GuildBossSeedData
         new Hero
         {
             Id = RimehornYeti, PlayerId = PlayerId,
-            Name = "Rimehorn Yeti", UnitType = "Yeti", Element = HeroElement.Frost, Level = 4,
+            Name = "Rimehorn Yeti", UnitType = "Golem", Element = HeroElement.Frost, Level = 4,
             MaxHp = 1300, Attack = 100, Speed = 3,
             MaxEnergy = 100, StartEnergy = 0, EnergyPerAttack = 20,
             SpellIds = [16], // Frost Bolt 1
@@ -40,7 +40,7 @@ public static class GuildBossSeedData
         new Hero
         {
             Id = AshmawWarlord, PlayerId = PlayerId,
-            Name = "Ashmaw the Warlord", UnitType = "Orc", Element = HeroElement.Fire, Level = 4,
+            Name = "Ashmaw the Warlord", UnitType = "Draconid", Element = HeroElement.Fire, Level = 4,
             MaxHp = 1100, Attack = 95, Speed = 4,
             MaxEnergy = 100, StartEnergy = 0, EnergyPerAttack = 20,
             // Без ауры жара: лава и так поджигает весь отряд каждый раунд
@@ -50,7 +50,7 @@ public static class GuildBossSeedData
         new Hero
         {
             Id = GrukkStormcaller, PlayerId = PlayerId,
-            Name = "Grukk Stormcaller", UnitType = "Ogre", Element = HeroElement.Lightning, Level = 4,
+            Name = "Grukk Stormcaller", UnitType = "Golem", Element = HeroElement.Lightning, Level = 4,
             MaxHp = 1100, Attack = 95, Speed = 4,
             MaxEnergy = 100, StartEnergy = 0, EnergyPerAttack = 20,
             SpellIds = [25], // Chain Lightning 1

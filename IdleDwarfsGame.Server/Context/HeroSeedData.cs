@@ -90,7 +90,7 @@ public static class HeroSeedData
         new Hero
         {
             Id = Guid.Parse("22222222-0000-4000-8000-000000000001"), PlayerId = EnemyPlayerId,
-            Name = "Orc Brute", UnitType = "Orc", Element = HeroElement.Frost, Level = 4, PlaceInSquad = 1,
+            Name = "Magma Golem", UnitType = "Golem", Element = HeroElement.Frost, Level = 4, PlaceInSquad = 1,
             MaxHp = 1000, Attack = 70, Speed = 3,
             MaxEnergy = 100, StartEnergy = 0, EnergyPerAttack = 20,
             Immunities = ["Stun"]
@@ -113,7 +113,7 @@ public static class HeroSeedData
         new Hero
         {
             Id = Guid.Parse("22222222-0000-4000-8000-000000000004"), PlayerId = EnemyPlayerId,
-            Name = "Orc Warlord", UnitType = "Orc", Element = HeroElement.Frost, Level = 4, PlaceInSquad = 4,
+            Name = "Ember Drake", UnitType = "Draconid", Element = HeroElement.Frost, Level = 4, PlaceInSquad = 4,
             MaxHp = 800, Attack = 75, Speed = 4,
             MaxEnergy = 100, StartEnergy = 0, EnergyPerAttack = 20,
             Immunities = ["Burn"],

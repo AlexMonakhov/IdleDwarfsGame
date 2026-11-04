@@ -1,11 +1,13 @@
-// Стартовая кампания: 1-4 мобы на лавовой арене, 5 босс, 6-9 мобы на ледяной арене, 10 босс.
-// Боссы и ледяные мобы — шаблоны в таблице Heroes у служебного игрока CampaignPlayerId,
-// обычные мобы переиспользуют шаблоны врагов башни (HeroSeedData.EnemyPlayerId).
+// Кампания: вводные уровни 1-10 описаны здесь вручную (1-4 мобы на лаве, 5 босс, 6-9 мобы на льду, 10 босс),
+// уровни 11..CampaignGenerator.TotalStages генерирует CampaignGenerator — главами по регионам стихий.
+// Боссы и монстры регионов — шаблоны в таблице Heroes у служебного игрока CampaignPlayerId,
+// часть мобов переиспользует шаблоны врагов башни (HeroSeedData.EnemyPlayerId).
 public static class CampaignSeedData
 {
     public static readonly Guid CampaignPlayerId = Guid.Parse("c0c0c0c0-0000-4000-8000-000000000003");
 
-    // По арене на каждую стихию. EffectPower — процент от максимального HP бойца (у мороза — замедления), см. ArenaStatusEffect. Кампания пока идёт на лаве и льду, остальные — арены боссов гильдии (GuildBosses)
+    // По арене на каждую стихию. EffectPower — процент от максимального HP бойца (у мороза — замедления), см. ArenaStatusEffect.
+    // Арены служат и кампании (по региону главы), и боссам гильдии (GuildBosses)
     public const int LavaArenaId = 1;
     public const int IceArenaId = 2;
     public const int StormArenaId = 3;
@@ -53,7 +55,7 @@ public static class CampaignSeedData
         new Hero
         {
             Id = GorrakBoss, PlayerId = CampaignPlayerId,
-            Name = "Gorrak the Molten", UnitType = "Orc", Element = HeroElement.Fire, Level = 4,
+            Name = "Gorrak the Molten", UnitType = "Draconid", Element = HeroElement.Fire, Level = 4,
             MaxHp = 1300, Attack = 110, Speed = 5,
             MaxEnergy = 100, StartEnergy = 20, EnergyPerAttack = 20,
             SpellIds = [2], // Fireball 2
@@ -71,7 +73,10 @@ public static class CampaignSeedData
             Immunities = ["Frost", "Stun"],
             // Ледяное дыхание: морозит весь отряд игрока в начале раунда
             AuraEffect = "Frost", AuraTarget = AuraTarget.Enemies, AuraTrigger = TriggerPhase.OnRoundStart, AuraPower = 10, AuraDuration = 1
-        }
+        },
+
+        // Монстры регионов генерируемой части кампании
+        .. CampaignGenerator.Templates
     ];
 
     public static Arena[] Arenas =>
@@ -120,12 +125,16 @@ public static class CampaignSeedData
         }
     ];
 
-    public static CampaignStage[] Stages =>
+    public static CampaignStage[] Stages => [.. HandcraftedStages, .. CampaignGenerator.Stages()];
+
+    public static CampaignStageEnemy[] StageEnemies => [.. HandcraftedEnemies, .. CampaignGenerator.StageEnemies()];
+
+    private static CampaignStage[] HandcraftedStages =>
     [
         Stage(1, "Ember Gate", "Goblins guard the entrance to the fire caves.", StageType.Mobs, 1, LavaArenaId),
-        Stage(2, "Smouldering Tunnels", "An orc leads scouts through the smouldering tunnels.", StageType.Mobs, 2, LavaArenaId),
-        Stage(3, "Cinder Hall", "A skeleton mage has joined the orcs in the hall of ash.", StageType.Mobs, 3, LavaArenaId),
-        Stage(4, "Warlord's Camp", "The orc warlord's camp. His aura sets everything ablaze.", StageType.Mobs, 5, LavaArenaId),
+        Stage(2, "Smouldering Tunnels", "A magma golem leads scouts through the smouldering tunnels.", StageType.Mobs, 2, LavaArenaId),
+        Stage(3, "Cinder Hall", "A skeleton mage has joined the golems in the hall of ash.", StageType.Mobs, 3, LavaArenaId),
+        Stage(4, "Warlord's Camp", "The ember drake's camp. Its aura sets everything ablaze.", StageType.Mobs, 5, LavaArenaId),
         Stage(5, "Heart of the Forge", "Gorrak the Molten guards the heart of the forge.", StageType.Boss, 5, LavaArenaId),
         Stage(6, "Frozen Pass", "Frost goblins lie in ambush at the pass.", StageType.Mobs, 8, IceArenaId),
         Stage(7, "Rime Caverns", "The rime caverns are crawling with undead.", StageType.Mobs, 9, IceArenaId),
@@ -134,7 +143,7 @@ public static class CampaignSeedData
         Stage(10, "Throne of Frost", "Hrimgar the Frostbound awaits on his throne of ice.", StageType.Boss, 13, IceArenaId)
     ];
 
-    public static CampaignStageEnemy[] StageEnemies =>
+    private static CampaignStageEnemy[] HandcraftedEnemies =>
     [
         Enemy(1, 1, GoblinScout),
         Enemy(1, 2, GoblinShaman),

@@ -145,3 +145,48 @@ public class CampaignBalanceTests
         }
     }
 }
+
+// Контрольные точки длинной кампании: какой отряд проходит босса главы, а какой ещё нет
+public class LongCampaignBalanceTests
+{
+    private const int Fights = 20;
+
+    [Theory]
+    [InlineData(50, 2, 20, 2, 1)]
+    [InlineData(150, 3, 50, 3, 1)]
+    [InlineData(250, 4, 25, 4, 1)]
+    [InlineData(350, 4, 50, 4, 25)]
+    [InlineData(500, 4, 100, 4, 50)]
+    public void ChapterBoss_IsWonByTheReferenceSquadOnly(int stageId, int rank, int level, int weakRank, int weakLevel)
+    {
+        var strong = BalanceSimulation.Campaign(BalanceSimulation.Squad(rank, level), stageId, Fights);
+        var weak = BalanceSimulation.Campaign(BalanceSimulation.Squad(weakRank, weakLevel), stageId, Fights);
+
+        Assert.True(strong.WinRate >= 0.5, $"rank {rank} lvl {level}: {strong.WinRate:P0}");
+        Assert.True(weak.WinRate <= 0.1, $"rank {weakRank} lvl {weakLevel}: {weak.WinRate:P0}");
+    }
+
+    [Fact]
+    public void Campaign_HasAllStagesWithEnemies()
+    {
+        var stages = CampaignSeedData.Stages;
+        Assert.Equal(CampaignGenerator.TotalStages, stages.Length);
+        Assert.Equal(Enumerable.Range(1, CampaignGenerator.TotalStages), stages.Select(s => s.Id));
+        var enemies = CampaignSeedData.StageEnemies.GroupBy(e => e.StageId).ToDictionary(g => g.Key, g => g.ToList());
+        var heroes = CampaignSeedData.Heroes.Concat(HeroSeedData.Heroes).Select(h => h.Id).ToHashSet();
+        foreach (var stage in stages)
+        {
+            Assert.InRange(enemies[stage.Id].Count, 2, 5);
+            Assert.All(enemies[stage.Id], e => Assert.Contains(e.HeroId, heroes));
+            Assert.Equal(stage.Type == StageType.Boss, enemies[stage.Id].Any(e => e.IsBoss));
+        }
+        Assert.Equal(CampaignSeedData.StageEnemies.Length, CampaignSeedData.StageEnemies.Select(e => e.Id).Distinct().Count());
+    }
+
+    [Fact]
+    public void EnemyLevel_NeverDrops()
+    {
+        var levels = CampaignSeedData.Stages.Skip(CampaignGenerator.HandcraftedStages).Select(s => s.EnemyLevel).ToList();
+        Assert.True(levels.Zip(levels.Skip(1)).All(p => p.Second >= p.First));
+    }
+}
