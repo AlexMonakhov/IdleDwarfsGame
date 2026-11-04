@@ -60,7 +60,7 @@ const backgroundStyle = `url(${background}) center / cover no-repeat, radial-gra
                                 <template #title>{{ props.arena.name }}</template>
                                 <template #description>{{ props.arena.description }}</template>
                                 <template v-if="props.arena.effectName" #stats>
-                                    {{ t('campaign.arenaEffect', { effect: statusLabel(props.arena.effectName), power: props.arena.effectPower }) }}
+                                    {{ t(props.arena.effectName === 'Frost' ? 'campaign.arenaEffectFrost' : 'campaign.arenaEffect', { effect: statusLabel(props.arena.effectName), power: props.arena.effectPower }) }}
                                 </template>
                             </TooltipComponent>
 

@@ -35,13 +35,15 @@ public class AbilityException(AbilityError code, string message) : InvalidOperat
 //   вставка — извлечённая способность заменяет такую же по виду у другого дворфа (прежняя пропадает);
 //     заклинание — только дворфу своей стихии;
 //   слияние способностей — две одинаковые дают одну с суммой уровней: 1 + 1 = 2, 1 + 2 = 3, выше MaxLevel нельзя;
-//   слияние дворфов — FusionSize дворфов одного ранга дают дворфа рангом выше. Стихия — как у случайного из них
+//   слияние дворфов — FusionSize дворфов одного ранга дают дворфа рангом выше, игроку возвращается часть вложенного
+//     в их прокачку (HeroUpgradeService.FusionRefund). Стихия — как у случайного из них
 //     (4 огненных и 1 ледяной — 80% огонь, 20% лёд), у дворфов 1-го ранга стихии нет — тогда любая с равным шансом
 public class AbilityService(
     IAbilityRepository abilities,
     IHeroesRepository heroes,
     IExpeditionRepository expeditions,
     IEntityFactory entityFactory,
+    IPlayerRepository players,
     Random random)
 {
     public const int MaxLevel = 3;
@@ -138,10 +140,31 @@ public class AbilityService(
         // Новый дворф встаёт на первое место в отряде, которое освободили распылённые
         result.PlaceInSquad = dwarfs.Min(h => h.PlaceInSquad);
 
-        if (!await abilities.FuseAsync(playerId, heroIds, result))
+        var refund = FusionRefund(dwarfs);
+        if (!await abilities.FuseAsync(playerId, heroIds, result, refund))
             throw new AbilityException(AbilityError.Changed, "One of the dwarfs has just changed, try again");
 
-        return await ResultAsync(playerId, result);
+        var outcome = await ResultAsync(playerId, result);
+        outcome.Refund = refund;
+        outcome.Resources = await players.GetResourcesAsync(playerId) ?? new PlayerResources();
+        return outcome;
+    }
+
+    // Возврат за прокачку слитых дворфов: доля HeroUpgradeService.FusionRefund от вложенного в них
+    public static HeroUpgradeCost FusionRefund(IEnumerable<Hero> dwarfs)
+    {
+        long gold = 0, experience = 0;
+        foreach (var hero in dwarfs)
+        {
+            var invested = HeroUpgradeService.Invested(hero.Level, hero.UpgradeLevel);
+            gold += invested.Gold;
+            experience += invested.Experience;
+        }
+        return new HeroUpgradeCost
+        {
+            Gold = (int)Math.Round(gold * HeroUpgradeService.FusionRefund, MidpointRounding.AwayFromZero),
+            Experience = (int)Math.Round(experience * HeroUpgradeService.FusionRefund, MidpointRounding.AwayFromZero)
+        };
     }
 
     // Стихия случайного из распыляемых дворфов: шанс стихии — её доля среди них. Без стихий — любая поровну

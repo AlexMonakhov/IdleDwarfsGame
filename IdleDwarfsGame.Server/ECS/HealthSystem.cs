@@ -4,6 +4,8 @@ public class HealthSystem : ICombatSystem
 {
     public void Execute(World world, CombatContext context)
     {
+        ResolveLastStands(world, context);
+
         // Фиксируем смерти (один раз на юнита)
         foreach (var entity in world.Entities)
         {
@@ -28,6 +30,8 @@ public class HealthSystem : ICombatSystem
                     ActionType = "Death",
                     TargetRemainingHp = 0
                 });
+
+                Avenge(world, entity.Id);
             }
         }
 
@@ -46,6 +50,43 @@ public class HealthSystem : ICombatSystem
                 ActionType = "CombatEnd",
                 WinningTeam = context.WinningTeam
             });
+        }
+    }
+
+    // «Последний рубеж» оставил героев с 1 HP (World.ApplyDamage) — лечим их на долю максимального HP
+    private static void ResolveLastStands(World world, CombatContext context)
+    {
+        foreach (int id in world.PendingLastStands)
+        {
+            if (!world.IsAlive(id) || world.GetPassive(id, HeroPassive.LastStand) is not { } lastStand) continue;
+
+            int healed = world.ApplyHeal(id, world.Health[id].Max * lastStand.Percent / 100);
+            context.AddLog(new CombatLogEntry
+            {
+                EventType = CombatEventType.Heal,
+                Phase = "Passive",
+                AttackerId = id,
+                TargetId = id,
+                AttackerTeam = world.Team[id].TeamId,
+                TargetTeam = world.Team[id].TeamId,
+                ActionType = nameof(HeroPassive.LastStand),
+                SkillName = nameof(HeroPassive.LastStand),
+                Heal = healed,
+                TargetRemainingHp = world.Health[id].Current
+            });
+        }
+        world.PendingLastStands.Clear();
+    }
+
+    // «Мститель»: каждый погибший союзник прибавляет живым мстителям долю их стартовой атаки
+    private static void Avenge(World world, int deadId)
+    {
+        int team = world.Team[deadId].TeamId;
+        foreach (var ally in world.Entities.Where(e => e.Id != deadId && world.Team[e.Id].TeamId == team && world.IsAlive(e.Id)))
+        {
+            if (world.GetPassive(ally.Id, HeroPassive.Avenger) is not { } avenger) continue;
+            var attack = world.Attack[ally.Id];
+            attack.Damage += Math.Max(1, attack.Base * avenger.Percent / 100);
         }
     }
 }

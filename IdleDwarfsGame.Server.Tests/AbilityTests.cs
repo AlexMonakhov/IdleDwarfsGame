@@ -30,7 +30,8 @@ public class AbilityTests : IDisposable
         _context.ChangeTracker.Clear();
 
         _service = new AbilityService(
-            new AbilityRepository(_context), new HeroesRepository(_context), new ExpeditionRepository(_context), Factory, new Random(3));
+            new AbilityRepository(_context), new HeroesRepository(_context), new ExpeditionRepository(_context), Factory,
+            new PlayerRepository(_context), new Random(3));
     }
 
     public void Dispose()
@@ -198,7 +199,7 @@ public class AbilityTests : IDisposable
         Assert.Equal(3, stored.PassiveLevel);
         Assert.Equal("Regen", stored.AuraEffect);
         Assert.Equal(AuraTarget.Allies, stored.AuraTarget);
-        Assert.Equal(5, stored.AuraPower);
+        Assert.Equal(15, stored.AuraPower);
         Assert.Equal(2, stored.AuraLevel);
 
         // В ответе герой уже с новыми способностями
@@ -298,6 +299,25 @@ public class AbilityTests : IDisposable
         // Встаёт на первое освободившееся место в отряде
         Assert.Equal(1, hero.PlaceInSquad);
         Assert.Equal(1, await _context.Heroes.CountAsync(h => h.PlayerId == _playerId));
+    }
+
+    [Fact]
+    public async Task Fuse_RefundsPartOfTheUpgradeInvestment()
+    {
+        var starters = await _context.Heroes.Where(h => h.PlayerId == _playerId).ToListAsync();
+        starters[0].UpgradeLevel = 10;
+        starters[1].UpgradeLevel = 5;
+        await _context.SaveChangesAsync();
+        _context.ChangeTracker.Clear();
+
+        var invested = HeroUpgradeService.Invested(1, 10).Gold + HeroUpgradeService.Invested(1, 5).Gold;
+        var result = await _service.FuseAsync(_playerId, starters.Select(h => h.Id).ToList());
+
+        int expected = (int)Math.Round(invested * HeroUpgradeService.FusionRefund, MidpointRounding.AwayFromZero);
+        Assert.Equal(expected, result.Refund!.Gold);
+        Assert.True(result.Refund.Experience > 0);
+        Assert.Equal(expected, result.Resources!.Gold);
+        Assert.Equal(expected, (await _context.Players.AsNoTracking().SingleAsync(p => p.Id == _playerId)).Gold);
     }
 
     [Fact]

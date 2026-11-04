@@ -1,6 +1,6 @@
 public class LavaArenaEffect : ArenaStatusEffect
 {
-    public LavaArenaEffect(int burnDamage = 5) : base("Lava Arena", "Burn", burnDamage)
+    public LavaArenaEffect(int burnPercent = 2) : base("Lava Arena", "Burn", burnPercent)
     {
     }
 }

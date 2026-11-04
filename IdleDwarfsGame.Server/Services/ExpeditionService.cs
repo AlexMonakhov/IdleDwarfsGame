@@ -27,11 +27,12 @@ public class ExpeditionService(
     // 1ч → ×1, 4ч → ×3.0, 16ч → ×9.2
     public const double HourExponent = 0.8;
 
-    // За час «эталонного» часа: база + доля от мощи (отряд из 4 стартовых дворфов ≈ 800 мощи ≈ 100 золота и 50 опыта)
+    // За час «эталонного» часа: база + доля от мощи. 4 стартовых дворфа (~6 тыс. мощи) — ~320 золота в час,
+    // 4 дворфа 4-го ранга 100-го уровня (~500 тыс.) — ~25 тыс.
     public const double BaseGoldPerHour = 20;
-    public const double GoldPerPowerPerHour = 0.1;
+    public const double GoldPerPowerPerHour = 0.05;
     public const double BaseExperiencePerHour = 10;
-    public const double ExperiencePerPowerPerHour = 0.05;
+    public const double ExperiencePerPowerPerHour = 0.025;
 
     private DateTime Now => time.GetUtcNow().UtcDateTime;
 

@@ -49,7 +49,11 @@ public abstract class StatusEffectBase : IStatusEffect
             return;
         }
 
-        // 2. Вешаем эффект или складываем с уже висящим того же вида
+        // 2. «Мастер стихии» усиливает и продлевает урон за ход от своего источника
+        if (EffectDamageType != null && sourceId > 0 && world.GetPassive(sourceId, HeroPassive.ElementMastery) is { } mastery)
+            Empower(mastery.Percent, mastery.Turns);
+
+        // 3. Вешаем эффект или складываем с уже висящим того же вида
         if (!world.StatusEffects.TryGetValue(targetId, out var component))
         {
             component = new StatusEffectComponent();
@@ -80,6 +84,13 @@ public abstract class StatusEffectBase : IStatusEffect
 
     // Новое наложение того же статуса (added) поверх висящего (this)
     protected abstract void Absorb(StatusEffectBase added);
+
+    // Сила наложения больше на percent, длится на turns ходов дольше
+    protected virtual void Empower(int percent, int turns)
+    {
+        Power = (int)Math.Round(Power * (100 + percent) / 100.0, MidpointRounding.AwayFromZero);
+        RemainingTurns += turns;
+    }
 
     // Срезать собственную длительность наложения до limit ходов
     protected virtual void LimitTurns(int limit) => RemainingTurns = Math.Min(RemainingTurns, limit);
@@ -154,6 +165,16 @@ public abstract class LayeredStatusEffect : StatusEffectBase
     protected override void LimitTurns(int limit)
     {
         foreach (var layer in _layers) layer.Turns = Math.Min(layer.Turns, limit);
+        Sync();
+    }
+
+    protected override void Empower(int percent, int turns)
+    {
+        foreach (var layer in _layers)
+        {
+            layer.Power = (int)Math.Round(layer.Power * (100 + percent) / 100.0, MidpointRounding.AwayFromZero);
+            layer.Turns += turns;
+        }
         Sync();
     }
 

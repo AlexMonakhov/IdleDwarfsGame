@@ -192,7 +192,7 @@ public class CombatEngineTests
     public void FactoryMapsHeroFieldsToComponents()
     {
         var world = new World();
-        var hero = MakeHero("Mage", hp: 100, attack: 10);
+        var hero = MakeHero("Mage", hp: 2000, attack: 200);
         hero.MaxEnergy = 80;
         hero.StartEnergy = 30;
         hero.EnergyPerAttack = 15;
@@ -201,8 +201,9 @@ public class CombatEngineTests
 
         int id = Factory.CreateUnit(world, hero, 2, 3, level: 2);
 
-        Assert.Equal(120, world.Health[id].Max);
-        Assert.Equal(12, world.Attack[id].Damage);
+        // Уровень 2 — ×1.045
+        Assert.Equal(2090, world.Health[id].Max);
+        Assert.Equal(209, world.Attack[id].Damage);
         Assert.Equal(30, world.Energy[id].Current);
         Assert.Equal(80, world.Energy[id].Max);
         Assert.Equal(15, world.Energy[id].GainPerAttack);

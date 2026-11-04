@@ -125,7 +125,7 @@ public class MiningTests : IDisposable
 
         var upgraded = await _service.UpgradeAsync(_playerId, mine.Id, MineUpgrade.Yield);
         Assert.Equal(100_000 - cost.Gold, upgraded.Wallet.Gold);
-        Assert.Equal(MiningService.PerClick(MineType.Gold, 2), upgraded.Mine.PerClick);
+        Assert.Equal(MiningService.PerClick(MineType.Gold, 1, 2), upgraded.Mine.PerClick);
 
         for (int level = 2; level < MiningService.UpgradesPerLevel; level++)
             await _service.UpgradeAsync(_playerId, mine.Id, MineUpgrade.Yield);
@@ -170,7 +170,7 @@ public class MiningTests : IDisposable
         // Склад полон — дальше дворф не копит
         _clock.Advance(TimeSpan.FromDays(2));
         var collected = await _service.CollectAsync(_playerId, mine.Id);
-        Assert.Equal(MiningService.Capacity(MineType.Gold, 1), collected.Collected);
+        Assert.Equal(MiningService.Capacity(MineType.Gold, 1, 1, 1), collected.Collected);
         Assert.Equal(goldBefore + collected.Collected, collected.Wallet.Gold);
         Assert.Equal(0, collected.Mine.Stored);
 

@@ -69,23 +69,45 @@ public class World
     public PassiveValues? GetPassive(int entityId, HeroPassive passive) =>
         Passives.TryGetValue(entityId, out var component) && component.Active.TryGetValue(passive, out var values) ? values : null;
 
-    // Урон удара или спелла по цели: прибавка арены, затем защита цели. Тики статусов сюда не идут — у них нет атакующего
+    // Урон удара или спелла по цели: прибавка арены, добивание атакующего, затем защита цели.
+    // Тики статусов сюда не идут — у них нет атакующего
     public int ResolveHit(int attackerId, int targetId, int amount)
     {
         int damage = ScaleDamage(amount);
+        if (GetPassive(attackerId, HeroPassive.Executioner) is { } executioner
+            && Health[targetId].Current * 100 < Health[targetId].Max * PassiveBook.ExecuteThreshold)
+        {
+            damage = Percent(damage, 100 + executioner.Percent);
+        }
         if (GetPassive(targetId, HeroPassive.SurvivalOfTheWeakest) is { } survival
             && Attack[attackerId].Damage > Attack[targetId].Damage)
         {
-            damage = (int)Math.Round(damage * Math.Max(0, 100 - survival.Percent) / 100.0, MidpointRounding.AwayFromZero);
+            damage = Percent(damage, Math.Max(0, 100 - survival.Percent));
         }
+        if (GetPassive(targetId, HeroPassive.StoneSkin) is { } stoneSkin)
+            damage = Percent(damage, Math.Max(0, 100 - stoneSkin.Percent));
         return damage;
     }
 
-    // Наносит урон и возвращает фактический остаток HP (не ниже 0)
+    private static int Percent(int amount, int percent) =>
+        (int)Math.Round(amount * percent / 100.0, MidpointRounding.AwayFromZero);
+
+    // Герои, которых только что спас LastStand: лечение и лог — в HealthSystem в конце хода
+    public List<int> PendingLastStands { get; } = new();
+
+    // Наносит урон и возвращает фактический остаток HP (не ниже 0).
+    // Смертельный урон по герою с неиспользованным LastStand оставляет ему 1 HP
     public int ApplyDamage(int targetId, int amount)
     {
         var hp = Health[targetId];
         hp.Current = Math.Max(0, hp.Current - Math.Max(0, amount));
+        if (hp.Current == 0 && Passives.TryGetValue(targetId, out var passives) && !passives.LastStandUsed
+            && passives.Active.ContainsKey(HeroPassive.LastStand))
+        {
+            passives.LastStandUsed = true;
+            hp.Current = 1;
+            PendingLastStands.Add(targetId);
+        }
         return hp.Current;
     }
 

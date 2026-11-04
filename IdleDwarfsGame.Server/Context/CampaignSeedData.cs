@@ -1,11 +1,13 @@
-// Стартовая кампания: 1-4 мобы на лавовой арене, 5 босс, 6-9 мобы на ледяной арене, 10 босс.
-// Боссы и ледяные мобы — шаблоны в таблице Heroes у служебного игрока CampaignPlayerId,
-// обычные мобы переиспользуют шаблоны врагов башни (HeroSeedData.EnemyPlayerId).
+// Кампания: вводные уровни 1-10 описаны здесь вручную (1-4 мобы на лаве, 5 босс, 6-9 мобы на льду, 10 босс),
+// уровни 11..CampaignGenerator.TotalStages генерирует CampaignGenerator — главами по регионам стихий.
+// Боссы и монстры регионов — шаблоны в таблице Heroes у служебного игрока CampaignPlayerId,
+// часть мобов переиспользует шаблоны врагов башни (HeroSeedData.EnemyPlayerId).
 public static class CampaignSeedData
 {
     public static readonly Guid CampaignPlayerId = Guid.Parse("c0c0c0c0-0000-4000-8000-000000000003");
 
-    // По арене на каждую стихию. Кампания пока идёт на лаве и льду, остальные — арены боссов гильдии (GuildBosses)
+    // По арене на каждую стихию. EffectPower — процент от максимального HP бойца (у мороза — замедления), см. ArenaStatusEffect.
+    // Арены служат и кампании (по региону главы), и боссам гильдии (GuildBosses)
     public const int LavaArenaId = 1;
     public const int IceArenaId = 2;
     public const int StormArenaId = 3;
@@ -35,7 +37,7 @@ public static class CampaignSeedData
         {
             Id = FrostGoblin, PlayerId = CampaignPlayerId,
             Name = "Frost Goblin", UnitType = "Goblin", Element = HeroElement.Frost, Level = 4,
-            MaxHp = 95, Attack = 11, Speed = 8,
+            MaxHp = 720, Attack = 95, Speed = 8,
             MaxEnergy = 100, StartEnergy = 0, EnergyPerAttack = 20,
             Immunities = ["Frost"]
         },
@@ -43,7 +45,7 @@ public static class CampaignSeedData
         {
             Id = RimeSkeleton, PlayerId = CampaignPlayerId,
             Name = "Rime Skeleton", UnitType = "Skeleton", Element = HeroElement.Frost, Level = 4,
-            MaxHp = 120, Attack = 12, Speed = 5,
+            MaxHp = 840, Attack = 100, Speed = 5,
             MaxEnergy = 100, StartEnergy = 20, EnergyPerAttack = 20,
             SpellIds = [4], // Lightning 1
             Immunities = ["Frost"]
@@ -53,25 +55,28 @@ public static class CampaignSeedData
         new Hero
         {
             Id = GorrakBoss, PlayerId = CampaignPlayerId,
-            Name = "Gorrak the Molten", UnitType = "Orc", Element = HeroElement.Fire, Level = 4,
-            MaxHp = 260, Attack = 16, Speed = 5,
+            Name = "Gorrak the Molten", UnitType = "Draconid", Element = HeroElement.Fire, Level = 4,
+            MaxHp = 1300, Attack = 110, Speed = 5,
             MaxEnergy = 100, StartEnergy = 20, EnergyPerAttack = 20,
             SpellIds = [2], // Fireball 2
             Immunities = ["Burn", "Stun"],
             // Раскалённая аура: поджигает весь отряд игрока в начале раунда
-            AuraEffect = "Burn", AuraTarget = AuraTarget.Enemies, AuraTrigger = TriggerPhase.OnRoundStart, AuraPower = 4, AuraDuration = 1
+            AuraEffect = "Burn", AuraTarget = AuraTarget.Enemies, AuraTrigger = TriggerPhase.OnRoundStart, AuraPower = 12, AuraDuration = 1
         },
         new Hero
         {
             Id = HrimgarBoss, PlayerId = CampaignPlayerId,
             Name = "Hrimgar the Frostbound", UnitType = "Skeleton", Element = HeroElement.Frost, Level = 4,
-            MaxHp = 240, Attack = 15, Speed = 6,
+            MaxHp = 1500, Attack = 125, Speed = 6,
             MaxEnergy = 100, StartEnergy = 20, EnergyPerAttack = 25,
             SpellIds = [6], // Lightning 3
             Immunities = ["Frost", "Stun"],
             // Ледяное дыхание: морозит весь отряд игрока в начале раунда
-            AuraEffect = "Frost", AuraTarget = AuraTarget.Enemies, AuraTrigger = TriggerPhase.OnRoundStart, AuraPower = 3, AuraDuration = 1
-        }
+            AuraEffect = "Frost", AuraTarget = AuraTarget.Enemies, AuraTrigger = TriggerPhase.OnRoundStart, AuraPower = 10, AuraDuration = 1
+        },
+
+        // Монстры регионов генерируемой части кампании
+        .. CampaignGenerator.Templates
     ];
 
     public static Arena[] Arenas =>
@@ -80,7 +85,7 @@ public static class CampaignSeedData
         {
             Id = LavaArenaId, Name = "Lava Arena", Background = "lava", Element = HeroElement.Fire,
             Description = "Molten stone burns every fighter at the start of each round.",
-            EffectName = "Burn", EffectPower = 5, EffectDuration = 1
+            EffectName = "Burn", EffectPower = 2, EffectDuration = 1
         },
         new Arena
         {
@@ -92,49 +97,53 @@ public static class CampaignSeedData
         {
             Id = StormArenaId, Name = "Storm Peak", Background = "storm", Element = HeroElement.Lightning,
             Description = "Lightning strikes the summit and shocks every fighter at the start of each round.",
-            EffectName = "Shock", EffectPower = 4, EffectDuration = 1
+            EffectName = "Shock", EffectPower = 2, EffectDuration = 1
         },
         new Arena
         {
             Id = MarshArenaId, Name = "Venom Marsh", Background = "marsh", Element = HeroElement.Nature,
             Description = "Toxic fumes rise from the bog and poison every fighter at the start of each round.",
-            EffectName = "Poison", EffectPower = 4, EffectDuration = 1
+            EffectName = "Poison", EffectPower = 2, EffectDuration = 1
         },
         new Arena
         {
             Id = CryptArenaId, Name = "Shadow Crypt", Background = "crypt", Element = HeroElement.Dark,
             Description = "Amethyst shadows curse every fighter at the start of each round, draining life and energy.",
-            EffectName = "Curse", EffectPower = 4, EffectDuration = 1
+            EffectName = "Curse", EffectPower = 2, EffectDuration = 1
         },
         new Arena
         {
             Id = SanctumArenaId, Name = "Crystal Sanctum", Background = "sanctum", Element = HeroElement.Radiance,
             Description = "Diamond light mends the wounds of every fighter — friend and foe — at the start of each round.",
-            EffectName = "Regen", EffectPower = 6, EffectDuration = 1
+            EffectName = "Regen", EffectPower = 3, EffectDuration = 1
         },
         new Arena
         {
             Id = AltarArenaId, Name = "Blood Altar", Background = "altar", Element = HeroElement.Blood,
             Description = "Garnet runes open old wounds: every fighter bleeds at the start of each round.",
-            EffectName = "Bleed", EffectPower = 4, EffectDuration = 1
+            EffectName = "Bleed", EffectPower = 2, EffectDuration = 1
         }
     ];
 
-    public static CampaignStage[] Stages =>
+    public static CampaignStage[] Stages => [.. HandcraftedStages, .. CampaignGenerator.Stages()];
+
+    public static CampaignStageEnemy[] StageEnemies => [.. HandcraftedEnemies, .. CampaignGenerator.StageEnemies()];
+
+    private static CampaignStage[] HandcraftedStages =>
     [
         Stage(1, "Ember Gate", "Goblins guard the entrance to the fire caves.", StageType.Mobs, 1, LavaArenaId),
-        Stage(2, "Smouldering Tunnels", "An orc leads scouts through the smouldering tunnels.", StageType.Mobs, 1, LavaArenaId),
-        Stage(3, "Cinder Hall", "A skeleton mage has joined the orcs in the hall of ash.", StageType.Mobs, 2, LavaArenaId),
-        Stage(4, "Warlord's Camp", "The orc warlord's camp. His aura sets everything ablaze.", StageType.Mobs, 2, LavaArenaId),
-        Stage(5, "Heart of the Forge", "Gorrak the Molten guards the heart of the forge.", StageType.Boss, 2, LavaArenaId),
-        Stage(6, "Frozen Pass", "Frost goblins lie in ambush at the pass.", StageType.Mobs, 3, IceArenaId),
-        Stage(7, "Rime Caverns", "The rime caverns are crawling with undead.", StageType.Mobs, 3, IceArenaId),
-        Stage(8, "Glacier Bridge", "A mixed warband holds the bridge across the glacier.", StageType.Mobs, 3, IceArenaId),
-        Stage(9, "Hall of Whispers", "The last line of defence before the frost lord's lair.", StageType.Mobs, 3, IceArenaId),
-        Stage(10, "Throne of Frost", "Hrimgar the Frostbound awaits on his throne of ice.", StageType.Boss, 3, IceArenaId)
+        Stage(2, "Smouldering Tunnels", "A magma golem leads scouts through the smouldering tunnels.", StageType.Mobs, 2, LavaArenaId),
+        Stage(3, "Cinder Hall", "A skeleton mage has joined the golems in the hall of ash.", StageType.Mobs, 3, LavaArenaId),
+        Stage(4, "Warlord's Camp", "The ember drake's camp. Its aura sets everything ablaze.", StageType.Mobs, 5, LavaArenaId),
+        Stage(5, "Heart of the Forge", "Gorrak the Molten guards the heart of the forge.", StageType.Boss, 5, LavaArenaId),
+        Stage(6, "Frozen Pass", "Frost goblins lie in ambush at the pass.", StageType.Mobs, 8, IceArenaId),
+        Stage(7, "Rime Caverns", "The rime caverns are crawling with undead.", StageType.Mobs, 9, IceArenaId),
+        Stage(8, "Glacier Bridge", "A mixed warband holds the bridge across the glacier.", StageType.Mobs, 9, IceArenaId),
+        Stage(9, "Hall of Whispers", "The last line of defence before the frost lord's lair.", StageType.Mobs, 10, IceArenaId),
+        Stage(10, "Throne of Frost", "Hrimgar the Frostbound awaits on his throne of ice.", StageType.Boss, 13, IceArenaId)
     ];
 
-    public static CampaignStageEnemy[] StageEnemies =>
+    private static CampaignStageEnemy[] HandcraftedEnemies =>
     [
         Enemy(1, 1, GoblinScout),
         Enemy(1, 2, GoblinShaman),
@@ -161,6 +170,8 @@ public static class CampaignSeedData
         Enemy(6, 1, FrostGoblin),
         Enemy(6, 2, RimeSkeleton),
         Enemy(6, 3, GoblinScout),
+        Enemy(6, 4, OrcBrute),
+        Enemy(6, 5, GoblinShaman),
 
         Enemy(7, 1, OrcBrute),
         Enemy(7, 2, FrostGoblin),
@@ -183,6 +194,8 @@ public static class CampaignSeedData
         Enemy(10, 2, HrimgarBoss, isBoss: true, hpMultiplier: 1.75)
     ];
 
+    // Уровень врагов растёт быстрее номера уровня: каждый уровень врагов — +4.5% к их статам (BalanceCalculator).
+    // Подобран симуляцией (BalanceSimulation): уровень кампании N проходится отрядом, прокачанным примерно до N-1
     private static CampaignStage Stage(int id, string name, string description, StageType type, int enemyLevel, int arenaId) => new()
     {
         Id = id, Name = name, Description = description, Type = type, EnemyLevel = enemyLevel, ArenaId = arenaId

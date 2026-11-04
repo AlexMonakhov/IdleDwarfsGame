@@ -6,7 +6,13 @@ public class PrismRay : BaseSpell
     public override DamageType DamageType => DamageType.Radiant;
 
     private int TargetCount => Level == 3 ? 2 : 1;
-    private double DamageMultiplier => Level == 1 ? 1.3 : 1.5;
+    // 190% / 235% / 195% атаки (на 3 уровне целей две)
+    private double DamageMultiplier => Level switch
+    {
+        1 => 1.9,
+        2 => 2.35,
+        _ => 1.95
+    };
 
     protected override List<int> GetTargets(World world, int casterId, Random random) =>
         GetRandomTargets(GetAliveEnemies(world, casterId), TargetCount, random);

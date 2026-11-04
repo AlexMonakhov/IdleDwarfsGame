@@ -110,6 +110,7 @@ public class CombatUnitInfo
     public string Name { get; set; } = string.Empty;
     public string UnitType { get; set; } = string.Empty;
     public HeroElement Element { get; set; }
+    public HeroProfession? Profession { get; set; }
     public int Level { get; set; }
     public int Team { get; set; }
     public int Position { get; set; }
@@ -195,6 +196,8 @@ public class HealthComponent
 public class AttackComponent
 {
     public int Damage;
+    // Атака на старте боя: от неё считаются прибавки по ходу боя (Avenger)
+    public int Base;
 }
 
 public class SpeedComponent
@@ -219,6 +222,7 @@ public class UnitInfoComponent
     public int StatLevel { get; set; } = 1;
     // Уровень прокачки героя: его бонус уже вшит в HP/атаку (см. HeroUpgradeService.ScaleStat)
     public int UpgradeLevel { get; set; } = 1;
+    public HeroProfession? Profession { get; set; }
     public int Position { get; set; }
     public bool IsBoss { get; set; }
     public bool IsDead { get; set; }

@@ -21,7 +21,7 @@ public class SpellModifier
 // После каста по всем его живым целям срабатывает другой спелл: урон — DamagePercent от атаки кастера
 public record SpellProc(int SpellId, int DamagePercent);
 
-// Аура, которую даёт предмет герою без своей ауры
+// Аура, которую даёт предмет герою без своей ауры. Power — процент, как у AuraBook
 public record AuraGrant(string Effect, AuraTarget Target, int Power, int Duration = 1, int Interval = 1);
 
 // Всё, что надетые предметы дают юниту. Собирается один раз при создании юнита

@@ -1,44 +1,51 @@
 using IdleDwarfsGame.Server.Enums;
 
 // Награда за первое прохождение уровня кампании (повторные победы ничего не дают).
-// Золото и опыт: фиксированная часть по номеру уровня + случайная прибавка.
+// Золото и опыт: фиксированная часть по силе врагов уровня + случайная прибавка.
 // Сундуки: после любой победы каждый тип из RandomChests бросается отдельно, босс сверху даёт один гарантированный.
 // Что лежит в сундуке — таблицы дропа в БД (LootSeedData)
 public static class CampaignRewards
 {
-    // Фиксированная часть: Base × уровень^LevelExponent.
-    // Уровень 1 → 50 золота и 25 опыта, 5 → 345 и 173, 10 → 792 и 396 (у босса ×BossMultiplier)
-    public const double BaseGold = 50;
-    public const double BaseExperience = 25;
-    public const double LevelExponent = 1.2;
+    // Фиксированная часть: Base × (множитель статов врагов уровня)^RewardExponent — почти как растёт цена прокачки
+    // дворфа (HeroUpgradeService, квадрат): чем сильнее враги, тем дороже прокачка, нужная, чтобы их победить.
+    // За фазу ранга кампания окупает примерно половину прокачки отряда (EconomyBalanceTests), остальное — шахты и экспедиции.
+    // Уровень 1 → 40 золота, 50 → ~230, 150 → ~3.4 тыс., 300 → ~21 тыс., 500 → ~130 тыс. (у босса ×BossMultiplier)
+    public const double RewardExponent = 1.9;
+    public const double BaseGold = 40;
+    public const double BaseExperience = 20;
 
     // Случайная прибавка к золоту и опыту: от 0 до +50% фиксированной части
     public const double RandomBonus = 0.5;
 
-    public const double BossMultiplier = 2;
+    public const double BossMultiplier = 3;
 
     // Шанс случайного сундука каждого типа за победу
+    // Дворфов нужно много: пятеро одного ранга сливаются в одного рангом выше, а 1-й ранг идёт в шахты
     public static readonly (ChestType Type, double Chance)[] RandomChests =
     [
         (ChestType.Gem, 0.15),
-        (ChestType.Hero, 0.05),
+        (ChestType.Hero, 0.15),
         (ChestType.Equipment, 0.10)
     ];
 
     // Гарантированный сундук босса: тип выбирается по весам
     public static readonly (ChestType Type, int Weight)[] BossChestWeights =
     [
-        (ChestType.Gem, 50),
-        (ChestType.Hero, 25),
-        (ChestType.Equipment, 25)
+        (ChestType.Gem, 30),
+        (ChestType.Hero, 40),
+        (ChestType.Equipment, 30)
     ];
 
-    // Уровень сундука растёт каждые 10 уровней кампании: 1–9 → 1, 10–19 → 2, дальше 3
-    public static int ChestLevelFor(int stageId) => Math.Clamp(1 + stageId / 10, 1, LootSeedData.MaxChestLevel);
+    // Уровень сундука по главам кампании: под ранг дворфов, которым её проходят (CampaignGenerator)
+    private static readonly int[] ChestLevelFrom = [1, 51, 151, 251, 376];
+
+    public static int ChestLevelFor(int stageId) =>
+        Math.Clamp(ChestLevelFrom.Count(from => stageId >= from), 1, LootSeedData.MaxChestLevel);
 
     public static RewardEntity FixedFor(CampaignStage stage)
     {
-        double scale = Math.Pow(Math.Max(1, stage.Id), LevelExponent) * (stage.Type == StageType.Boss ? BossMultiplier : 1);
+        double enemyFactor = BalanceCalculator.Factor(stage.EnemyLevel);
+        double scale = Math.Pow(enemyFactor, RewardExponent) * (stage.Type == StageType.Boss ? BossMultiplier : 1);
         return new RewardEntity
         {
             Gold = (int)Math.Round(BaseGold * scale, MidpointRounding.AwayFromZero),

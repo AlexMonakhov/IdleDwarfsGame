@@ -6,7 +6,8 @@ import HeroCard from '@/components/inventory/HeroCard.vue';
 import UnitPortrait from '@/components/interface/UnitPortrait.vue';
 import { ELEMENT_ICONS } from '@/components/inventory/lootStyles';
 import AbilitiesApiService from '@/services/apiServices/AbilitiesApiService';
-import { AbilityActionResult, FUSION_SIZE, MAX_FUSION_RANK } from '@/models/types/Abilities';
+import { AbilityActionResult, FUSION_REFUND, FUSION_SIZE, MAX_FUSION_RANK } from '@/models/types/Abilities';
+import { useResources } from '@/composables/UseResources';
 import { HeroInfo, isBusy } from '@/models/types/Heroes';
 import { HeroElement } from '@/battle/types';
 import { vDragScroll } from '@/directives/dragScroll';
@@ -22,6 +23,7 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n();
+const { set: setResources } = useResources();
 
 const pickedIds = ref<string[]>([]);
 const confirming = ref(false);
@@ -72,6 +74,12 @@ interface Chance {
     percent: number;
 }
 
+// Сколько вернётся за прокачку выбранных: та же доля, что считает сервер
+const refund = computed(() => ({
+    gold: Math.round(picked.value.reduce((sum, h) => sum + (h.upgrade.invested?.gold ?? 0), 0) * FUSION_REFUND),
+    experience: Math.round(picked.value.reduce((sum, h) => sum + (h.upgrade.invested?.experience ?? 0), 0) * FUSION_REFUND),
+}));
+
 // Доля каждой стихии среди выбранных — её шанс
 const chances = computed<Chance[]>(() => {
     const counts = new Map<HeroElement, number>();
@@ -93,7 +101,11 @@ const fuse = async () => {
     try {
         const result = await AbilitiesApiService.fuse(pickedIds.value);
         const hero = result.hero;
-        message.value = hero ? { text: t('abilities.fusion.done', { name: hero.name, rank: hero.level }), error: false } : null;
+        const returned = result.refund && (result.refund.gold > 0 || result.refund.experience > 0)
+            ? ' ' + t('abilities.fusion.refunded', { gold: result.refund.gold, experience: result.refund.experience })
+            : '';
+        message.value = hero ? { text: t('abilities.fusion.done', { name: hero.name, rank: hero.level }) + returned, error: false } : null;
+        if (result.resources) setResources(result.resources);
         pickedIds.value = [];
         emit('fused', result);
     } catch (error) {
@@ -146,6 +158,9 @@ const buttonText = computed(() => {
                 </div>
             </template>
 
+            <div v-if="refund.gold > 0 || refund.experience > 0" class="forge-note">
+                {{ t('abilities.fusion.refund', { percent: FUSION_REFUND * 100, gold: refund.gold, experience: refund.experience }) }}
+            </div>
             <div class="forge-note forge-note-warn">{{ t('abilities.fusion.lost') }}</div>
 
             <div class="fusion-actions">

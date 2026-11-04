@@ -9,7 +9,13 @@ public class BloodPrice : BaseSpell
 
     public override DamageType DamageType => DamageType.Bleed;
 
-    private double DamageMultiplier => 0.55 + 0.15 * Level;
+    // 95% / 120% / 150% атаки по каждому врагу
+    private double DamageMultiplier => Level switch
+    {
+        1 => 0.95,
+        2 => 1.2,
+        _ => 1.5
+    };
     private bool Bleeds => Level >= 3;
     private static int BleedDamage(int attack) => (int)(attack * 0.25);
 

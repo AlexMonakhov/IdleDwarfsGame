@@ -36,11 +36,16 @@ public abstract class BaseSpell : ISpell
         LogCast(world, casterId, context, targets);
         OnCast(world, casterId, context);
 
+        // Пассивка «Чародей» усиливает урон спеллов кастера
+        int sorcerer = world.GetPassive(casterId, HeroPassive.Sorcerer)?.Percent ?? 0;
+
         foreach (var targetId in targets)
         {
             int damage = GetDamage(world, casterId, targetId);
             if (modifier != null)
                 damage = damage * (100 + modifier.DamagePercent) / 100;
+            if (sorcerer > 0)
+                damage = damage * (100 + sorcerer) / 100;
             Hit(world, casterId, targetId, damage, context);
         }
 
@@ -100,6 +105,7 @@ public abstract class BaseSpell : ISpell
 
         // 5. То, что зависит от нанесённого урона и срабатывает даже по убитой цели (вампиризм)
         AfterHit(world, casterId, targetId, damage, context);
+        PassiveReactions.Vampirism(world, context, casterId, damage);
     }
 
     // Лечение с логом: фронт показывает его в той же группе, что и каст. Возвращает восстановленное HP

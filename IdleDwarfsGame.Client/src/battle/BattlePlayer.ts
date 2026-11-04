@@ -186,7 +186,8 @@ export class BattlePlayer {
         break;
 
       case 'Damage':
-        // Урон вне каста (на всякий случай) — просто попадание
+        // Урон вне каста — просто попадание; от пассивки (шипы) подписываем её названием
+        if (log.phase === 'Passive' && log.skillName) this.float(log.attackerId, t(`passives.names.${log.skillName}`), 'status');
         this.applyDamage(log);
         await this.delay(TIMING.tick);
         break;
@@ -207,6 +208,8 @@ export class BattlePlayer {
         break;
 
       case 'Heal':
+        // Лечение от пассивки (вампиризм, последний рубеж) подписываем её названием
+        if (log.phase === 'Passive' && log.skillName) this.float(log.targetId, t(`passives.names.${log.skillName}`), 'status');
         this.applyHeal(log);
         await this.delay(TIMING.tick);
         break;

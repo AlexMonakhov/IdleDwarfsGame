@@ -7,7 +7,8 @@ public class ChainLightning : BaseSpell
 
     // 1 — две цели, 2 — три, 3 — четыре
     private int TargetCount => Level + 1;
-    private const double DamageMultiplier = 0.7;
+    // 130% / 130% / 125% атаки по каждой цели
+    private double DamageMultiplier => Level == 3 ? 1.25 : 1.3;
 
     private bool Shocks => Level == 3;
     private static int ShockDamage(int attack) => (int)(attack * 0.2);

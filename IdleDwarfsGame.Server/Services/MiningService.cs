@@ -28,7 +28,8 @@ public class MiningException(MiningError code, string message) : InvalidOperatio
 // Шахты: на местах (PlotCount) игрок ставит шахты золота, опыта или кристаллов стихий.
 // Сначала шахту копают кликами — каждый клик сразу приносит ресурс. С уровня DwarfUnlockLevel в шахту
 // можно поставить дворфа: он копит добычу на складе шахты, пока тот не заполнится, — игрок заходит и забирает.
-// Цифры тестовые: формулы прокачки будут настраиваться отдельно
+// Добыча растёт экспоненциально, как и цены прокачки дворфов: полностью улучшенная золотая шахта даёт ~17 тыс. в час.
+// Клик стоит ClickSeconds секунд работы шахты, склад вмещает несколько часов её работы
 public class MiningService(
     IMiningRepository mining,
     IHeroesRepository heroes,
@@ -42,14 +43,26 @@ public class MiningService(
     public const int UpgradesPerLevel = 3;
 
     // Клики приходят пачками раз в секунду; больше MaxClicksPerSecond в секунду не засчитываем
-    public const int MaxClicksPerSecond = 15;
+    public const int MaxClicksPerSecond = 10;
     public const int MaxClicksPerBatch = 50;
 
-    // Цена улучшения с уровня L: BaseUpgradeGold × L^CostExponent (уровень шахты — ×LevelCostFactor)
-    public const double BaseUpgradeGold = 40;
+    // Цена улучшения с уровня L: BaseUpgradeGold × CostGrowth^(L-1). Уровень шахты открывает UpgradesPerLevel
+    // улучшений каждого вида, поэтому стоит как они: ×LevelCostFactor и рост на UpgradesPerLevel шагов за уровень
+    public const double BaseUpgradeGold = 100;
     public const double BaseUpgradeCrystals = 4;
-    public const double CostExponent = 1.4;
+    public const double CostGrowth = 1.22;
+    public const double CrystalGrowth = 1.15;
     public const double LevelCostFactor = 3;
+
+    // Добыча дворфом: база × SpeedGrowth^(скорость-1) × YieldGrowth^(добыча-1)
+    public const double SpeedGrowth = 1.09;
+    public const double YieldGrowth = 1.07;
+
+    // Клик приносит столько секунд работы шахты (не меньше 1 ресурса)
+    public const double ClickSeconds = 10;
+
+    // Склад вмещает StorageBaseHours + уровень склада часов работы шахты
+    public const int StorageBaseHours = 1;
 
     // Вторая и следующие шахты стоят BuildGold × (число шахт)²
     public const int BuildGold = 200;
@@ -70,29 +83,22 @@ public class MiningService(
 
     /* ===== Формулы ===== */
 
-    public static int PerClick(MineType type, int yieldLevel) => type switch
-    {
-        MineType.Gold => 2 * yieldLevel,
-        _ => yieldLevel
-    };
+    public static int PerClick(MineType type, int speedLevel, int yieldLevel) =>
+        Math.Max(1, (int)Math.Round(RatePerHour(type, speedLevel, yieldLevel) * ClickSeconds / 3600, MidpointRounding.AwayFromZero));
 
     public static double RatePerHour(MineType type, int speedLevel, int yieldLevel)
     {
         double baseRate = type switch
         {
-            MineType.Gold => 120,
-            MineType.Experience => 60,
-            _ => 12
+            MineType.Gold => 200,
+            MineType.Experience => 100,
+            _ => 6
         };
-        return baseRate * (1 + 0.25 * (speedLevel - 1)) * (1 + 0.5 * (yieldLevel - 1));
+        return baseRate * Math.Pow(SpeedGrowth, speedLevel - 1) * Math.Pow(YieldGrowth, yieldLevel - 1);
     }
 
-    public static int Capacity(MineType type, int storageLevel) => storageLevel * type switch
-    {
-        MineType.Gold => 300,
-        MineType.Experience => 150,
-        _ => 30
-    };
+    public static int Capacity(MineType type, int speedLevel, int yieldLevel, int storageLevel) =>
+        (int)Math.Round(RatePerHour(type, speedLevel, yieldLevel) * (StorageBaseHours + storageLevel), MidpointRounding.AwayFromZero);
 
     public static int MaxUpgradeLevel(Mine mine, MineUpgrade upgrade) =>
         upgrade == MineUpgrade.Level ? MaxLevel : mine.Level * UpgradesPerLevel;
@@ -108,14 +114,16 @@ public class MiningService(
     // Шахта золота просит только золото, шахта опыта — ещё и опыт, шахта кристаллов — свои кристаллы
     public static MineCost UpgradeCost(MineType type, MineUpgrade upgrade, int level)
     {
-        double factor = (upgrade == MineUpgrade.Level ? LevelCostFactor : 1) * Math.Pow(level, CostExponent);
-        int gold = Round(BaseUpgradeGold * factor);
+        bool isLevel = upgrade == MineUpgrade.Level;
+        int steps = (isLevel ? UpgradesPerLevel : 1) * (level - 1);
+        double factor = isLevel ? LevelCostFactor : 1;
+        int gold = Round(BaseUpgradeGold * factor * Math.Pow(CostGrowth, steps));
         var gem = GemOf(type);
         return type switch
         {
             MineType.Gold => new MineCost { Gold = Round(gold * 1.5) },
             MineType.Experience => new MineCost { Gold = gold, Experience = Round(gold / 2.0) },
-            _ => new MineCost { Gold = gold, Gem = gem, Crystals = Round(BaseUpgradeCrystals * factor) }
+            _ => new MineCost { Gold = gold, Gem = gem, Crystals = Round(BaseUpgradeCrystals * factor * Math.Pow(CrystalGrowth, steps)) }
         };
     }
 
@@ -128,7 +136,7 @@ public class MiningService(
             return mine.Stored;
 
         double mined = RatePerHour(mine.Type, mine.SpeedLevel, mine.YieldLevel) * (now - mine.UpdatedAt).TotalHours;
-        return Math.Max(mine.Stored, Math.Min(Capacity(mine.Type, mine.StorageLevel), mine.Stored + mined));
+        return Math.Max(mine.Stored, Math.Min(Capacity(mine.Type, mine.SpeedLevel, mine.YieldLevel, mine.StorageLevel), mine.Stored + mined));
     }
 
     /* ===== Действия ===== */
@@ -186,7 +194,7 @@ public class MiningService(
         if (allowed <= 0)
             return new MiningDigResult { Mine = ToInfo(mine, now), Wallet = await mining.GetWalletAsync(playerId) };
 
-        int mined = allowed * PerClick(mine.Type, mine.YieldLevel);
+        int mined = allowed * PerClick(mine.Type, mine.SpeedLevel, mine.YieldLevel);
         int version = mine.Version;
         mine.LastDigAt = now;
 
@@ -332,9 +340,9 @@ public class MiningService(
         Gem = GemOf(mine.Type),
         Level = mine.Level,
         MaxLevel = MaxLevel,
-        PerClick = PerClick(mine.Type, mine.YieldLevel),
+        PerClick = PerClick(mine.Type, mine.SpeedLevel, mine.YieldLevel),
         RatePerHour = RatePerHour(mine.Type, mine.SpeedLevel, mine.YieldLevel),
-        Capacity = Capacity(mine.Type, mine.StorageLevel),
+        Capacity = Capacity(mine.Type, mine.SpeedLevel, mine.YieldLevel, mine.StorageLevel),
         HeroId = mine.HeroId,
         // Склад посчитан на now: дальше фронт сам досчитывает его по RatePerHour
         Stored = StoredAt(mine, now),
@@ -361,8 +369,8 @@ public class MiningService(
     private static double EffectOf(Mine mine, MineUpgrade upgrade, int level) => upgrade switch
     {
         MineUpgrade.Speed => RatePerHour(mine.Type, level, mine.YieldLevel),
-        MineUpgrade.Yield => PerClick(mine.Type, level),
-        MineUpgrade.Storage => Capacity(mine.Type, level),
+        MineUpgrade.Yield => RatePerHour(mine.Type, mine.SpeedLevel, level),
+        MineUpgrade.Storage => Capacity(mine.Type, mine.SpeedLevel, mine.YieldLevel, level),
         _ => level
     };
 

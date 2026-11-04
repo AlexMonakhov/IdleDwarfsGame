@@ -7,8 +7,13 @@ public class Lightning : BaseSpell
     // 1 — одна цель, 2 и 3 — две
     private int TargetCount => Level == 1 ? 1 : 2;
 
-    // На 3 уровне урон как на 2-м, но со станом
-    private double DamageMultiplier => Level == 1 ? 1.3 : 0.9;
+    // 200% по одной цели, 170% / 190% по двум; на 3 уровне ещё и стан
+    private double DamageMultiplier => Level switch
+    {
+        1 => 2.0,
+        2 => 1.7,
+        _ => 1.9
+    };
 
     private bool Stuns => Level == 3;
 

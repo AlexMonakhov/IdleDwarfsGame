@@ -58,8 +58,8 @@ public class CombatPowerTests
     [Fact]
     public void Level_OnlyScaledUnitsGetLevelPower()
     {
-        // Статы, которые масштабируются уровнем 3 (×1.44) без округления
-        var hero = MakeHero(hp: 100, attack: 25);
+        // Статы, которые масштабируются уровнем 3 (×1.045² = ×1.092025) без округления
+        var hero = MakeHero(hp: 160_000, attack: 40_000);
 
         var unscaled = PowerOf(hero);
         var scaled = PowerOf(hero, level: 3);

@@ -4,8 +4,9 @@ public class EntityFactory : IEntityFactory
     {
         var entity = world.CreateEntity();
         var gear = EquipmentCatalog.CollectGear(hero);
+        int upgradeLevel = HeroUpgradeService.ClampLevel(hero.Level, hero.UpgradeLevel);
         // Сначала бонус прокачки героя, поверх него — масштабирование уровнем боя, сверху — предметы
-        int maxHp = BalanceCalculator.ScaleStat(HeroUpgradeService.ScaleStat(hero.MaxHp, hero.UpgradeLevel), level) + gear.Stats.MaxHp;
+        int maxHp = BalanceCalculator.ScaleStat(HeroUpgradeService.ScaleStat(hero.MaxHp, upgradeLevel), level) + gear.Stats.MaxHp;
 
         world.Info[entity.Id] = new UnitInfoComponent
         {
@@ -15,7 +16,8 @@ public class EntityFactory : IEntityFactory
             Element = hero.Element,
             Level = hero.Level,
             StatLevel = Math.Max(1, level),
-            UpgradeLevel = HeroUpgradeService.ClampLevel(hero.UpgradeLevel),
+            UpgradeLevel = upgradeLevel,
+            Profession = hero.Profession,
             Position = position
         };
 
@@ -25,10 +27,8 @@ public class EntityFactory : IEntityFactory
             Current = maxHp
         };
 
-        world.Attack[entity.Id] = new AttackComponent
-        {
-            Damage = BalanceCalculator.ScaleStat(HeroUpgradeService.ScaleStat(hero.Attack, hero.UpgradeLevel), level) + gear.Stats.Attack
-        };
+        int attackValue = BalanceCalculator.ScaleStat(HeroUpgradeService.ScaleStat(hero.Attack, upgradeLevel), level) + gear.Stats.Attack;
+        world.Attack[entity.Id] = new AttackComponent { Damage = attackValue, Base = attackValue };
 
         world.Speed[entity.Id] = new SpeedComponent
         {
@@ -61,8 +61,10 @@ public class EntityFactory : IEntityFactory
             };
         }
 
-        gear.BaseAura = BaseAura(hero, level);
-        if (WithGear(gear.BaseAura, gear) is { } aura)
+        // Сила ауры — доля итоговой атаки юнита (с уровнем боя и предметами)
+        int attack = world.Attack[entity.Id].Damage;
+        gear.BaseAura = BaseAura(hero, attack);
+        if (WithGear(gear.BaseAura, gear, attack) is { } aura)
             world.Auras[entity.Id] = aura;
 
         if (hero.Passives.Count > 0)
@@ -81,9 +83,9 @@ public class EntityFactory : IEntityFactory
         return entity.Id;
     }
 
-    // Итоговая аура героя с учётом предметов: у самого героя её может и не быть, тогда её даёт шлем
-    public static AuraComponent? ResolveAura(Hero hero, GearComponent gear, int level = 1) =>
-        WithGear(BaseAura(hero, level), gear);
+    // Итоговая аура героя с атакой attack с учётом предметов: у самого героя её может и не быть, тогда её даёт шлем
+    public static AuraComponent? ResolveAura(Hero hero, GearComponent gear, int attack) =>
+        WithGear(BaseAura(hero, attack), gear, attack);
 
     // Пассивки героя на их уровне, сверху — прибавка колец
     public static PassiveComponent CreatePassives(Hero hero, GearComponent gear)
@@ -99,7 +101,8 @@ public class EntityFactory : IEntityFactory
         return component;
     }
 
-    private static AuraComponent? BaseAura(Hero hero, int level) =>
+    // AuraPower героя — процент (AuraBook): урон или лечение за ход — доля атаки, у мороза — процент замедления
+    private static AuraComponent? BaseAura(Hero hero, int attack) =>
         string.IsNullOrWhiteSpace(hero.AuraEffect)
             ? null
             : new AuraComponent
@@ -107,12 +110,12 @@ public class EntityFactory : IEntityFactory
                 EffectName = hero.AuraEffect,
                 TargetType = hero.AuraTarget,
                 Trigger = hero.AuraTrigger,
-                Power = BalanceCalculator.ScaleStat(hero.AuraPower, level),
+                Power = AuraBook.Resolve(hero.AuraEffect, hero.AuraPower, attack),
                 Duration = Math.Max(1, hero.AuraDuration),
                 Interval = Math.Max(1, hero.AuraInterval)
             };
 
-    private static AuraComponent? WithGear(AuraComponent? aura, GearComponent gear)
+    private static AuraComponent? WithGear(AuraComponent? aura, GearComponent gear, int attack)
     {
         if (aura == null && gear.AuraGrant is { } grant)
         {
@@ -121,7 +124,7 @@ public class EntityFactory : IEntityFactory
                 EffectName = grant.Effect,
                 TargetType = grant.Target,
                 Trigger = TriggerPhase.OnRoundStart,
-                Power = grant.Power,
+                Power = AuraBook.Resolve(grant.Effect, grant.Power, attack),
                 Duration = grant.Duration,
                 Interval = grant.Interval
             };

@@ -3,12 +3,17 @@ import { EquipmentInfo, PassiveInfo } from '@/models/types/Equipment';
 import { PlayerResources } from '@/models/types/Expeditions';
 import type { AbilityInfo } from '@/models/types/Abilities';
 
+// Профессия дворфа (IdleDwarfsGame.Server/Enums/HeroProfession.cs)
+export type HeroProfession = 'Defender' | 'Warrior' | 'Axeman' | 'Miner' | 'Scout';
+
 // Герой в инвентаре (IdleDwarfsGame.Server/Controllers/Responses/HeroResponses.cs)
 export interface HeroInfo {
     id: string;
     name: string;
     unitType: string;
     element: HeroElement;
+    // Профессия задаёт базовые статы дворфа; у монстров её нет
+    profession?: HeroProfession | null;
     level: number;
     // null — герой не в отряде
     placeInSquad: number | null;
@@ -41,6 +46,8 @@ export interface HeroUpgradeInfo {
     cost: HeroUpgradeCost | null;
     // Статы и мощь после следующего уровня
     next: HeroUpgradePreview | null;
+    // Сколько вложено в прокачку: при слиянии вернётся FUSION_REFUND от этого
+    invested: HeroUpgradeCost;
 }
 
 export interface HeroUpgradeCost {

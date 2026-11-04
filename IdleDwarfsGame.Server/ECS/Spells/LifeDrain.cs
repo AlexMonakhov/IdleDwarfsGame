@@ -5,10 +5,16 @@ public class LifeDrain : BaseSpell
 
     public override DamageType DamageType => DamageType.Bleed;
 
-    private double DamageMultiplier => 0.7 + 0.2 * Level;
+    // 200% / 250% / 310% атаки
+    private double DamageMultiplier => Level switch
+    {
+        1 => 2.0,
+        2 => 2.5,
+        _ => 3.1
+    };
 
-    // 50% / 60% / 70% нанесённого урона
-    private double DrainShare => 0.4 + 0.1 * Level;
+    // Половина нанесённого урона
+    private const double DrainShare = 0.5;
 
     protected override List<int> GetTargets(World world, int casterId, Random random) =>
         GetRandomTargets(GetAliveEnemies(world, casterId), 1, random);

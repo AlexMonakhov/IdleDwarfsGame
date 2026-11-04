@@ -86,4 +86,7 @@ public class AbilityActionResult
 {
     public List<AbilityInfo> Abilities { get; set; } = new();
     public HeroInfo? Hero { get; set; }
+    // Только у слияния: сколько вернулось за прокачку слитых дворфов и ресурсы после этого
+    public HeroUpgradeCost? Refund { get; set; }
+    public PlayerResources? Resources { get; set; }
 }

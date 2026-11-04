@@ -201,7 +201,7 @@ const claim = async (boss: GuildBossInfo) => {
                         <template #title>{{ boss.arena.name }}</template>
                         <template #description>{{ boss.arena.description }}</template>
                         <template v-if="boss.arena.effectName" #stats>
-                            {{ t('campaign.arenaEffect', { effect: statusLabel(boss.arena.effectName), power: boss.arena.effectPower }) }}
+                            {{ t(boss.arena.effectName === 'Frost' ? 'campaign.arenaEffectFrost' : 'campaign.arenaEffect', { effect: statusLabel(boss.arena.effectName), power: boss.arena.effectPower }) }}
                         </template>
                     </TooltipComponent>
                 </div>

@@ -45,12 +45,23 @@ public static class CombatPower
     // «Выживает слабейший» работает не против всех: примерно половина ударов — от тех, кто сильнее героя
     private const double SurvivalUptime = 0.5;
 
+    // Доля урона, который приходится по врагам ниже порога добивания (Executioner)
+    private const double ExecuteShare = 0.25;
+    // Сколько базовых атак врага в среднем приходится на героя за раунд (Thorns): по передней линии бьют чаще
+    private const double HitsTakenPerRound = 0.7;
+    // В среднем бою мститель успевает застать гибель одного-двух союзников ближе к концу — половина бонуса на весь бой
+    private const double AvengerUptime = 0.5;
+    // Доля урона героя, которая идёт через статусы (ElementMastery)
+    private const double DotShare = 0.15;
+
     public static CombatPowerBreakdown Of(World world, int entityId)
     {
         // Слои разбивки получаются отключением частей профиля; мощь каждого слоя — прибавка к предыдущему
         var full = Profile(world, entityId);
         var noGear = WithoutGear(full, world, entityId);
-        var noPassives = noGear with { Immunities = [], Aura = null, Passives = NoPassives };
+        // Рунный резонанс вшит в прирост энергии — без пассивок его снимаем
+        int resonance = noGear.Passives.GetValueOrDefault(HeroPassive.RuneResonance).Percent;
+        var noPassives = noGear with { Immunities = [], Aura = null, Passives = NoPassives, EnergyGain = noGear.EnergyGain - resonance };
         var noSkills = noPassives with { Spells = [] };
 
         // Уровень боя и прокачка героя вместе дают слой Level
@@ -90,7 +101,10 @@ public static class CombatPower
             Speed = unit.Speed - gear.Stats.Speed,
             MaxEnergy = unit.MaxEnergy - gear.Stats.MaxEnergy,
             StartEnergy = Math.Max(0, unit.StartEnergy - gear.Stats.StartEnergy),
-            EnergyGain = unit.EnergyGain - gear.Stats.EnergyPerAttack,
+            // Кольца могли добавить резонанса: возвращаем его к значению без колец
+            EnergyGain = unit.EnergyGain - gear.Stats.EnergyPerAttack
+                - unit.Passives.GetValueOrDefault(HeroPassive.RuneResonance).Percent
+                + (world.Passives.GetValueOrDefault(id)?.Base.GetValueOrDefault(HeroPassive.RuneResonance).Percent ?? 0),
             Aura = gear.BaseAura,
             Passives = world.Passives.GetValueOrDefault(id)?.Base ?? NoPassives,
             Gear = null
@@ -145,7 +159,8 @@ public static class CombatPower
             double castRate = CastRate(unit, spells.Average(s => s.EnergyCost));
             var casts = spells.Select(s => EstimateCast(s, unit)).ToList();
 
-            offense = (1 - castRate) * basicAttack + castRate * casts.Average(c => Damage(c, unit.Attack));
+            double sorcerer = 1 + unit.Passives.GetValueOrDefault(HeroPassive.Sorcerer).Percent / 100.0;
+            offense = (1 - castRate) * basicAttack + castRate * casts.Average(c => Damage(c, unit.Attack)) * sorcerer;
             healing += castRate * casts.Average(c => c.Healing);
         }
 
@@ -156,23 +171,36 @@ public static class CombatPower
             healing += perRound.Healing;
         }
 
+        double Passive(HeroPassive passive) => unit.Passives.GetValueOrDefault(passive).Percent / 100.0;
+
+        offense *= 1 + Passive(HeroPassive.Executioner) * ExecuteShare
+                     + Passive(HeroPassive.Avenger) * AvengerUptime
+                     + Passive(HeroPassive.ElementMastery) * DotShare;
+        offense += unit.Attack * Passive(HeroPassive.Thorns) * HitsTakenPerRound;
+        healing += offense * Passive(HeroPassive.Vampirism);
         offense *= 1 + InitiativePerSpeed * unit.Speed;
 
         double immunityBonus = unit.Immunities.Sum(name => ImmunityValue.GetValueOrDefault(name));
-        double survivalBonus = unit.Passives.GetValueOrDefault(HeroPassive.SurvivalOfTheWeakest).Percent / 100.0 * SurvivalUptime;
-        return (offense, healing, unit.MaxHp * (1 + immunityBonus + survivalBonus));
+        double survivalBonus = Passive(HeroPassive.SurvivalOfTheWeakest) * SurvivalUptime;
+        double stoneSkin = Passive(HeroPassive.StoneSkin);
+        double hp = unit.MaxHp * (1 + immunityBonus + survivalBonus + Passive(HeroPassive.LastStand)) / Math.Max(0.2, 1 - stoneSkin);
+        return (offense, healing, hp);
     }
 
-    // Урон одной базовой атаки с пассивками: второй удар и горение от каждого удара
+    // Урон одной базовой атаки с пассивками: крит, раскол, второй удар с шансом и горение от каждого удара
     private static double BasicAttack(UnitProfile unit)
     {
         var doubleStrike = unit.Passives.GetValueOrDefault(HeroPassive.DoubleStrike);
         var tongue = unit.Passives.GetValueOrDefault(HeroPassive.SharpTongue);
+        var cleave = unit.Passives.GetValueOrDefault(HeroPassive.Cleave);
+        double crit = 1 + unit.Passives.GetValueOrDefault(HeroPassive.CriticalStrike).Percent / 100.0;
 
-        int hits = 1 + doubleStrike.Targets;
-        double second = doubleStrike.Targets * unit.Attack * doubleStrike.Percent / 100;
+        double doubleChance = doubleStrike.Percent / 100.0;
+        double cleaveHits = Math.Min(cleave.Targets, ReferenceTargets - 1);
+        double hits = 1 + cleaveHits + doubleChance * doubleStrike.Targets;
+        double damage = unit.Attack * (1 + cleaveHits * cleave.Percent / 100.0 + doubleChance * doubleStrike.Targets) * crit;
         double burn = hits * tongue.Targets * tongue.Turns * unit.Attack * tongue.Percent / 100;
-        return unit.Attack + second + burn;
+        return damage + burn;
     }
 
     // Польза каста с учётом предметов. Estimate на одного врага — это урон по одной цели: из него получаем доп. цели и срабатывания
@@ -238,7 +266,7 @@ public static class CombatPower
             Speed: world.Speed[id].Value,
             MaxEnergy: energy?.Max ?? 0,
             StartEnergy: energy?.Current ?? 0,
-            EnergyGain: energy?.GainPerAttack ?? 0,
+            EnergyGain: (energy?.GainPerAttack ?? 0) + (world.GetPassive(id, HeroPassive.RuneResonance)?.Percent ?? 0),
             Spells: spells ?? [],
             Immunities: world.Immunities.GetValueOrDefault(id)?.ImmuneTo ?? [],
             Aura: world.Auras.GetValueOrDefault(id),

@@ -96,3 +96,5 @@ coverage/
 *.vspx
 
 # End of file
+
+.claude/settings.local.json

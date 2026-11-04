@@ -1,4 +1,4 @@
-// Новый герой из сундука или слияния дворфов: статы случайной роли стартового отряда, усиленные рангом, случайное имя.
+// Новый герой из сундука или слияния дворфов: случайная профессия, её статы с множителем ранга (HeroLevels.RankFactor), случайное имя.
 // На первом ранге стихии нет (Basic), на остальных — указанная в таблице дропа или случайная.
 // Способности по рангу (GrantAbilities):
 //   ранг 1 — ничего
@@ -7,9 +7,6 @@
 //   ранг 4 — заклинание 3 уровня, пассивка 1–3 уровня, аура стихии и с шансом ImmunityChance один иммунитет
 public static class HeroGenerator
 {
-    // +25% к базовым HP и атаке за каждый ранг выше первого: герой 4-го ранга примерно как герои демо-отряда
-    public const double StatBonusPerRank = 0.25;
-
     // Иммунитет — редкость: несколько у одного дворфа не бывает
     public const int ImmunityMinRank = 4;
     public const double ImmunityChance = 0.1;
@@ -34,18 +31,20 @@ public static class HeroGenerator
         return Elements[^1].Element;
     }
 
-    public static double StatFactor(int rank) =>
-        1 + StatBonusPerRank * (Math.Clamp(rank, HeroLevels.Min, HeroLevels.Max) - HeroLevels.Min);
+    public static double StatFactor(int rank) => HeroLevels.RankFactor(rank);
+
+    public static int ScaleToRank(int baseValue, int rank) =>
+        (int)Math.Round(baseValue * StatFactor(rank), MidpointRounding.AwayFromZero);
 
     public static Hero Create(Guid playerId, int rank, string element, Random random)
     {
         rank = Math.Clamp(rank, HeroLevels.Min, HeroLevels.Available);
-        var role = StarterSquad.Roles[random.Next(StarterSquad.Roles.Length)];
+        var profession = ProfessionBook.Random(random);
+        var role = ProfessionBook.Of(profession);
         var heroElement = Enum.TryParse<HeroElement>(element, out var parsed) && parsed != HeroElement.Basic
             ? parsed
             : RandomElement(random);
         heroElement = HeroLevels.NormalizeElement(rank, heroElement);
-        double factor = StatFactor(rank);
 
         var hero = new Hero
         {
@@ -53,10 +52,11 @@ public static class HeroGenerator
             PlayerId = playerId,
             Name = StarterSquad.Names[random.Next(StarterSquad.Names.Length)],
             UnitType = "Dwarf",
+            Profession = profession,
             Element = heroElement,
             Level = rank,
-            MaxHp = (int)Math.Round(role.MaxHp * factor, MidpointRounding.AwayFromZero),
-            Attack = (int)Math.Round(role.Attack * factor, MidpointRounding.AwayFromZero),
+            MaxHp = ScaleToRank(role.MaxHp, rank),
+            Attack = ScaleToRank(role.Attack, rank),
             Speed = role.Speed,
             MaxEnergy = 100,
             StartEnergy = 0,

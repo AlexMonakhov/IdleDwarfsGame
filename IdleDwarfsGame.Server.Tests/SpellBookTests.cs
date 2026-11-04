@@ -162,7 +162,7 @@ public class SpellBookTests
         Cast(world, context, casterId);
 
         var hits = context.Logs.Where(l => l.EventType == CombatEventType.Damage).ToList();
-        int baseDamage = (int)(20 * 0.9);
+        int baseDamage = (int)(20 * 1.9);
         Assert.Equal(baseDamage + 30, Assert.Single(hits, h => h.TargetId == cursed).Damage);
         Assert.All(hits.Where(h => h.TargetId != cursed), h => Assert.Equal(baseDamage, h.Damage));
         Assert.Empty(world.StatusEffects[cursed].ActiveEffects);
