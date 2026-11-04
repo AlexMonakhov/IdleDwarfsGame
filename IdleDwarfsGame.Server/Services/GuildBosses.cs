@@ -28,8 +28,8 @@ public static class GuildBosses
                 new(GuildBossSeedData.RimehornYeti, CampaignSeedData.IceArenaId)
             ],
             Level: 10, MaxHp: 300_000,
-            Gold: 400, Experience: 200,
-            Chests: [(ChestType.Gem, 1)]),
+            Gold: 2_000, Experience: 1_000,
+            Chests: [(ChestType.Gem, 1), (ChestType.Hero, 1)]),
         new(GuildBossTier.Medium,
             Variants:
             [
@@ -37,8 +37,8 @@ public static class GuildBosses
                 new(GuildBossSeedData.GrukkStormcaller, CampaignSeedData.StormArenaId)
             ],
             Level: 20, MaxHp: 1_800_000,
-            Gold: 1200, Experience: 600,
-            Chests: [(ChestType.Gem, 2), (ChestType.Hero, 1)]),
+            Gold: 15_000, Experience: 7_500,
+            Chests: [(ChestType.Gem, 2), (ChestType.Hero, 2)]),
         new(GuildBossTier.Hard,
             Variants:
             [
@@ -46,8 +46,8 @@ public static class GuildBosses
                 new(GuildBossSeedData.SeraphelShatteredLight, CampaignSeedData.SanctumArenaId)
             ],
             Level: 35, MaxHp: 7_500_000,
-            Gold: 3000, Experience: 1500,
-            Chests: [(ChestType.Gem, 3), (ChestType.Hero, 2)])
+            Gold: 100_000, Experience: 50_000,
+            Chests: [(ChestType.Gem, 3), (ChestType.Hero, 3), (ChestType.Hero, 3)])
     ];
 
     public static GuildBossDefinition Get(GuildBossTier tier) => All.First(b => b.Tier == tier);

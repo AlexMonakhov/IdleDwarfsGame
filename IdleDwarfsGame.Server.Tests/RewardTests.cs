@@ -37,14 +37,16 @@ public class RewardTests : IDisposable
     public void FixedPart_GrowsWithStage_AndBossPaysDouble()
     {
         var first = CampaignRewards.FixedFor(Stage(1));
-        Assert.Equal(50, first.Gold);
-        Assert.Equal(25, first.Experience);
+        Assert.Equal(40, first.Gold);
+        Assert.Equal(20, first.Experience);
 
         Assert.True(CampaignRewards.FixedFor(Stage(4)).Gold > CampaignRewards.FixedFor(Stage(3)).Gold);
 
         var mobs = CampaignRewards.FixedFor(Stage(5));
         var boss = CampaignRewards.FixedFor(Stage(5, StageType.Boss));
-        Assert.Equal(mobs.Gold * 2, boss.Gold, tolerance: 1);
+        Assert.Equal(mobs.Gold * 3, boss.Gold, tolerance: 1);
+        // Награда растёт как квадрат силы врагов: уровень 500 платит в тысячи раз больше первого
+        Assert.True(CampaignRewards.FixedFor(Stage(500)).Gold > first.Gold * 1000);
     }
 
     [Fact]
@@ -64,11 +66,11 @@ public class RewardTests : IDisposable
 
             var bossReward = CampaignRewards.Roll(_playerId, Stage(10, StageType.Boss), random, Now);
             Assert.NotEmpty(bossReward.Chests);
-            Assert.All(bossReward.Chests, c => Assert.Equal(2, c.ChestLevel));
+            Assert.All(bossReward.Chests, c => Assert.Equal(1, c.ChestLevel));
         }
 
-        // Сундук с обычного уровня — редкость (15%, 5% и 10% независимо ≈ 27%)
-        Assert.InRange(mobsWithChest, 220, 330);
+        // Сундук с обычного уровня: 15%, 15% и 10% независимо ≈ 35%
+        Assert.InRange(mobsWithChest, 300, 400);
     }
 
     [Fact]
@@ -138,10 +140,14 @@ public class RewardTests : IDisposable
         Assert.Empty(gems.Heroes);
 
         var heroes = await chests.OpenAsync(_playerId, heroChest.Id);
-        var hero = Assert.Single(heroes.Heroes);
-        Assert.InRange(hero.Level, 1, 2);
-        Assert.Null(hero.PlaceInSquad);
-        Assert.Equal(_playerId, (await _context.Heroes.AsNoTracking().SingleAsync(h => h.Id == hero.Id)).PlayerId);
+        // В сундуке героев — два дворфа
+        Assert.Equal(2, heroes.Heroes.Count);
+        foreach (var hero in heroes.Heroes)
+        {
+            Assert.InRange(hero.Level, 1, 3);
+            Assert.Null(hero.PlaceInSquad);
+            Assert.Equal(_playerId, (await _context.Heroes.AsNoTracking().SingleAsync(h => h.Id == hero.Id)).PlayerId);
+        }
 
         // Всё выпавшее лежит в инвентаре, а сундуки больше не открыть
         var after = await chests.GetInventoryAsync(_playerId);
@@ -212,7 +218,8 @@ public class RewardTests : IDisposable
         };
     }
 
-    private static CampaignStage Stage(int id, StageType type = StageType.Mobs) => new() { Id = id, Type = type };
+    private static CampaignStage Stage(int id, StageType type = StageType.Mobs) =>
+        new() { Id = id, Type = type, EnemyLevel = id <= CampaignGenerator.HandcraftedStages ? id : CampaignGenerator.EnemyLevelFor(id) };
 
     private sealed class TestClock(DateTime now) : TimeProvider
     {

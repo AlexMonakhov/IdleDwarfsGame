@@ -639,7 +639,7 @@ const en = {
       effects: {
         Level: 'Unlocks the dwarf and higher upgrade levels',
         Speed: '{value} per hour by the dwarf',
-        Yield: '{value} per click, the dwarf mines more too',
+        Yield: '{value} per hour by the dwarf, clicks bring more too',
         Storage: 'Holds {value} mined by the dwarf',
       },
       upgrade: 'Upgrade',

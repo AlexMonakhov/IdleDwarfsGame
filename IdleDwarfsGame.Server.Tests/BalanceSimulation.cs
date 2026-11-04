@@ -190,3 +190,24 @@ public class LongCampaignBalanceTests
         Assert.True(levels.Zip(levels.Skip(1)).All(p => p.Second >= p.First));
     }
 }
+
+// Экономика: золото за первое прохождение уровней фазы ранга покрывает заметную, но не всю часть прокачки отряда —
+// остальное дают шахты и экспедиции
+public class EconomyBalanceTests(ITestOutputHelper output)
+{
+    public static double CampaignGold(int fromStage, int toStage) => CampaignSeedData.Stages
+        .Where(s => s.Id >= fromStage && s.Id <= toStage)
+        .Sum(s => CampaignRewards.FixedFor(s).Gold * (1 + CampaignRewards.RandomBonus / 2));
+
+    [Theory]
+    [InlineData(2, 15, 55)]
+    [InlineData(3, 55, 155)]
+    [InlineData(4, 155, 500)]
+    public void CampaignCoversPartOfTheSquadUpgrade(int rank, int fromStage, int toStage)
+    {
+        double squad = 5.0 * HeroUpgradeService.Invested(rank, HeroUpgradeService.MaxLevelFor(rank)).Gold;
+        double share = CampaignGold(fromStage, toStage) / squad;
+        output.WriteLine($"rank {rank}, stages {fromStage}-{toStage}: campaign {CampaignGold(fromStage, toStage):N0} of {squad:N0} ({share:P0})");
+        Assert.InRange(share, 0.2, 0.8);
+    }
+}

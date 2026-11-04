@@ -7,30 +7,48 @@ using IdleDwarfsGame.Server.Enums;
 public static class LootSeedData
 {
     // Сундуки каких уровней может выдать кампания (CampaignRewards.ChestLevelFor) — для них таблицы обязаны быть
-    public const int MaxChestLevel = 3;
+    public const int MaxChestLevel = 5;
 
     // Камни стихий, из которых выпадают обычные гемы
     private static readonly GemType[] ElementGems = [GemType.Ruby, GemType.Sapphire, GemType.Topaz, GemType.Emerald];
 
     private static readonly TableDefinition[] Definitions =
     [
-        // ===== Сундуки героев: ранг героя (Hero.Level), стихия случайная =====
-        new(ChestType.Hero, 1, Rolls: 1,
+        // ===== Сундуки героев: два дворфа, ранг каждого — по таблице, стихия случайная.
+        // 1-й ранг выпадает всегда: это материал для слияния и работники шахт =====
+        new(ChestType.Hero, 1, Rolls: 2,
         [
-            Hero(rank: 1, 0.80),
-            Hero(rank: 2, 0.20)
+            Hero(rank: 1, 0.75),
+            Hero(rank: 2, 0.23),
+            Hero(rank: 3, 0.02)
         ]),
-        new(ChestType.Hero, 2, Rolls: 1,
+        new(ChestType.Hero, 2, Rolls: 2,
         [
             Hero(rank: 1, 0.50),
             Hero(rank: 2, 0.40),
-            Hero(rank: 3, 0.10)
+            Hero(rank: 3, 0.09),
+            Hero(rank: 4, 0.01)
         ]),
-        new(ChestType.Hero, 3, Rolls: 1,
+        new(ChestType.Hero, 3, Rolls: 2,
         [
-            Hero(rank: 2, 0.50),
-            Hero(rank: 3, 0.40),
-            Hero(rank: 4, 0.10)
+            Hero(rank: 1, 0.30),
+            Hero(rank: 2, 0.45),
+            Hero(rank: 3, 0.22),
+            Hero(rank: 4, 0.03)
+        ]),
+        new(ChestType.Hero, 4, Rolls: 2,
+        [
+            Hero(rank: 1, 0.20),
+            Hero(rank: 2, 0.40),
+            Hero(rank: 3, 0.33),
+            Hero(rank: 4, 0.07)
+        ]),
+        new(ChestType.Hero, 5, Rolls: 2,
+        [
+            Hero(rank: 1, 0.10),
+            Hero(rank: 2, 0.35),
+            Hero(rank: 3, 0.43),
+            Hero(rank: 4, 0.12)
         ]),
 
         // ===== Сундуки гемов =====
@@ -52,6 +70,20 @@ public static class LootSeedData
             .. ElementGems.Select(gem => Gem(gem, Rarity.Uncommon, 0.09, 2, 3)),
             Gem(GemType.Diamond, Rarity.Rare, 0.12, 1, 2),
             Gem(GemType.Diamond, Rarity.Mythic, 0.04, 1, 1)
+        ]),
+        new(ChestType.Gem, 4, Rolls: 4,
+        [
+            .. ElementGems.Select(gem => Gem(gem, Rarity.Common, 0.10, 6, 12)),
+            .. ElementGems.Select(gem => Gem(gem, Rarity.Uncommon, 0.10, 3, 5)),
+            Gem(GemType.Diamond, Rarity.Rare, 0.14, 1, 3),
+            Gem(GemType.Diamond, Rarity.Mythic, 0.06, 1, 1)
+        ]),
+        new(ChestType.Gem, 5, Rolls: 5,
+        [
+            .. ElementGems.Select(gem => Gem(gem, Rarity.Common, 0.08, 10, 20)),
+            .. ElementGems.Select(gem => Gem(gem, Rarity.Uncommon, 0.11, 4, 8)),
+            Gem(GemType.Diamond, Rarity.Rare, 0.16, 2, 4),
+            Gem(GemType.Diamond, Rarity.Mythic, 0.08, 1, 2)
         ]),
 
         // ===== Сундуки снаряжения: шанс редкости делится поровну между предметами этой редкости =====
@@ -77,6 +109,19 @@ public static class LootSeedData
             .. EquipmentOf(Rarity.Mythic, 0.25),
             .. EquipmentOf(Rarity.Legendary, 0.09),
             .. EquipmentOf(Rarity.Artifact, 0.01)
+        ]),
+        new(ChestType.Equipment, 4, Rolls: 1,
+        [
+            .. EquipmentOf(Rarity.Rare, 0.35),
+            .. EquipmentOf(Rarity.Mythic, 0.40),
+            .. EquipmentOf(Rarity.Legendary, 0.20),
+            .. EquipmentOf(Rarity.Artifact, 0.05)
+        ]),
+        new(ChestType.Equipment, 5, Rolls: 1,
+        [
+            .. EquipmentOf(Rarity.Mythic, 0.45),
+            .. EquipmentOf(Rarity.Legendary, 0.40),
+            .. EquipmentOf(Rarity.Artifact, 0.15)
         ])
     ];
 
