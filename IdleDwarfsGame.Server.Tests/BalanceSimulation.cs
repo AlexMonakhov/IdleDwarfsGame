@@ -91,6 +91,20 @@ public class BalanceSimulation(ITestOutputHelper output)
         }
 
         output.WriteLine("");
+        output.WriteLine("Long campaign, chapter bosses: win% / rounds");
+        var reference = new (string Name, int Rank, int Level)[]
+        {
+            ("r2 l1", 2, 1), ("r2 l20", 2, 20), ("r3 l1", 3, 1), ("r3 l50", 3, 50),
+            ("r4 l1", 4, 1), ("r4 l25", 4, 25), ("r4 l50", 4, 50), ("r4 l100", 4, 100)
+        };
+        output.WriteLine("stage  EL | " + string.Join(" | ", reference.Select(r => $"{r.Name,8}")));
+        foreach (int stageId in new[] { 20, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500 })
+        {
+            var cells = reference.Select(r => Campaign(Squad(r.Rank, r.Level), stageId, 20)).Select(o => $"{o.WinRate * 100,3:F0}% {o.Rounds,3:F0}");
+            output.WriteLine($"{stageId,5} {CampaignGenerator.EnemyLevelFor(stageId),3} | " + string.Join(" | ", cells));
+        }
+
+        output.WriteLine("");
         output.WriteLine("Guild bosses: average damage per attempt and attempts to kill");
         var squads = new (string Name, List<Hero> Squad)[]
         {
