@@ -79,8 +79,8 @@ const restartTutorial = () => {
         v-model:active-tab="activeTab"
         :tabs="tabs"
         :header-message="t(`account.tabs.${tab}`)"
-        width="min(720px, calc(94vw - 140px))"
-        height="min(620px, 84vh)"
+        width="min(720px, calc(calc(94 * var(--vw)) - 140px))"
+        height="min(620px, calc(84 * var(--vh)))"
     >
         <!-- ===== Профиль ===== -->
         <div v-if="tab === 'profile' && user" class="account">

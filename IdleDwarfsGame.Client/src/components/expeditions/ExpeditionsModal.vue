@@ -212,8 +212,8 @@ const footerText = computed(() => {
     <ModalComponent
         v-model="open"
         :header-message="t('expeditions.header')"
-        width="min(1280px, 94vw)"
-        height="min(780px, 90vh)"
+        width="min(1280px, calc(94 * var(--vw)))"
+        height="min(780px, calc(90 * var(--vh)))"
     >
         <div class="expeditions">
             <div v-if="loading && !board" class="expeditions-hint">{{ t('common.loading') }}</div>

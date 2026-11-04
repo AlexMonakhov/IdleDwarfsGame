@@ -184,8 +184,8 @@ const footerText = computed(() => errorMessage.value ?? notice.value ?? '');
     <ModalComponent
         v-model="open"
         :header-message="t('friends.header')"
-        width="min(640px, 94vw)"
-        height="min(700px, 88vh)"
+        width="min(640px, calc(94 * var(--vw)))"
+        height="min(700px, calc(88 * var(--vh)))"
     >
         <div class="friends">
             <form class="friends-add" @submit.prevent="addFriend">

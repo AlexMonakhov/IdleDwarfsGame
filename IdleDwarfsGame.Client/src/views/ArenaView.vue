@@ -319,8 +319,8 @@ onBeforeUnmount(() => player.stop());
 
 <style lang="scss">
 .arena {
-  width: 100vw;
-  height: 100vh;
+  width: var(--stage-w);
+  height: var(--stage-h);
   position: fixed;
 }
 

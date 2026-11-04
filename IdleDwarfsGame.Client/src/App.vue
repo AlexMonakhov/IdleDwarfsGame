@@ -1,6 +1,9 @@
 <template>
-  <InterfaceView></InterfaceView>
-  <router-view></router-view>
+  <!-- Всё приложение — в логическом экране ~1920×1000, масштабированном под окно (composables/UseUiScale.ts) -->
+  <div class="ui-stage">
+    <InterfaceView></InterfaceView>
+    <router-view></router-view>
+  </div>
 </template>
 
 <script lang="ts" setup>
@@ -27,6 +30,12 @@ import InterfaceView from './views/InterfaceView.vue';
 }
 
 :root{
+    /* Масштаб интерфейса и размеры логического экрана (UseUiScale.ts). Внутри .ui-stage вместо vw/vh — --vw/--vh */
+    --ui-scale: 1;
+    --stage-w: calc(100vw / var(--ui-scale));
+    --stage-h: calc(100vh / var(--ui-scale));
+    --vw: calc(var(--stage-w) / 100);
+    --vh: calc(var(--stage-h) / 100);
     --text-outline: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 0 3px rgba(0, 0, 0, 0.9);
     --normal:#f5f5f5;
     --primary: #18c0c0;
@@ -83,7 +92,7 @@ nav {
 
 .main{
   display: flex;
-  height: calc(100vh - 20px);
+  height: calc(var(--stage-h) - 20px);
   width: 100%;
   justify-content: center;
   align-items: center;
@@ -93,6 +102,19 @@ nav {
 body {
   margin: 0;
   padding: 0;
+}
+/* Логический экран: вёрстка внутри видит окно размером --stage-w × --stage-h и целиком масштабируется на --ui-scale.
+   transform делает .ui-stage опорным блоком для position: fixed потомков — они встают по его углам, как по окну */
+.ui-stage {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: var(--stage-w);
+  height: var(--stage-h);
+  transform: scale(var(--ui-scale));
+  transform-origin: 0 0;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 /* v-drag-scroll (src/directives/dragScroll.ts): прокрутка без полосы — колесом и перетаскиванием мыши */

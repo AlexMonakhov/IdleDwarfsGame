@@ -597,8 +597,8 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .stress {
-  width: 100vw;
-  height: 100vh;
+  width: var(--stage-w);
+  height: var(--stage-h);
   position: fixed;
 }
 
@@ -632,7 +632,7 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  max-height: calc(100vh - 120px);
+  max-height: calc(var(--stage-h) - 120px);
   overflow-y: auto;
 }
 
@@ -782,7 +782,7 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  max-height: calc(100vh - 140px);
+  max-height: calc(var(--stage-h) - 140px);
   overflow-y: auto;
   padding: 8px;
   border-radius: 8px;

@@ -49,8 +49,8 @@ const activeTab = computed({
         v-model:active-tab="activeTab"
         :tabs="tabs"
         :header-message="t(`inventory.tabs.${tab}`)"
-        width="min(860px, calc(94vw - 140px))"
-        height="min(640px, 84vh)"
+        width="min(860px, calc(calc(94 * var(--vw)) - 140px))"
+        height="min(640px, calc(84 * var(--vh)))"
     >
         <!-- KeepAlive — чтобы при переключении вкладок не перезагружать героев -->
         <KeepAlive>

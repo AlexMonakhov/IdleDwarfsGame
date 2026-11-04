@@ -173,7 +173,7 @@ onBeforeUnmount(() => cancelAnimationFrame(animationId));
 <style scoped>
 .sprite-test {
     box-sizing: border-box;
-    min-height: 100vh;
+    min-height: var(--stage-h);
     padding: 24px;
     background: #1e293b;
     color: #f8fafc;
