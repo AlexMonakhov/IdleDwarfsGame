@@ -1,3 +1,5 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Text;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -58,6 +60,18 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Key)),
             ValidateLifetime = true,
             ClockSkew = TimeSpan.FromMinutes(1)
+        };
+        options.Events = new JwtBearerEvents
+        {
+            // Подпись верна, но аккаунта уже нет (база пересоздана, аккаунт удалён) — отвечаем 401,
+            // иначе первая же запись с этим UserId упадёт на внешнем ключе
+            OnTokenValidated = async context =>
+            {
+                var sub = context.Principal?.FindFirstValue(JwtRegisteredClaimNames.Sub);
+                var db = context.HttpContext.RequestServices.GetRequiredService<GameDbContext>();
+                if (!Guid.TryParse(sub, out var userId) || !await db.Users.AnyAsync(u => u.Id == userId))
+                    context.Fail("User no longer exists");
+            }
         };
     });
 builder.Services.AddAuthorization();

@@ -27,9 +27,24 @@ const openSession = async () => {
     timer = window.setInterval(heartbeat, session.heartbeatSeconds * 1000)
     // Первый пинг сразу — чтобы значок заявок не ждал минуту
     await heartbeat()
-  } catch {
+  } catch (error) {
+    if ((error as AxiosError).response?.status === 401) {
+      await signOut()
+      return
+    }
     // Сервер недоступен — попробуем при следующем входе или возврате на вкладку
   }
+}
+
+// Сервер больше не принимает токен (аккаунта нет — например, базу пересоздали): выходим на экран входа.
+// Сессию не закрываем — с этим токеном сервер всё равно ответит 401
+const signOut = async () => {
+  sessionId = null
+  stop()
+  useAuth().logout()
+  // Динамически: роутер сам импортирует экраны, которые используют usePresence
+  const { default: router } = await import('@/router')
+  await router.push({ name: 'login' })
 }
 
 const heartbeat = async () => {
@@ -45,7 +60,7 @@ const heartbeat = async () => {
       window.clearInterval(timer)
       start()
     } else if (status === 401) {
-      stop()
+      await signOut()
     }
     // Остальное (сеть моргнула) — следующий пинг попробует снова
   }
