@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { useAuth } from '@/composables/UseAuth';
-import { PvpFightResult, PvpOverview, RankedOverview } from '@/models/types/Pvp';
+import { PvpFightResult, PvpOverview, PvpScoutResult, RankedOverview } from '@/models/types/Pvp';
 
 const apiClient = axios.create({
     baseURL: 'https://localhost:7232',
@@ -45,6 +45,18 @@ class PvpApiService {
     }
 
     /* ===== Рейтинговая арена ===== */
+
+    // Разведка — 50 прогонов боя на сервере, поэтому таймаут как у боя
+    async scout(opponentUserId: string, ranked: boolean): Promise<PvpScoutResult> {
+        const path = ranked ? `/pvp/ranked/opponents/${opponentUserId}/scout` : `/pvp/opponents/${opponentUserId}/scout`;
+        try {
+            const response = await apiClient.post<PvpScoutResult>(path, null, { timeout: 15000 });
+            return response.data;
+        } catch (error) {
+            console.error('Ошибка при разведке соперника:', error);
+            throw error;
+        }
+    }
 
     async getRankedOverview(): Promise<RankedOverview> {
         try {

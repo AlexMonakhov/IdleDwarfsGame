@@ -8,7 +8,8 @@ public class HeroesController(
     IHeroesRepository heroesRepository,
     IExpeditionRepository expeditionRepository,
     IEntityFactory entityFactory,
-    HeroUpgradeService heroUpgradeService) : ControllerBase
+    HeroUpgradeService heroUpgradeService,
+    SquadPowerService squadPower) : ControllerBase
 {
     // Инвентарь залогиненного игрока: все его герои, у тех что в отряде заполнен PlaceInSquad
     [Authorize]
@@ -26,6 +27,7 @@ public class HeroesController(
             heroes = StarterSquad.Create(playerId);
             foreach (var hero in heroes)
                 await heroesRepository.CreateAsync(hero);
+            await squadPower.RefreshAsync(playerId);
         }
 
         return Ok(await ToInfoAsync(playerId, heroes));
@@ -41,6 +43,7 @@ public class HeroesController(
         try
         {
             var heroes = await heroesRepository.SaveSquadAsync(playerId, request.Slots);
+            await squadPower.RefreshAsync(playerId);
             return Ok(await ToInfoAsync(playerId, heroes));
         }
         catch (InvalidOperationException ex)
@@ -88,6 +91,7 @@ public class HeroesController(
         // Предметы выдаются только сундуками: через тело запроса их не создать
         hero.Equipment = [];
         await heroesRepository.CreateAsync(hero);
+        await squadPower.RefreshIfInSquadAsync(hero.PlayerId, [hero]);
         return Ok(hero);
     }
 
@@ -95,6 +99,8 @@ public class HeroesController(
     public async Task<IActionResult> AssignToSquad(Guid heroId, [FromQuery] int? place)
     {
         await heroesRepository.AssignToSquadAsync(heroId, place);
+        if (await heroesRepository.GetByIdAsync(heroId) is { } hero)
+            await squadPower.RefreshAsync(hero.PlayerId);
         return Ok();
     }
 

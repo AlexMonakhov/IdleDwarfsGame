@@ -7,6 +7,7 @@ import GemButton from '@/components/common/GemButton.vue';
 import UnitPortrait from '@/components/interface/UnitPortrait.vue';
 import PvpApiService from '@/services/apiServices/PvpApiService';
 import { PvpBattleInfo, PvpOpponentInfo, PvpOverview, PvpSeasonInfo, RankedOverview } from '@/models/types/Pvp';
+import type { BattleForecast } from '@/models/types/Campaign';
 import type { CombatUnitInfo } from '@/battle/types';
 import type { ModalTab } from '@/models/types/Modal';
 import { forecastVerdict } from '@/battle/power';
@@ -138,8 +139,39 @@ const format = (value: number) => value.toLocaleString(locale.value);
 const noSquad = computed(() => (ranked.value ? !rankedOverview.value?.squad : !!overview.value && overview.value.squad.length === 0));
 const opponents = computed(() => current.value?.opponents ?? []);
 
-const chance = (opponent: PvpOpponentInfo) => Math.round(opponent.forecast.winChance * 100);
-const verdict = (opponent: PvpOpponentInfo) => forecastVerdict(opponent.forecast.winChance);
+// Точный шанс есть только у разведанных соперников; у остальных — грубая оценка по мощи (opponent.threat)
+const chance = (forecast: BattleForecast) => Math.round(forecast.winChance * 100);
+const verdict = (forecast: BattleForecast) => forecastVerdict(forecast.winChance);
+
+/* ===== Разведка ===== */
+// Лимит общий для обеих арен: ответ разведки обновляет счётчик в обоих обзорах
+const scoutsLeft = computed(() => current.value?.scoutsLeft ?? 0);
+const scoutLimit = computed(() => current.value?.scoutLimit ?? 0);
+// Кого сейчас разведываем: прогноз считается на сервере (50 боёв), вторую разведку параллельно не запускаем
+const scouting = ref<string | null>(null);
+
+const canScout = (opponent: PvpOpponentInfo) =>
+    !scouting.value && !loading.value && !noSquad.value && (!!opponent.forecast || scoutsLeft.value > 0);
+
+const scout = async (opponent: PvpOpponentInfo) => {
+    if (!canScout(opponent)) return;
+    scouting.value = opponent.userId;
+    try {
+        const result = await PvpApiService.scout(opponent.userId, ranked.value);
+        const target = current.value;
+        if (target) {
+            target.opponents = target.opponents.map(o => (o.userId === result.opponentUserId ? { ...o, forecast: result.forecast } : o));
+        }
+        for (const arena of [overview.value, rankedOverview.value]) {
+            if (arena) arena.scoutsLeft = result.scoutsLeft;
+        }
+        errorMessage.value = null;
+    } catch (error) {
+        errorMessage.value = pvpErrorText(error, t('pvp.loadError'));
+    } finally {
+        scouting.value = null;
+    }
+};
 
 // Насколько соперник сильнее/слабее (на рейтинговой арене — по рейтингу): зелёный — слабее, красный — сильнее
 const diffOf = (opponent: PvpOpponentInfo) => opponent.ratingDiffPercent ?? opponent.powerDiffPercent;
@@ -305,6 +337,7 @@ const footerText = computed(() => {
                         {{ t('pvp.matchHint', { count: overview.opponentCount, spread: overview.powerSpreadPercent }) }}
                     </template>
                     <template v-if="current.beatenToday"> · {{ t('pvp.beatenToday', { count: current.beatenToday }) }}</template>
+                    <template v-if="scoutLimit"> · {{ t('pvp.scoutsLeft', { left: scoutsLeft, limit: scoutLimit }) }}</template>
                 </div>
 
                 <div v-if="!noSquad && !opponents.length" class="pvp-empty">{{ t('pvp.noOpponents') }}</div>
@@ -327,14 +360,32 @@ const footerText = computed(() => {
                         </div>
 
                         <div class="pvp-opponent-forecast">
-                            <span class="pvp-verdict" :class="`forecast-${verdict(opponent)}`" v-tooltip="t('power.chance', { chance: chance(opponent) })">
-                                {{ t(`power.verdict.${verdict(opponent)}`) }} · {{ chance(opponent) }}%
+                            <!-- Разведанный — точный шанс; остальные — только оценка по мощи -->
+                            <span
+                                v-if="opponent.forecast"
+                                class="pvp-verdict"
+                                :class="`forecast-${verdict(opponent.forecast)}`"
+                                v-tooltip="t('power.chance', { chance: chance(opponent.forecast) })"
+                            >
+                                🔍 {{ t(`power.verdict.${verdict(opponent.forecast)}`) }} · {{ chance(opponent.forecast) }}%
+                            </span>
+                            <span v-else class="pvp-verdict" :class="`threat-${opponent.threat}`" v-tooltip="t('pvp.threatHint')">
+                                {{ t(`pvp.threat.${opponent.threat}`) }}
                             </span>
                             <span class="pvp-stakes">
                                 <span class="pvp-win">{{ signed(opponent.winPoints) }}</span>
                                 /
                                 <span class="pvp-loss">{{ signed(-opponent.lossPoints) }}</span>
                             </span>
+                            <button
+                                type="button"
+                                class="pvp-scout"
+                                :disabled="!canScout(opponent)"
+                                v-tooltip="opponent.forecast ? t('pvp.rescoutHint') : t('pvp.scoutHint', { left: scoutsLeft, limit: scoutLimit })"
+                                @click="scout(opponent)"
+                            >
+                                {{ scouting === opponent.userId ? '…' : opponent.forecast ? '↻' : `🔍 ${t('pvp.scout')}` }}
+                            </button>
                         </div>
 
                         <GemButton :color="'red'" :disabled="loading || noSquad" @click="fight(opponent)">⚔ {{ t('pvp.fight') }}</GemButton>
@@ -666,6 +717,33 @@ const footerText = computed(() => {
 .forecast-likely { color: #bef264; }
 .forecast-risky { color: #fbbf24; }
 .forecast-deadly { color: #f87171; }
+
+/* Оценка по мощи — без процента, приглушённее точного прогноза */
+.threat-Weaker { color: #86efac; border-style: dashed; }
+.threat-Even { color: #e2e8f0; border-style: dashed; }
+.threat-Stronger { color: #fca5a5; border-style: dashed; }
+
+.pvp-scout {
+    padding: 1px 8px;
+    border: 1px solid rgba(148, 163, 184, 0.6);
+    border-radius: 10px;
+    background: rgba(15, 23, 42, 0.6);
+    color: #e2e8f0;
+    font-size: 11px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.pvp-scout:hover:not(:disabled) {
+    border-color: #7dd3fc;
+    background: rgba(14, 116, 144, 0.45);
+}
+
+.pvp-scout:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
 
 .pvp-stakes {
     color: #cbd5e1;

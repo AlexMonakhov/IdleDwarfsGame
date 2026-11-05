@@ -23,7 +23,8 @@ public class HeroUpgradeService(
     IHeroesRepository heroes,
     IPlayerRepository players,
     IExpeditionRepository expeditions,
-    IEntityFactory entityFactory)
+    IEntityFactory entityFactory,
+    SquadPowerService squadPower)
 {
     public const int MinLevel = 1;
 
@@ -122,6 +123,8 @@ public class HeroUpgradeService(
                 EnsureAffordable(await players.GetResourcesAsync(playerId) ?? new PlayerResources(), cost);
                 throw new HeroUpgradeException(HeroUpgradeError.NotEnoughGold, "Not enough resources");
         }
+
+        await squadPower.RefreshIfInSquadAsync(playerId, [hero]);
 
         var busy = await expeditions.GetBusyHeroIdsAsync(playerId);
         var mining = await heroes.GetMiningHeroIdsAsync(playerId);

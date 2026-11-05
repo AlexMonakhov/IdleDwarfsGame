@@ -25,8 +25,9 @@ public class RankedPvpTests : IDisposable
         var combat = new CombatService(new WorldFactory(heroes, factory), new CombatEngine(new Random(1)), []);
         var pvp = new PvpRepository(_context);
         var users = new UserRepository(_context);
-        _casual = new PvpService(pvp, users, heroes, factory, combat, _clock);
-        _service = new RankedPvpService(pvp, users, heroes, factory, combat, _casual, _clock);
+        var squadPower = new SquadPowerService(pvp, factory);
+        _casual = new PvpService(pvp, users, heroes, factory, combat, squadPower, _clock);
+        _service = new RankedPvpService(pvp, users, heroes, factory, combat, _casual, squadPower, _clock);
     }
 
     public void Dispose()
@@ -175,6 +176,34 @@ public class RankedPvpTests : IDisposable
         Assert.Equal(PvpError.NotAnOpponent, (await Assert.ThrowsAsync<PvpException>(() => _service.FightAsync(alice.Id, far.Id))).Code);
     }
 
+    [Fact]
+    public async Task ScoutLimit_IsFiveOpponentsADay_SharedByBothArenas()
+    {
+        var alice = AddUser("Alice");
+        var rivals = Enumerable.Range(1, 5).Select(i => AddUser($"Rival{i}")).ToList();
+        _context.SaveChanges();
+        foreach (var user in rivals.Prepend(alice))
+            await _service.LockSquadAsync(user.Id);
+
+        // Четверо на обычной арене и один на рейтинговой — лимит исчерпан на обеих
+        foreach (var rival in rivals.Take(4))
+            await _casual.ScoutAsync(alice.Id, rival.Id);
+        var ranked = await _service.ScoutAsync(alice.Id, rivals[4].Id);
+        Assert.Equal(0, ranked.ScoutsLeft);
+
+        Assert.Equal(PvpError.ScoutLimit, (await Assert.ThrowsAsync<PvpException>(() => _casual.ScoutAsync(alice.Id, rivals[4].Id))).Code);
+        Assert.Equal(PvpError.ScoutLimit, (await Assert.ThrowsAsync<PvpException>(() => _service.ScoutAsync(alice.Id, rivals[0].Id))).Code);
+
+        // Уже разведанных можно пересчитать бесплатно
+        Assert.Equal(0, (await _casual.ScoutAsync(alice.Id, rivals[0].Id)).ScoutsLeft);
+        Assert.Equal(0, (await _service.ScoutAsync(alice.Id, rivals[4].Id)).ScoutsLeft);
+
+        var overview = await _service.GetOverviewAsync(alice.Id);
+        Assert.Equal(0, overview.ScoutsLeft);
+        Assert.NotNull(overview.Opponents.Single(o => o.UserId == rivals[4].Id).Forecast);
+        Assert.All(overview.Opponents.Where(o => o.UserId != rivals[4].Id), o => Assert.Null(o.Forecast));
+    }
+
     /* ===== Помощники ===== */
 
     private static PvpSeasonScore Score(Guid userId, DateTime start, int points) => new()
@@ -206,6 +235,8 @@ public class RankedPvpTests : IDisposable
         foreach (var hero in squad)
             hero.Attack = (int)Math.Round(hero.Attack * attackFactor);
         _context.Heroes.AddRange(squad);
+        // Как после регистрации: мощь отряда защиты сохранена в игроке
+        player.SquadPower = CombatPower.OfSquad(new EntityFactory(), squad);
         return user;
     }
 

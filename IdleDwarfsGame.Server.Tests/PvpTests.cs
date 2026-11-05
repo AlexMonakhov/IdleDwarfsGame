@@ -14,6 +14,8 @@ public class PvpTests : IDisposable
     // Среда: неделя началась в понедельник 26-го, месяц — 1-го
     private readonly TestClock _clock = new(new DateTime(2026, 10, 28, 12, 0, 0, DateTimeKind.Utc));
     private readonly PvpService _service;
+    private readonly SquadPowerService _squadPower;
+    private static readonly EntityFactory Factory = new();
 
     public PvpTests()
     {
@@ -23,9 +25,9 @@ public class PvpTests : IDisposable
         _context.Database.EnsureCreated();
 
         var heroes = new HeroesRepository(_context);
-        var factory = new EntityFactory();
-        var combat = new CombatService(new WorldFactory(heroes, factory), new CombatEngine(new Random(1)), []);
-        _service = new PvpService(new PvpRepository(_context), new UserRepository(_context), heroes, factory, combat, _clock);
+        var combat = new CombatService(new WorldFactory(heroes, Factory), new CombatEngine(new Random(1)), []);
+        _squadPower = new SquadPowerService(new PvpRepository(_context), Factory);
+        _service = new PvpService(new PvpRepository(_context), new UserRepository(_context), heroes, Factory, combat, _squadPower, _clock);
     }
 
     public void Dispose()
@@ -118,7 +120,7 @@ public class PvpTests : IDisposable
         var before = await _service.GetOverviewAsync(alice.Id);
         var opponent = Assert.Single(before.Opponents);
         Assert.Equal(bob.Id, opponent.UserId);
-        Assert.Equal(before.MyPower, opponent.Forecast.PlayerPower);
+        Assert.Null(opponent.Forecast);
         Assert.Equal(PvpArena.Background, before.Arena.Background);
 
         var fight = await _service.FightAsync(alice.Id, bob.Id);
@@ -191,6 +193,86 @@ public class PvpTests : IDisposable
         Assert.Equal(PvpError.NotAnOpponent, (await Assert.ThrowsAsync<PvpException>(() => _service.FightAsync(alice.Id, alice.Id))).Code);
     }
 
+    [Theory]
+    [InlineData(1000, 1030, PvpThreat.Even)]
+    [InlineData(1000, 970, PvpThreat.Even)]
+    [InlineData(1000, 1031, PvpThreat.Stronger)]
+    [InlineData(1000, 969, PvpThreat.Weaker)]
+    public void Threat_IsEvenWithinThreePercentOfPower(int mine, int theirs, PvpThreat expected) =>
+        Assert.Equal(expected, PvpScouting.ThreatOf(mine, theirs));
+
+    [Fact]
+    public async Task Forecast_IsHidden_UntilOpponentIsScouted()
+    {
+        var alice = AddUser("Alice", attackFactor: 3);
+        var bob = AddUser("Bob");
+        _context.SaveChanges();
+
+        var before = await _service.GetOverviewAsync(alice.Id);
+        var opponent = Assert.Single(before.Opponents);
+        Assert.Null(opponent.Forecast);
+        Assert.Equal(PvpThreat.Stronger, Assert.Single((await _service.GetOverviewAsync(bob.Id)).Opponents).Threat);
+        Assert.Equal(PvpScouting.DailyLimit, before.ScoutsLeft);
+
+        var scout = await _service.ScoutAsync(alice.Id, bob.Id);
+        Assert.Equal(before.MyPower, scout.Forecast.PlayerPower);
+        Assert.Equal(1.0, scout.Forecast.WinChance);
+        Assert.Equal(PvpScouting.DailyLimit - 1, scout.ScoutsLeft);
+
+        // Разведанный прогноз виден в списке до конца суток; повторная разведка того же соперника бесплатна
+        var after = await _service.GetOverviewAsync(alice.Id);
+        Assert.Equal(1.0, Assert.Single(after.Opponents).Forecast!.WinChance);
+        Assert.Equal(PvpScouting.DailyLimit - 1, (await _service.ScoutAsync(alice.Id, bob.Id)).ScoutsLeft);
+
+        // Новые сутки — прогноз снова скрыт, лимит восстановлен
+        _clock.Advance(TimeSpan.FromDays(1));
+        var nextDay = await _service.GetOverviewAsync(alice.Id);
+        Assert.Null(Assert.Single(nextDay.Opponents).Forecast);
+        Assert.Equal(PvpScouting.DailyLimit, nextDay.ScoutsLeft);
+    }
+
+    [Fact]
+    public async Task Scout_OnlyMatchedOpponents()
+    {
+        var alice = AddUser("Alice");
+        _context.SaveChanges();
+
+        Assert.Equal(PvpError.OpponentNotFound, (await Assert.ThrowsAsync<PvpException>(() => _service.ScoutAsync(alice.Id, Guid.NewGuid()))).Code);
+        Assert.Equal(PvpError.NotAnOpponent, (await Assert.ThrowsAsync<PvpException>(() => _service.ScoutAsync(alice.Id, alice.Id))).Code);
+    }
+
+    [Fact]
+    public async Task Matchmaking_UsesStoredPower_AndRefreshAllFixesStaleValues()
+    {
+        var alice = AddUser("Alice");
+        var bob = AddUser("Bob");
+        _context.SaveChanges();
+        int real = bob.Player!.SquadPower;
+
+        // Сохранённая мощь Боба устарела до нуля — в подбор он не попадает, отряд при этом не читается
+        await _context.Players.Where(p => p.Id == bob.PlayerId).ExecuteUpdateAsync(s => s.SetProperty(p => p.SquadPower, 0));
+        Assert.Empty((await _service.GetOverviewAsync(alice.Id)).Opponents);
+
+        // Пересчёт на старте сервера чинит её
+        await _squadPower.RefreshAllAsync();
+        var opponent = Assert.Single((await _service.GetOverviewAsync(alice.Id)).Opponents);
+        Assert.Equal(bob.Id, opponent.UserId);
+        Assert.Equal(real, opponent.Power);
+    }
+
+    [Fact]
+    public async Task Overview_RefreshesOwnStoredPower()
+    {
+        var alice = AddUser("Alice");
+        _context.SaveChanges();
+        await _context.Players.Where(p => p.Id == alice.PlayerId).ExecuteUpdateAsync(s => s.SetProperty(p => p.SquadPower, 1));
+
+        var overview = await _service.GetOverviewAsync(alice.Id);
+
+        int stored = await _context.Players.AsNoTracking().Where(p => p.Id == alice.PlayerId).Select(p => p.SquadPower).SingleAsync();
+        Assert.Equal(overview.MyPower, stored);
+    }
+
     [Fact]
     public async Task TestAccounts_GetFullSquadsWithOneSpellEach_AndAreSeededOnce()
     {
@@ -249,6 +331,8 @@ public class PvpTests : IDisposable
         foreach (var hero in squad)
             hero.Attack = (int)Math.Round(hero.Attack * attackFactor);
         _context.Heroes.AddRange(squad);
+        // Как после регистрации: мощь отряда защиты сохранена в игроке
+        player.SquadPower = CombatPower.OfSquad(Factory, squad);
         return user;
     }
 

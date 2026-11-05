@@ -116,6 +116,16 @@ body {
   overflow: hidden;
 }
 
+/* v-pause-offscreen (src/directives/pauseOffscreen.ts): элемент вне экрана — его анимации стоят */
+.pause-offscreen-hidden,
+.pause-offscreen-hidden *,
+.pause-offscreen-hidden::before,
+.pause-offscreen-hidden::after,
+.pause-offscreen-hidden *::before,
+.pause-offscreen-hidden *::after {
+  animation-play-state: paused !important;
+}
+
 /* v-drag-scroll (src/directives/dragScroll.ts): прокрутка без полосы — колесом и перетаскиванием мыши */
 .drag-scroll {
   scrollbar-width: none;

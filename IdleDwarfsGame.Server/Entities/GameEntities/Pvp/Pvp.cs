@@ -55,10 +55,28 @@ public class RankedSquad
 
     // Герои по порядку мест, JSON. Енамы строками — как и в таблице героев, чтобы порядок значений можно было менять
     public string HeroesJson { get; set; } = "[]";
+    // Мощь снимка: считается при закреплении, а на старте сервера пересчитывается на случай правок баланса
+    public int Power { get; set; }
 
     private static readonly JsonSerializerOptions Json = new() { Converters = { new JsonStringEnumConverter() } };
 
     public List<Hero> Heroes() => JsonSerializer.Deserialize<List<Hero>>(HeroesJson, Json) ?? [];
 
     public static string Serialize(IEnumerable<Hero> heroes) => JsonSerializer.Serialize(heroes, Json);
+}
+
+// Разведка соперника: точный прогноз боя (CombatPower.Forecast), который иначе не показывается.
+// Лимит — PvpScouting.DailyLimit разных соперников в сутки (00:00 UTC) на обе арены вместе.
+// Повторная разведка того же соперника в те же сутки бесплатна и пересчитывает прогноз (строка перезаписывается)
+public class PvpScout
+{
+    public Guid UserId { get; set; }
+    public DateTime Day { get; set; }
+    public PvpMode Mode { get; set; }
+    public Guid OpponentUserId { get; set; }
+    // Прогноз на момент разведки
+    public double WinChance { get; set; }
+    public int PlayerPower { get; set; }
+    public int EnemyPower { get; set; }
+    public DateTime ScoutedAt { get; set; }
 }

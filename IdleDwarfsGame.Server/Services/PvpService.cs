@@ -8,7 +8,9 @@ public enum PvpError
     AlreadyBeaten,
     // Рейтинговая арена: отряд не закреплён / сегодня его уже закрепляли
     NoRankedSquad,
-    SquadChangeCooldown
+    SquadChangeCooldown,
+    // Разведка: на сегодня потрачены все PvpScouting.DailyLimit
+    ScoutLimit
 }
 
 public class PvpException(PvpError code, string message) : InvalidOperationException(message)
@@ -26,6 +28,7 @@ public class PvpService(
     IHeroesRepository heroes,
     IEntityFactory entityFactory,
     CombatService combatService,
+    SquadPowerService squadPower,
     TimeProvider time
 )
 {
@@ -39,10 +42,13 @@ public class PvpService(
     {
         var now = Now;
         var day = PvpSeasons.DayOf(now);
-        var (_, squad) = await RequirePlayerAsync(userId);
-        int myPower = SquadPower(squad);
+        var (user, squad) = await RequirePlayerAsync(userId);
+        int myPower = squadPower.Of(squad);
+        // Подстраховка: если какое-то действие над героями забыло пересчитать мощь, другие увидят верную после нашего захода
+        await squadPower.RefreshAsync(user.PlayerId);
         var beaten = await pvp.GetBeatenAsync(userId, day, PvpMode.Casual);
         var pick = await PickOpponentsAsync(userId, myPower, day, beaten);
+        var scouts = await GetScoutsAsync(userId, PvpMode.Casual, day);
 
         var squadWorld = new World();
         entityFactory.CreateSquad(squadWorld, squad, teamId: 1);
@@ -55,8 +61,13 @@ public class PvpService(
             Squad = CombatSnapshot.Units(squadWorld),
             PowerSpreadPercent = pick.SpreadPercent,
             OpponentCount = PvpMatchmaking.OpponentCount,
-            Opponents = pick.Opponents.Select(o => ToOpponentInfo(o.Candidate.UserId, o.Candidate.Username, o.Candidate.Squad, o.Power, squad, myPower)).ToList(),
+            Opponents = pick.Opponents
+                .Select(o => ToOpponentInfo(o.Candidate.UserId, o.Candidate.Username, o.Squad, o.Candidate.Power, myPower,
+                    ForecastOf(scouts.ByOpponent.GetValueOrDefault(o.Candidate.UserId))))
+                .ToList(),
             BeatenToday = beaten.Count,
+            ScoutsLeft = scouts.Left,
+            ScoutLimit = PvpScouting.DailyLimit,
             Seasons = await GetSeasonsAsync(userId, now, PvpMode.Casual),
             History = await GetHistoryAsync(userId, PvpMode.Casual),
             Arena = PvpArenaInfo.Current
@@ -75,21 +86,13 @@ public class PvpService(
         if (beaten.Contains(opponentUserId))
             throw new PvpException(PvpError.AlreadyBeaten, "You have already beaten this player today");
 
-        // Драться можно только с теми, кого предложил подбор, — иначе через API можно было бы выбрать самого слабого
-        int myPower = SquadPower(squad);
-        var pick = await PickOpponentsAsync(userId, myPower, day, beaten);
-        var opponent = pick.Opponents.FirstOrDefault(o => o.Candidate.UserId == opponentUserId);
-        if (opponent == null)
-        {
-            if (await pvp.GetCandidateAsync(opponentUserId) == null)
-                throw new PvpException(PvpError.OpponentNotFound, "Opponent not found");
-            throw new PvpException(PvpError.NotAnOpponent, "This player is not among your opponents");
-        }
+        int myPower = squadPower.Of(squad);
+        var opponent = await RequireMatchedAsync(userId, opponentUserId, myPower, day, beaten);
 
-        var scenario = new PvpScenario(entityFactory, opponent.Candidate.Squad);
+        var scenario = new PvpScenario(entityFactory, opponent.Squad);
         var combat = await combatService.StartPvpFight(user.PlayerId, scenario);
         bool won = combat.WinningTeam == 1;
-        int points = PvpRating.DeltaFor(won, myPower, opponent.Power);
+        int points = PvpRating.DeltaFor(won, myPower, opponent.Candidate.Power);
 
         var battle = new PvpBattle
         {
@@ -101,54 +104,70 @@ public class PvpService(
             Day = day,
             AttackerWon = won,
             AttackerPower = myPower,
-            DefenderPower = opponent.Power,
+            DefenderPower = opponent.Candidate.Power,
             Points = points
         };
         return await RecordFightAsync(battle, opponent.Candidate.Username, combat);
     }
 
+    // Разведка соперника из сегодняшнего подбора: точный прогноз боя за счёт дневного лимита
+    public async Task<PvpScoutResult> ScoutAsync(Guid userId, Guid opponentUserId)
+    {
+        var now = Now;
+        var day = PvpSeasons.DayOf(now);
+        var (_, squad) = await RequirePlayerAsync(userId);
+        if (squad.Count == 0)
+            throw new PvpException(PvpError.NoSquad, "Your squad is empty");
+
+        var beaten = await pvp.GetBeatenAsync(userId, day, PvpMode.Casual);
+        var opponent = await RequireMatchedAsync(userId, opponentUserId, squadPower.Of(squad), day, beaten);
+        return await ScoutAsync(userId, PvpMode.Casual, opponentUserId, squad, opponent.Squad, now);
+    }
+
     /* ===== Подбор ===== */
 
-    private record Rated(PvpCandidate Candidate, int Power);
+    // Выбранный соперник с отрядом защиты
+    private record Matched(PvpCandidate Candidate, List<Hero> Squad);
 
-    private async Task<PvpMatchmaking.Pick<Rated>> PickOpponentsAsync(Guid userId, int myPower, DateTime day, HashSet<Guid> beaten)
+    // Подбор идёт по сохранённой мощи (Player.SquadPower) — отряды грузятся только для выбранных
+    private async Task<PvpMatchmaking.Pick<Matched>> PickOpponentsAsync(Guid userId, int myPower, DateTime day, HashSet<Guid> beaten)
     {
         if (myPower <= 0)
-            return new PvpMatchmaking.Pick<Rated>([], PvpMatchmaking.StartSpreadPercent);
+            return new PvpMatchmaking.Pick<Matched>([], PvpMatchmaking.StartSpreadPercent);
 
         var candidates = (await pvp.GetCandidatesAsync(userId))
-            .Where(c => !beaten.Contains(c.UserId))
-            .Select(c => new Rated(c, SquadPower(c.Squad)))
-            .Where(c => c.Power > 0);
+            .Where(c => !beaten.Contains(c.UserId));
+        var pick = PvpMatchmaking.Choose(candidates, c => c.UserId, c => c.Power, myPower, PvpMatchmaking.SeedFor(userId, day));
 
-        return PvpMatchmaking.Choose(candidates, c => c.Candidate.UserId, c => c.Power, myPower, PvpMatchmaking.SeedFor(userId, day));
+        var squads = await pvp.GetDefenseSquadsAsync(pick.Opponents.Select(c => c.PlayerId).ToList());
+        // Отряд могли разобрать между чтением мощи и отрядов — такого соперника просто не показываем
+        var opponents = pick.Opponents
+            .Where(c => squads.ContainsKey(c.PlayerId))
+            .Select(c => new Matched(c, squads[c.PlayerId]))
+            .ToList();
+        return new PvpMatchmaking.Pick<Matched>(opponents, pick.SpreadPercent);
     }
 
-    // Мощь отряда — сумма мощи героев, собранных той же фабрикой, что и для боя
-    public int SquadPower(IEnumerable<Hero> squad)
+    // Драться и разведывать можно только тех, кого предложил подбор, — иначе через API можно было бы выбрать самого слабого
+    private async Task<Matched> RequireMatchedAsync(Guid userId, Guid opponentUserId, int myPower, DateTime day, HashSet<Guid> beaten)
     {
-        var world = new World();
-        return entityFactory.CreateSquad(world, squad, teamId: 1).Sum(id => CombatPower.Of(world, id).Total);
+        var pick = await PickOpponentsAsync(userId, myPower, day, beaten);
+        var opponent = pick.Opponents.FirstOrDefault(o => o.Candidate.UserId == opponentUserId);
+        if (opponent != null)
+            return opponent;
+
+        if (await pvp.GetCandidateAsync(opponentUserId) == null)
+            throw new PvpException(PvpError.OpponentNotFound, "Opponent not found");
+        throw new PvpException(PvpError.NotAnOpponent, "This player is not among your opponents");
     }
 
-    // Соперник с прогнозом боя; очки за бой — по мощи (рейтинговая арена потом пересчитывает их по рейтингу)
+    // Соперник в списке: грубая оценка по мощи всегда, точный прогноз — только разведанный (forecast).
+    // Очки за бой — по мощи (рейтинговая арена потом пересчитывает их по рейтингу)
     public PvpOpponentInfo ToOpponentInfo(Guid opponentUserId, string username, IReadOnlyList<Hero> opponentSquad, int opponentPower,
-        IReadOnlyList<Hero> mySquad, int myPower)
+        int myPower, BattleForecast? forecast)
     {
-        var scenario = new PvpScenario(entityFactory, opponentSquad);
-
-        // Мир прогноза собирается как настоящий бой: наш отряд, отряд соперника, арена PvP
-        World BuildWorld()
-        {
-            var world = new World();
-            entityFactory.CreateSquad(world, mySquad, teamId: 1);
-            scenario.SpawnDefenders(world);
-            world.AddGlobalEffect(new RisingFuryArenaEffect());
-            return world;
-        }
-
         var defenders = new World();
-        scenario.SpawnDefenders(defenders);
+        new PvpScenario(entityFactory, opponentSquad).SpawnDefenders(defenders);
 
         return new PvpOpponentInfo
         {
@@ -157,11 +176,78 @@ public class PvpService(
             Power = opponentPower,
             PowerDiffPercent = Math.Round(PvpMatchmaking.DiffPercent(myPower, opponentPower), 1),
             Squad = CombatSnapshot.Units(defenders),
-            Forecast = CombatPower.Forecast(BuildWorld),
+            Threat = PvpScouting.ThreatOf(myPower, opponentPower),
+            Forecast = forecast,
             WinPoints = PvpRating.WinFor(myPower, opponentPower),
             LossPoints = PvpRating.LossFor(myPower, opponentPower)
         };
     }
+
+    /* ===== Разведка ===== */
+
+    // Сегодняшние разведки на этой арене (по сопернику) и сколько осталось — лимит общий для обеих арен
+    public async Task<(Dictionary<Guid, PvpScout> ByOpponent, int Left)> GetScoutsAsync(Guid userId, PvpMode mode, DateTime day)
+    {
+        var scouts = await pvp.GetScoutsAsync(userId, day);
+        return (scouts.Where(s => s.Mode == mode).ToDictionary(s => s.OpponentUserId),
+            Math.Max(0, PvpScouting.DailyLimit - scouts.Count));
+    }
+
+    // Общая часть разведки обеих арен: прогноз прогоняется только здесь, по запросу игрока.
+    // Тот же соперник повторно — бесплатно (например, после смены отряда); новый — пока не кончился лимит
+    public async Task<PvpScoutResult> ScoutAsync(Guid userId, PvpMode mode, Guid opponentUserId,
+        IReadOnlyList<Hero> mySquad, IReadOnlyList<Hero> opponentSquad, DateTime now)
+    {
+        var day = PvpSeasons.DayOf(now);
+        var scouts = await pvp.GetScoutsAsync(userId, day);
+        bool again = scouts.Any(s => s.Mode == mode && s.OpponentUserId == opponentUserId);
+        // Лимит проверяем до прогноза, чтобы не гонять 50 боёв впустую; SaveScoutAsync проверит его ещё раз атомарно
+        if (!again && scouts.Count >= PvpScouting.DailyLimit)
+            throw new PvpException(PvpError.ScoutLimit, "No scouts left today");
+
+        var forecast = Forecast(mySquad, opponentSquad);
+        var scout = new PvpScout
+        {
+            UserId = userId,
+            Day = day,
+            Mode = mode,
+            OpponentUserId = opponentUserId,
+            WinChance = forecast.WinChance,
+            PlayerPower = forecast.PlayerPower,
+            EnemyPower = forecast.EnemyPower,
+            ScoutedAt = now
+        };
+        if (!await pvp.SaveScoutAsync(scout, PvpScouting.DailyLimit))
+            throw new PvpException(PvpError.ScoutLimit, "No scouts left today");
+
+        return new PvpScoutResult
+        {
+            OpponentUserId = opponentUserId,
+            Forecast = forecast,
+            ScoutsLeft = Math.Max(0, PvpScouting.DailyLimit - scouts.Count - (again ? 0 : 1))
+        };
+    }
+
+    // Мир прогноза собирается как настоящий бой: наш отряд, отряд соперника, арена PvP
+    private BattleForecast Forecast(IReadOnlyList<Hero> mySquad, IReadOnlyList<Hero> opponentSquad)
+    {
+        var scenario = new PvpScenario(entityFactory, opponentSquad);
+        return CombatPower.Forecast(() =>
+        {
+            var world = new World();
+            entityFactory.CreateSquad(world, mySquad, teamId: 1);
+            scenario.SpawnDefenders(world);
+            world.AddGlobalEffect(new RisingFuryArenaEffect());
+            return world;
+        });
+    }
+
+    public static BattleForecast? ForecastOf(PvpScout? scout) => scout == null ? null : new BattleForecast
+    {
+        PlayerPower = scout.PlayerPower,
+        EnemyPower = scout.EnemyPower,
+        WinChance = scout.WinChance
+    };
 
     // Записывает бой и очки во всех сезонах его арены
     public async Task<PvpFightResult> RecordFightAsync(PvpBattle battle, string opponentName, CombatResult combat)

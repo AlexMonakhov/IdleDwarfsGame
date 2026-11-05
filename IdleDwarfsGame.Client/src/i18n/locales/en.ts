@@ -899,6 +899,17 @@ const en = {
     matchHint: '{count} real players whose squad power differs from yours by no more than {spread}%',
     beatenToday: 'beaten today: {count}',
     diffHint: 'How much stronger (+) or weaker (−) this squad is than yours',
+    // Rough estimate by squad power; the exact chance comes only from scouting
+    threat: {
+      Weaker: 'Weaker',
+      Even: 'Even',
+      Stronger: 'Stronger',
+    },
+    threatHint: 'Estimated by squad power. Power can’t see counters — scouting shows the exact chance',
+    scout: 'Scout',
+    scoutHint: 'Simulate the fight against this squad 50 times to get the exact win chance. {left} of {limit} left today — different opponents across both arenas',
+    rescoutHint: 'Recalculate for free — e.g. after changing your squad',
+    scoutsLeft: 'scouts left: {left} of {limit}',
     noOpponents: 'No opponents left for today — come back after the reset',
     fight: 'Fight',
     searching: 'Searching for opponents...',
@@ -932,6 +943,7 @@ const en = {
       AlreadyBeaten: 'You have already beaten this player today',
       NoRankedSquad: 'Lock a squad for the ranked arena first',
       SquadChangeCooldown: 'Your arena squad was already locked today — you can change it after 00:00 UTC',
+      ScoutLimit: 'No scouts left today — new ones arrive after 00:00 UTC',
     },
   },
   statuses: {

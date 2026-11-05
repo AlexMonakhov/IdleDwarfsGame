@@ -44,6 +44,7 @@ public class AbilityService(
     IExpeditionRepository expeditions,
     IEntityFactory entityFactory,
     IPlayerRepository players,
+    SquadPowerService squadPower,
     Random random)
 {
     public const int MaxLevel = 3;
@@ -74,6 +75,7 @@ public class AbilityService(
         if (!await abilities.ExtractAsync(hero, ability))
             throw new AbilityException(AbilityError.Changed, "The dwarf has just changed, try again");
 
+        await squadPower.RefreshIfInSquadAsync(playerId, [hero]);
         return await ResultAsync(playerId, null);
     }
 
@@ -93,6 +95,7 @@ public class AbilityService(
         if (!await abilities.InsertAsync(ability, hero))
             throw new AbilityException(AbilityError.Changed, "The ability has just been used, try again");
 
+        await squadPower.RefreshIfInSquadAsync(playerId, [hero]);
         return await ResultAsync(playerId, hero);
     }
 
@@ -144,6 +147,7 @@ public class AbilityService(
         if (!await abilities.FuseAsync(playerId, heroIds, result, refund))
             throw new AbilityException(AbilityError.Changed, "One of the dwarfs has just changed, try again");
 
+        await squadPower.RefreshIfInSquadAsync(playerId, dwarfs);
         var outcome = await ResultAsync(playerId, result);
         outcome.Refund = refund;
         outcome.Resources = await players.GetResourcesAsync(playerId) ?? new PlayerResources();

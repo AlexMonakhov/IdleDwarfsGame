@@ -123,6 +123,13 @@ public static class CombatPower
         return Of(world, factory.CreateUnit(world, hero, teamId: 1, position: 1));
     }
 
+    // Мощь отряда — сумма мощи героев, собранных той же фабрикой, что и для боя. Боя не проводит: чистая формула
+    public static int OfSquad(IEntityFactory factory, IEnumerable<Hero> squad)
+    {
+        var world = new World();
+        return factory.CreateSquad(world, squad, teamId: 1).Sum(id => Of(world, id).Total);
+    }
+
     // Прогноз боя. buildWorld собирает мир так же, как перед настоящим боем (отряд, враги, арена) —
     // каждый прогон получает свежий мир, потому что бой меняет его состояние
     public static BattleForecast Forecast(Func<World> buildWorld, int playerTeam = 1)
