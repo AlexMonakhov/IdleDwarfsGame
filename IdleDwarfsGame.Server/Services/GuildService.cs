@@ -389,6 +389,6 @@ public class GuildService(
         return membership.GuildId;
     }
 
-    // SQLite возвращает даты без Kind — без Utc JSON уйдёт без "Z", и браузер прочитает его как местное время
+    // БД возвращает даты без Kind — без Utc JSON уйдёт без "Z", и браузер прочитает его как местное время
     private static DateTime AsUtc(DateTime value) => DateTime.SpecifyKind(value, DateTimeKind.Utc);
 }

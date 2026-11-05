@@ -142,8 +142,13 @@ public class PvpRepository(GameDbContext context) : IPvpRepository
 
     public async Task<bool> SaveScoutAsync(PvpScout scout, int dailyLimit)
     {
-        // Транзакция SQLite по умолчанию IMMEDIATE: две параллельные разведки не проскочат лимит, прочитав один и тот же счёт
         await using var transaction = await context.Database.BeginTransactionAsync();
+
+        // UPDATE без изменений блокирует строку игрока до коммита: две параллельные разведки не проскочат лимит,
+        // прочитав один и тот же счёт (в SQL Server на READ COMMITTED сам COUNT от этого не защищает)
+        await context.Users
+            .Where(u => u.Id == scout.UserId)
+            .ExecuteUpdateAsync(s => s.SetProperty(u => u.Username, u => u.Username));
 
         int updated = await context.PvpScouts
             .Where(s => s.UserId == scout.UserId && s.Day == scout.Day && s.Mode == scout.Mode && s.OpponentUserId == scout.OpponentUserId)

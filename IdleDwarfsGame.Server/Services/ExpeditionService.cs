@@ -189,7 +189,7 @@ public class ExpeditionService(
         HeroIds = expedition.Heroes.OrderBy(h => h.Slot).Select(h => h.HeroId).ToList()
     };
 
-    // SQLite возвращает даты без Kind — без Utc JSON уйдёт без "Z", и браузер прочитает его как местное время
+    // БД возвращает даты без Kind — без Utc JSON уйдёт без "Z", и браузер прочитает его как местное время
     private static DateTime? AsUtc(DateTime? value) =>
         value is { } date ? DateTime.SpecifyKind(date, DateTimeKind.Utc) : null;
 }

@@ -27,7 +27,10 @@ builder.Services.AddCors(options =>
 });
 builder.Services.AddDbContext<GameDbContext>(options =>
 {
-    options.UseSqlite("Data Source=game.db;Foreign Keys=True");
+    // Строку подключения можно переопределить переменной окружения ConnectionStrings__GameDb или user-secrets
+    var connectionString = builder.Configuration.GetConnectionString("GameDb")
+        ?? throw new InvalidOperationException("Connection string 'GameDb' is missing");
+    options.UseSqlServer(connectionString);
     if (builder.Environment.IsDevelopment())
     {
         options

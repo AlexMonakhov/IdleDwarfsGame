@@ -1,4 +1,4 @@
-using Microsoft.Data.Sqlite;
+using System.Data.Common;
 using Microsoft.EntityFrameworkCore;
 
 public class MiningRepository(GameDbContext context) : IMiningRepository
@@ -109,7 +109,7 @@ public class MiningRepository(GameDbContext context) : IMiningRepository
                     .SetProperty(m => m.LastDigAt, mine.LastDigAt)
                     .SetProperty(m => m.Version, expectedVersion + 1));
         }
-        catch (SqliteException ex) when (ex.SqliteErrorCode == 19)
+        catch (DbException ex) when (DbErrors.IsUniqueViolation(ex))
         {
             // Уникальный индекс по HeroId: дворфа только что поставили в другую шахту
             return MiningSaveOutcome.HeroTaken;

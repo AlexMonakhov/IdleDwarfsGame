@@ -348,6 +348,6 @@ public class PvpService(
         return (user, await heroes.GetSquadAsync(user.PlayerId));
     }
 
-    // SQLite возвращает даты без Kind — без Utc JSON уйдёт без "Z", и браузер прочитает его как местное время
+    // БД возвращает даты без Kind — без Utc JSON уйдёт без "Z", и браузер прочитает его как местное время
     public static DateTime AsUtc(DateTime value) => DateTime.SpecifyKind(value, DateTimeKind.Utc);
 }
