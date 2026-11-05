@@ -15,6 +15,7 @@ import { useRoute, useRouter } from 'vue-router';
 import backgroundMusic from "@/assets/sounds/Beneath_The_Marble_Dome.mp3";
 import { useAuth } from '@/composables/UseAuth';
 import { useResources } from '@/composables/UseResources';
+import { useHeroes } from '@/composables/UseHeroes';
 import { usePresence } from '@/composables/UsePresence';
 import { useGuild } from '@/composables/UseGuild';
 import { usePvp } from '@/composables/UsePvp';
@@ -28,6 +29,7 @@ const router = useRouter();
 const route = useRoute();
 const { isAuthenticated, logout } = useAuth();
 const { resources, refresh: refreshResources, clear: clearResources } = useResources();
+const { clear: clearHeroes } = useHeroes();
 const { incomingFriendRequests, start: startPresence, stop: stopPresence } = usePresence();
 
 const expeditionsOpen = ref(false);
@@ -48,6 +50,7 @@ watch(isAuthenticated, authenticated => {
         startPresence();
     } else {
         clearResources();
+        clearHeroes();
         stopPresence();
     }
 }, { immediate: true });

@@ -4,6 +4,9 @@ import { BattleForecast } from '@/models/types/Campaign';
 
 export type PvpSeasonType = 'Daily' | 'Weekly' | 'Monthly';
 
+// Грубая оценка соперника по мощи отрядов (PvpScouting.ThreatOf): ±3% — равный
+export type PvpThreat = 'Weaker' | 'Even' | 'Stronger';
+
 // Арена PvP: каждые intervalRounds полных раундов весь урон растёт ещё на damageBonusPercent
 export interface PvpArenaInfo {
     name: string;
@@ -22,7 +25,9 @@ export interface PvpOpponentInfo {
     // + — соперник сильнее, − — слабее, в процентах от нашей мощи
     powerDiffPercent: number;
     squad: CombatUnitInfo[];
-    forecast: BattleForecast;
+    threat: PvpThreat;
+    // Точный прогноз — только если соперника сегодня разведали, иначе null
+    forecast: BattleForecast | null;
     // Рейтинговая арена: рейтинг соперника и насколько он выше (+) или ниже (−) нашего; в обычной — null
     rating: number | null;
     ratingDiffPercent: number | null;
@@ -82,9 +87,19 @@ export interface PvpOverview {
     opponentCount: number;
     opponents: PvpOpponentInfo[];
     beatenToday: number;
+    // Разведок осталось на сегодня (лимит общий для обеих арен) и сколько их в сутки
+    scoutsLeft: number;
+    scoutLimit: number;
     seasons: PvpSeasonInfo[];
     history: PvpBattleInfo[];
     arena: PvpArenaInfo;
+}
+
+// Итог разведки соперника
+export interface PvpScoutResult {
+    opponentUserId: string;
+    forecast: BattleForecast;
+    scoutsLeft: number;
 }
 
 // Закреплённый отряд рейтинговой арены — снимок на момент закрепления
@@ -114,6 +129,8 @@ export interface RankedOverview {
     opponentCount: number;
     opponents: PvpOpponentInfo[];
     beatenToday: number;
+    scoutsLeft: number;
+    scoutLimit: number;
     seasons: PvpSeasonInfo[];
     history: PvpBattleInfo[];
     arena: PvpArenaInfo;

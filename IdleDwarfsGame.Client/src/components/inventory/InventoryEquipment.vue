@@ -1,11 +1,10 @@
 <script lang="ts" setup>
-import { onActivated, ref, watch } from 'vue';
+import { computed, onActivated, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import EquipmentList from '@/components/equipment/EquipmentList.vue';
 import EquipmentApiService from '@/services/apiServices/EquipmentApiService';
-import HeroesApiService from '@/services/apiServices/HeroesApiService';
+import { useHeroes } from '@/composables/UseHeroes';
 import { EquipmentInfo, EquipmentType } from '@/models/types/Equipment';
-import { HeroInfo } from '@/models/types/Heroes';
 
 // Все предметы игрока, только просмотр: надевают их в окне прокачки.
 // refreshToken меняется, когда из сундука что-то выпало
@@ -14,7 +13,9 @@ const props = defineProps<{ refreshToken?: number }>();
 const { t } = useI18n();
 
 const items = ref<EquipmentInfo[]>([]);
-const heroes = ref<HeroInfo[]>([]);
+// Герои — только чтобы подписать, на ком предмет: берём общий список, а не запрашиваем его ещё раз
+const { heroes: cachedHeroes, refresh: refreshHeroes } = useHeroes();
+const heroes = computed(() => cachedHeroes.value ?? []);
 const filter = ref<EquipmentType | null>(null);
 const loading = ref(true);
 const errorMessage = ref<string | null>(null);
@@ -22,9 +23,9 @@ const errorMessage = ref<string | null>(null);
 const load = async () => {
     errorMessage.value = null;
     try {
-        [items.value, heroes.value] = await Promise.all([
+        [items.value] = await Promise.all([
             EquipmentApiService.getMyEquipment(),
-            HeroesApiService.getMyHeroes(),
+            refreshHeroes(),
         ]);
     } catch {
         errorMessage.value = t('inventory.loadError');

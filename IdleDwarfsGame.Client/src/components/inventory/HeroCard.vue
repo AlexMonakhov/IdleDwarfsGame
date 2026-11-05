@@ -52,6 +52,8 @@ const upgradeStars = computed<number[]>(() => {
         }]"
         :draggable="!disabled && !selectable"
     >
+        <!-- Отблеск престижа по кромке оправы (стили — .hero-card-prestige-ring) -->
+        <span v-if="aura !== 'none'" class="hero-card-prestige-ring" aria-hidden="true"><span class="hero-card-prestige-spin"></span></span>
         <!-- Ранг — по звезде за каждый, на верхней кромке оправы. TODO: заменить символ на иконку звезды -->
         <span class="hero-card-rank" v-tooltip="t('heroUpgrade.rank', { rank: hero.level })">
             <span v-for="index in hero.level" :key="index" class="hero-card-rank-star">★</span>
@@ -246,32 +248,49 @@ const upgradeStars = computed<number[]>(() => {
 }
 
 /* ===== С ранга AURA_MIN_RANK: отблеск бежит по кромке оправы, вокруг карточки дышит свечение стихии ===== */
-@property --prestige-angle {
-    syntax: '<angle>';
-    initial-value: 0deg;
-    inherits: false;
-}
 
 /* Своё наложение слоёв: свечение (z-index -1) остаётся под карточкой, но над фоном окна */
 .hero-card-prestige {
     isolation: isolate;
 }
 
-.hero-card-prestige::before,
+/* Свечение вокруг карточки */
 .hero-card-prestige::after {
     content: '';
     position: absolute;
+    inset: 0;
+    z-index: -1;
     border-radius: inherit;
     pointer-events: none;
+    box-shadow: 0 0 14px 2px color-mix(in srgb, var(--card-accent) 70%, transparent);
+    animation: hero-prestige-pulse 2.6s ease-in-out infinite;
 }
 
-/* Кольцо толщиной в 3px по краю оправы */
-.hero-card-prestige::before {
+/* Кольцо толщиной в 3px по краю оправы. Маска неподвижна и вырезает из вращающегося квадрата только кромку.
+   Крутится transform, а не угол градиента: такую анимацию ведёт видеокарта, без перерисовки каждый кадр
+   (анимация угла через @property перерисовывала градиент с маской на каждой карточке — 300 карточек давали 16 FPS) */
+.hero-card-prestige-ring {
+    position: absolute;
     inset: -1px;
     z-index: 2;
     padding: 3px;
+    overflow: hidden;
+    border-radius: inherit;
+    pointer-events: none;
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask-composite: exclude;
+}
+
+/* Квадрат с центром в центре карточки и стороной больше её диагонали — при повороте углы не открываются */
+.hero-card-prestige-spin {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 250%;
+    aspect-ratio: 1;
     background: conic-gradient(
-        from var(--prestige-angle),
         transparent 0deg,
         transparent 220deg,
         var(--card-accent) 290deg,
@@ -279,23 +298,14 @@ const upgradeStars = computed<number[]>(() => {
         var(--card-accent) 345deg,
         transparent 360deg
     );
-    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-    -webkit-mask-composite: xor;
-    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-    mask-composite: exclude;
+    transform: translate(-50%, -50%);
+    will-change: transform;
     animation: hero-prestige-spin 3.2s linear infinite;
 }
 
-.hero-card-prestige::after {
-    inset: 0;
-    z-index: -1;
-    box-shadow: 0 0 14px 2px color-mix(in srgb, var(--card-accent) 70%, transparent);
-    animation: hero-prestige-pulse 2.6s ease-in-out infinite;
-}
-
 /* Бриллиант: вместо одного цвета по кромке бежит весь спектр, и он же переливается в свечении */
-.hero-card-prestige.hero-card-white::before {
-    background: conic-gradient(from var(--prestige-angle), #ff6b6b, #ffd166, #6bff95, #6bd5ff, #a78bfa, #ff7ad9, #ff6b6b);
+.hero-card-white .hero-card-prestige-spin {
+    background: conic-gradient(#ff6b6b, #ffd166, #6bff95, #6bd5ff, #a78bfa, #ff7ad9, #ff6b6b);
     animation-duration: 4s;
 }
 
@@ -305,7 +315,7 @@ const upgradeStars = computed<number[]>(() => {
 }
 
 /* Тьма: кольцо крутится медленно и в обратную сторону, свечение глубокое */
-.hero-card-prestige.hero-card-purple::before {
+.hero-card-purple .hero-card-prestige-spin {
     animation-duration: 5s;
     animation-direction: reverse;
 }
@@ -315,7 +325,7 @@ const upgradeStars = computed<number[]>(() => {
 }
 
 @keyframes hero-prestige-spin {
-    to { --prestige-angle: 360deg; }
+    to { transform: translate(-50%, -50%) rotate(360deg); }
 }
 
 @keyframes hero-prestige-pulse {
@@ -328,7 +338,7 @@ const upgradeStars = computed<number[]>(() => {
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .hero-card-prestige::before,
+    .hero-card-prestige-spin,
     .hero-card-prestige::after {
         animation: none !important;
     }
