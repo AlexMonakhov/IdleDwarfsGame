@@ -24,13 +24,27 @@ public class CampaignController(CampaignService campaignService, RewardService r
         }
     }
 
-    // Награда за пройденный уровень (CampaignOverview.PendingRewardId) — только теперь она попадает на аккаунт
+    // Награда за пройденный уровень (ClearedStageInfo.RewardId) — только теперь она попадает на аккаунт
     [HttpPost("rewards/{rewardId:guid}/claim")]
     public async Task<ActionResult<RewardClaimResult>> ClaimReward(Guid rewardId)
     {
         try
         {
             return Ok(await rewardService.ClaimAsync(CurrentPlayerId(), rewardId));
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+
+    // «Забрать всё»: все незабранные награды кампании одной суммой
+    [HttpPost("rewards/claim-all")]
+    public async Task<ActionResult<RewardClaimAllResult>> ClaimAllRewards()
+    {
+        try
+        {
+            return Ok(await rewardService.ClaimAllAsync(CurrentPlayerId(), RewardSource.Campaign));
         }
         catch (InvalidOperationException ex)
         {

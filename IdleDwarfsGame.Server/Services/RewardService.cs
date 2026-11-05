@@ -12,4 +12,19 @@ public class RewardService(IRewardRepository rewards, IPlayerRepository players,
             Resources = await players.GetResourcesAsync(playerId) ?? new PlayerResources()
         };
     }
+
+    // Кнопка «Забрать всё» в кампании и башне: все незабранные награды источника одной суммой
+    public async Task<RewardClaimAllResult> ClaimAllAsync(Guid playerId, RewardSource source)
+    {
+        var claimed = await rewards.ClaimAllAsync(playerId, source, time.GetUtcNow().UtcDateTime);
+        if (claimed.Count == 0)
+            throw new InvalidOperationException("Nothing to claim");
+
+        return new RewardClaimAllResult
+        {
+            RewardIds = claimed.Select(r => r.Id).ToList(),
+            Reward = RewardInfo.Sum(claimed),
+            Resources = await players.GetResourcesAsync(playerId) ?? new PlayerResources()
+        };
+    }
 }

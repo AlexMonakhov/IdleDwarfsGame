@@ -13,6 +13,20 @@ public class TowerFloorInfo
     public RewardInfo Reward { get; set; } = new();
 }
 
+// Пройденный этаж в списке башни — без врагов и прогноза (их считать дорого, а бой за него не нужен)
+public class ClearedFloorInfo
+{
+    public int Floor { get; set; }
+    public HeroElement Element { get; set; }
+    public StageType Type { get; set; }
+    public string Background { get; set; } = string.Empty;
+    // Этаж прошлой недели: награду за него так и не забрали, а башня с тех пор началась заново
+    public bool PreviousWeek { get; set; }
+    // Незабранная награда за этаж (null — уже забрана) и что в ней: награда башни фиксированная и видна заранее
+    public Guid? RewardId { get; set; }
+    public RewardInfo? Reward { get; set; }
+}
+
 public class TowerOverview
 {
     // Неделя башни: с понедельника 00:00 UTC до следующего
@@ -31,8 +45,11 @@ public class TowerOverview
     public int? SkipToFloor { get; set; }
     public RewardInfo? SkipReward { get; set; }
 
-    // Незабранная награда за этаж: пока она есть, вместо боя — кнопка «Забрать награды»
-    public Guid? PendingRewardId { get; set; }
+    // Пройденные этажи: все с незабранной наградой (и прошлых недель) и последний пройденный на этой неделе.
+    // Награды не мешают идти дальше — их можно забрать по одной или все разом
+    public List<ClearedFloorInfo> ClearedFloors { get; set; } = new();
+    // Сколько всего незабранных наград башни — подсветка кнопки «Забрать всё»
+    public int UnclaimedRewards { get; set; }
     // Отряд игрока один на все этажи, поэтому отдаётся один раз. Менять его можно между любыми боями
     public List<CombatUnitInfo> Squad { get; set; } = new();
     // Текущий этаж + несколько следующих заблокированных

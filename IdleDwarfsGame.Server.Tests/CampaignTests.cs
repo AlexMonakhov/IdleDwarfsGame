@@ -97,6 +97,10 @@ public class CampaignTests
         Assert.All(overview.Stages.Skip(1), s => Assert.Equal(StageStatus.Locked, s.Status));
         Assert.Equal(5, overview.Squad.Count);
         Assert.Equal("Burn", overview.Stages[0].Arena.EffectName);
+        // Над текущим — последний пройденный уровень, без награды (её нет в моке)
+        var last = Assert.Single(overview.ClearedStages);
+        Assert.Equal(2, last.Id);
+        Assert.Null(last.RewardId);
     }
 
     [Fact]
@@ -110,6 +114,7 @@ public class CampaignTests
 
         Assert.Null(overview.CurrentStageId);
         Assert.Empty(overview.Stages);
+        Assert.Equal(CampaignSeedData.Stages.Max(s => s.Id), Assert.Single(overview.ClearedStages).Id);
     }
 
     [Fact]
@@ -127,18 +132,26 @@ public class CampaignTests
         .ToList();
 
     [Fact]
-    public async Task Fight_BlockedUntilRewardIsClaimed()
+    public async Task Overview_ListsClearedStagesWithUnclaimedRewards_AboveTheCurrentOne()
     {
+        // Пройдены 1–3, награда за 2 уже забрана: в списке 1 (награда ждёт) и 3 (последний пройденный), дальше бой за 4
+        var repository = new SeedCampaignRepository();
+        foreach (int id in new[] { 1, 2, 3 })
+            await repository.MarkClearedAsync(HeroSeedData.DemoPlayerId, id);
+        var reward = new PlayerReward { Id = Guid.NewGuid(), PlayerId = HeroSeedData.DemoPlayerId, Source = RewardSource.Campaign, SourceId = 1 };
         var rewards = new Mock<IRewardRepository>();
-        rewards.Setup(r => r.GetUnclaimedAsync(HeroSeedData.DemoPlayerId, RewardSource.Campaign))
-            .ReturnsAsync(new PlayerReward { Id = Guid.NewGuid(), PlayerId = HeroSeedData.DemoPlayerId });
-        var service = CreateService(new SeedCampaignRepository(), rewards.Object);
+        rewards.Setup(r => r.GetUnclaimedAsync(HeroSeedData.DemoPlayerId, RewardSource.Campaign)).ReturnsAsync([reward]);
 
-        var error = await Assert.ThrowsAsync<InvalidOperationException>(() => service.FightAsync(HeroSeedData.DemoPlayerId, 1));
-        Assert.Contains("Claim", error.Message);
+        var overview = await CreateService(repository, rewards.Object).GetOverviewAsync(HeroSeedData.DemoPlayerId);
 
-        var overview = await service.GetOverviewAsync(HeroSeedData.DemoPlayerId);
-        Assert.NotNull(overview.PendingRewardId);
+        Assert.Equal(4, overview.CurrentStageId);
+        Assert.Equal(1, overview.UnclaimedRewards);
+        Assert.Equal(new[] { 1, 3 }, overview.ClearedStages.Select(s => s.Id));
+        Assert.Equal(reward.Id, overview.ClearedStages[0].RewardId);
+        Assert.Null(overview.ClearedStages[1].RewardId);
+        Assert.Equal(repository.Stage(1).Arena.Background, overview.ClearedStages[0].Background);
+        // Незабранная награда не мешает бою: текущий уровень доступен
+        Assert.Equal(StageStatus.Available, overview.Stages[0].Status);
     }
 
     private static CampaignService CreateService(ICampaignRepository repository, IRewardRepository? rewards = null)
@@ -146,10 +159,17 @@ public class CampaignTests
         var heroes = new Mock<IHeroesRepository>();
         heroes.Setup(h => h.GetSquadAsync(It.IsAny<Guid>(), It.IsAny<int>())).ReturnsAsync(DemoSquad());
 
+        if (rewards == null)
+        {
+            var noRewards = new Mock<IRewardRepository>();
+            noRewards.Setup(r => r.GetUnclaimedAsync(It.IsAny<Guid>(), It.IsAny<RewardSource>())).ReturnsAsync([]);
+            rewards = noRewards.Object;
+        }
+
         var scenarios = new ICombatScenario[] { new CampaignScenario(repository, Factory) };
         var combatService = new CombatService(Mock.Of<IWorldFactory>(), Mock.Of<ICombatEngine>(), scenarios);
         return new CampaignService(repository, heroes.Object, Factory, scenarios, combatService,
-            rewards ?? Mock.Of<IRewardRepository>(), new Random(0), TimeProvider.System);
+            rewards, new Random(0), TimeProvider.System);
     }
 
     // Кампания из сидов в памяти, без БД
@@ -179,6 +199,9 @@ public class CampaignTests
 
         public Task<List<CampaignStage>> GetStagesAsync(IReadOnlyCollection<int> stageIds) =>
             Task.FromResult(stageIds.Order().Select(id => _stages[id]).ToList());
+
+        public Task<List<CampaignStage>> GetStageHeadersAsync(IReadOnlyCollection<int> stageIds) =>
+            Task.FromResult(stageIds.Order().Where(_stages.ContainsKey).Select(id => _stages[id]).ToList());
 
         public Task<CampaignStage?> GetStageAsync(int stageId) => Task.FromResult(_stages.GetValueOrDefault(stageId));
 

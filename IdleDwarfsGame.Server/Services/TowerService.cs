@@ -27,7 +27,7 @@ public class TowerService(
         var squadWorld = new World();
         entityFactory.CreateSquad(squadWorld, squad, teamId: 1);
 
-        var pendingReward = await rewards.GetUnclaimedAsync(playerId, RewardSource.Tower);
+        var unclaimed = await rewards.GetUnclaimedAsync(playerId, RewardSource.Tower);
 
         return new TowerOverview
         {
@@ -40,7 +40,8 @@ public class TowerService(
             BestFloor = best,
             SkipToFloor = best > cleared ? best : null,
             SkipReward = best > cleared ? RewardInfo.From(TowerRewards.ForFloors(playerId, week, current, best, now)) : null,
-            PendingRewardId = pendingReward?.Id,
+            ClearedFloors = ClearedFloors(week, cleared, unclaimed),
+            UnclaimedRewards = unclaimed.Count,
             Squad = CombatSnapshot.Units(squadWorld),
             Floors = Enumerable.Range(current, 1 + LockedFloorsPreview)
                 .Select(floor => ToFloorInfo(playerId, week, floor, floor == current ? StageStatus.Available : StageStatus.Locked, squad, now))
@@ -58,10 +59,7 @@ public class TowerService(
         if (floor != cleared + 1)
             throw new InvalidOperationException($"Tower floor {floor} is locked");
 
-        // Кнопка боя заменяется на «Забрать награды», пока награду не заберут
-        if (await rewards.GetUnclaimedAsync(playerId, RewardSource.Tower) != null)
-            throw new InvalidOperationException("Claim the reward for the cleared floor first");
-
+        // Незабранные награды не мешают идти дальше: они ждут в списке башни
         var towerFloor = InfinityTower.Floor(week, floor);
         var combat = await combatService.StartTowerFight(playerId, new TowerFloorScenario(entityFactory, towerFloor));
 
@@ -90,10 +88,6 @@ public class TowerService(
         if (best <= cleared)
             throw new InvalidOperationException("Nothing to skip: the best floor of previous weeks is already reached");
 
-        // Иначе награда за последний этаж потерялась бы в списке незабранных
-        if (await rewards.GetUnclaimedAsync(playerId, RewardSource.Tower) != null)
-            throw new InvalidOperationException("Claim the reward for the cleared floor first");
-
         // Награды пропущенных этажей — по стихиям этой недели
         var reward = TowerRewards.ForFloors(playerId, week, cleared + 1, best, now);
         if (!await tower.AdvanceAsync(playerId, week, cleared, best, reward, now))
@@ -101,6 +95,37 @@ public class TowerService(
 
         var claim = await rewardService.ClaimAsync(playerId, reward.Id);
         return new TowerSkipResult { SkippedTo = best, Reward = claim.Reward, Resources = claim.Resources };
+    }
+
+    // Пройденные этажи для списка: по одному на каждую незабранную награду (этаж — SourceId, неделя — когда выдана)
+    // и последний пройденный на этой неделе — он стоит над текущим. Сначала прошлые недели, дальше по этажам.
+    // Стихия, тип и арена этажа считаются формулой — без врагов и прогноза
+    private static List<ClearedFloorInfo> ClearedFloors(DateTime week, int cleared, List<PlayerReward> unclaimed)
+    {
+        var entries = unclaimed
+            .Select(r => (Week: InfinityTower.WeekOf(r.CreatedAt), Floor: Math.Max(1, r.SourceId), Reward: (PlayerReward?)r))
+            .ToList();
+        if (cleared > 0 && !entries.Any(e => e.Week == week && e.Floor == cleared))
+            entries.Add((week, cleared, null));
+
+        return entries
+            .OrderBy(e => e.Week)
+            .ThenBy(e => e.Floor)
+            .Select(e =>
+            {
+                var element = InfinityTower.ElementOf(e.Week, e.Floor);
+                return new ClearedFloorInfo
+                {
+                    Floor = e.Floor,
+                    Element = element,
+                    Type = InfinityTower.IsBoss(e.Floor) ? StageType.Boss : StageType.Mobs,
+                    Background = InfinityTower.ArenaOf(element).Background,
+                    PreviousWeek = e.Week < week,
+                    RewardId = e.Reward?.Id,
+                    Reward = e.Reward == null ? null : RewardInfo.From(e.Reward)
+                };
+            })
+            .ToList();
     }
 
     private TowerFloorInfo ToFloorInfo(Guid playerId, DateTime week, int floor, StageStatus status, List<Hero> squad, DateTime now)

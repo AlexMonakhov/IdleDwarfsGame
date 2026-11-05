@@ -8,6 +8,10 @@ public interface ICampaignRepository
     /// Stages with arena and enemy templates loaded, ordered by Id.
     /// </summary>
     Task<List<CampaignStage>> GetStagesAsync(IReadOnlyCollection<int> stageIds);
+    /// <summary>
+    /// Stages with only the arena loaded (no enemies), ordered by Id — for cleared stages in the list.
+    /// </summary>
+    Task<List<CampaignStage>> GetStageHeadersAsync(IReadOnlyCollection<int> stageIds);
     Task<CampaignStage?> GetStageAsync(int stageId);
     Task<HashSet<int>> GetClearedStageIdsAsync(Guid playerId);
     /// <summary>
