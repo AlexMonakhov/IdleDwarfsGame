@@ -3,15 +3,43 @@ using Microsoft.EntityFrameworkCore;
 
 public class RewardRepository(GameDbContext context) : IRewardRepository
 {
-    public async Task<PlayerReward?> GetUnclaimedAsync(Guid playerId, RewardSource source)
+    public async Task<List<PlayerReward>> GetUnclaimedAsync(Guid playerId, RewardSource source)
     {
         return await context.PlayerRewards
             .AsNoTracking()
             .Include(r => r.Chests)
             .Include(r => r.Items)
             .Where(r => r.PlayerId == playerId && r.Source == source && r.ClaimedAt == null)
-            .OrderByDescending(r => r.CreatedAt)
-            .FirstOrDefaultAsync();
+            .OrderBy(r => r.CreatedAt)
+            .ThenBy(r => r.SourceId)
+            .ToListAsync();
+    }
+
+    public async Task<List<PlayerReward>> ClaimAllAsync(Guid playerId, RewardSource source, DateTime now)
+    {
+        var pending = await GetUnclaimedAsync(playerId, source);
+        var claimed = new List<PlayerReward>();
+        if (pending.Count == 0)
+            return claimed;
+
+        await using var transaction = await context.Database.BeginTransactionAsync();
+
+        foreach (var reward in pending)
+        {
+            // Условный апдейт по каждой награде: ту, что только что забрали в другой вкладке, второй раз не начислим
+            int updated = await context.PlayerRewards
+                .Where(r => r.Id == reward.Id && r.ClaimedAt == null)
+                .ExecuteUpdateAsync(s => s.SetProperty(r => r.ClaimedAt, now));
+            if (updated == 0)
+                continue;
+
+            await RewardGrant.ApplyAsync(context, playerId, reward);
+            reward.ClaimedAt = now;
+            claimed.Add(reward);
+        }
+
+        await transaction.CommitAsync();
+        return claimed;
     }
 
     public async Task<PlayerReward?> ClaimAsync(Guid playerId, Guid rewardId, DateTime now)

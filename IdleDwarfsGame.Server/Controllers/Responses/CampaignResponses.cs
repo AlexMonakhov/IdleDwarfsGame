@@ -39,13 +39,28 @@ public class CampaignStageInfo
     public BattleForecast Forecast { get; set; } = new();
 }
 
+// Пройденный уровень в списке кампании — без врагов и прогноза (их считать дорого, а бой за него не нужен):
+// номер, название, фон арены и награда, если её ещё не забрали
+public class ClearedStageInfo
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public StageType Type { get; set; }
+    public string Background { get; set; } = string.Empty;
+    public HeroElement Element { get; set; }
+    // Незабранная награда за уровень (null — уже забрана). Что в ней — фронт узнаёт только из ответа на получение
+    public Guid? RewardId { get; set; }
+}
+
 public class CampaignOverview
 {
     // null — кампания пройдена целиком
     public int? CurrentStageId { get; set; }
-    // Незабранная награда за пройденный уровень: пока она есть, вместо боя — кнопка «Забрать награды».
-    // Что в ней — фронт узнаёт только из ответа на получение
-    public Guid? PendingRewardId { get; set; }
+    // Пройденные уровни по порядку: все с незабранной наградой и последний пройденный (перед текущим).
+    // Награды не мешают идти дальше — их можно забрать по одной или все разом
+    public List<ClearedStageInfo> ClearedStages { get; set; } = new();
+    // Сколько всего незабранных наград кампании — подсветка кнопки «Забрать всё»
+    public int UnclaimedRewards { get; set; }
     public int ClearedCount { get; set; }
     public int TotalStages { get; set; }
     // Отряд игрока один на все уровни, поэтому отдаётся один раз

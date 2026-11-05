@@ -55,24 +55,9 @@
     </div>
   </div>
 
-  <!-- Ширина — под строку уровня: два отряда по 5 портретов, арена и кнопка боя без переноса -->
-  <ModalComponent
-    v-model="campaignDialogOpen"
-    :header-message="t('campaign.header')"
-    width="min(980px, calc(94 * var(--vw)))"
-    height="min(760px, calc(86 * var(--vh)))"
-  >
-    <FightPreviewListContainer></FightPreviewListContainer>
-  </ModalComponent>
-
-  <ModalComponent
-    v-model="infinityTowerDialogOpen"
-    :header-message="t('tower.header')"
-    width="min(980px, calc(94 * var(--vw)))"
-    height="min(760px, calc(86 * var(--vh)))"
-  >
-    <TowerContainer></TowerContainer>
-  </ModalComponent>
+  <!-- Окна кампании и башни сами держат модалку: в её футере — «Забрать всё» -->
+  <FightPreviewListContainer v-model="campaignDialogOpen" />
+  <TowerContainer v-model="infinityTowerDialogOpen" />
 </template>
 
 <script lang="ts" setup>
@@ -99,7 +84,6 @@ import warehouse from "@/assets/town/warehouse.png";
 import warehouseHover from "@/assets/town/warehouse-hover.png";
 import mine from "@/assets/town/mine.png";
 import mineHover from "@/assets/town/mine-hover.png";
-import ModalComponent from '@/components/common/ModalComponent.vue';
 import FightPreviewListContainer from '@/components/interface/FightPreviewListContainer.vue';
 import TowerContainer from '@/components/tower/TowerContainer.vue';
 import { useI18n } from 'vue-i18n';
@@ -136,7 +120,8 @@ const isDown = ref(false);
 const startX = ref(0);
 const scrollLeftState = ref(0);
 const opacity = ref(0);
-const campaignDialogOpen = ref(false);
+// /about?campaign=1 — возврат с арены после боя кампании: окно кампании открывается сразу
+const campaignDialogOpen = ref(!!route.query.campaign);
 // /about?tower=1 — возврат с арены после боя в башне: окно башни открывается сразу
 const infinityTowerDialogOpen = ref(!!route.query.tower);
 

@@ -17,7 +17,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 // Иконка — уже вырезанная с портрета голова (tools/portraits.js), растягивается на весь кружок
 const color = computed(() => elementColor(props.unit.element));
-const sprite = computed(() => getPortraitUrl(spriteColor(props.unit), props.unit.level));
+const sprite = computed(() => getPortraitUrl(spriteColor(props.unit), props.unit.level, props.unit.unitType));
 
 const portraitStyle = computed(() => ({
     width: `${props.size}px`,

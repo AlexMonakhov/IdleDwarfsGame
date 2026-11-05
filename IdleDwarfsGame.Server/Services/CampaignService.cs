@@ -30,12 +30,13 @@ public class CampaignService(
         var squadWorld = new World();
         entityFactory.CreateSquad(squadWorld, squad, teamId: 1);
 
-        var pendingReward = await rewards.GetUnclaimedAsync(playerId, RewardSource.Campaign);
+        var unclaimed = await rewards.GetUnclaimedAsync(playerId, RewardSource.Campaign);
 
         return new CampaignOverview
         {
             CurrentStageId = currentStageId,
-            PendingRewardId = pendingReward?.Id,
+            ClearedStages = await GetClearedStagesAsync(stageIds, currentStageId, unclaimed),
+            UnclaimedRewards = unclaimed.Count,
             ClearedCount = stageIds.Count(cleared.Contains),
             TotalStages = stageIds.Count,
             Squad = CombatSnapshot.Units(squadWorld),
@@ -58,10 +59,7 @@ public class CampaignService(
         if (!alreadyCleared && FindCurrentStage(stageIds, cleared) != stageId)
             throw new InvalidOperationException($"Campaign stage {stageId} is locked");
 
-        // Кнопка боя в кампании заменяется на «Забрать награды», пока награду не заберут
-        if (await rewards.GetUnclaimedAsync(playerId, RewardSource.Campaign) != null)
-            throw new InvalidOperationException("Claim the reward for the cleared stage first");
-
+        // Незабранные награды не мешают идти дальше: они ждут в списке кампании
         var combat = await combatService.StartCampaignFight(playerId, stage);
 
         bool firstClear = false;
@@ -81,6 +79,36 @@ public class CampaignService(
             Arena = ToArenaInfo(stage.Arena),
             Combat = combat
         };
+    }
+
+    // Пройденные уровни для списка: с незабранной наградой и последний пройденный — он стоит над текущим.
+    // Только заголовки уровней из БД, без врагов и прогноза
+    private async Task<List<ClearedStageInfo>> GetClearedStagesAsync(List<int> stageIds, int? currentStageId, List<PlayerReward> unclaimed)
+    {
+        // Перепрохождение награды не даёт, так что у уровня она одна
+        var rewardByStage = unclaimed
+            .GroupBy(r => r.SourceId)
+            .ToDictionary(g => g.Key, g => g.First().Id);
+
+        int currentIndex = currentStageId == null ? stageIds.Count : stageIds.IndexOf(currentStageId.Value);
+        var ids = rewardByStage.Keys.ToHashSet();
+        if (currentIndex > 0)
+            ids.Add(stageIds[currentIndex - 1]);
+        if (ids.Count == 0)
+            return new List<ClearedStageInfo>();
+
+        var headers = await campaign.GetStageHeadersAsync(ids);
+        return headers
+            .Select(s => new ClearedStageInfo
+            {
+                Id = s.Id,
+                Name = s.Name,
+                Type = s.Type,
+                Background = s.Arena.Background,
+                Element = s.Arena.Element,
+                RewardId = rewardByStage.TryGetValue(s.Id, out var rewardId) ? rewardId : null
+            })
+            .ToList();
     }
 
     // Текущий уровень — первый по порядку непройденный

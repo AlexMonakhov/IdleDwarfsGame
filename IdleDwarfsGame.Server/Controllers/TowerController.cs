@@ -38,13 +38,27 @@ public class TowerController(TowerService towerService, RewardService rewardServ
         }
     }
 
-    // Награда за пройденный этаж (TowerOverview.PendingRewardId) — только теперь она попадает на аккаунт
+    // Награда за пройденный этаж (ClearedFloorInfo.RewardId) — только теперь она попадает на аккаунт
     [HttpPost("rewards/{rewardId:guid}/claim")]
     public async Task<ActionResult<RewardClaimResult>> ClaimReward(Guid rewardId)
     {
         try
         {
             return Ok(await rewardService.ClaimAsync(CurrentPlayerId(), rewardId));
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+
+    // «Забрать всё»: все незабранные награды башни (и прошлых недель) одной суммой
+    [HttpPost("rewards/claim-all")]
+    public async Task<ActionResult<RewardClaimAllResult>> ClaimAllRewards()
+    {
+        try
+        {
+            return Ok(await rewardService.ClaimAllAsync(CurrentPlayerId(), RewardSource.Tower));
         }
         catch (InvalidOperationException ex)
         {

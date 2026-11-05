@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { useAuth } from '@/composables/UseAuth';
 import { TowerFightResult, TowerOverview, TowerSkipResult } from '@/models/types/Tower';
-import { RewardClaimResult } from '@/models/types/Inventory';
+import { RewardClaimAllResult, RewardClaimResult } from '@/models/types/Inventory';
 
 const apiClient = axios.create({
     baseURL: 'https://localhost:7232',
@@ -60,6 +60,17 @@ class TowerApiService {
             return response.data;
         } catch (error) {
             console.error('Ошибка при получении награды башни:', error);
+            throw error;
+        }
+    }
+
+    // Все незабранные награды башни (и прошлых недель) разом
+    async claimAll(): Promise<RewardClaimAllResult> {
+        try {
+            const response = await apiClient.post<RewardClaimAllResult>('/tower/rewards/claim-all');
+            return response.data;
+        } catch (error) {
+            console.error('Ошибка при получении наград башни:', error);
             throw error;
         }
     }

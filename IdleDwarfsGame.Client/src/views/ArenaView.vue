@@ -98,11 +98,14 @@
         <div v-if="towerResult?.cleared" class="result-rewards">{{ t('arena.towerCleared', { floor: towerResult.floor }) }}</div>
         <div v-if="towerResult?.cleared" class="result-rewards">{{ t('arena.towerRewardWaiting') }}</div>
         <div class="result-rounds">{{ t('arena.rounds', { rounds: result?.rounds ?? 0 }) }}</div>
-        <!-- Следующий бой кампании начнётся только после получения награды за этот уровень -->
-        <button v-if="state.finished && campaignResult?.firstClear" class="result-next" @click="goToCampaign()">{{ t('arena.toCampaign') }}</button>
-        <button v-else-if="nextStageId" class="result-next" @click="goToNextStage()">{{ t('arena.nextStage') }}</button>
-        <!-- Башня: после победы — забрать награду, после поражения — сменить отряд и попробовать снова -->
-        <button v-if="towerFloor" class="result-next" @click="goToTower()">{{ t('arena.toTower') }}</button>
+        <!-- Награда не держит прогресс: можно сразу в следующий бой, а забрать её — в любой момент в окне кампании -->
+        <div v-if="stageId || towerFloor" class="result-actions">
+          <button v-if="nextStageId" class="result-next" @click="goToNextStage()">{{ t('arena.nextStage') }}</button>
+          <button v-if="stageId" class="result-next" @click="goToCampaign()">{{ t('arena.toCampaign') }}</button>
+          <!-- Башня: после победы — дальше или в окно за наградой, после поражения — сменить отряд и попробовать снова -->
+          <button v-if="nextTowerFloor" class="result-next" @click="goToNextFloor()">{{ t('arena.nextFloor') }}</button>
+          <button v-if="towerFloor" class="result-next" @click="goToTower()">{{ t('arena.toTower') }}</button>
+        </div>
       </div>
 
       <CombatLogFeed v-if="result" :logs="result.logs" :shown-logs="state.shownLogs" :units="state.units" :speed="speed" />
@@ -172,6 +175,7 @@ const nextStageId = computed(() => {
 // Режим бесконечной башни: /arena?tower=7 — бой за этаж башни этой недели
 const towerFloor = computed(() => Number(route.query.tower) || null);
 const towerResult = ref<TowerFightResult | null>(null);
+const nextTowerFloor = computed(() => state.finished && towerResult.value?.cleared ? towerResult.value.currentFloor : null);
 
 // Режим босса гильдии: /arena?guildBoss=Easy&attack=<метка> — удар по общему боссу гильдии
 const GUILD_BOSS_TIERS: GuildBossTier[] = ['Easy', 'Medium', 'Hard'];
@@ -316,8 +320,13 @@ const goToNextStage = async () => {
   await router.replace({ query: { stage: nextStageId.value } });
   startArenaFight();
 };
-// Список кампании (и кнопка получения награды) — на странице «О игре»
-const goToCampaign = () => router.push({ name: 'about' });
+const goToNextFloor = async () => {
+  if (!nextTowerFloor.value) return;
+  await router.replace({ query: { tower: nextTowerFloor.value } });
+  startArenaFight();
+};
+// Список кампании (и получение наград) — в городе: окно кампании откроется сразу
+const goToCampaign = () => router.push({ name: 'about', query: { campaign: '1' } });
 // Там же башня: окно башни откроется сразу
 const goToTower = () => router.push({ name: 'about', query: { tower: '1' } });
 const skipFight = () => player.skip();
@@ -610,6 +619,13 @@ onBeforeUnmount(() => player.stop());
   margin-top: 6px;
   font-size: 14px;
   color: #e2e8f0;
+}
+
+/* Кнопки после боя кампании и башни — в ряд: дальше и обратно в окно */
+.result-actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
 }
 
 .result-next {

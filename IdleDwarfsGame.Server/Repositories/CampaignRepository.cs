@@ -24,6 +24,16 @@ public class CampaignRepository(GameDbContext context) : ICampaignRepository
             .ToListAsync();
     }
 
+    public async Task<List<CampaignStage>> GetStageHeadersAsync(IReadOnlyCollection<int> stageIds)
+    {
+        return await context.CampaignStages
+            .AsNoTracking()
+            .Include(s => s.Arena)
+            .Where(s => stageIds.Contains(s.Id))
+            .OrderBy(s => s.Id)
+            .ToListAsync();
+    }
+
     public async Task<CampaignStage?> GetStageAsync(int stageId)
     {
         return await StagesWithDetails.FirstOrDefaultAsync(s => s.Id == stageId);

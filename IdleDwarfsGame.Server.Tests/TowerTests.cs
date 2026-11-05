@@ -270,18 +270,51 @@ public class TowerTests : IDisposable
     }
 
     [Fact]
-    public async Task Fight_OnlyCurrentFloor_AndNotWhileRewardIsPending()
+    public async Task Fight_OnlyCurrentFloor()
     {
+        var locked = await Assert.ThrowsAsync<InvalidOperationException>(() => CreateService().FightAsync(_playerId, 2));
+        Assert.Contains("locked", locked.Message);
+    }
+
+    [Fact]
+    public async Task Overview_ListsFloorsWithUnclaimedRewards_AndClaimAllTakesThemAtOnce()
+    {
+        // Прошлая неделя: этаж 3 с незабранной наградой. Эта: 1 и 2 — награды ждут, 3 — уже забрана
         var tower = new TowerRepository(_context);
+        var lastWeek = Week.AddDays(-7);
+        var old = TowerRewards.For(_playerId, lastWeek, 3, Now.AddDays(-7));
+        await tower.AdvanceAsync(_playerId, lastWeek, 0, 3, old, Now.AddDays(-7));
+        var first = TowerRewards.For(_playerId, Week, 1, Now);
+        var second = TowerRewards.For(_playerId, Week, 2, Now.AddMinutes(1));
+        await tower.AdvanceAsync(_playerId, Week, 0, 1, first, Now);
+        await tower.AdvanceAsync(_playerId, Week, 1, 2, second, Now.AddMinutes(1));
+        await tower.AdvanceAsync(_playerId, Week, 2, 3, Reward(), Now.AddMinutes(2));
         var service = CreateService();
 
-        var locked = await Assert.ThrowsAsync<InvalidOperationException>(() => service.FightAsync(_playerId, 2));
-        Assert.Contains("locked", locked.Message);
+        var overview = await service.GetOverviewAsync(_playerId);
 
-        await tower.AdvanceAsync(_playerId, Week, 0, 1, TowerRewards.For(_playerId, Week, 1, Now), Now);
-        var pending = await Assert.ThrowsAsync<InvalidOperationException>(() => service.FightAsync(_playerId, 2));
-        Assert.Contains("Claim", pending.Message);
-        Assert.NotNull((await service.GetOverviewAsync(_playerId)).PendingRewardId);
+        Assert.Equal(4, overview.CurrentFloor);
+        Assert.Equal(3, overview.UnclaimedRewards);
+        Assert.Equal(new[] { 3, 1, 2, 3 }, overview.ClearedFloors.Select(f => f.Floor));
+        Assert.Equal(new[] { true, false, false, false }, overview.ClearedFloors.Select(f => f.PreviousWeek));
+        Assert.Equal(new Guid?[] { old.Id, first.Id, second.Id, null }, overview.ClearedFloors.Select(f => f.RewardId));
+        Assert.Equal(first.Gold, overview.ClearedFloors[1].Reward!.Gold);
+        // Стихия прошлонедельного этажа — по его неделе
+        Assert.Equal(InfinityTower.ElementOf(lastWeek, 3), overview.ClearedFloors[0].Element);
+        Assert.Equal(StageStatus.Available, overview.Floors[0].Status);
+
+        var rewards = new RewardRepository(_context);
+        var claim = await new RewardService(rewards, new PlayerRepository(_context), new TestClock(Now)).ClaimAllAsync(_playerId, RewardSource.Tower);
+
+        Assert.Equal(new[] { old.Id, first.Id, second.Id }.Order(), claim.RewardIds.Order());
+        Assert.Equal(old.Gold + first.Gold + second.Gold, claim.Reward.Gold);
+        Assert.Equal(10 + claim.Reward.Gold, claim.Resources.Gold);
+        // Одинаковые камни сложены в одну стопку
+        Assert.Equal(claim.Reward.Items.Count, claim.Reward.Items.Select(i => (i.SubType, i.Rarity)).Distinct().Count());
+
+        var after = await service.GetOverviewAsync(_playerId);
+        Assert.Equal(0, after.UnclaimedRewards);
+        Assert.Equal(3, Assert.Single(after.ClearedFloors).Floor);
     }
 
     [Fact]

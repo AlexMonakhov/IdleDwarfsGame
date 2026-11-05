@@ -81,7 +81,7 @@ public class RewardTests : IDisposable
 
         // Пока награду не забрали, на аккаунте ничего не изменилось
         var rewards = new RewardRepository(_context);
-        Assert.Equal(reward.Id, (await rewards.GetUnclaimedAsync(_playerId, RewardSource.Campaign))?.Id);
+        Assert.Equal(reward.Id, Assert.Single(await rewards.GetUnclaimedAsync(_playerId, RewardSource.Campaign)).Id);
         Assert.Equal(10, (await Resources()).Gold);
         Assert.Empty(await new InventoryRepository(_context).GetClosedChestsAsync(_playerId));
 
@@ -91,7 +91,7 @@ public class RewardTests : IDisposable
         Assert.Equal(reward.Gold, result.Reward.Gold);
         Assert.Equal(10 + reward.Gold, result.Resources.Gold);
         Assert.Equal(5 + reward.Experience, result.Resources.Experience);
-        Assert.Null(await rewards.GetUnclaimedAsync(_playerId, RewardSource.Campaign));
+        Assert.Empty(await rewards.GetUnclaimedAsync(_playerId, RewardSource.Campaign));
 
         var chests = await new InventoryRepository(_context).GetClosedChestsAsync(_playerId);
         Assert.Equal(2, chests.Count);
@@ -100,6 +100,29 @@ public class RewardTests : IDisposable
 
         await Assert.ThrowsAsync<InvalidOperationException>(() => service.ClaimAsync(_playerId, reward.Id));
         Assert.Equal(10 + reward.Gold, (await Resources()).Gold);
+    }
+
+    [Fact]
+    public async Task ClaimAll_TakesOnlyWhatIsStillUnclaimed_AndThenThereIsNothingLeft()
+    {
+        var campaign = new CampaignRepository(_context);
+        var first = BossReward(1);
+        var second = BossReward(5);
+        await campaign.MarkClearedAsync(_playerId, 1, first);
+        await campaign.MarkClearedAsync(_playerId, 5, second);
+
+        var service = new RewardService(new RewardRepository(_context), new PlayerRepository(_context), new TestClock(Now));
+        await service.ClaimAsync(_playerId, first.Id);
+
+        // Первую уже забрали по одной — «Забрать всё» начислит только вторую
+        var all = await service.ClaimAllAsync(_playerId, RewardSource.Campaign);
+        Assert.Equal(second.Id, Assert.Single(all.RewardIds));
+        Assert.Equal(second.Gold, all.Reward.Gold);
+        Assert.Equal(2, all.Reward.Chests.Count);
+        Assert.Equal(10 + first.Gold + second.Gold, all.Resources.Gold);
+        Assert.Equal(4, (await new InventoryRepository(_context).GetClosedChestsAsync(_playerId)).Count);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => service.ClaimAllAsync(_playerId, RewardSource.Campaign));
     }
 
     [Fact]

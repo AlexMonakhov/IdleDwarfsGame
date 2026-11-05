@@ -15,8 +15,7 @@ import { HeroModel } from '@/models/hero';
 import { elementColor, spriteColor } from '@/battle/sprites';
 import { statusLabel } from '@/i18n';
 import { vDragScroll } from '@/directives/dragScroll';
-import caveBackground from '@/assets/red_crystal_arena.png';
-import crystalsBackground from '@/assets/arenas/arena_blue.png';
+import { elementPreview } from '@/battle/arenaBackgrounds';
 
 // Выбранный герой в окне прокачки: сцена со спрайтом, характеристики и кнопка повышения уровня
 const props = defineProps<{ hero: HeroInfo }>();
@@ -32,14 +31,18 @@ const emit = defineEmits<{
 const { t, te, locale } = useI18n();
 const { resources, set: setResources } = useResources();
 
-// Спрайт 409.6px, персонаж занимает его центр
+// Спрайт 409.6px: ноги дворфа по центру кадра, а голова и торс правее (меч на плече)
 const FRAME = 409.6;
 const SCALE = 1.6;
+// Сдвиг кадра влево, в долях его ширины: по центру сцены встают голова и торс, а не только ноги
+const BODY_OFFSET = 0.04;
+const unitShift = `${-FRAME * SCALE * BODY_OFFSET}px`;
 // Победа: 24 кадра на 16 fps — потом снова idle
 const VICTORY_MS = 1500;
 
 const color = computed(() => elementColor(props.hero.element));
-const background = computed(() => (color.value === 'red' ? caveBackground : crystalsBackground));
+// Фон — пещера стихии героя, как у арены этой стихии
+const background = computed(() => elementPreview(props.hero.element));
 
 const model = computed<HeroModel>(() => ({
     id: 0,
@@ -151,7 +154,7 @@ const hint = computed(() => {
                 </div>
             </div>
 
-            <div class="upgrade-stage-unit">
+            <div class="upgrade-stage-unit" :style="{ '--unit-shift': unitShift }">
                 <div v-if="levelUpFlash" :key="levelUpFlash" class="upgrade-glow"></div>
                 <!-- Ключ по рангу: другой ранг — другие спрайты, их скелет грузит при монтировании -->
                 <CharacterSkeleton
@@ -338,7 +341,7 @@ const hint = computed(() => {
     /* Под ногами в кадре пустое поле — опускаем его за край, чтобы герой стоял на полу */
     bottom: -80px;
     z-index: 1;
-    transform: translateX(-50%);
+    transform: translateX(calc(-50% + var(--unit-shift, 0px)));
 }
 
 .upgrade-stage-unit canvas {

@@ -11,7 +11,7 @@ import type { BattleForecast } from '@/models/types/Campaign';
 import type { CombatUnitInfo } from '@/battle/types';
 import type { ModalTab } from '@/models/types/Modal';
 import { forecastVerdict } from '@/battle/power';
-import { arenaBackground } from '@/battle/arenaBackgrounds';
+import { arenaPreview } from '@/battle/arenaBackgrounds';
 import { useSquadModal } from '@/composables/UseSquadModal';
 import { isRankedTab, PvpTab, usePvp } from '@/composables/UsePvp';
 import { formatTime } from '@/components/guild/guildShared';
@@ -254,7 +254,7 @@ const footerText = computed(() => {
                 <section class="pvp-arena" :class="{ 'pvp-arena-ranked': ranked }">
                     <div
                         class="pvp-arena-image"
-                        :style="{ backgroundImage: `url(${arenaBackground(current.arena.background)})` }"
+                        :style="{ backgroundImage: `url(${arenaPreview(current.arena.background)})` }"
                         aria-hidden="true"
                     ></div>
                     <div class="pvp-arena-body">

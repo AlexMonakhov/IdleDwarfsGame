@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { useAuth } from '@/composables/UseAuth';
 import { CampaignFightResult, CampaignOverview } from '@/models/types/Campaign';
-import { RewardClaimResult } from '@/models/types/Inventory';
+import { RewardClaimAllResult, RewardClaimResult } from '@/models/types/Inventory';
 
 const apiClient = axios.create({
     baseURL: 'https://localhost:7232',
@@ -49,6 +49,17 @@ class CampaignApiService {
             return response.data;
         } catch (error) {
             console.error('Ошибка при получении награды:', error);
+            throw error;
+        }
+    }
+
+    // Все незабранные награды кампании разом
+    async claimAll(): Promise<RewardClaimAllResult> {
+        try {
+            const response = await apiClient.post<RewardClaimAllResult>('/campaign/rewards/claim-all');
+            return response.data;
+        } catch (error) {
+            console.error('Ошибка при получении наград кампании:', error);
             throw error;
         }
     }

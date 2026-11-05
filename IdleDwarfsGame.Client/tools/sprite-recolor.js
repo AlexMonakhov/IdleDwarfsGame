@@ -1,4 +1,4 @@
-// Остальные цвета из синего листа: npm run sprites:recolor -- юнит [юнит ...] [--only цвет[,цвет]] [--filter часть_имени]
+// Остальные цвета из синего листа: npm run sprites:recolor -- юнит [юнит ...] [--only цвет[,цвет]] [--filter часть_имени] [--atlas]
 //
 // Лист:   sprite-lists/{юнит}-{анимация}/{юнит}_{анимация}_lvl{N}_blue_{вариант}.png
 // Новые:  тот же путь с {цвет} вместо blue. Множитель кадра (zoom) копируется в sprite-meta.json.
@@ -6,13 +6,21 @@
 // Перекрашиваются только синие пиксели: кожа, кожаная броня и контур других оттенков остаются как есть.
 // Яркость и оттенки внутри синего сохраняются, поэтому блики, тени и шлейфы атак выглядят так же.
 // Атласы не собираются: после проверки — npm run atlas
-// Синие листы должны лежать в sprite-lists: если они вынесены из проекта, сначала верните их
+// Синие листы должны лежать в sprite-lists: если они вынесены из проекта, сначала верните их.
+//
+// --atlas — перекрасить готовые атласы (sprite-atlas/*_blue_*.webp), когда синих листов в проекте нет:
+// кадры те же, поэтому запись атласа в atlas-meta.json копируется с синего, атлас пишется без потерь, как у npm run atlas.
+// Пример: npm run sprites:recolor -- dwarf --atlas --only violet --filter lvl2
 const fs = require('fs');
 const path = require('path');
+const { execFileSync } = require('child_process');
 const { PNG } = require('pngjs');
+const ffmpeg = require('ffmpeg-static');
 
 const SPRITES = path.join(__dirname, '..', 'src', 'assets', 'sprite-lists');
 const META = path.join(SPRITES, 'sprite-meta.json');
+const ATLAS = path.join(__dirname, '..', 'src', 'assets', 'sprite-atlas');
+const ATLAS_META = path.join(ATLAS, 'atlas-meta.json');
 
 // Что считается синим: полностью — в HUE_FULL градусах от центра, дальше плавно до HUE_FADE
 const BLUE_HUE = 215;
@@ -30,6 +38,8 @@ const COLORS = {
   green: { hue: 135, sat: 1, gamma: 1, value: 0.92 },
   yellow: { hue: 48, sat: 1.4, gamma: 0.62, value: 1.1 },
   purple: { hue: 275, sat: 1, gamma: 1.05, value: 0.92 },
+  // Кровь: оттенок тьмы, но светлая, как у листов крови 3-го уровня (лиловая, а не тёмная)
+  violet: { hue: 278, sat: 0.75, gamma: 0.7, value: 1.12 },
   white: { hue: 215, sat: 0.1, gamma: 0.62, value: 1.08 },
   basic: { hue: 215, sat: 0.08, gamma: 1, value: 0.82 },
 };
@@ -74,11 +84,40 @@ const option = name => {
   const at = args.indexOf(`--${name}`);
   return at < 0 ? null : args.splice(at, 2)[1];
 };
+const atlasAt = args.indexOf('--atlas');
+const atlasMode = atlasAt >= 0;
+if (atlasMode) args.splice(atlasAt, 1);
 const only = option('only')?.split(',') ?? Object.keys(COLORS);
 const filter = option('filter') ?? '';
 const meta = fs.existsSync(META) ? JSON.parse(fs.readFileSync(META, 'utf8')) : {};
 
-for (const unit of args) {
+// Перекраска готовых атласов: webp → PNG → перекраска → webp без потерь
+function recolorAtlases() {
+  const atlasMeta = JSON.parse(fs.readFileSync(ATLAS_META, 'utf8'));
+  const names = Object.keys(atlasMeta)
+    .filter(name => /_blue_\d+\.png$/.test(name) && name.includes(filter) && args.some(unit => name.startsWith(`${unit}_`)));
+  for (const name of names) {
+    const webp = path.join(ATLAS, name.replace(/\.png$/, '.webp'));
+    const src = PNG.sync.read(execFileSync(ffmpeg, ['-v', 'error', '-i', webp, '-f', 'image2pipe', '-c:v', 'png', '-'], { maxBuffer: 2 ** 30 }));
+    for (const color of only) {
+      const target = name.replace('_blue_', `_${color}_`);
+      execFileSync(ffmpeg, [
+        '-v', 'error', '-y', '-f', 'png_pipe', '-i', '-',
+        '-c:v', 'libwebp', '-lossless', '1', '-compression_level', '6', '-frames:v', '1',
+        path.join(ATLAS, target.replace(/\.png$/, '.webp')),
+      ], { input: recolor(src, COLORS[color]), maxBuffer: 2 ** 30 });
+      atlasMeta[target] = atlasMeta[name];
+      if (meta[name]) meta[target] = meta[name];
+      else delete meta[target];
+      console.log(`${name} -> ${target} (атлас)`);
+    }
+  }
+  const sorted = Object.fromEntries(Object.keys(atlasMeta).sort().map(key => [key, atlasMeta[key]]));
+  fs.writeFileSync(ATLAS_META, JSON.stringify(sorted) + '\n');
+}
+
+if (atlasMode) recolorAtlases();
+else for (const unit of args) {
   const dirs = fs.readdirSync(SPRITES, { withFileTypes: true })
     .filter(entry => entry.isDirectory() && entry.name.startsWith(`${unit}-`))
     .map(entry => path.join(SPRITES, entry.name));
