@@ -12,6 +12,17 @@ Run both in the background, write logs to the scratchpad, and wait for the ready
 - `dotnet` is **not on PATH**. It lives at `~/.dotnet/dotnet`. Export `DOTNET_ROOT=$HOME/.dotnet PATH=$HOME/.dotnet:$PATH` first.
 - The client calls the API at `https://localhost:7232` (src baseURL), so use the **`https`** launch profile, not `http`.
 - Before starting, check that ports 7232/5015/8080 are free: `lsof -iTCP -sTCP:LISTEN -n -P | grep -E "7232|5015|8080"`.
+- The database is **SQL Server**. The default connection string (`appsettings.json` → `ConnectionStrings:GameDb`) points to Windows LocalDB, which does not exist on macOS — see step 0.
+
+## 0. Database (macOS)
+Run SQL Server in Docker once, then point the server at it via an env var (migrations create the `IdleDwarfs` database on startup):
+```bash
+docker start idle-dwarfs-sql 2>/dev/null || docker run -d --name idle-dwarfs-sql \
+  -e ACCEPT_EULA=Y -e MSSQL_SA_PASSWORD='IdleDwarfs!Dev1' -p 1433:1433 \
+  mcr.microsoft.com/mssql/server:2022-latest
+export ConnectionStrings__GameDb='Server=localhost,1433;Database=IdleDwarfs;User Id=sa;Password=IdleDwarfs!Dev1;TrustServerCertificate=True'
+```
+Wait until `docker logs idle-dwarfs-sql` shows `SQL Server is now ready for client connections`.
 
 ## 1. Server
 ```bash
@@ -43,3 +54,4 @@ open http://localhost:8080/
 ## Troubleshooting
 - Browser network/certificate errors against 7232 → `~/.dotnet/dotnet dev-certs https --trust`.
 - Exit code 127 from `dotnet run` → PATH export was missed.
+- `A network-related or instance-specific error occurred while establishing a connection to SQL Server` → the SQL Server container is not running or `ConnectionStrings__GameDb` was not exported (step 0).

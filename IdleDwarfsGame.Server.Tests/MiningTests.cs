@@ -234,6 +234,23 @@ public class MiningTests : IDisposable
         Assert.Equal(2, (await _mining.GetAsync(_playerId, info.Id))!.SpeedLevel);
     }
 
+    [Fact]
+    public async Task Save_DwarfTakenByAnotherMine_IsRejectedByUniqueIndex()
+    {
+        var first = (await _service.BuildAsync(_playerId, 1, MineType.Gold)).Mine;
+        var second = (await _service.BuildAsync(_playerId, 2, MineType.Gold)).Mine;
+        await _service.UpgradeAsync(_playerId, first.Id, MineUpgrade.Level);
+        await _service.UpgradeAsync(_playerId, second.Id, MineUpgrade.Level);
+        var dwarf = _reserve[0];
+        await _service.AssignDwarfAsync(_playerId, first.Id, dwarf.Id);
+
+        // Как при параллельном запросе: проверка занятости в сервисе уже пройдена, ловит только индекс
+        var raced = (await _mining.GetAsync(_playerId, second.Id))!;
+        raced.HeroId = dwarf.Id;
+        Assert.Equal(MiningSaveOutcome.HeroTaken, await _mining.SaveAsync(raced, raced.Version, MiningChange.None));
+        Assert.Null((await _mining.GetAsync(_playerId, second.Id))!.HeroId);
+    }
+
     private sealed class TestClock(DateTime start) : TimeProvider
     {
         public DateTime UtcNow { get; private set; } = start;

@@ -41,7 +41,7 @@ public class SessionService(IUserSessionRepository sessions, IFriendRepository f
     public async Task<Dictionary<Guid, UserPresence>> GetPresenceAsync(IReadOnlyCollection<Guid> userIds)
     {
         var presence = await sessions.GetPresenceAsync(userIds, Now - OnlineWindow);
-        // SQLite возвращает даты без Kind — без Utc JSON уйдёт без "Z", и браузер прочитает его как местное время
+        // БД возвращает даты без Kind — без Utc JSON уйдёт без "Z", и браузер прочитает его как местное время
         return presence.ToDictionary(
             p => p.Key,
             p => p.Value with { LastSeenAt = DateTime.SpecifyKind(p.Value.LastSeenAt, DateTimeKind.Utc) });

@@ -200,6 +200,15 @@ public class GuildRepository(GameDbContext context) : IGuildRepository
         if (member == null)
             return GuildLeaveOutcome.NotInGuild;
 
+        // UPDATE без изменений блокирует строку гильдии до коммита: одновременные выходы идут по очереди,
+        // и наследник главы выбирается по актуальному составу. Роль перечитываем — её мог поменять предыдущий выход
+        await context.Guilds
+            .Where(g => g.Id == member.GuildId)
+            .ExecuteUpdateAsync(s => s.SetProperty(g => g.Name, g => g.Name));
+        member = await context.GuildMembers.AsNoTracking().FirstOrDefaultAsync(m => m.UserId == userId);
+        if (member == null)
+            return GuildLeaveOutcome.NotInGuild;
+
         await context.GuildMembers.Where(m => m.UserId == userId).ExecuteDeleteAsync();
 
         // Главой становится тот, кто дольше всех в гильдии; если никого не осталось — гильдия распускается
@@ -283,6 +292,11 @@ public class GuildRepository(GameDbContext context) : IGuildRepository
     public async Task<GuildBossDamageResult> ApplyDamageAsync(Guid bossId, Guid userId, int damage, DateTime now)
     {
         await using var transaction = await context.Database.BeginTransactionAsync();
+
+        // UPDATE без изменений блокирует строку босса до коммита: параллельные удары читают HP по очереди
+        await context.GuildBosses
+            .Where(b => b.Id == bossId)
+            .ExecuteUpdateAsync(s => s.SetProperty(b => b.CurrentHp, b => b.CurrentHp));
 
         // Пока шёл бой, босса могли бить другие: урон срезается до того, что у него осталось
         int hp = await context.GuildBosses

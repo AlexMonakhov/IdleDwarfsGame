@@ -370,11 +370,13 @@ public class GameDbContext : DbContext
             .HasForeignKey(r => r.FromUserId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        // SQL Server не допускает двух каскадных путей из Users в одну таблицу, поэтому второй ключ пары — без каскада.
+        // Такие строки удаляет сам PlayerRepository.DeleteAsync (так же у дружбы и PvP-боёв)
         modelBuilder.Entity<FriendRequest>()
             .HasOne(r => r.To)
             .WithMany()
             .HasForeignKey(r => r.ToUserId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.NoAction);
 
         // Входящие заявки игрока
         modelBuilder.Entity<FriendRequest>()
@@ -401,7 +403,7 @@ public class GameDbContext : DbContext
             .HasOne(f => f.Friend)
             .WithMany()
             .HasForeignKey(f => f.FriendId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.NoAction);
 
         // ===== Сессии =====
         modelBuilder.Entity<UserSession>()
@@ -492,7 +494,8 @@ public class GameDbContext : DbContext
         modelBuilder.Entity<PlayerEquipment>()
             .HasIndex(e => e.PlayerId);
 
-        // В слоте героя один предмет. Лежащие в инвентаре (null) индекс не ограничивает: в SQLite NULL не равен NULL
+        // В слоте героя один предмет. Лежащие в инвентаре (null) индекс не ограничивает:
+        // для nullable-колонок EF добавляет в SQL Server фильтр IS NOT NULL (в SQLite NULL и так не равен NULL)
         modelBuilder.Entity<PlayerEquipment>()
             .HasIndex(e => new { e.HeroId, e.Slot })
             .IsUnique();
@@ -782,13 +785,13 @@ public class GameDbContext : DbContext
             .HasOne<User>()
             .WithMany()
             .HasForeignKey(b => b.DefenderUserId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.NoAction);
 
         // Побеждённого сегодня соперника нельзя победить ещё раз на той же арене — даже двумя одновременными боями
         modelBuilder.Entity<PvpBattle>()
             .HasIndex(b => new { b.AttackerUserId, b.DefenderUserId, b.Day, b.Mode })
             .IsUnique()
-            .HasFilter("\"AttackerWon\" = 1");
+            .HasFilter("[AttackerWon] = 1");
 
         // История боёв игрока: нападения и защиты
         modelBuilder.Entity<PvpBattle>()

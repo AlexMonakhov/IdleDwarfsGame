@@ -36,11 +36,21 @@ public class PlayerRepository : IPlayerRepository
     public async Task DeleteAsync(Guid id)
     {
         var player = await _context.Players.FindAsync(id);
-        if (player != null)
-        {
-            _context.Players.Remove(player);
-            await _context.SaveChangesAsync();
-        }
+        if (player == null)
+            return;
+
+        await using var transaction = await _context.Database.BeginTransactionAsync();
+
+        // Ссылки на аккаунт с «другой стороны» каскадом не удаляются (два каскадных пути SQL Server не допускает) — чистим сами.
+        // Остальное (сам аккаунт, его заявки, дружба, бои и т.д.) удаляет каскад от игрока
+        var userIds = _context.Users.Where(u => u.PlayerId == id).Select(u => u.Id);
+        await _context.FriendRequests.Where(r => userIds.Contains(r.ToUserId)).ExecuteDeleteAsync();
+        await _context.Friendships.Where(f => userIds.Contains(f.FriendId)).ExecuteDeleteAsync();
+        await _context.PvpBattles.Where(b => userIds.Contains(b.DefenderUserId)).ExecuteDeleteAsync();
+
+        _context.Players.Remove(player);
+        await _context.SaveChangesAsync();
+        await transaction.CommitAsync();
     }
 
     public async Task<List<Hero>> GetHeroes(Guid playerId)

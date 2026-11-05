@@ -21,6 +21,12 @@ public class AbilityRepository(GameDbContext context) : IAbilityRepository
     {
         await using var transaction = await context.Database.BeginTransactionAsync();
 
+        // UPDATE без изменений блокирует строку игрока до коммита — параллельные извлечения идут по очереди
+        // и проверка «остался ли кто-то» ниже видит результат предыдущего
+        await context.Players
+            .Where(p => p.Id == hero.PlayerId)
+            .ExecuteUpdateAsync(s => s.SetProperty(p => p.Gold, p => p.Gold));
+
         // Без коммита транзакция откатывается при выходе: дворф остаётся на месте
         if (!await DissolveAsync(hero.PlayerId, [hero.Id]))
             return false;
