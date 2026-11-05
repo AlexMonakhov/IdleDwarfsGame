@@ -90,6 +90,27 @@ public static class RankedArena
     public static DateTime CanChangeAt(DateTime lockedAt) => PvpSeasons.DayOf(lockedAt).AddDays(1);
 }
 
+// Что видно о сопернике до боя. Точный шанс победы (CombatPower.Forecast) прогоняет настоящие бои и видит контрпики,
+// которых мощь не учитывает: зная его, игрок выбирал бы только верные победы, а очки цены риска (PvpRating) — по мощи.
+// Поэтому в списке — только грубая оценка по мощи (ThreatOf), а точный прогноз — разведкой, DailyLimit раз в сутки
+public enum PvpThreat { Weaker, Even, Stronger }
+
+public static class PvpScouting
+{
+    // Сколько разных соперников можно разведать за сутки (00:00 UTC) на обеих аренах вместе
+    public const int DailyLimit = 5;
+    // В пределах ±EvenPercent мощи соперник считается равным
+    public const double EvenPercent = 3;
+
+    public static PvpThreat ThreatOf(int myPower, int theirPower)
+    {
+        double diff = PvpMatchmaking.DiffPercent(myPower, theirPower);
+        if (diff > EvenPercent) return PvpThreat.Stronger;
+        if (diff < -EvenPercent) return PvpThreat.Weaker;
+        return PvpThreat.Even;
+    }
+}
+
 // Подбор соперников: OpponentCount игроков, чья мощь (или рейтинг) отличается от нашей не больше чем на стартовое окно.
 // Не набралось — окно расширяется по SpreadStepPercent, пока не наберётся (или пока не кончатся игроки).
 // Если в окно попало больше игроков, чем нужно, выбираются случайные — но с сидом от игрока и суток,

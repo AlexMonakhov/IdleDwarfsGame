@@ -31,7 +31,7 @@ public class AbilityTests : IDisposable
 
         _service = new AbilityService(
             new AbilityRepository(_context), new HeroesRepository(_context), new ExpeditionRepository(_context), Factory,
-            new PlayerRepository(_context), new Random(3));
+            new PlayerRepository(_context), new SquadPowerService(new PvpRepository(_context), Factory), new Random(3));
     }
 
     public void Dispose()

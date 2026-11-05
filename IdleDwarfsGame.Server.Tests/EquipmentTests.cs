@@ -29,7 +29,8 @@ public class EquipmentTests : IDisposable
         _context.SaveChanges();
 
         _service = new EquipmentService(
-            new EquipmentRepository(_context), new HeroesRepository(_context), new ExpeditionRepository(_context), Factory);
+            new EquipmentRepository(_context), new HeroesRepository(_context), new ExpeditionRepository(_context), Factory,
+            new SquadPowerService(new PvpRepository(_context), Factory));
     }
 
     public void Dispose()
@@ -460,6 +461,33 @@ public class EquipmentTests : IDisposable
         Assert.Equal(100, Assert.Single(removed.Heroes).Attack);
         Assert.Null(Assert.Single(removed.Items).HeroId);
     }
+
+    [Fact]
+    public async Task Equip_RecalculatesStoredSquadPower_WithoutSquadChanges()
+    {
+        var fighter = await AddHeroAsync();
+        fighter.PlaceInSquad = 1;
+        var bench = await AddHeroAsync();
+        await _context.SaveChangesAsync();
+        var axe = await AddItemAsync("RustyAxe");
+
+        int bare = CombatPower.OfHero(Factory, fighter).Total;
+
+        // Предмет на герое отряда — мощь отряда выросла, хотя состав не менялся
+        await _service.EquipAsync(_playerId, axe.Id, fighter.Id, null);
+        Assert.True(await StoredSquadPowerAsync() > bare);
+
+        // Переехал на запасного — у отряда снова мощь без предмета
+        await _service.EquipAsync(_playerId, axe.Id, bench.Id, null);
+        Assert.Equal(bare, await StoredSquadPowerAsync());
+
+        // Снят с запасного — мощь отряда не меняется
+        await _service.UnequipAsync(_playerId, axe.Id);
+        Assert.Equal(bare, await StoredSquadPowerAsync());
+    }
+
+    private Task<int> StoredSquadPowerAsync() =>
+        _context.Players.AsNoTracking().Where(p => p.Id == _playerId).Select(p => p.SquadPower).SingleAsync();
 
     [Fact]
     public async Task Equip_RejectsWrongElement()

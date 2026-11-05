@@ -24939,6 +24939,9 @@ namespace IdleDwarfsGame.Server.Migrations
                     b.Property<int>("Rating")
                         .HasColumnType("INTEGER");
 
+                    b.Property<int>("SquadPower")
+                        .HasColumnType("INTEGER");
+
                     b.HasKey("Id");
 
                     b.ToTable("Players");
@@ -24950,7 +24953,8 @@ namespace IdleDwarfsGame.Server.Migrations
                             Experience = 0L,
                             Gold = 0L,
                             Name = "Demo Player",
-                            Rating = 0
+                            Rating = 0,
+                            SquadPower = 0
                         },
                         new
                         {
@@ -24958,7 +24962,8 @@ namespace IdleDwarfsGame.Server.Migrations
                             Experience = 0L,
                             Gold = 0L,
                             Name = "Tower Monsters",
-                            Rating = 0
+                            Rating = 0,
+                            SquadPower = 0
                         },
                         new
                         {
@@ -24966,7 +24971,8 @@ namespace IdleDwarfsGame.Server.Migrations
                             Experience = 0L,
                             Gold = 0L,
                             Name = "Campaign Monsters",
-                            Rating = 0
+                            Rating = 0,
+                            SquadPower = 0
                         },
                         new
                         {
@@ -24974,7 +24980,8 @@ namespace IdleDwarfsGame.Server.Migrations
                             Experience = 0L,
                             Gold = 0L,
                             Name = "Guild Bosses",
-                            Rating = 0
+                            Rating = 0,
+                            SquadPower = 0
                         });
                 });
 
@@ -25302,6 +25309,38 @@ namespace IdleDwarfsGame.Server.Migrations
                     b.ToTable("PvpBattles");
                 });
 
+            modelBuilder.Entity("PvpScout", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("Day")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Mode")
+                        .HasMaxLength(16)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("OpponentUserId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("EnemyPower")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("PlayerPower")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("ScoutedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<double>("WinChance")
+                        .HasColumnType("REAL");
+
+                    b.HasKey("UserId", "Day", "Mode", "OpponentUserId");
+
+                    b.ToTable("PvpScouts");
+                });
+
             modelBuilder.Entity("PvpSeasonScore", b =>
                 {
                     b.Property<string>("UserId")
@@ -25348,6 +25387,9 @@ namespace IdleDwarfsGame.Server.Migrations
 
                     b.Property<DateTime>("LockedAt")
                         .HasColumnType("TEXT");
+
+                    b.Property<int>("Power")
+                        .HasColumnType("INTEGER");
 
                     b.HasKey("UserId");
 
@@ -34027,6 +34069,15 @@ namespace IdleDwarfsGame.Server.Migrations
                     b.HasOne("User", null)
                         .WithMany()
                         .HasForeignKey("DefenderUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("PvpScout", b =>
+                {
+                    b.HasOne("User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

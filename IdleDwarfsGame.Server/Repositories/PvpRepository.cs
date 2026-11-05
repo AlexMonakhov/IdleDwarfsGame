@@ -2,46 +2,43 @@ using Microsoft.EntityFrameworkCore;
 
 public class PvpRepository(GameDbContext context) : IPvpRepository
 {
-    public async Task<List<PvpCandidate>> GetCandidatesAsync(Guid excludeUserId)
-    {
-        var users = await context.Users
-            .AsNoTracking()
-            .Where(u => u.Id != excludeUserId)
-            .Select(u => new { u.Id, u.Username, u.PlayerId })
-            .ToListAsync();
-        return await WithSquadsAsync(users.Select(u => (u.Id, u.Username, u.PlayerId)).ToList());
-    }
+    public async Task<List<PvpCandidate>> GetCandidatesAsync(Guid excludeUserId) =>
+        await QueryCandidates(context.Users.Where(u => u.Id != excludeUserId)).ToListAsync();
 
-    public async Task<PvpCandidate?> GetCandidateAsync(Guid userId)
-    {
-        var user = await context.Users
-            .AsNoTracking()
-            .Where(u => u.Id == userId)
-            .Select(u => new { u.Id, u.Username, u.PlayerId })
-            .FirstOrDefaultAsync();
-        if (user == null)
-            return null;
-        return (await WithSquadsAsync([(user.Id, user.Username, user.PlayerId)])).FirstOrDefault();
-    }
+    public async Task<PvpCandidate?> GetCandidateAsync(Guid userId) =>
+        await QueryCandidates(context.Users.Where(u => u.Id == userId)).FirstOrDefaultAsync();
+
+    // Только id, имя и сохранённая мощь: героев подбор не трогает. Мощь 0 — отряда защиты нет, в PvP такой не выходит
+    private IQueryable<PvpCandidate> QueryCandidates(IQueryable<User> users) => users
+        .AsNoTracking()
+        .Join(context.Players, u => u.PlayerId, p => p.Id, (u, p) => new { u.Id, u.Username, u.PlayerId, p.SquadPower })
+        .Where(x => x.SquadPower > 0)
+        .Select(x => new PvpCandidate(x.Id, x.Username, x.PlayerId, x.SquadPower));
 
     // Отряды одним запросом. Запасной отряд (HeroesRepository.GetSquadAsync) здесь не нужен:
     // у каждого аккаунта отряд расставлен с регистрации, а пустой отряд в PvP не выходит
-    private async Task<List<PvpCandidate>> WithSquadsAsync(List<(Guid UserId, string Username, Guid PlayerId)> users)
+    public async Task<Dictionary<Guid, List<Hero>>> GetDefenseSquadsAsync(IReadOnlyCollection<Guid> playerIds)
     {
-        var playerIds = users.Select(u => u.PlayerId).ToList();
+        if (playerIds.Count == 0)
+            return [];
+
         var heroes = await context.Heroes
             .AsNoTracking()
+            .Include(h => h.Equipment)
             .Where(h => h.PlaceInSquad != null && playerIds.Contains(h.PlayerId))
             .ToListAsync();
-        var squads = heroes
+        return heroes
             .GroupBy(h => h.PlayerId)
             .ToDictionary(g => g.Key, g => g.OrderBy(h => h.PlaceInSquad).Take(StarterSquad.Size).ToList());
-
-        return users
-            .Where(u => squads.ContainsKey(u.PlayerId))
-            .Select(u => new PvpCandidate(u.UserId, u.Username, squads[u.PlayerId]))
-            .ToList();
     }
+
+    public async Task<Dictionary<Guid, int>> GetSquadPowersAsync() =>
+        await context.Players.AsNoTracking().ToDictionaryAsync(p => p.Id, p => p.SquadPower);
+
+    public async Task SetSquadPowerAsync(Guid playerId, int power) =>
+        await context.Players
+            .Where(p => p.Id == playerId && p.SquadPower != power)
+            .ExecuteUpdateAsync(s => s.SetProperty(p => p.SquadPower, power));
 
     public async Task<List<RankedCandidate>> GetRankedCandidatesAsync(Guid excludeUserId, PvpSeasonType type, DateTime start) =>
         await QueryRankedCandidatesAsync(context.RankedSquads.Where(s => s.UserId != excludeUserId), type, start);
@@ -49,14 +46,16 @@ public class PvpRepository(GameDbContext context) : IPvpRepository
     public async Task<RankedCandidate?> GetRankedCandidateAsync(Guid userId, PvpSeasonType type, DateTime start) =>
         (await QueryRankedCandidatesAsync(context.RankedSquads.Where(s => s.UserId == userId), type, start)).FirstOrDefault();
 
-    // Снимок отряда вместе с именем и очками в сезоне подбора — одним запросом
+    // Мощь снимка вместе с именем и очками в сезоне подбора — одним запросом и без JSON героев
     private async Task<List<RankedCandidate>> QueryRankedCandidatesAsync(IQueryable<RankedSquad> squads, PvpSeasonType type, DateTime start)
     {
         var rows = await squads
             .AsNoTracking()
+            .Where(s => s.Power > 0)
             .Select(s => new
             {
-                Squad = s,
+                s.UserId,
+                s.Power,
                 Username = context.Users.Where(u => u.Id == s.UserId).Select(u => u.Username).FirstOrDefault(),
                 Rating = context.PvpSeasonScores
                     .Where(x => x.UserId == s.UserId && x.Mode == PvpMode.Ranked && x.Type == type && x.Start == start)
@@ -66,10 +65,29 @@ public class PvpRepository(GameDbContext context) : IPvpRepository
             .ToListAsync();
 
         return rows
-            .Select(r => new RankedCandidate(r.Squad.UserId, r.Username ?? string.Empty, r.Squad.Heroes(), r.Rating))
-            .Where(c => c.Squad.Count > 0)
+            .Select(r => new RankedCandidate(r.UserId, r.Username ?? string.Empty, r.Power, r.Rating))
             .ToList();
     }
+
+    public async Task<Dictionary<Guid, List<Hero>>> GetRankedSquadsAsync(IReadOnlyCollection<Guid> userIds)
+    {
+        if (userIds.Count == 0)
+            return [];
+
+        var squads = await context.RankedSquads
+            .AsNoTracking()
+            .Where(s => userIds.Contains(s.UserId))
+            .ToListAsync();
+        return squads.ToDictionary(s => s.UserId, s => s.Heroes());
+    }
+
+    public async Task<List<RankedSquad>> GetAllRankedSquadsAsync() =>
+        await context.RankedSquads.AsNoTracking().ToListAsync();
+
+    public async Task SetRankedSquadPowerAsync(Guid userId, int power) =>
+        await context.RankedSquads
+            .Where(s => s.UserId == userId)
+            .ExecuteUpdateAsync(s => s.SetProperty(x => x.Power, power));
 
     public async Task<RankedSquad?> GetRankedSquadAsync(Guid userId)
     {
@@ -87,7 +105,8 @@ public class PvpRepository(GameDbContext context) : IPvpRepository
                 .Where(s => s.UserId == squad.UserId && s.LockedAt == lockedAt)
                 .ExecuteUpdateAsync(s => s
                     .SetProperty(x => x.LockedAt, squad.LockedAt)
-                    .SetProperty(x => x.HeroesJson, squad.HeroesJson)) > 0;
+                    .SetProperty(x => x.HeroesJson, squad.HeroesJson)
+                    .SetProperty(x => x.Power, squad.Power)) > 0;
         }
 
         context.RankedSquads.Add(squad);
@@ -113,6 +132,37 @@ public class PvpRepository(GameDbContext context) : IPvpRepository
             .Select(b => b.DefenderUserId)
             .ToListAsync();
         return ids.ToHashSet();
+    }
+
+    public async Task<List<PvpScout>> GetScoutsAsync(Guid userId, DateTime day) =>
+        await context.PvpScouts
+            .AsNoTracking()
+            .Where(s => s.UserId == userId && s.Day == day)
+            .ToListAsync();
+
+    public async Task<bool> SaveScoutAsync(PvpScout scout, int dailyLimit)
+    {
+        // Транзакция SQLite по умолчанию IMMEDIATE: две параллельные разведки не проскочат лимит, прочитав один и тот же счёт
+        await using var transaction = await context.Database.BeginTransactionAsync();
+
+        int updated = await context.PvpScouts
+            .Where(s => s.UserId == scout.UserId && s.Day == scout.Day && s.Mode == scout.Mode && s.OpponentUserId == scout.OpponentUserId)
+            .ExecuteUpdateAsync(s => s
+                .SetProperty(x => x.WinChance, scout.WinChance)
+                .SetProperty(x => x.PlayerPower, scout.PlayerPower)
+                .SetProperty(x => x.EnemyPower, scout.EnemyPower)
+                .SetProperty(x => x.ScoutedAt, scout.ScoutedAt));
+        if (updated == 0)
+        {
+            if (await context.PvpScouts.CountAsync(s => s.UserId == scout.UserId && s.Day == scout.Day) >= dailyLimit)
+                return false;
+            context.PvpScouts.Add(scout);
+            await context.SaveChangesAsync();
+            context.Entry(scout).State = EntityState.Detached;
+        }
+
+        await transaction.CommitAsync();
+        return true;
     }
 
     public async Task<bool> RecordBattleAsync(PvpBattle battle, IReadOnlyList<(PvpSeasonType Type, DateTime Start)> seasons)

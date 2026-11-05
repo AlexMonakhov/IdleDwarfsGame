@@ -21,7 +21,8 @@ public class EquipmentService(
     IEquipmentRepository equipment,
     IHeroesRepository heroes,
     IExpeditionRepository expeditions,
-    IEntityFactory entityFactory)
+    IEntityFactory entityFactory,
+    SquadPowerService squadPower)
 {
     public async Task<List<EquipmentInfo>> GetMyAsync(Guid playerId) =>
         ToInfo(await equipment.GetByPlayerAsync(playerId));
@@ -85,8 +86,10 @@ public class EquipmentService(
         return slots.Where(s => !taken.Contains(s)).DefaultIfEmpty(slots[0]).First();
     }
 
+    // Общий итог надевания и снятия; мощь отряда — если предмет надели на героя отряда или сняли с него
     private async Task<EquipmentChangeResult> ChangeResultAsync(Guid playerId, List<Hero> changed)
     {
+        await squadPower.RefreshIfInSquadAsync(playerId, changed);
         var busy = await expeditions.GetBusyHeroIdsAsync(playerId);
         var mining = await heroes.GetMiningHeroIdsAsync(playerId);
         return new EquipmentChangeResult

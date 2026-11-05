@@ -40,6 +40,7 @@ public class GameDbContext : DbContext
     public DbSet<PvpBattle> PvpBattles => Set<PvpBattle>();
     public DbSet<PvpSeasonScore> PvpSeasonScores => Set<PvpSeasonScore>();
     public DbSet<RankedSquad> RankedSquads => Set<RankedSquad>();
+    public DbSet<PvpScout> PvpScouts => Set<PvpScout>();
     public DbSet<Mine> Mines => Set<Mine>();
     public DbSet<PlayerAbility> PlayerAbilities => Set<PlayerAbility>();
     public DbSet<PlayerTowerProgress> PlayerTowerProgress => Set<PlayerTowerProgress>();
@@ -823,6 +824,29 @@ public class GameDbContext : DbContext
         // Таблица лидеров сезона
         modelBuilder.Entity<PvpSeasonScore>()
             .HasIndex(s => new { s.Mode, s.Type, s.Start, s.Points });
+
+        // Разведка: одна строка на соперника в сутки на арене; лимит считается по строкам за сутки
+        modelBuilder.Entity<PvpScout>()
+            .HasKey(s => new { s.UserId, s.Day, s.Mode, s.OpponentUserId });
+
+        modelBuilder.Entity<PvpScout>()
+            .Property(s => s.UserId)
+            .HasConversion<string>();
+
+        modelBuilder.Entity<PvpScout>()
+            .Property(s => s.OpponentUserId)
+            .HasConversion<string>();
+
+        modelBuilder.Entity<PvpScout>()
+            .Property(s => s.Mode)
+            .HasConversion<string>()
+            .HasMaxLength(16);
+
+        modelBuilder.Entity<PvpScout>()
+            .HasOne<User>()
+            .WithMany()
+            .HasForeignKey(s => s.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         // Один закреплённый отряд на игрока
         modelBuilder.Entity<RankedSquad>()

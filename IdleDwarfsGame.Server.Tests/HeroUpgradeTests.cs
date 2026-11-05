@@ -33,7 +33,8 @@ public class HeroUpgradeTests : IDisposable
 
         _heroes = new HeroesRepository(_context);
         _service = new HeroUpgradeService(
-            _heroes, new PlayerRepository(_context), new ExpeditionRepository(_context), Factory);
+            _heroes, new PlayerRepository(_context), new ExpeditionRepository(_context), Factory,
+            new SquadPowerService(new PvpRepository(_context), Factory));
     }
 
     public void Dispose()

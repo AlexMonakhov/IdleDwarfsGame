@@ -10,7 +10,8 @@ public class AuthController(
     GameDbContext context,
     IUserRepository userRepository,
     ITokenService tokenService,
-    IPasswordHasher<User> passwordHasher) : ControllerBase
+    IPasswordHasher<User> passwordHasher,
+    SquadPowerService squadPower) : ControllerBase
 {
     [HttpPost("register")]
     public async Task<ActionResult<AuthResponse>> Register([FromBody] RegisterRequest request)
@@ -41,7 +42,9 @@ public class AuthController(
         user.PasswordHash = passwordHasher.HashPassword(user, request.Password);
 
         await context.Players.AddAsync(player);
-        await context.Heroes.AddRangeAsync(StarterSquad.Create(player.Id));
+        var starter = StarterSquad.Create(player.Id);
+        player.SquadPower = squadPower.Of(starter);
+        await context.Heroes.AddRangeAsync(starter);
         // Сохраняется одной транзакцией вместе с игроком и героями
         await userRepository.CreateAsync(user);
 

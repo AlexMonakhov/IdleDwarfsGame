@@ -94,6 +94,7 @@ builder.Services.AddScoped<FriendService>();
 builder.Services.AddScoped<IGuildRepository, GuildRepository>();
 builder.Services.AddScoped<GuildService>();
 builder.Services.AddScoped<IPvpRepository, PvpRepository>();
+builder.Services.AddScoped<SquadPowerService>();
 builder.Services.AddScoped<PvpService>();
 builder.Services.AddScoped<RankedPvpService>();
 builder.Services.AddScoped<IWorldFactory, WorldFactory>();
@@ -116,6 +117,9 @@ using (var scope = app.Services.CreateScope())
         await TestAccountsSeed.SeedAsync(db, scope.ServiceProvider.GetRequiredService<IPasswordHasher<User>>());
         await EquipmentDevSeed.SeedAsync(db);
     }
+
+    // Мощь отрядов хранится в БД; правки баланса меняют формулу, поэтому на старте пересчитываем у всех
+    await scope.ServiceProvider.GetRequiredService<SquadPowerService>().RefreshAllAsync();
 }
 
 

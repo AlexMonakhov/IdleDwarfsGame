@@ -29,8 +29,10 @@ public class PvpOpponentInfo
     public double PowerDiffPercent { get; set; }
     // Отряд соперника как участники боя (команда 2)
     public List<CombatUnitInfo> Squad { get; set; } = new();
-    // Прогноз боя на арене PvP
-    public BattleForecast Forecast { get; set; } = new();
+    // Грубая оценка по мощи — видна всегда
+    public PvpThreat Threat { get; set; }
+    // Точный прогноз боя — только если соперника сегодня разведали (PvpScouting), иначе null
+    public BattleForecast? Forecast { get; set; }
     // Рейтинг соперника на рейтинговой арене (в обычной — null) и насколько он выше (+) или ниже (−) нашего, в процентах
     public int? Rating { get; set; }
     public double? RatingDiffPercent { get; set; }
@@ -93,9 +95,20 @@ public class PvpOverview
     public int OpponentCount { get; set; }
     public List<PvpOpponentInfo> Opponents { get; set; } = new();
     public int BeatenToday { get; set; }
+    // Разведок осталось на сегодня (лимит общий для обеих арен) и сколько их в сутки
+    public int ScoutsLeft { get; set; }
+    public int ScoutLimit { get; set; }
     public List<PvpSeasonInfo> Seasons { get; set; } = new();
     public List<PvpBattleInfo> History { get; set; } = new();
     public PvpArenaInfo Arena { get; set; } = new();
+}
+
+// Итог разведки соперника
+public class PvpScoutResult
+{
+    public Guid OpponentUserId { get; set; }
+    public BattleForecast Forecast { get; set; } = new();
+    public int ScoutsLeft { get; set; }
 }
 
 // Закреплённый отряд рейтинговой арены — снимок на момент закрепления
@@ -129,6 +142,8 @@ public class RankedOverview
     public int OpponentCount { get; set; }
     public List<PvpOpponentInfo> Opponents { get; set; } = new();
     public int BeatenToday { get; set; }
+    public int ScoutsLeft { get; set; }
+    public int ScoutLimit { get; set; }
     public List<PvpSeasonInfo> Seasons { get; set; } = new();
     public List<PvpBattleInfo> History { get; set; } = new();
     public PvpArenaInfo Arena { get; set; } = new();

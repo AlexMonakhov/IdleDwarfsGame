@@ -18,6 +18,11 @@ public class PvpController(PvpService pvpService, RankedPvpService rankedService
     public Task<ActionResult<PvpFightResult>> Fight(Guid opponentId) =>
         Run(userId => pvpService.FightAsync(userId, opponentId));
 
+    // Разведка: точный прогноз боя с соперником из подбора, PvpScouting.DailyLimit разных соперников в сутки на обе арены
+    [HttpPost("opponents/{opponentId:guid}/scout")]
+    public Task<ActionResult<PvpScoutResult>> Scout(Guid opponentId) =>
+        Run(userId => pvpService.ScoutAsync(userId, opponentId));
+
     // Рейтинговая арена: закреплённый отряд, соперники по рейтингу, свои сезоны и история
     [HttpGet("ranked/me")]
     public Task<ActionResult<RankedOverview>> GetRankedOverview() =>
@@ -27,6 +32,10 @@ public class PvpController(PvpService pvpService, RankedPvpService rankedService
     [HttpPost("ranked/squad")]
     public Task<ActionResult<RankedOverview>> LockRankedSquad() =>
         Run(userId => rankedService.LockSquadAsync(userId));
+
+    [HttpPost("ranked/opponents/{opponentId:guid}/scout")]
+    public Task<ActionResult<PvpScoutResult>> RankedScout(Guid opponentId) =>
+        Run(userId => rankedService.ScoutAsync(userId, opponentId));
 
     [HttpPost("ranked/opponents/{opponentId:guid}/fight")]
     public Task<ActionResult<PvpFightResult>> RankedFight(Guid opponentId) =>
