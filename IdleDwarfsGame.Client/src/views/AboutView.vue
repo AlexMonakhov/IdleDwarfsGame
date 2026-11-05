@@ -27,25 +27,30 @@
       />
 
       <div class="interactive-layer">
-        <img 
-          :src="campaignHovered ? campaignHover : campaign"
-          @mouseenter="campaignHovered = true"
-          @mouseleave="campaignHovered = false"
-          @click.capture="campaignDialogOpen = true"
-          @dragstart.prevent 
-          class="campaign-picture" 
-        />
-      </div>
-
-      <div class="interactive-layer">
-        <img 
-          :src="infinityTowerHovered ? infinityTowerHover : infinityTower"
-          @mouseenter="infinityTowerHovered = true"
-          @mouseleave="infinityTowerHovered = false"
-          @click.capture="infinityTowerDialogOpen = true"
-          @dragstart.prevent 
-          class="infinity-tower-picture" 
-        />
+        <template v-for="b in buildings" :key="b.key">
+          <!-- Обычная и hover-картинка лежат друг на друге, при наведении меняется только прозрачность.
+               Если менять src, браузер заново декодирует большую картинку и здание мигает -->
+          <div
+            :class="['building', `building-${b.key}`, { 'is-hovered': hoveredBuilding === b.key, 'is-active': !!b.onClick }]"
+            :style="{ left: `${b.left}%`, top: `${b.top}%`, width: `${b.width}%` }"
+            @mouseenter="hoveredBuilding = b.key"
+            @mouseleave="hoveredBuilding = null"
+            @click.capture="b.onClick?.()"
+          >
+            <img :src="b.image" class="building-img" @dragstart.prevent />
+            <img :src="b.hover" class="building-img building-img-hover" @dragstart.prevent />
+          </div>
+          <!-- Плашка с названием: стоит у нижнего края здания, наведение и клик — как у самого здания -->
+          <div
+            :class="['building-plaque', { 'is-hovered': hoveredBuilding === b.key, 'is-active': !!b.onClick }]"
+            :style="{ left: `${b.left}%`, top: `${b.top}%` }"
+            @mouseenter="hoveredBuilding = b.key"
+            @mouseleave="hoveredBuilding = null"
+            @click.capture="b.onClick?.()"
+          >
+            {{ t(`town.buildings.${b.key}`) }}
+          </div>
+        </template>
       </div>
     </div>
   </div>
@@ -72,20 +77,45 @@
 
 <script lang="ts" setup>
 import { ref, onMounted, onUnmounted, nextTick } from 'vue';
-import background from "@/assets/background5.png";
+import background from "@/assets/town/background.png";
 import backgroundsky from "@/assets/backgroundsky.png";
-import campaign from "@/assets/campaign-dark.png";
-import campaignHover from "@/assets/campaign-hover.png";
-import infinityTower from "@/assets/infinity-tower.png";
-import infinityTowerHover from "@/assets/infinity-tower-hover.png";
+import altar from "@/assets/town/altar.png";
+import altarHover from "@/assets/town/altar-hover.png";
+import arena from "@/assets/town/arena.png";
+import arenaHover from "@/assets/town/arena-hover.png";
+import blacksmith from "@/assets/town/blacksmith.png";
+import blacksmithHover from "@/assets/town/blacksmith-hover.png";
+import campaign from "@/assets/town/campaign.png";
+import campaignHover from "@/assets/town/campaign-hover.png";
+import expedition from "@/assets/town/expedition.png";
+import expeditionHover from "@/assets/town/expedition-hover.png";
+import guild from "@/assets/town/guild.png";
+import guildHover from "@/assets/town/guild-hover.png";
+import market from "@/assets/town/market.png";
+import marketHover from "@/assets/town/market-hover.png";
+import tower from "@/assets/town/tower.png";
+import towerHover from "@/assets/town/tower-hover.png";
+import warehouse from "@/assets/town/warehouse.png";
+import warehouseHover from "@/assets/town/warehouse-hover.png";
+import mine from "@/assets/town/mine.png";
+import mineHover from "@/assets/town/mine-hover.png";
 import ModalComponent from '@/components/common/ModalComponent.vue';
 import FightPreviewListContainer from '@/components/interface/FightPreviewListContainer.vue';
 import TowerContainer from '@/components/tower/TowerContainer.vue';
 import { useI18n } from 'vue-i18n';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
+import { useAuth } from '@/composables/UseAuth';
+import { useGuild } from '@/composables/UseGuild';
+import { usePvp } from '@/composables/UsePvp';
+import { useInterface } from '@/composables/UseInterface';
 
 const { t } = useI18n();
 const route = useRoute();
+const router = useRouter();
+const { isAuthenticated } = useAuth();
+const { guildOpen } = useGuild();
+const { pvpOpen } = usePvp();
+const { expeditionsOpen, inventoryOpen, upgradeOpen, miningOpen } = useInterface();
 
 
 // --- НАСТРОЙКИ ---
@@ -107,10 +137,46 @@ const startX = ref(0);
 const scrollLeftState = ref(0);
 const opacity = ref(0);
 const campaignDialogOpen = ref(false);
-const campaignHovered = ref(false);
 // /about?tower=1 — возврат с арены после боя в башне: окно башни открывается сразу
 const infinityTowerDialogOpen = ref(!!route.query.tower);
-const infinityTowerHovered = ref(false);
+
+// --- ЗДАНИЯ ГОРОДА ---
+// left/top/width — в процентах от фоновой картинки. left — центр здания,
+// top — нижний край картинки (точка, где она стоит на платформе).
+// Порядок в массиве = порядок отрисовки: что ниже на экране, то идёт позже и перекрывает верхние.
+interface TownBuilding {
+  key: string;
+  image: string;
+  hover: string;
+  left: number;
+  top: number;
+  width: number;
+  onClick?: () => void;
+}
+
+// Разделы игрока: гостя отправляем на логин, а после входа он вернётся в город
+const requireAuth = (open: () => void) => () => {
+  if (!isAuthenticated.value) {
+    router.push({ name: 'login', query: { redirect: route.fullPath } });
+    return;
+  }
+  open();
+};
+
+// Кузница и рынок пока без раздела: подсвечиваются, но по клику ничего не открывают
+const buildings: TownBuilding[] = [
+  { key: 'expedition', image: expedition, hover: expeditionHover, left: 34,   top: 31,   width: 8,    onClick: requireAuth(() => (expeditionsOpen.value = true)) },
+  { key: 'guild',      image: guild,      hover: guildHover,      left: 14.5, top: 43,   width: 12,   onClick: requireAuth(() => (guildOpen.value = true)) },
+  { key: 'tower',      image: tower,      hover: towerHover,      left: 83,   top: 51,   width: 13.5, onClick: () => (infinityTowerDialogOpen.value = true) },
+  { key: 'altar',      image: altar,      hover: altarHover,      left: 38,   top: 53,   width: 9,    onClick: requireAuth(() => (upgradeOpen.value = true)) },
+  { key: 'blacksmith', image: blacksmith, hover: blacksmithHover, left: 26.5, top: 56,   width: 9 },
+  { key: 'campaign',   image: campaign,   hover: campaignHover,   left: 51,   top: 56,   width: 14.5, onClick: () => (campaignDialogOpen.value = true) },
+  { key: 'market',     image: market,     hover: marketHover,     left: 61.5, top: 61.5, width: 7.5 },
+  { key: 'arena',      image: arena,      hover: arenaHover,      left: 59,   top: 83,   width: 9,    onClick: requireAuth(() => (pvpOpen.value = true)) },
+  { key: 'warehouse',  image: warehouse,  hover: warehouseHover,  left: 35,   top: 87,   width: 9,    onClick: requireAuth(() => (inventoryOpen.value = true)) },
+  { key: 'mine',       image: mine,       hover: mineHover,       left: 47,   top: 84,   width: 9,    onClick: requireAuth(() => (miningOpen.value = true)) },
+];
+const hoveredBuilding = ref<string | null>(null);
 
 // Параллакс смещение
 const bgOffset = ref(0);
@@ -275,6 +341,8 @@ const onStageClick = (n: number) => {
   height: 100%;
   width: auto;
   display: block;
+  /* Приглушённый фон, чтобы здания на нём выделялись */
+  filter: saturate(0.5);
 }
 
 .interactive-layer {
@@ -287,30 +355,85 @@ const onStageClick = (n: number) => {
   pointer-events: none;
 }
 
-.campaign-picture {
+/* Позиция и ширина задаются инлайном из массива buildings */
+.building {
   position: absolute;
-  top: 59%;
-  left: 49.5%;
-  width: 10%;
+  z-index: 1;
   height: auto;
   transform: translate(-50%, -100%);
-  cursor: pointer;
   pointer-events: auto; /* Разрешаем клики по картинке */
+  /* Без наведения здание приглушено. Пустые тени — чтобы список фильтров совпадал с hover и переход шёл плавно */
+  filter:
+    saturate(0.7)
+    drop-shadow(0 0 0 transparent)
+    drop-shadow(0 0 0 transparent)
+    drop-shadow(0 0 0 transparent);
+  transition: filter 0.2s ease-out;
+
+  &.is-active { cursor: pointer; }
+
+  /* Полный цвет и светящийся контур по силуэту здания: drop-shadow повторяет прозрачность картинки */
+  &.is-hovered {
+    filter:
+      saturate(1)
+      drop-shadow(0 0 2px rgba(255, 236, 170, 0.95))
+      drop-shadow(0 0 10px rgba(255, 196, 90, 0.75))
+      drop-shadow(0 0 24px rgba(255, 150, 40, 0.45));
+  }
 }
 
-.infinity-tower-picture {
-  position: absolute;
-  top: 59%;
-  left: 60%;
-  width: 10%;
+.building-img {
+  display: block;
+  width: 100%;
   height: auto;
-  transform: translate(-50%, -100%);
-  cursor: pointer;
-  pointer-events: auto; /* Разрешаем клики по картинке */
 }
 
-.campaign-picture:hover {
-  filter: drop-shadow(0 0 2px white) drop-shadow(2px 2px 28px #334863) brightness(1.2);
+/* Hover-картинка того же размера ровно поверх обычной */
+.building-img-hover {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.15s ease-out;
+
+  .building.is-hovered & { opacity: 1; }
+}
+
+/* Плашки поверх всех зданий, чтобы нижние здания не закрывали подписи верхних */
+.building-plaque {
+  position: absolute;
+  z-index: 2;
+  transform: translate(-50%, -60%);
+  padding: 0.25em 0.9em;
+  border-radius: 8px;
+  background: var(--wood-background);
+  box-shadow:
+    inset 0 0 6px black,
+    0 0 0 2px rgb(157, 173, 175),
+    0 0 0 4px #333,
+    0 4px 8px rgba(0, 0, 0, 0.6);
+  color: #ffe2a0;
+  font-family: 'Arial', sans-serif;
+  font-size: clamp(11px, calc(1.7 * var(--vh)), 18px);
+  font-weight: bold;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.85);
+  pointer-events: auto;
+  user-select: none;
+  transition: color 0.2s ease-out, box-shadow 0.2s ease-out, transform 0.2s ease-out;
+
+  &.is-active { cursor: pointer; }
+
+  &.is-hovered {
+    z-index: 3;
+    color: #fff4d0;
+    transform: translate(-50%, -60%) scale(1.06);
+    box-shadow:
+      inset 0 0 6px black,
+      0 0 0 2px #ffd166,
+      0 0 0 4px #333,
+      0 0 14px 4px rgba(255, 190, 80, 0.55);
+  }
 }
 
 .company-list {

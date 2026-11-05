@@ -10,6 +10,7 @@ import { itemName } from '@/components/equipment/equipmentText';
 import AbilityExtractTab from '@/components/abilities/AbilityExtractTab.vue';
 import AbilityInventoryTab from '@/components/abilities/AbilityInventoryTab.vue';
 import HeroFusionTab from '@/components/abilities/HeroFusionTab.vue';
+import SquadPanel from '@/components/inventory/SquadPanel.vue';
 import HeroesApiService from '@/services/apiServices/HeroesApiService';
 import EquipmentApiService from '@/services/apiServices/EquipmentApiService';
 import AbilitiesApiService from '@/services/apiServices/AbilitiesApiService';
@@ -21,6 +22,7 @@ import { EquipmentChangeResult, EquipmentError, EquipmentInfo, EquipmentSlot, Eq
 import type { ModalTab } from '@/models/types/Modal';
 import { vDragScroll } from '@/directives/dragScroll';
 
+// Окно алтаря. Первая вкладка — состав отряда (SquadPanel, свои загрузка и сохранение).
 // Прокачка и снаряжение героев: справа список героев или предметов, по клику на героя слева выезжает его панель.
 // Ещё три вкладки — распыление дворфов: извлечение способностей, вставка и слияние способностей, слияние дворфов
 const props = defineProps<{ modelValue: boolean }>();
@@ -40,12 +42,12 @@ const loading = ref(false);
 const errorMessage = ref<string | null>(null);
 const selectedId = ref<string | null>(null);
 
-type UpgradeTab = 'heroes' | 'items' | 'extract' | 'abilities' | 'fusion';
-const TAB_ICONS: Record<UpgradeTab, string> = { heroes: '⚔', items: '🛡', extract: '⚗', abilities: '✦', fusion: '⚒' };
+type UpgradeTab = 'squad' | 'heroes' | 'items' | 'extract' | 'abilities' | 'fusion';
+const TAB_ICONS: Record<UpgradeTab, string> = { squad: '⚑', heroes: '⚔', items: '🛡', extract: '⚗', abilities: '✦', fusion: '⚒' };
 // На этих вкладках своя раскладка, без панели героя
 const FORGE_TABS: UpgradeTab[] = ['extract', 'abilities', 'fusion'];
 
-const tab = ref<UpgradeTab>('heroes');
+const tab = ref<UpgradeTab>('squad');
 const tabs = computed<ModalTab[]>(() => (Object.keys(TAB_ICONS) as UpgradeTab[]).map(key => ({
     key,
     label: t(`heroUpgrade.tabs.${key}`),
@@ -82,7 +84,7 @@ const load = async () => {
 watch(open, isOpen => {
     if (!isOpen) return;
     selectedId.value = null;
-    tab.value = 'heroes';
+    tab.value = 'squad';
     itemFilter.value = null;
     itemMessage.value = null;
     load();
@@ -174,6 +176,12 @@ const onDropOnList = () => {
     if (item) unequip(item);
 };
 
+/* ===== Отряд ===== */
+// Сохранили состав — места в отряде у героев поменялись, обновляем и список прокачки
+const onSquadSaved = (saved: HeroInfo[]) => {
+    heroes.value = saved;
+};
+
 /* ===== Распыление ===== */
 const isForgeTab = computed(() => FORGE_TABS.includes(tab.value));
 
@@ -205,7 +213,9 @@ watch([tab, sorted], () => {
         width="min(1280px, calc(calc(94 * var(--vw)) - 140px))"
         height="min(780px, calc(90 * var(--vh)))"
     >
-        <div v-if="isForgeTab" class="hero-upgrade">
+        <!-- Панель монтируется при каждом переходе на вкладку и сама загружает свежий состав -->
+        <SquadPanel v-if="tab === 'squad'" @saved="onSquadSaved" />
+        <div v-else-if="isForgeTab" class="hero-upgrade">
             <div v-if="loading && !heroes.length" class="hero-upgrade-hint hero-upgrade-hint-wide">{{ t('common.loading') }}</div>
             <div v-else-if="errorMessage" class="hero-upgrade-hint hero-upgrade-hint-wide hero-upgrade-hint-error">{{ errorMessage }}</div>
             <AbilityExtractTab v-else-if="tab === 'extract'" :heroes="heroes" @extracted="onDissolved" @stale="load" />

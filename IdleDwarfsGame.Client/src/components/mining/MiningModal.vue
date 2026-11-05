@@ -1,6 +1,7 @@
 <script lang="ts" setup>
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
+import ModalComponent from '@/components/common/ModalComponent.vue';
 import BuildMineModal from '@/components/mining/BuildMineModal.vue';
 import MineModal from '@/components/mining/MineModal.vue';
 import { mineColor, mineGlyph, mineImage, plotImage } from '@/components/mining/miningArt';
@@ -9,9 +10,17 @@ import MiningApiService from '@/services/apiServices/MiningApiService';
 import { useResources } from '@/composables/UseResources';
 import { GemType, MineInfo, MiningActionResult, MiningBoard, MiningWallet, storedNow } from '@/models/types/Mining';
 
-// Шахты: места под шахты, по клику на свободное — постройка, на шахту — её окно
+// Шахты: места под шахты, по клику на свободное — постройка, на шахту — её окно (поверх этого)
+const props = defineProps<{ modelValue: boolean }>();
+const emit = defineEmits<{ (e: 'update:modelValue', value: boolean): void }>();
+
 const { t, locale } = useI18n();
 const { set: setResources } = useResources();
+
+const open = computed({
+    get: () => props.modelValue,
+    set: value => emit('update:modelValue', value),
+});
 
 const board = ref<MiningBoard | null>(null);
 const loading = ref(false);
@@ -40,10 +49,14 @@ const load = async () => {
     }
 };
 
-onMounted(() => {
+// Доску перечитываем при каждом открытии, а часы тикают только пока окно открыто
+watch(open, isOpen => {
+    window.clearInterval(ticker);
+    if (!isOpen) return;
+
     load();
     ticker = window.setInterval(() => { now.value = Date.now(); }, 1000);
-});
+}, { immediate: true });
 
 onBeforeUnmount(() => window.clearInterval(ticker));
 
@@ -112,9 +125,13 @@ const onBuilt = async (result: MiningActionResult) => {
 </script>
 
 <template>
-    <div class="mining">
-        <div class="mining-content">
-            <h1 class="mining-title">{{ t('mining.title') }}</h1>
+    <ModalComponent
+        v-model="open"
+        :header-message="t('mining.title')"
+        width="min(1100px, calc(94 * var(--vw)))"
+        height="min(780px, calc(90 * var(--vh)))"
+    >
+        <div class="mining">
             <div class="mining-hint">{{ t('mining.hint', { level: board?.dwarfUnlockLevel ?? 2 }) }}</div>
 
             <div v-if="crystals.length" class="mining-wallet">
@@ -167,54 +184,38 @@ const onBuilt = async (result: MiningActionResult) => {
                 </button>
             </div>
         </div>
+    </ModalComponent>
 
-        <BuildMineModal
-            v-if="board"
-            v-model="buildOpen"
-            :plot="buildPlot"
-            :cost="board.buildCost"
-            :wallet="board.wallet"
-            @built="onBuilt"
-        />
-        <MineModal
-            v-if="board && selectedMine"
-            v-model="mineOpen"
-            :mine="selectedMine"
-            :wallet="board.wallet"
-            :dwarf-unlock-level="board.dwarfUnlockLevel"
-            :server-now="serverNow"
-            @changed="applyResult"
-            @wallet="applyWallet"
-            @stale="load"
-        />
-    </div>
+    <BuildMineModal
+        v-if="board"
+        v-model="buildOpen"
+        :plot="buildPlot"
+        :cost="board.buildCost"
+        :wallet="board.wallet"
+        @built="onBuilt"
+    />
+    <MineModal
+        v-if="board && selectedMine"
+        v-model="mineOpen"
+        :mine="selectedMine"
+        :wallet="board.wallet"
+        :dwarf-unlock-level="board.dwarfUnlockLevel"
+        :server-now="serverNow"
+        @changed="applyResult"
+        @wallet="applyWallet"
+        @stale="load"
+    />
 </template>
 
 <style scoped>
 .mining {
-    position: fixed;
-    inset: 0;
-    overflow-y: auto;
-    /* Пока нет фона шахт — тёмная пещера */
-    background: radial-gradient(ellipse at 50% 30%, #3a2c22 0%, #1d1611 55%, #0b0806 100%);
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 6px;
     font-family: 'Arial', sans-serif;
-}
-
-.mining-content {
-    max-width: 1100px;
-    margin: 0 auto;
-    /* Сверху — место под меню интерфейса */
-    padding: 120px 16px 40px;
-    box-sizing: border-box;
-}
-
-.mining-title {
-    margin: 0 0 6px;
-    color: #f8fafc;
-    font-size: 30px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    text-shadow: 0 2px 4px #000;
 }
 
 .mining-hint {
@@ -244,6 +245,7 @@ const onBuilt = async (result: MiningActionResult) => {
 }
 
 .mining-plots {
+    align-self: stretch;
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
     gap: 20px;

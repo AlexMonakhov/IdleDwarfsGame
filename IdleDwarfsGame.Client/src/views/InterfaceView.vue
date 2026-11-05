@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import GemButton from '@/components/common/GemButton.vue';
 import ExpeditionsModal from '@/components/expeditions/ExpeditionsModal.vue';
+import MiningModal from '@/components/mining/MiningModal.vue';
 import FriendsModal from '@/components/friends/FriendsModal.vue';
 import GuildModal from '@/components/guild/GuildModal.vue';
 import PvpModal from '@/components/pvp/PvpModal.vue';
@@ -30,15 +31,13 @@ const { isAuthenticated, logout } = useAuth();
 const { resources, refresh: refreshResources, clear: clearResources } = useResources();
 const { incomingFriendRequests, start: startPresence, stop: stopPresence } = usePresence();
 
-const expeditionsOpen = ref(false);
 const friendsOpen = ref(false);
 const { guildOpen } = useGuild();
 const { pvpOpen } = usePvp();
-const inventoryOpen = ref(false);
 const collectionOpen = ref(false);
-const upgradeOpen = ref(false);
 const { squadOpen } = useSquadModal();
-const { interfaceHidden } = useInterface();
+// Экспедиции, склад (инвентарь), алтарь (прокачка) и шахты открываются кликом по зданиям города
+const { interfaceHidden, expeditionsOpen, inventoryOpen, upgradeOpen, miningOpen } = useInterface();
 const accountOpen = ref(false);
 
 // Ресурсы аккаунта подтягиваем при входе и сбрасываем при выходе; там же открываем и закрываем сессию вкладки
@@ -60,6 +59,7 @@ const onLogout = () => {
     inventoryOpen.value = false;
     collectionOpen.value = false;
     upgradeOpen.value = false;
+    miningOpen.value = false;
     squadOpen.value = false;
     accountOpen.value = false;
     // Пока токен ещё есть — им закрывается сессия
@@ -88,15 +88,8 @@ watchEffect(() => {
             <GemButton @click="router.push('about')" :color="'blue'">{{ t('nav.about') }}</GemButton>
             <GemButton v-if="route.name != 'arena'" @click="router.push('arena')" :color="'blue'">{{ t('nav.arena') }}</GemButton>
             <GemButton @click="router.push('town')" :color="'blue'">{{ t('nav.town') }}</GemButton>
-            <GemButton v-if="isAuthenticated" @click="squadOpen = true" :color="'pink'">{{ t('nav.squad') }}</GemButton>
-            <GemButton v-if="isAuthenticated" @click="inventoryOpen = true" :color="'pink'">{{ t('nav.inventory') }}</GemButton>
             <GemButton v-if="isAuthenticated" @click="collectionOpen = true" :color="'yellow'">{{ t('nav.collection') }}</GemButton>
-            <GemButton v-if="isAuthenticated" @click="upgradeOpen = true" :color="'green'">{{ t('nav.upgrade') }}</GemButton>
-            <GemButton v-if="isAuthenticated" @click="expeditionsOpen = true" :color="'yellow'">{{ t('nav.expeditions') }}</GemButton>
-            <GemButton v-if="isAuthenticated && route.name != 'mining'" @click="router.push('/mining')" :color="'yellow'">{{ t('nav.mining') }}</GemButton>
             <GemButton v-if="isAuthenticated" @click="friendsOpen = true" :color="'green'" :badge-count="incomingFriendRequests">{{ t('nav.friends') }}</GemButton>
-            <GemButton v-if="isAuthenticated" @click="guildOpen = true" :color="'blue'">{{ t('nav.guild') }}</GemButton>
-            <GemButton v-if="isAuthenticated" @click="pvpOpen = true" :color="'red'">{{ t('nav.pvp') }}</GemButton>
             <template v-if="!isAuthenticated">
                 <GemButton v-if="route.name != 'login'" @click="router.push('/login')" :color="'green'">{{ t('nav.login') }}</GemButton>
                 <GemButton v-if="route.name != 'register'" @click="router.push('/register')" :color="'yellow'">{{ t('nav.register') }}</GemButton>
@@ -113,6 +106,7 @@ watchEffect(() => {
     </div>
     <AccountModal v-model="accountOpen" />
     <ExpeditionsModal v-if="isAuthenticated" v-model="expeditionsOpen" />
+    <MiningModal v-if="isAuthenticated" v-model="miningOpen" />
     <FriendsModal v-if="isAuthenticated" v-model="friendsOpen" />
     <GuildModal v-if="isAuthenticated" v-model="guildOpen" />
     <PvpModal v-if="isAuthenticated" v-model="pvpOpen" />
