@@ -59,3 +59,8 @@ export interface RewardClaimResult {
     // Ресурсы аккаунта уже с наградой
     resources: PlayerResources;
 }
+
+// «Забрать всё»: сумма всех забранных наград и их id
+export interface RewardClaimAllResult extends RewardClaimResult {
+    rewardIds: string[];
+}

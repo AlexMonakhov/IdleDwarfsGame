@@ -1,266 +1,174 @@
 <script lang="ts" setup>
-import { computed, onMounted, ref } from "vue";
+import { computed, nextTick, ref, watch } from "vue";
 import { useRouter } from "vue-router";
+import { useI18n } from "vue-i18n";
+import ModalComponent from "@/components/common/ModalComponent.vue";
+import GemButton from "@/components/common/GemButton.vue";
 import FightPreviewList from "@/components/interface/FightPreviewList.vue";
-import IconButton from "../common/IconButton.vue";
-import IconHelm from "../icons/IconHelm.vue";
-import CanvasComponent from "../canvas/CanvasComponent.vue";
-import CanvasLayer from "../canvas/CanvasLayer.vue";
+import ClearedStageRow from "@/components/interface/ClearedStageRow.vue";
+import StageRewardsFooter from "@/components/interface/StageRewardsFooter.vue";
 import CampaignApiService from "@/services/apiServices/CampaignApiService";
 import { CampaignOverview, CampaignStageInfo } from "@/models/types/Campaign";
-import { RewardInfo } from "@/models/types/Inventory";
-import { useResources } from "@/composables/UseResources";
-import { useI18n } from "vue-i18n";
-import { chestLabel } from "@/i18n";
+import { scrollToAnchor, useStageRewards } from "@/composables/UseStageRewards";
+import { useSquadModal } from "@/composables/UseSquadModal";
+import { vDragScroll } from "@/directives/dragScroll";
 
-const { t, locale } = useI18n();
-const { set: setResources } = useResources();
+// Окно кампании. Список: пройденные уровни с незабранной наградой и последний пройденный (без врагов и прогноза),
+// дальше текущий и несколько заблокированных. При открытии список прокручен к последнему пройденному —
+// выше остаются награды, которые ещё можно забрать
+const props = defineProps<{ modelValue: boolean }>();
+const emit = defineEmits<{ (e: 'update:modelValue', value: boolean): void }>();
 
-interface Props {
-    height?: string;
-}
+const open = computed({
+    get: () => props.modelValue,
+    set: value => emit('update:modelValue', value),
+});
 
-const props = withDefaults(defineProps<Props>(), {
-  height: '30%'
-})
-
+const { t } = useI18n();
 const router = useRouter();
+
 const campaign = ref<CampaignOverview | null>(null);
 const loading = ref(false);
 // Флаг, а не текст: сообщение переводится в шаблоне и меняется вместе с языком
 const error = ref(false);
+const scroller = ref<HTMLElement | null>(null);
 
-const loadCampaign = async () => {
+const load = async (scroll = false) => {
     loading.value = true;
     error.value = false;
     try {
         campaign.value = await CampaignApiService.getCampaign();
+        rewards.reset();
     } catch {
         error.value = true;
     } finally {
         loading.value = false;
     }
+    if (scroll) {
+        await nextTick();
+        scrollToAnchor(scroller.value);
+    }
 };
+
+const rewards = useStageRewards({
+    unclaimed: () => campaign.value?.unclaimedRewards ?? 0,
+    claimOne: id => CampaignApiService.claimReward(id),
+    claimAll: () => CampaignApiService.claimAll(),
+    reload: () => load(),
+});
+
+// Открыли окно — свежий обзор и прокрутка к текущему уровню; закрыли — забываем, чтобы не мелькал старый список
+watch(() => props.modelValue, isOpen => {
+    if (isOpen) {
+        load(true);
+    } else {
+        campaign.value = null;
+        rewards.dismiss();
+    }
+}, { immediate: true });
 
 // Бой проигрывается на арене, она сама запросит его у сервера по номеру уровня
 const startStage = (stage: CampaignStageInfo) => {
-    if (stage.status !== 'Available' || campaign.value?.pendingRewardId) return;
+    if (stage.status !== 'Available') return;
     router.push({ name: 'arena', query: { stage: stage.id } });
 };
 
-// Награда за пройденный уровень уже выдана на сервере, но на аккаунт попадает только по кнопке
-const claiming = ref(false);
-const claimError = ref(false);
-const claimed = ref<RewardInfo | null>(null);
+// Отряд меняется в общем окне отряда поверх кампании; когда его закрыли — прогноз пересчитывается с новым отрядом
+const { squadOpen } = useSquadModal();
+watch(squadOpen, (isOpen, wasOpen) => {
+    if (!isOpen && wasOpen && props.modelValue) load();
+});
 
-const claimReward = async () => {
-    const rewardId = campaign.value?.pendingRewardId;
-    if (!rewardId || claiming.value) return;
-    claiming.value = true;
-    claimError.value = false;
-    try {
-        const result = await CampaignApiService.claimReward(rewardId);
-        setResources(result.resources);
-        claimed.value = result.reward;
-    } catch {
-        claimError.value = true;
-    } finally {
-        claiming.value = false;
-    }
-    // И после ошибки (награду уже забрали в другой вкладке) показываем актуальное состояние
-    await loadCampaign();
-};
-
-const claimedChests = computed(() => (claimed.value?.chests ?? []).map(chestLabel).join(', '));
-
-const format = (value: number) => value.toLocaleString(locale.value);
-
-onMounted(loadCampaign);
+const lastClearedIndex = computed(() => (campaign.value?.clearedStages.length ?? 0) - 1);
+const status = computed(() => campaign.value
+    ? t('campaign.progress', { cleared: campaign.value.clearedCount, total: campaign.value.totalStages })
+    : '');
 </script>
 
 <template>
-  <!-- Колонка: баннер награды над списком, а не сбоку от него в ряду тела модалки -->
-  <div class="campaign">
-    <div v-if="claimed" class="campaign-reward">
-        <span class="campaign-reward-title">{{ t('rewards.claimedTitle') }}</span>
-        <span>🪙 {{ format(claimed.gold) }}</span>
-        <span>✦ {{ format(claimed.experience) }}</span>
-        <span v-if="claimedChests">🎁 {{ claimedChests }}</span>
-        <span v-if="claimed.chests.length" class="campaign-reward-hint">{{ t('rewards.chestsHint') }}</span>
-        <button class="campaign-reward-close" v-tooltip="t('common.close')" @click="claimed = null">✕</button>
-    </div>
-    <div v-if="claimError" class="campaign-message error">{{ t('rewards.claimError') }}</div>
+  <!-- Ширина — под строку уровня: два отряда по 5 портретов, арена и кнопка боя без переноса -->
+  <ModalComponent
+    v-model="open"
+    :header-message="t('campaign.header')"
+    width="min(980px, calc(94 * var(--vw)))"
+    height="min(780px, calc(88 * var(--vh)))"
+  >
+    <div class="stage-modal">
+        <div v-if="campaign" class="stage-modal-header">
+            <div class="stage-modal-status">
+                <span>{{ status }}</span>
+                <button class="stage-button" v-tooltip="t('tower.squadHint')" @click="squadOpen = true">⚔ {{ t('tower.squad') }}</button>
+            </div>
+        </div>
 
-    <!-- Пока список перезагружается после получения награды, не прячем его за «Загрузка…» -->
-    <div v-if="loading && !campaign" class="campaign-message">{{ t('common.loading') }}</div>
-    <div v-else-if="error" class="campaign-message error">{{ t('campaign.loadError') }}</div>
-    <div v-else-if="campaign && campaign.currentStageId === null" class="campaign-message">
-        {{ t('campaign.completed', { cleared: campaign.clearedCount, total: campaign.totalStages }) }}
-        <!-- Награда за последний уровень: забрать её больше негде -->
-        <button v-if="campaign.pendingRewardId" class="campaign-claim-inline" :disabled="claiming" @click="claimReward">
-            🎁 {{ t('rewards.claim') }}
-        </button>
-    </div>
-    <ul v-else-if="campaign" class="list-wrapper">
-        <li v-for="stage in campaign.stages" :key="stage.id" class="list" :style="{height: props.height}">
+        <!-- Пока список перезагружается, не прячем его за «Загрузка…» -->
+        <div v-if="loading && !campaign" class="stage-message">{{ t('common.loading') }}</div>
+        <div v-else-if="error && !campaign" class="stage-message error">{{ t('campaign.loadError') }}</div>
+        <div v-else-if="campaign" ref="scroller" v-drag-scroll class="stage-scroll">
+            <ul class="stage-list">
+                <li
+                  v-for="(stage, index) in campaign.clearedStages"
+                  :key="`cleared-${stage.id}`"
+                  :data-anchor="index === lastClearedIndex ? '' : undefined"
+                >
+                    <ClearedStageRow
+                      :number="stage.id"
+                      :title="stage.name"
+                      :background="stage.background"
+                      :element="stage.element"
+                      :boss="stage.type === 'Boss'"
+                      :reward-state="rewards.stateOf(stage.rewardId)"
+                      :claiming="rewards.busy.value === stage.rewardId"
+                      :disabled="!!rewards.busy.value"
+                      @claim="rewards.claim(stage.rewardId)"
+                    />
+                </li>
 
-            <FightPreviewList
-              :title="stage.name"
-              :player-units="campaign.squad"
-              :enemy-units="stage.enemies"
-              :arena="stage.arena"
-              :forecast="stage.forecast"
-              :locked="stage.status === 'Locked'"
-            >
-
-                <template #list-start>
-                    <span :class="{ 'stage-boss': stage.type === 'Boss' }">{{ stage.id }}</span>
-                </template>
-                <template #list-end>
-                    <!-- Пока награда за пройденный уровень не забрана, вместо боя — получение награды -->
-                    <CanvasLayer v-if="stage.status === 'Available' && campaign.pendingRewardId" :page="false">
-                    <CanvasComponent
-                    :effects="[{ func: 'god-rays-radiance', padding: 40, isUnder: true },{ func: 'particles', padding: 100, isUnder: false }]"
+                <li v-for="stage in campaign.stages" :key="stage.id">
+                    <FightPreviewList
+                      :title="stage.name"
+                      :player-units="campaign.squad"
+                      :enemy-units="stage.enemies"
+                      :arena="stage.arena"
+                      :forecast="stage.forecast"
+                      :locked="stage.status === 'Locked'"
+                      :current="stage.status === 'Available'"
+                      :boss="stage.type === 'Boss'"
                     >
-                        <IconButton inner class="stage-claim" v-tooltip="t('rewards.claim')" :disabled="claiming" @click="claimReward">
-                            <span class="stage-claim-icon">🎁</span>
-                            <span class="stage-claim-label">{{ t('rewards.claim') }}</span>
-                        </IconButton>
-                    </CanvasComponent>
-                    </CanvasLayer>
-                    <CanvasLayer v-else-if="stage.status === 'Available'" :page="false">
-                    <CanvasComponent
-                    :effects="[{ func: 'god-rays-radiance', padding: 40, isUnder: true },{ func: 'particles', padding: 100, isUnder: false }]"
-                    >
-                        <IconButton inner v-tooltip="stage.description" @click="startStage(stage)"><IconHelm size="60px" primary-color="rgb(217 215 178)" secondary-color="rgb(64 255 251)"></IconHelm></IconButton>
-                    </CanvasComponent>
-                    </CanvasLayer>
-                    <span v-else class="stage-lock" v-tooltip="t('campaign.locked')">🔒</span>
-                </template>
-            </FightPreviewList>
+                        <template #list-start>
+                            <span :class="{ 'stage-number-boss': stage.type === 'Boss' }">{{ stage.id }}</span>
+                        </template>
+                        <template #list-end>
+                            <GemButton
+                              v-if="stage.status === 'Available'"
+                              :color="'red'"
+                              class="stage-fight stage-fight-ready"
+                              v-tooltip="stage.description"
+                              @click="startStage(stage)"
+                            >⚔ {{ t('campaign.fight') }}</GemButton>
+                            <span v-else class="stage-lock" v-tooltip="t('campaign.locked')">🔒</span>
+                        </template>
+                    </FightPreviewList>
+                </li>
+            </ul>
 
-        </li>
-    </ul>
-  </div>
+            <div v-if="campaign.currentStageId === null" class="stage-list-note">
+                {{ t('campaign.completed', { cleared: campaign.clearedCount, total: campaign.totalStages }) }}
+            </div>
+        </div>
+    </div>
+
+    <template #modalFooter>
+        <StageRewardsFooter
+          :remaining="rewards.remaining.value"
+          :busy="rewards.busy.value === 'all'"
+          :notice="rewards.notice.value"
+          :error="rewards.error.value"
+          @claim-all="rewards.claimAll()"
+          @dismiss="rewards.dismiss()"
+        />
+    </template>
+  </ModalComponent>
 </template>
 
-<style scoped>
-.campaign{
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-}
-
-/* Высота списка — ровно остаток окна: от неё считаются проценты высоты уровней (props.height),
-   а сами уровни выходят за список и прокручиваются в теле модалки */
-.list-wrapper{
-    flex: 1 0 0;
-    min-height: 0;
-    width:100%;
-    margin: 0;
-    padding:0;
-}
-
-.list{
-    list-style: none;
-    margin-bottom: 25px;
-}
-
-/* После последнего уровня пустого хвоста нет — прокрутка заканчивается на нём */
-.list:last-child{
-    margin-bottom: 0;
-}
-
-.stage-boss{
-    color: #ffd166;
-    text-shadow: 0 0 10px #ff7b00, 1px 1px 2px #000000;
-}
-
-.stage-lock{
-    font-size: 36px;
-    filter: drop-shadow(0 2px 3px #000);
-}
-
-/* Без списка сообщение встаёт посередине окна; со списком тот забирает всё место и отступы обнуляются */
-.campaign-message{
-    width: 100%;
-    margin: auto 0;
-    text-align: center;
-    font-size: 1.2em;
-    text-shadow: 0 1px 3px #000;
-}
-
-.campaign-message.error{
-    color: #fca5a5;
-}
-
-.campaign-reward{
-    position: relative;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: center;
-    gap: 6px 16px;
-    margin: 0 0 20px;
-    padding: 12px 40px;
-    border: 1px solid rgba(255, 209, 102, 0.6);
-    border-radius: 12px;
-    background: rgba(14, 19, 34, 0.75);
-    color: #f8fafc;
-    text-shadow: 0 1px 3px #000;
-}
-
-.campaign-reward-title{
-    color: #ffd166;
-    font-weight: 700;
-}
-
-.campaign-reward-hint{
-    flex-basis: 100%;
-    text-align: center;
-    font-size: 0.85em;
-    color: #cbd5e1;
-}
-
-.campaign-reward-close{
-    position: absolute;
-    top: 6px;
-    right: 8px;
-    border: none;
-    background: none;
-    color: #cbd5e1;
-    cursor: pointer;
-}
-
-.campaign-claim-inline{
-    display: block;
-    margin: 12px auto 0;
-    border: 1px solid #ffd166;
-    border-radius: 8px;
-    padding: 8px 16px;
-    background: rgba(14, 19, 34, 0.7);
-    color: #ffd166;
-    cursor: pointer;
-}
-
-.stage-claim{
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-.stage-claim-icon{
-    font-size: 40px;
-    line-height: 1;
-    filter: drop-shadow(0 2px 3px #000);
-}
-
-.stage-claim-label{
-    margin-top: 2px;
-    font-size: 11px;
-    font-weight: 700;
-    color: #ffd166;
-    text-shadow: 0 1px 2px #000;
-}
-</style>
+<style scoped src="./stageModal.css"></style>

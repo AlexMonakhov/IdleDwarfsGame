@@ -9,7 +9,8 @@
     "sprites": "node tools/sprite-sheets.js",
     "sprites:recolor": "node tools/sprite-recolor.js",
     "atlas": "node tools/sprite-atlas.js",
-    "portraits": "node tools/portraits.js"
+    "portraits": "node tools/portraits.js",
+    "caves": "node tools/cave-backgrounds.js"
   },
   "dependencies": {
     "axios": "^1.16.1",

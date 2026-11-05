@@ -38,11 +38,26 @@ export interface BattleForecast {
     winChance: number;
 }
 
+// Пройденный уровень в списке — без врагов и прогноза: номер, название, арена и награда, если её не забрали
+export interface ClearedStageInfo {
+    id: number;
+    name: string;
+    type: StageType;
+    // Ключ фона арены (arenaBackground)
+    background: string;
+    element: HeroElement;
+    // Незабранная награда (null — уже забрана). Что в ней — видно только после получения
+    rewardId: string | null;
+}
+
 export interface CampaignOverview {
     // null — кампания пройдена целиком
     currentStageId: number | null;
-    // Незабранная награда за пройденный уровень: пока она есть, вместо кнопки боя — «Забрать награды»
-    pendingRewardId: string | null;
+    // Пройденные уровни по порядку: с незабранной наградой и последний пройденный (над текущим).
+    // Награды не мешают идти дальше
+    clearedStages: ClearedStageInfo[];
+    // Сколько всего незабранных наград — подсветка «Забрать всё»
+    unclaimedRewards: number;
     clearedCount: number;
     totalStages: number;
     squad: CombatUnitInfo[];

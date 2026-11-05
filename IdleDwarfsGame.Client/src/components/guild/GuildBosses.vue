@@ -19,7 +19,7 @@ import { useSquadModal } from '@/composables/UseSquadModal';
 import { GuildBossesOverview, GuildBossInfo } from '@/models/types/Guild';
 import { RewardInfo } from '@/models/types/Inventory';
 import { GuildRun, formatTime } from './guildShared';
-import { arenaBackground } from '@/battle/arenaBackgrounds';
+import { arenaPreview } from '@/battle/arenaBackgrounds';
 
 // Боссы гильдии: общее на гильдию HP, удар раз в час, награда за убитого босса — раз в сутки на аккаунт
 const props = defineProps<{
@@ -179,7 +179,7 @@ const claim = async (boss: GuildBossInfo) => {
                 <div class="boss-card-arena" aria-hidden="true">
                     <div
                         class="boss-card-arena-image"
-                        :style="{ backgroundImage: `url(${arenaBackground(boss.background)})` }"
+                        :style="{ backgroundImage: `url(${arenaPreview(boss.background)})` }"
                     ></div>
                 </div>
                 <div class="boss-card-top">

@@ -1,99 +1,97 @@
 <script lang="ts" setup>
-import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { computed, nextTick, onBeforeUnmount, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
+import ModalComponent from "@/components/common/ModalComponent.vue";
+import GemButton from "@/components/common/GemButton.vue";
 import FightPreviewList from "@/components/interface/FightPreviewList.vue";
-import IconButton from "@/components/common/IconButton.vue";
-import IconHelm from "@/components/icons/IconHelm.vue";
-import CanvasComponent from "@/components/canvas/CanvasComponent.vue";
-import CanvasLayer from "@/components/canvas/CanvasLayer.vue";
+import ClearedStageRow from "@/components/interface/ClearedStageRow.vue";
+import StageRewardsFooter from "@/components/interface/StageRewardsFooter.vue";
 import TowerRewardLine from "./TowerRewardLine.vue";
 import TowerApiService from "@/services/apiServices/TowerApiService";
-import { TowerFloorInfo, TowerOverview } from "@/models/types/Tower";
-import { RewardInfo } from "@/models/types/Inventory";
+import { ClearedFloorInfo, TowerFloorInfo, TowerOverview } from "@/models/types/Tower";
 import { ELEMENT_COLORS, ELEMENT_ICONS } from "@/components/inventory/lootStyles";
 import { useResources } from "@/composables/UseResources";
 import { useSquadModal } from "@/composables/UseSquadModal";
+import { scrollToAnchor, useStageRewards } from "@/composables/UseStageRewards";
+import { vDragScroll } from "@/directives/dragScroll";
+
+// Окно бесконечной башни. Шапка (круг стихий, неделя, отряд, пропуск) стоит на месте, прокручивается список:
+// пройденные этажи с незабранной наградой (и прошлых недель) и последний пройденный, дальше текущий и заблокированные.
+// При открытии список прокручен к последнему пройденному этажу
+const props = defineProps<{ modelValue: boolean }>();
+const emit = defineEmits<{ (e: 'update:modelValue', value: boolean): void }>();
+
+const open = computed({
+    get: () => props.modelValue,
+    set: value => emit('update:modelValue', value),
+});
 
 const { t } = useI18n();
 const { set: setResources } = useResources();
-
-const props = withDefaults(defineProps<{ height?: string }>(), {
-    height: '30%'
-});
-
 const router = useRouter();
+
 const tower = ref<TowerOverview | null>(null);
 const loading = ref(false);
 // Флаг, а не текст: сообщение переводится в шаблоне и меняется вместе с языком
 const error = ref(false);
+const scroller = ref<HTMLElement | null>(null);
 
-const load = async () => {
+const load = async (scroll = false) => {
     loading.value = true;
     error.value = false;
     try {
         tower.value = await TowerApiService.getTower();
+        rewards.reset();
     } catch {
         error.value = true;
     } finally {
         loading.value = false;
     }
+    if (scroll) {
+        await nextTick();
+        scrollToAnchor(scroller.value);
+    }
 };
+
+const rewards = useStageRewards({
+    unclaimed: () => tower.value?.unclaimedRewards ?? 0,
+    claimOne: id => TowerApiService.claimReward(id),
+    claimAll: () => TowerApiService.claimAll(),
+    reload: () => load(),
+});
 
 // Бой проигрывается на арене, она сама запросит его у сервера по номеру этажа
 const startFloor = (floor: TowerFloorInfo) => {
-    if (floor.status !== 'Available' || tower.value?.pendingRewardId) return;
+    if (floor.status !== 'Available') return;
     router.push({ name: 'arena', query: { tower: floor.floor } });
 };
 
 // Отряд меняется в общем окне отряда поверх башни; когда его закрыли — перечитываем башню с новым отрядом
 const { squadOpen } = useSquadModal();
 watch(squadOpen, (isOpen, wasOpen) => {
-    if (!isOpen && wasOpen) load();
+    if (!isOpen && wasOpen && props.modelValue) load();
 });
 
-/* ===== Награды ===== */
-const busy = ref(false);
-const actionError = ref<'claim' | 'skip' | null>(null);
-const claimed = ref<RewardInfo | null>(null);
-const skippedTo = ref<number | null>(null);
-
-// Награда за пройденный этаж уже выдана на сервере, но на аккаунт попадает только по кнопке
-const claimReward = async () => {
-    const rewardId = tower.value?.pendingRewardId;
-    if (!rewardId || busy.value) return;
-    busy.value = true;
-    actionError.value = null;
-    try {
-        const result = await TowerApiService.claimReward(rewardId);
-        setResources(result.resources);
-        claimed.value = result.reward;
-        skippedTo.value = null;
-    } catch {
-        actionError.value = 'claim';
-    } finally {
-        busy.value = false;
-    }
-    // И после ошибки (награду уже забрали в другой вкладке) показываем актуальное состояние
-    await load();
-};
+/* ===== Пропуск ===== */
+const skipping = ref(false);
+const skipError = ref(false);
 
 // Этажи до рекорда прошлых недель засчитываются разом, их награда сразу на аккаунте
 const skip = async () => {
-    if (!tower.value?.skipToFloor || busy.value) return;
-    busy.value = true;
-    actionError.value = null;
+    if (!tower.value?.skipToFloor || skipping.value) return;
+    skipping.value = true;
+    skipError.value = false;
     try {
         const result = await TowerApiService.skip();
         setResources(result.resources);
-        claimed.value = result.reward;
-        skippedTo.value = result.skippedTo;
+        rewards.show(result.reward, result.skippedTo);
     } catch {
-        actionError.value = 'skip';
+        skipError.value = true;
     } finally {
-        busy.value = false;
+        skipping.value = false;
     }
-    await load();
+    await load(true);
 };
 
 /* ===== Неделя ===== */
@@ -113,8 +111,24 @@ const timeLeft = computed(() => {
 
 // Неделя кончилась, пока окно открыто, — башня начинается заново
 watch(timeLeft, () => {
-    if (tower.value && Date.parse(tower.value.weekEndsAt) <= now.value && !loading.value) load();
+    if (tower.value && Date.parse(tower.value.weekEndsAt) <= now.value && !loading.value) load(true);
 });
+
+// Открыли окно — свежий обзор, часы недели и прокрутка к текущему этажу; закрыли — всё останавливаем
+watch(() => props.modelValue, isOpen => {
+    clearInterval(clockId);
+    if (isOpen) {
+        now.value = Date.now();
+        clockId = window.setInterval(() => { now.value = Date.now(); }, 30_000);
+        load(true);
+    } else {
+        tower.value = null;
+        skipError.value = false;
+        rewards.dismiss();
+    }
+}, { immediate: true });
+
+onBeforeUnmount(() => clearInterval(clockId));
 
 // Блок, в котором сейчас бой: его стихия подсвечена в круге недели
 const currentBlock = computed(() => tower.value ? Math.floor((tower.value.currentFloor - 1) / tower.value.floorsPerBlock) : 0);
@@ -131,122 +145,133 @@ const floorTitle = (floor: TowerFloorInfo) => {
         : t('tower.floorTitle', { element });
 };
 
-onMounted(() => {
-    load();
-    clockId = window.setInterval(() => { now.value = Date.now(); }, 30_000);
-});
-onBeforeUnmount(() => clearInterval(clockId));
+const clearedTitle = (floor: ClearedFloorInfo) => t('tower.clearedTitle', { floor: floor.floor, element: t(`elementNames.${floor.element}`) });
+const clearedKey = (floor: ClearedFloorInfo) => floor.rewardId ?? `floor-${floor.floor}`;
+const lastClearedIndex = computed(() => (tower.value?.clearedFloors.length ?? 0) - 1);
 </script>
 
 <template>
-  <div class="tower">
-    <div v-if="tower" class="tower-header">
-        <div class="tower-rotation" v-tooltip="t('tower.rotationHint', { count: tower.floorsPerBlock })">
-            <span
-                v-for="(element, block) in tower.rotation"
-                :key="block"
-                class="tower-rotation-block"
-                :class="{ current: block === currentBlock }"
-                :style="{ '--element-color': ELEMENT_COLORS[element] }"
-            >
-                <img v-if="ELEMENT_ICONS[element]" :src="ELEMENT_ICONS[element]" class="tower-element-icon" alt="" />
-                <span>{{ blockRange(block) }}</span>
-            </span>
-            <span class="tower-rotation-more">…</span>
+  <ModalComponent
+    v-model="open"
+    :header-message="t('tower.header')"
+    width="min(980px, calc(94 * var(--vw)))"
+    height="min(780px, calc(88 * var(--vh)))"
+  >
+    <div class="stage-modal">
+        <div v-if="tower" class="stage-modal-header">
+            <div class="tower-rotation" v-tooltip="t('tower.rotationHint', { count: tower.floorsPerBlock })">
+                <span
+                    v-for="(element, block) in tower.rotation"
+                    :key="block"
+                    class="tower-rotation-block"
+                    :class="{ current: block === currentBlock }"
+                    :style="{ '--element-color': ELEMENT_COLORS[element] }"
+                >
+                    <img v-if="ELEMENT_ICONS[element]" :src="ELEMENT_ICONS[element]" class="tower-element-icon" alt="" />
+                    <span>{{ blockRange(block) }}</span>
+                </span>
+                <span class="tower-rotation-more">…</span>
+            </div>
+
+            <div class="stage-modal-status">
+                <span>⏳ {{ t('tower.weekEnds', { time: timeLeft }) }}</span>
+                <span>{{ t('tower.cleared', { floor: tower.clearedFloor }) }}</span>
+                <span v-if="tower.bestFloor">🏆 {{ t('tower.best', { floor: tower.bestFloor }) }}</span>
+                <button class="stage-button" v-tooltip="t('tower.squadHint')" @click="squadOpen = true">⚔ {{ t('tower.squad') }}</button>
+            </div>
+
+            <!-- Пропуск до рекорда прошлых недель: что он даст — видно сразу -->
+            <div v-if="tower.skipToFloor && tower.skipReward" class="tower-skip">
+                <span class="tower-skip-hint">{{ t('tower.skipHint') }}</span>
+                <TowerRewardLine :reward="tower.skipReward" />
+                <GemButton :color="'green'" :disabled="skipping" @click="skip">
+                    ⏩ {{ skipping ? t('tower.skipping') : t('tower.skip', { floor: tower.skipToFloor }) }}
+                </GemButton>
+            </div>
+            <div v-if="skipError" class="stage-message error">{{ t('tower.skipError') }}</div>
         </div>
 
-        <div class="tower-status">
-            <span>{{ t('tower.weekEnds', { time: timeLeft }) }}</span>
-            <span>{{ t('tower.cleared', { floor: tower.clearedFloor }) }}</span>
-            <span v-if="tower.bestFloor">{{ t('tower.best', { floor: tower.bestFloor }) }}</span>
-            <button class="tower-button" v-tooltip="t('tower.squadHint')" @click="squadOpen = true">⚔ {{ t('tower.squad') }}</button>
-        </div>
+        <!-- Пока список перезагружается после награды, не прячем его за «Загрузка…» -->
+        <div v-if="loading && !tower" class="stage-message">{{ t('common.loading') }}</div>
+        <div v-else-if="error && !tower" class="stage-message error">{{ t('tower.loadError') }}</div>
+        <div v-else-if="tower" ref="scroller" v-drag-scroll class="stage-scroll">
+            <ul class="stage-list">
+                <li
+                  v-for="(floor, index) in tower.clearedFloors"
+                  :key="clearedKey(floor)"
+                  :data-anchor="index === lastClearedIndex ? '' : undefined"
+                >
+                    <ClearedStageRow
+                      :number="floor.floor"
+                      :title="clearedTitle(floor)"
+                      :background="floor.background"
+                      :element="floor.element"
+                      :boss="floor.type === 'Boss'"
+                      :tag="floor.previousWeek ? t('tower.previousWeek') : null"
+                      :reward-state="rewards.stateOf(floor.rewardId)"
+                      :claiming="rewards.busy.value === floor.rewardId"
+                      :disabled="!!rewards.busy.value"
+                      @claim="rewards.claim(floor.rewardId)"
+                    >
+                        <TowerRewardLine
+                          v-if="floor.reward && rewards.stateOf(floor.rewardId) === 'pending'"
+                          class="cleared-reward"
+                          :reward="floor.reward"
+                        />
+                    </ClearedStageRow>
+                </li>
 
-        <!-- Пропуск до рекорда прошлых недель: что он даст — видно сразу -->
-        <div v-if="tower.skipToFloor && tower.skipReward" class="tower-skip">
-            <span class="tower-skip-hint">{{ t('tower.skipHint') }}</span>
-            <TowerRewardLine :reward="tower.skipReward" />
-            <button class="tower-button tower-button-gold" :disabled="busy || !!tower.pendingRewardId" @click="skip">
-                ⏩ {{ busy ? t('tower.skipping') : t('tower.skip', { floor: tower.skipToFloor }) }}
-            </button>
+                <li v-for="floor in tower.floors" :key="floor.floor">
+                    <FightPreviewList
+                      :title="floorTitle(floor)"
+                      :player-units="tower.squad"
+                      :enemy-units="floor.enemies"
+                      :arena="floor.arena"
+                      :forecast="floor.forecast"
+                      :locked="floor.status === 'Locked'"
+                      :current="floor.status === 'Available'"
+                      :boss="floor.type === 'Boss'"
+                      :element="floor.element"
+                    >
+                        <template #list-start>
+                            <span class="floor-number" :class="{ 'stage-number-boss': floor.type === 'Boss' }" :style="{ '--element-color': ELEMENT_COLORS[floor.element] }">
+                                {{ floor.floor }}
+                            </span>
+                        </template>
+                        <template #preview-footer>
+                            <TowerRewardLine :reward="floor.reward" />
+                        </template>
+                        <template #list-end>
+                            <GemButton
+                              v-if="floor.status === 'Available'"
+                              :color="'red'"
+                              class="stage-fight stage-fight-ready"
+                              @click="startFloor(floor)"
+                            >⚔ {{ t('tower.fight') }}</GemButton>
+                            <span v-else class="stage-lock" v-tooltip="t('tower.locked')">🔒</span>
+                        </template>
+                    </FightPreviewList>
+                </li>
+            </ul>
         </div>
     </div>
 
-    <div v-if="claimed" class="tower-reward">
-        <span class="tower-reward-title">
-            {{ skippedTo ? t('tower.skipped', { floor: skippedTo }) : t('rewards.claimedTitle') }}
-        </span>
-        <TowerRewardLine :reward="claimed" />
-        <span v-if="claimed.chests.length" class="tower-reward-hint">{{ t('rewards.chestsHint') }}</span>
-        <button class="tower-reward-close" v-tooltip="t('common.close')" @click="claimed = null">✕</button>
-    </div>
-    <div v-if="actionError" class="tower-message error">{{ actionError === 'skip' ? t('tower.skipError') : t('rewards.claimError') }}</div>
-
-    <!-- Пока список перезагружается после награды, не прячем его за «Загрузка…» -->
-    <div v-if="loading && !tower" class="tower-message">{{ t('common.loading') }}</div>
-    <div v-else-if="error" class="tower-message error">{{ t('tower.loadError') }}</div>
-    <ul v-else-if="tower" class="list-wrapper">
-        <li v-for="floor in tower.floors" :key="floor.floor" class="list" :style="{ height: props.height }">
-            <FightPreviewList
-              :title="floorTitle(floor)"
-              :player-units="tower.squad"
-              :enemy-units="floor.enemies"
-              :arena="floor.arena"
-              :forecast="floor.forecast"
-              :locked="floor.status === 'Locked'"
-            >
-                <template #list-start>
-                    <span class="floor-number" :class="{ 'floor-boss': floor.type === 'Boss' }" :style="{ '--element-color': ELEMENT_COLORS[floor.element] }">
-                        {{ floor.floor }}
-                    </span>
-                </template>
-                <template #preview-footer>
-                    <TowerRewardLine :reward="floor.reward" />
-                </template>
-                <template #list-end>
-                    <!-- Пока награда за пройденный этаж не забрана, вместо боя — получение награды -->
-                    <CanvasLayer v-if="floor.status === 'Available' && tower.pendingRewardId" :page="false">
-                    <CanvasComponent
-                    :effects="[{ func: 'god-rays-radiance', padding: 40, isUnder: true },{ func: 'particles', padding: 100, isUnder: false }]"
-                    >
-                        <IconButton inner class="floor-claim" v-tooltip="t('rewards.claim')" :disabled="busy" @click="claimReward">
-                            <span class="floor-claim-icon">🎁</span>
-                            <span class="floor-claim-label">{{ t('rewards.claim') }}</span>
-                        </IconButton>
-                    </CanvasComponent>
-                    </CanvasLayer>
-                    <CanvasLayer v-else-if="floor.status === 'Available'" :page="false">
-                    <CanvasComponent
-                    :effects="[{ func: 'god-rays-radiance', padding: 40, isUnder: true },{ func: 'particles', padding: 100, isUnder: false }]"
-                    >
-                        <IconButton inner v-tooltip="t('tower.fight')" @click="startFloor(floor)"><IconHelm size="60px" primary-color="rgb(217 215 178)" secondary-color="rgb(64 255 251)"></IconHelm></IconButton>
-                    </CanvasComponent>
-                    </CanvasLayer>
-                    <span v-else class="floor-lock" v-tooltip="t('tower.locked')">🔒</span>
-                </template>
-            </FightPreviewList>
-        </li>
-    </ul>
-  </div>
+    <template #modalFooter>
+        <StageRewardsFooter
+          :remaining="rewards.remaining.value"
+          :busy="rewards.busy.value === 'all'"
+          :notice="rewards.notice.value"
+          :error="rewards.error.value"
+          @claim-all="rewards.claimAll()"
+          @dismiss="rewards.dismiss()"
+        />
+    </template>
+  </ModalComponent>
 </template>
 
+<style scoped src="@/components/interface/stageModal.css"></style>
+
 <style scoped>
-.tower {
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-}
-
-.tower-header {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 20px;
-    text-shadow: 0 1px 3px #000;
-}
-
 .tower-rotation {
     display: flex;
     flex-wrap: wrap;
@@ -285,22 +310,13 @@ onBeforeUnmount(() => clearInterval(clockId));
     height: 16px;
 }
 
-.tower-status {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: center;
-    gap: 6px 18px;
-    font-size: 14px;
-}
-
 .tower-skip {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
     align-items: center;
     gap: 8px 14px;
-    padding: 10px 16px;
+    padding: 8px 16px;
     border: 1px solid rgba(255, 209, 102, 0.6);
     border-radius: 12px;
     background: rgba(14, 19, 34, 0.75);
@@ -313,127 +329,18 @@ onBeforeUnmount(() => clearInterval(clockId));
     color: #cbd5e1;
 }
 
-.tower-button {
-    border: 1px solid #94a3b8;
-    border-radius: 8px;
-    padding: 5px 14px;
-    background: rgba(14, 19, 34, 0.7);
-    color: #f8fafc;
-    cursor: pointer;
-}
-
-.tower-button-gold {
-    border-color: #ffd166;
-    color: #ffd166;
-    font-weight: 700;
-}
-
-.tower-button:disabled {
-    opacity: 0.5;
-    cursor: default;
-}
-
-/* Высота списка — ровно остаток окна: от неё считаются проценты высоты этажей (props.height),
-   а сами этажи выходят за список и прокручиваются в теле модалки */
-.list-wrapper {
-    flex: 1 0 0;
-    min-height: 0;
-    width: 100%;
-    margin: 0;
-    padding: 0;
-}
-
-.list {
-    list-style: none;
-    margin-bottom: 25px;
-}
-
-.list:last-child {
-    margin-bottom: 0;
-}
-
 .floor-number {
     color: var(--element-color);
     text-shadow: 0 0 10px var(--element-color), 1px 1px 2px #000000;
 }
 
-.floor-boss {
+.floor-number.stage-number-boss {
     color: #ffd166;
     text-shadow: 0 0 10px #ff7b00, 0 0 18px var(--element-color), 1px 1px 2px #000000;
 }
 
-.floor-lock {
-    font-size: 36px;
-    filter: drop-shadow(0 2px 3px #000);
-}
-
-.tower-message {
-    width: 100%;
-    margin: auto 0;
-    text-align: center;
-    font-size: 1.2em;
-    text-shadow: 0 1px 3px #000;
-}
-
-.tower-message.error {
-    color: #fca5a5;
-}
-
-.tower-reward {
-    position: relative;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: center;
-    gap: 6px 16px;
-    margin: 0 0 20px;
-    padding: 12px 40px;
-    border: 1px solid rgba(255, 209, 102, 0.6);
-    border-radius: 12px;
-    background: rgba(14, 19, 34, 0.75);
-    color: #f8fafc;
-    text-shadow: 0 1px 3px #000;
-}
-
-.tower-reward-title {
-    color: #ffd166;
-    font-weight: 700;
-}
-
-.tower-reward-hint {
-    flex-basis: 100%;
-    text-align: center;
-    font-size: 0.85em;
-    color: #cbd5e1;
-}
-
-.tower-reward-close {
-    position: absolute;
-    top: 6px;
-    right: 8px;
-    border: none;
-    background: none;
-    color: #cbd5e1;
-    cursor: pointer;
-}
-
-.floor-claim {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-.floor-claim-icon {
-    font-size: 40px;
-    line-height: 1;
-    filter: drop-shadow(0 2px 3px #000);
-}
-
-.floor-claim-label {
-    margin-top: 2px;
-    font-size: 11px;
-    font-weight: 700;
-    color: #ffd166;
-    text-shadow: 0 1px 2px #000;
+/* Награда этажа в строке пройденного — слева, под названием */
+.stage-list .cleared-reward {
+    justify-content: flex-start;
 }
 </style>

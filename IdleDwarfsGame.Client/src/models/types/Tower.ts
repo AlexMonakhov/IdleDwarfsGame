@@ -16,6 +16,20 @@ export interface TowerFloorInfo {
     reward: RewardInfo;
 }
 
+// Пройденный этаж в списке — без врагов и прогноза
+export interface ClearedFloorInfo {
+    floor: number;
+    element: HeroElement;
+    type: StageType;
+    // Ключ фона арены (arenaBackground)
+    background: string;
+    // Этаж прошлой недели, награду за который так и не забрали
+    previousWeek: boolean;
+    // Незабранная награда (null — уже забрана) и что в ней
+    rewardId: string | null;
+    reward: RewardInfo | null;
+}
+
 export interface TowerOverview {
     // Неделя башни (UTC, ISO): с понедельника до следующего
     weekStart: string;
@@ -31,8 +45,10 @@ export interface TowerOverview {
     // До какого этажа можно пропустить разом; null — пропуск недоступен
     skipToFloor: number | null;
     skipReward: RewardInfo | null;
-    // Незабранная награда за этаж: пока она есть, вместо боя — «Забрать награды»
-    pendingRewardId: string | null;
+    // Пройденные этажи: с незабранной наградой (и прошлых недель) и последний пройденный на этой неделе
+    clearedFloors: ClearedFloorInfo[];
+    // Сколько всего незабранных наград — подсветка «Забрать всё»
+    unclaimedRewards: number;
     squad: CombatUnitInfo[];
     floors: TowerFloorInfo[];
 }
