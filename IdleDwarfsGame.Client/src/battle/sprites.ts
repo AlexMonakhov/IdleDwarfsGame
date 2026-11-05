@@ -9,7 +9,7 @@ export interface SpritePose {
 }
 
 // Цвет героя на спрайте. Basic — герои 1-го ранга без стихии, white — бриллиант (сияние), purple — тьма.
-// Violet — кровь, rainbow и negative — дворфы 5-го ранга. В именах файлов цвет бывает другим, см. SHEET_COLORS
+// Violet — кровь, rainbow и negative — дворфы 5-го ранга
 export type SpriteColor = 'basic' | 'red' | 'blue' | 'yellow' | 'green' | 'purple' | 'white' | 'violet' | 'rainbow' | 'negative';
 
 export const ELEMENT_COLORS: Record<HeroElement, SpriteColor> = {
@@ -71,13 +71,9 @@ const drawByUrl = new Map<string, UnitDraw>();
 // Индекс строится по именам листов в atlas-meta.json: новый лист попадает в игру после npm run atlas
 const SPRITE_FILE = /([a-z]+)_([a-z]+)_lvl(\d+)_([a-z]+)_(\d+)\.png$/;
 
-// Цвет в именах файлов на этом уровне листов, если он не совпадает с цветом героя.
-// Уровень 2: своего листа у крови ещё нет, она рисуется листом тьмы
-const SHEET_COLORS: Record<number, Partial<Record<SpriteColor, string>>> = {
-  2: { violet: 'purple' },
-};
-// Чем рисовать анимацию, которой у цвета ещё нет: у дворфов 5-го ранга есть только часть листов
-const FALLBACK_COLORS: Partial<Record<SpriteColor, SpriteColor>> = { rainbow: 'white', negative: 'purple' };
+// Чем рисовать анимацию, которой у цвета ещё нет: у дворфов 5-го ранга есть только часть листов,
+// у мобов нет листов крови — они рисуются листами тьмы
+const FALLBACK_COLORS: Partial<Record<SpriteColor, SpriteColor>> = { rainbow: 'white', negative: 'purple', violet: 'purple' };
 
 interface SpriteSheet {
   level: number;
@@ -159,7 +155,7 @@ export const getSpriteVariants = (
   if (!sheets?.length) return [];
 
   const fallback = FALLBACK_COLORS[color];
-  const isColor = (s: SpriteSheet, c: SpriteColor) => s.color === (SHEET_COLORS[s.level]?.[c] ?? c);
+  const isColor = (s: SpriteSheet, c: SpriteColor) => s.color === c;
   const distance = (s: SpriteSheet) => (isColor(s, color) ? 0 : fallback && isColor(s, fallback) ? 50 : 100) + Math.abs(s.level - rank);
   return sheets.reduce((best, s) => (distance(s) < distance(best) ? s : best)).variants;
 };
@@ -182,8 +178,24 @@ const portraits = portraitContext.keys().flatMap(path => {
   return match ? [{ color: match[1], level: Number(match[2]), url: portraitContext(path) as string }] : [];
 });
 
-// Портрет того же цвета ближайшего уровня; пустая строка — портрета этого цвета нет
-export const getPortraitUrl = (color: SpriteColor, level: number): string => {
+// Иконки мобов: assets/portraits/icons/{вид}_{цвет}.png (цвет как у листов, ранг у мобов один)
+const MONSTER_PORTRAIT_FILE = /\/([a-z]+)_([a-z]+)\.png$/;
+const monsterPortraits = new Map<string, string>(portraitContext.keys().flatMap((path: string): [string, string][] => {
+  const match = MONSTER_PORTRAIT_FILE.exec(path);
+  return match ? [[`${match[1]}_${match[2]}`, portraitContext(path) as string]] : [];
+}));
+
+// Портрет того же цвета ближайшего уровня; пустая строка — портрета этого цвета нет.
+// У мобов свой портрет по виду: того же цвета, запасного (кровь — тьмой, как и спрайт) или без стихии
+export const getPortraitUrl = (color: SpriteColor, level: number, unitType: string = DEFAULT_UNIT): string => {
+  const unit = unitType.toLowerCase();
+  if (unit !== DEFAULT_UNIT) {
+    const fallback = FALLBACK_COLORS[color];
+    const monster = monsterPortraits.get(`${unit}_${color}`)
+      ?? (fallback && monsterPortraits.get(`${unit}_${fallback}`))
+      ?? monsterPortraits.get(`${unit}_basic`);
+    if (monster) return monster;
+  }
   const name = PORTRAIT_COLORS[color] ?? color;
   const same = portraits.filter(p => p.color === name);
   if (!same.length) return '';
