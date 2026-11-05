@@ -447,6 +447,7 @@ const en = {
   heroUpgrade: {
     header: 'upgrade',
     tabs: {
+      squad: 'Squad',
       heroes: 'Heroes',
       items: 'Items',
       extract: 'Extract',
@@ -1053,6 +1054,19 @@ const en = {
     hello: 'hello',
     hi: 'hi',
     yes: 'yes?',
+    // Plaques under the town buildings
+    buildings: {
+      campaign: 'Campaign',
+      tower: 'Infinity Tower',
+      expedition: 'Expeditions',
+      guild: 'Guild',
+      arena: 'PvP Arena',
+      mine: 'Mines',
+      warehouse: 'Warehouse',
+      blacksmith: 'Blacksmith',
+      altar: 'Altar',
+      market: 'Market',
+    },
   },
   power: {
     value: 'Power {power}',

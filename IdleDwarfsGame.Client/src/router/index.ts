@@ -37,13 +37,6 @@ const routes: Array<RouteRecordRaw> = [
     name: 'town',
     component: TownView
   },
-  // Шахты: места под шахты, их улучшение и дворфы-добытчики
-  {
-    path: '/mining',
-    name: 'mining',
-    component: () => import(/* webpackChunkName: "mining" */ '@/views/MiningView.vue'),
-    meta: { requiresAuth: true }
-  },
   {
     path: '/login',
     name: 'login',

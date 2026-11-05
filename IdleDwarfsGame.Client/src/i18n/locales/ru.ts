@@ -447,6 +447,7 @@ const ru: LocaleMessages = {
   heroUpgrade: {
     header: 'прокачка',
     tabs: {
+      squad: 'Отряд',
       heroes: 'Герои',
       items: 'Предметы',
       extract: 'Извлечение',
@@ -1053,6 +1054,19 @@ const ru: LocaleMessages = {
     hello: 'привет',
     hi: 'хай',
     yes: 'да?',
+    // Плашки под зданиями города
+    buildings: {
+      campaign: 'Кампания',
+      tower: 'Бесконечная башня',
+      expedition: 'Экспедиции',
+      guild: 'Гильдия',
+      arena: 'PvP арена',
+      mine: 'Шахты',
+      warehouse: 'Склад',
+      blacksmith: 'Кузница',
+      altar: 'Алтарь',
+      market: 'Рынок',
+    },
   },
   power: {
     value: 'Мощь {power}',
