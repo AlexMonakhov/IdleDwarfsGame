@@ -1,8 +1,12 @@
+import type { Component } from 'vue';
+
+// Иконка над подписью: компонент-иконка (components/icons) или короткий символ
+export type TabIcon = string | Component;
+
 // Вкладка-кнопка справа от рамки ModalComponent
 export interface ModalTab {
     key: string;
     label: string;
-    // Короткая иконка над подписью (эмодзи или символ)
-    icon?: string;
+    icon?: TabIcon;
     badgeCount?: number;
 }

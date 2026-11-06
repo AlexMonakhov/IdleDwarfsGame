@@ -1,7 +1,9 @@
 <script lang="ts" setup>
+import type { TabIcon } from '@/models/types/Modal';
+
 // Заглушка для вкладок, у которых ещё нет содержимого
 defineProps<{
-    icon: string;
+    icon: TabIcon;
     title: string;
     hint: string;
 }>();
@@ -9,7 +11,8 @@ defineProps<{
 
 <template>
     <div class="tab-placeholder">
-        <span class="tab-placeholder-icon">{{ icon }}</span>
+        <span v-if="typeof icon === 'string'" class="tab-placeholder-icon">{{ icon }}</span>
+        <component :is="icon" v-else class="tab-placeholder-icon" size="64px" />
         <h3 class="tab-placeholder-title">{{ title }}</h3>
         <p class="tab-placeholder-hint">{{ hint }}</p>
     </div>

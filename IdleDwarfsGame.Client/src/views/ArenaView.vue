@@ -42,7 +42,7 @@
         <button :disabled="!state.playing" @click="skipFight()">{{ t('arena.skip') }}</button>
         <button v-for="value in [1, 2, 4]" :key="value" :class="{ active: speed === value }" @click="setSpeed(value)">x{{ value }}</button>
         <div class="sound-control">
-          <button v-tooltip="sound.muted ? t('arena.unmute') : t('arena.mute')" @click="soundService.toggleMute()">{{ sound.muted ? '🔇' : '🔊' }}</button>
+          <button v-tooltip="sound.muted ? t('arena.unmute') : t('arena.mute')" @click="soundService.toggleMute()"><IconMute v-if="sound.muted" /><IconSound v-else /></button>
           <input type="range" min="0" max="1" step="0.05" :value="sound.muted ? 0 : sound.volume" @input="onVolumeInput" />
         </div>
       </div>
@@ -50,7 +50,7 @@
       <div v-if="state.round" class="round-banner">
         {{ t('arena.round', { round: state.round }) }}
         <!-- Арена PvP наращивает весь урон каждые несколько раундов -->
-        <span v-if="state.damageBonus" :key="state.damageBonus" class="fury-badge" v-tooltip="t('arena.furyHint')">🔥 +{{ state.damageBonus }}%</span>
+        <span v-if="state.damageBonus" :key="state.damageBonus" class="fury-badge" v-tooltip="t('arena.furyHint')"><IconFlame /> +{{ state.damageBonus }}%</span>
       </div>
 
       <div v-if="error !== null" class="arena-message error">
@@ -147,6 +147,7 @@ import { BATTLE_FX_KEY, BattleFx } from '@/battle/BattleFx';
 import { CombatResult } from '@/battle/types';
 import { soundService } from '@/services/soundService/SoundService';
 import { useI18n } from 'vue-i18n';
+import { IconFlame, IconMute, IconSound } from '@/components/icons/ui';
 
 const { t, locale } = useI18n();
 

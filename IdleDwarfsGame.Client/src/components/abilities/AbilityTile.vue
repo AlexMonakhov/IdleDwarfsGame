@@ -3,10 +3,12 @@ import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import GlassButton from '@/components/common/GlassButton.vue';
 import { STATUS_ICONS } from '@/components/icons/status';
+import { spellIcon } from '@/components/icons/spells';
 import { ELEMENT_ICONS } from '@/components/inventory/lootStyles';
 import { AbilityInfo } from '@/models/types/Abilities';
 import { elementColor } from '@/battle/sprites';
 import { abilityName, abilityText } from './abilityText';
+import { PASSIVE_ICONS } from '@/components/icons/passives';
 
 // Способность — извлечённая или на дворфе: значок, название, уровень точками и что она делает
 const props = defineProps<{
@@ -36,7 +38,10 @@ const accent = computed(() => {
     return ELEMENT_ACCENTS[elementColor(props.ability.element)] ?? '#9ca3af';
 });
 
+// У заклинания — своя иконка, если её нет — значок стихии
+const spellIconOf = computed(() => (props.ability.kind === 'Spell' ? spellIcon(props.ability.spellName) : undefined));
 const elementIcon = computed(() => (props.ability.element ? ELEMENT_ICONS[props.ability.element] : undefined));
+const passiveIcon = computed(() => (props.ability.kind === 'Passive' ? PASSIVE_ICONS[props.ability.key] : undefined));
 const statusIcon = computed(() => (props.ability.kind === 'Aura' ? STATUS_ICONS[props.ability.key] : undefined));
 </script>
 
@@ -53,8 +58,10 @@ const statusIcon = computed(() => (props.ability.kind === 'Aura' ? STATUS_ICONS[
         <GlassButton tag="div" class="ability-tile-glass" :active="selected">
             <span class="ability-tile-kind">{{ t(`abilities.kinds.${ability.kind}`) }}</span>
             <span class="ability-tile-icon">
-                <img v-if="elementIcon" :src="elementIcon" alt="" draggable="false" />
+                <component :is="spellIconOf" v-if="spellIconOf" size="30px" />
+                <img v-else-if="elementIcon" :src="elementIcon" alt="" draggable="false" />
                 <component :is="statusIcon" v-else-if="statusIcon" size="30px" />
+                <component :is="passiveIcon" v-else-if="passiveIcon" size="30px" />
                 <template v-else>⚙</template>
             </span>
             <span class="ability-tile-name">{{ abilityName(ability) }}</span>

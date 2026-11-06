@@ -86,7 +86,8 @@ const props = withDefaults(defineProps<Props>(), {
     filter: drop-shadow(0 0 3px #eee);
 }
 
-.icon-button:hover :deep(svg path) {
+/* Пути внутри маски — прорези иконок на SplitIcon: их не перекрашиваем, иначе детали пропадут */
+.icon-button:hover :deep(svg path:not(mask path)) {
     fill: var(--hover-color) !important;
 }
 

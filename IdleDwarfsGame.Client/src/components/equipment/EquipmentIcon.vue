@@ -1,21 +1,19 @@
 <script lang="ts" setup>
-import IconHelm from '@/components/icons/IconHelm.vue';
 import { EQUIPMENT_ICONS } from '@/components/inventory/lootStyles';
 import { EquipmentType } from '@/models/types/Equipment';
 
-// Значок вида предмета под размер текущего шрифта. Шлем — проба своей графики, остальные пока эмодзи
+// Значок вида предмета под размер текущего шрифта. Цвета заданы явно: у шлема (IconHelm) свои серые по умолчанию
 defineProps<{ type: EquipmentType }>();
 </script>
 
 <template>
-    <IconHelm
-        v-if="type === 'Helmet'"
+    <component
+        :is="EQUIPMENT_ICONS[type]"
         class="equipment-icon"
         size="1.2em"
         primary-color="rgb(217 215 178)"
         secondary-color="rgb(64 255 251)"
     />
-    <template v-else>{{ EQUIPMENT_ICONS[type] }}</template>
 </template>
 
 <style scoped>

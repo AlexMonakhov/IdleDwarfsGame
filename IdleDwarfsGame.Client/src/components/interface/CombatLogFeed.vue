@@ -6,6 +6,8 @@ import { DAMAGE_COLORS } from '@/battle/FxRegistry';
 import { FeedItem, FeedValue, buildCombatFeed, currentFeedIndex } from '@/battle/combatFeed';
 import { CombatLogEntry } from '@/battle/types';
 import { STATUS_ICONS, IconHeal } from '@/components/icons/status';
+import { spellIcon } from '@/components/icons/spells';
+import { IconSkull } from '@/components/icons/ui';
 import UnitAvatar from './UnitAvatar.vue';
 import { statusLabel } from '@/i18n';
 
@@ -158,9 +160,15 @@ const describe = (log: CombatLogEntry) => {
               <rect x="6.4" y="7.5" width="1.8" height="9" rx="0.6" fill="#fbbf24" />
               <path d="M8.2 10.8 H19.5 L22.5 12 L19.5 13.2 H8.2 Z" fill="#e5e7eb" stroke="#64748b" stroke-width="0.6" />
             </svg>
+            <component
+                :is="spellIcon(item.icon.skillName)"
+                v-else-if="item.icon?.kind === 'spell' && spellIcon(item.icon.skillName)"
+                v-tooltip="item.icon.skillName"
+                size="20px"
+            />
             <span v-else-if="item.icon?.kind === 'spell'" class="feed-spell" :style="{ color: DAMAGE_COLORS[item.icon.damageType] }">✦</span>
             <IconHeal v-else-if="item.icon?.kind === 'heal'" size="20px" />
-            <span v-else-if="item.icon?.kind === 'death'" class="feed-death">💀</span>
+            <IconSkull v-else-if="item.icon?.kind === 'death'" size="20px" />
             <template v-else-if="item.icon?.kind === 'status'">
               <component v-if="STATUS_ICONS[item.icon.name]" :is="STATUS_ICONS[item.icon.name]" size="20px" />
               <span v-else class="feed-status-letter">{{ statusLabel(item.icon.name)[0] ?? '?' }}</span>
@@ -301,11 +309,6 @@ const describe = (log: CombatLogEntry) => {
 
 .feed-spell {
   font-size: 20px;
-  line-height: 1;
-}
-
-.feed-death {
-  font-size: 18px;
   line-height: 1;
 }
 

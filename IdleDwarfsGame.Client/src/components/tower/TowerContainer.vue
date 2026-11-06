@@ -15,6 +15,8 @@ import { useResources } from "@/composables/UseResources";
 import { useSquadModal } from "@/composables/UseSquadModal";
 import { scrollToAnchor, useStageRewards } from "@/composables/UseStageRewards";
 import { vDragScroll } from "@/directives/dragScroll";
+import { IconBanner, IconLock, IconTrophy } from '@/components/icons/ui';
+import { IconPower } from '@/components/icons/stats';
 
 // Окно бесконечной башни. Шапка (круг стихий, неделя, отряд, пропуск) стоит на месте, прокручивается список:
 // пройденные этажи с незабранной наградой (и прошлых недель) и последний пройденный, дальше текущий и заблокированные.
@@ -176,8 +178,8 @@ const lastClearedIndex = computed(() => (tower.value?.clearedFloors.length ?? 0)
             <div class="stage-modal-status">
                 <span>⏳ {{ t('tower.weekEnds', { time: timeLeft }) }}</span>
                 <span>{{ t('tower.cleared', { floor: tower.clearedFloor }) }}</span>
-                <span v-if="tower.bestFloor">🏆 {{ t('tower.best', { floor: tower.bestFloor }) }}</span>
-                <button class="stage-button" v-tooltip="t('tower.squadHint')" @click="squadOpen = true">⚔ {{ t('tower.squad') }}</button>
+                <span v-if="tower.bestFloor"><IconTrophy /> {{ t('tower.best', { floor: tower.bestFloor }) }}</span>
+                <button class="stage-button" v-tooltip="t('tower.squadHint')" @click="squadOpen = true"><IconBanner /> {{ t('tower.squad') }}</button>
             </div>
 
             <!-- Пропуск до рекорда прошлых недель: что он даст — видно сразу -->
@@ -247,8 +249,8 @@ const lastClearedIndex = computed(() => (tower.value?.clearedFloors.length ?? 0)
                               :color="'red'"
                               class="stage-fight stage-fight-ready"
                               @click="startFloor(floor)"
-                            >⚔ {{ t('tower.fight') }}</GemButton>
-                            <span v-else class="stage-lock" v-tooltip="t('tower.locked')">🔒</span>
+                            ><IconPower /> {{ t('tower.fight') }}</GemButton>
+                            <span v-else class="stage-lock" v-tooltip="t('tower.locked')"><IconLock /></span>
                         </template>
                     </FightPreviewList>
                 </li>

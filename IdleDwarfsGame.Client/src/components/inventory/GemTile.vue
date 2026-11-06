@@ -3,6 +3,7 @@ import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { ItemInfo } from '@/models/types/Inventory';
 import { GEM_COLORS, RARITY_COLORS } from './lootStyles';
+import GemIcon from '@/components/icons/GemIcon.vue';
 
 // Стопка гемов: камень, редкость и сколько штук
 const props = defineProps<{ item: ItemInfo }>();
@@ -14,7 +15,7 @@ const name = computed(() => te(`gems.${props.item.subType}`) ? t(`gems.${props.i
 
 <template>
     <div class="gem-tile" :style="{ '--gem-color': GEM_COLORS[item.subType] ?? '#cbd5e1', '--rarity-color': RARITY_COLORS[item.rarity] }">
-        <span class="gem-tile-stone">◆</span>
+        <GemIcon class="gem-tile-stone" :gem="item.subType" />
         <span class="gem-tile-name">{{ name }}</span>
         <span class="gem-tile-rarity">{{ t(`rarity.${item.rarity}`) }}</span>
         <span class="gem-tile-quantity">×{{ item.quantity }}</span>

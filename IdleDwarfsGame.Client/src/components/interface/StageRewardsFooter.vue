@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n';
 import GemButton from '@/components/common/GemButton.vue';
 import TowerRewardLine from '@/components/tower/TowerRewardLine.vue';
 import type { RewardNotice } from '@/composables/UseStageRewards';
+import { IconChest } from '@/components/icons/ui';
 
 // Футер окна кампании и башни: слева — что только что получено (или ошибка, или строка состояния),
 // справа — «Забрать всё». Кнопка горит, пока есть незабранные награды, и видна при любой прокрутке списка
@@ -49,7 +50,7 @@ const noticeTitle = computed(() => props.notice?.skippedTo
             :badge-count="props.remaining"
             v-tooltip="props.remaining ? undefined : t('rewards.nothingToClaim')"
             @click="emit('claimAll')"
-        >🎁 {{ props.busy ? t('rewards.claiming') : t('rewards.claimAll') }}</GemButton>
+        ><IconChest /> {{ props.busy ? t('rewards.claiming') : t('rewards.claimAll') }}</GemButton>
     </div>
 </template>
 

@@ -8,6 +8,7 @@ import SquadRow from '@/components/inventory/SquadRow.vue';
 import HeroesApiService from '@/services/apiServices/HeroesApiService';
 import { HeroInfo, SQUAD_SIZE, isBusy, squadSlotIds } from '@/models/types/Heroes';
 import { vDragScroll } from '@/directives/dragScroll';
+import StatIcon from '@/components/icons/stats/StatIcon.vue';
 
 // Состав отряда: 5 слотов сверху, все остальные герои — списком под ними, снизу — сохранение.
 // Живёт и в своём окне (SquadModal), и вкладкой в окне алтаря (HeroUpgradeModal)
@@ -184,7 +185,7 @@ const statusText = computed(() => {
             <section class="inventory-section">
                 <div class="inventory-heading">
                     <h3 class="inventory-title">{{ t('squad.squad') }}</h3>
-                    <span class="squad-power">⚔ {{ t('power.squad', { power: squadPower }) }}</span>
+                    <span class="squad-power"><StatIcon stat="power" /> {{ t('power.squad', { power: squadPower }) }}</span>
                 </div>
                 <div class="inventory-hint">{{ t('squad.squadHint') }}</div>
                 <SquadRow

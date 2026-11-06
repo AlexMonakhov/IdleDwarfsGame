@@ -4,7 +4,8 @@ import { useI18n } from 'vue-i18n';
 import ModalComponent from '@/components/common/ModalComponent.vue';
 import GemButton from '@/components/common/GemButton.vue';
 import AvatarFrame from './AvatarFrame.vue';
-import type { ModalTab } from '@/models/types/Modal';
+import type { ModalTab, TabIcon } from '@/models/types/Modal';
+import { IconDwarf, IconGear, IconLock, IconMute, IconSound } from '@/components/icons/ui';
 import type { FrameEffectInfo } from '@/models/types/Account';
 import { useAccount } from '@/composables/UseAccount';
 import { useTutorial } from '@/composables/UseTutorial';
@@ -25,9 +26,9 @@ const open = computed({
 
 type AccountTab = 'profile' | 'settings';
 
-const ICONS: Record<AccountTab, string> = {
-    profile: '🧔',
-    settings: '⚙',
+const ICONS: Record<AccountTab, TabIcon> = {
+    profile: IconDwarf,
+    settings: IconGear,
 };
 
 const tab = ref<AccountTab>('profile');
@@ -53,7 +54,7 @@ watch(open, isOpen => {
 /* ===== Рамки ===== */
 const frameStatus = (frame: FrameEffectInfo) => {
     if (frame.key === selectedFrame.value) return t('account.frameSelected');
-    return frame.unlocked ? t('account.frameSelect') : `🔒 ${t('account.frameLocked')}`;
+    return frame.unlocked ? t('account.frameSelect') : t('account.frameLocked');
 };
 
 /* ===== Звук ===== */
@@ -111,7 +112,7 @@ const restartTutorial = () => {
                             <!-- Закрытые рамки тоже анимированы — игрок видит, что получит -->
                             <AvatarFrame :effect="frame.key" :size="64" />
                             <span class="frame-name">{{ t(`account.frames.${frame.key}`) }}</span>
-                            <span class="frame-status">{{ frameStatus(frame) }}</span>
+                            <span class="frame-status"><IconLock v-if="!frame.unlocked" /> {{ frameStatus(frame) }}</span>
                         </button>
                     </li>
                 </ul>
@@ -143,7 +144,7 @@ const restartTutorial = () => {
                         class="sound-mute"
                         v-tooltip="sound.musicMuted ? t('account.unmute') : t('account.mute')"
                         @click="soundService.setMusicMuted(!sound.musicMuted)"
-                    >{{ sound.musicMuted ? '🔇' : '🔊' }}</button>
+                    ><IconMute v-if="sound.musicMuted" /><IconSound v-else /></button>
                     <input
                         class="sound-range"
                         type="range" min="0" max="1" step="0.05"
@@ -159,7 +160,7 @@ const restartTutorial = () => {
                         class="sound-mute"
                         v-tooltip="sound.muted ? t('account.unmute') : t('account.mute')"
                         @click="soundService.toggleMute()"
-                    >{{ sound.muted ? '🔇' : '🔊' }}</button>
+                    ><IconMute v-if="sound.muted" /><IconSound v-else /></button>
                     <input
                         class="sound-range"
                         type="range" min="0" max="1" step="0.05"

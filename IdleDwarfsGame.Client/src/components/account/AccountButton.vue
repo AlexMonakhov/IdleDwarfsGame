@@ -2,6 +2,7 @@
 import { useI18n } from 'vue-i18n';
 import AvatarFrame from './AvatarFrame.vue';
 import { useAccount } from '@/composables/UseAccount';
+import { IconGear } from '@/components/icons/ui';
 
 const { t } = useI18n();
 const { user, level, selectedFrame } = useAccount();
@@ -11,7 +12,7 @@ const { user, level, selectedFrame } = useAccount();
     <button type="button" class="account-button" v-tooltip="user ? user.username : t('account.settingsTitle')">
         <AvatarFrame :effect="selectedFrame" :size="124">
             <span v-if="user" class="account-level" v-tooltip="t('account.level', { level })">{{ level }}</span>
-            <span v-else class="account-level account-level-guest">⚙</span>
+            <span v-else class="account-level account-level-guest"><IconGear /></span>
         </AvatarFrame>
     </button>
 </template>

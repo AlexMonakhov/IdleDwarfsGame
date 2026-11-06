@@ -28,9 +28,4 @@ export const mineColor = (type: MineType): string => {
     return GEM_COLORS[type] ?? '#cbd5e1';
 };
 
-// Значок ресурса, пока нет картинок руды
-export const mineGlyph = (type: MineType): string => {
-    if (type === 'Gold') return '🪙';
-    if (type === 'Experience') return '✦';
-    return '◆';
-};
+// Значок ресурса, пока нет картинок руды, — компонент MineResourceIcon

@@ -8,11 +8,12 @@ import { ArenaInfo, BattleForecast } from '@/models/types/Campaign';
 import { STATUS_ICONS } from '@/components/icons/status';
 import { ELEMENT_COLORS } from '@/components/inventory/lootStyles';
 import UnitPortrait from './UnitPortrait.vue';
-import TooltipComponent from '@/components/common/TooltipComponent.vue';
 import CssAuraEffect from '@/components/effects/CssAuraEffect.vue';
 import { elementAura } from '@/components/effects/elementAura';
 import { useI18n } from 'vue-i18n';
 import { statusLabel } from '@/i18n';
+import StatIcon from '@/components/icons/stats/StatIcon.vue';
+import { IconCrown } from '@/components/icons/ui';
 
 const { t } = useI18n();
 
@@ -43,7 +44,7 @@ const props = withDefaults(defineProps<Props>(), {
   current: false,
   boss: false,
   element: null,
-  portraitSize: 56
+  portraitSize: 44
 })
 
 const chance = computed(() => Math.round((props.forecast?.winChance ?? 0) * 100));
@@ -52,14 +53,20 @@ const verdict = computed(() => forecastVerdict(props.forecast?.winChance ?? 0));
 const element = computed(() => props.element ?? props.arena?.element ?? 'Basic');
 const accent = computed(() => ELEMENT_COLORS[element.value] ?? ELEMENT_COLORS.Basic);
 
-// Значок арены между отрядами. Аура стихии (снег, угли, искры…) — только у открытых боёв, у заблокированных она бы рябила
-const ARENA_ICON_SIZE = 50;
+// Значок арены в панели справа. Аура стихии (снег, угли, искры…) — только у открытых боёв, у заблокированных она бы рябила
+const ARENA_ICON_SIZE = 40;
 const aura = computed(() => (props.locked ? 'none' : elementAura(element.value)));
 const backgroundImage = computed(() => `url(${arenaPreview(props.arena?.background)})`);
+
+// Свечение карточки (glowCard.css): текущий бой горит ярко, закрытый погашен, остальные — спокойно
+const glowState = computed(() => {
+    if (props.locked) return 'glow-card-done';
+    return props.current ? 'glow-card-ready' : 'glow-card-waiting';
+});
 </script>
 
 <template>
-    <div class="stage-card" :class="{ locked: props.locked, current: props.current, boss: props.boss }" :style="{ '--accent': accent }">
+    <div class="stage-card glow-card" :class="[glowState, { locked: props.locked, current: props.current, boss: props.boss }]" :style="{ '--accent': accent }">
         <div class="stage-card-arena" aria-hidden="true">
             <div class="stage-card-arena-image" :style="{ backgroundImage }"></div>
         </div>
@@ -68,45 +75,53 @@ const backgroundImage = computed(() => `url(${arenaPreview(props.arena?.backgrou
         <div class="list-middle">
             <slot name="list-middle">
                 <div class="preview">
-                    <div v-if="props.title" class="preview-title">
-                        <span v-if="props.boss" class="preview-boss">👑 {{ t('unit.boss') }}</span>
-                        <span class="preview-name">{{ props.title }}</span>
-                    </div>
-                    <div class="preview-body">
-                        <div class="preview-team preview-team-player">
-                            <UnitPortrait v-for="unit in props.playerUnits" :key="`p-${unit.position}`" :unit="unit" :size="props.portraitSize" />
+                    <!-- Слева — бой: название, отряды и прогноз -->
+                    <div class="preview-main">
+                        <div v-if="props.title" class="preview-title">
+                            <span v-if="props.boss" class="preview-boss"><IconCrown /> {{ t('unit.boss') }}</span>
+                            <span class="preview-name">{{ props.title }}</span>
                         </div>
+                        <!-- Одна сетка на отряды и прогноз: мощь стоит ровно под своим отрядом, вердикт — под «VS» -->
+                        <div class="preview-grid">
+                            <div class="preview-team preview-team-player">
+                                <UnitPortrait v-for="unit in props.playerUnits" :key="`p-${unit.position}`" :unit="unit" :size="props.portraitSize" />
+                            </div>
+                            <span class="preview-vs">VS</span>
+                            <div class="preview-team preview-team-enemy">
+                                <UnitPortrait v-for="unit in props.enemyUnits" :key="`e-${unit.position}`" :unit="unit" :size="props.portraitSize" />
+                            </div>
 
-                        <TooltipComponent v-if="props.arena" class="preview-arena">
+                            <template v-if="props.forecast">
+                                <span class="forecast-power forecast-power-player" v-tooltip="t('power.squad', { power: props.forecast.playerPower })"><StatIcon stat="power" /> {{ props.forecast.playerPower }}</span>
+                                <span class="forecast-verdict" :class="`forecast-${verdict}`" v-tooltip="t('power.chance', { chance })">
+                                    {{ t(`power.verdict.${verdict}`) }} · {{ chance }}%
+                                </span>
+                                <span class="forecast-power forecast-power-enemy"><StatIcon stat="power" /> {{ props.forecast.enemyPower }}</span>
+                            </template>
+                        </div>
+                        <slot name="preview-footer"></slot>
+                    </div>
+
+                    <!-- Справа — арена: значок эффекта, название, описание и что делает эффект -->
+                    <aside v-if="props.arena" class="preview-arena-info">
+                        <div class="arena-info-head">
                             <!-- Аура стихии арены — та же, что у героев 4-го ранга и выше -->
                             <CssAuraEffect :effect="aura" :size="ARENA_ICON_SIZE">
                                 <div class="arena-effect">
                                     <component
                                       v-if="props.arena.effectName && STATUS_ICONS[props.arena.effectName]"
                                       :is="STATUS_ICONS[props.arena.effectName]"
-                                      size="30px" />
+                                      size="24px" />
                                     <span v-else class="arena-vs">VS</span>
                                 </div>
                             </CssAuraEffect>
-                            <template #title>{{ props.arena.name }}</template>
-                            <template #description>{{ props.arena.description }}</template>
-                            <template v-if="props.arena.effectName" #stats>
-                                {{ t(props.arena.effectName === 'Frost' ? 'campaign.arenaEffectFrost' : 'campaign.arenaEffect', { effect: statusLabel(props.arena.effectName), power: props.arena.effectPower }) }}
-                            </template>
-                        </TooltipComponent>
-
-                        <div class="preview-team preview-team-enemy">
-                            <UnitPortrait v-for="unit in props.enemyUnits" :key="`e-${unit.position}`" :unit="unit" :size="props.portraitSize" />
+                            <span class="arena-info-name">{{ props.arena.name }}</span>
                         </div>
-                    </div>
-                    <div v-if="props.forecast" class="preview-forecast">
-                        <span class="forecast-power" v-tooltip="t('power.squad', { power: props.forecast.playerPower })">⚔ {{ props.forecast.playerPower }}</span>
-                        <span class="forecast-verdict" :class="`forecast-${verdict}`" v-tooltip="t('power.chance', { chance })">
-                            {{ t(`power.verdict.${verdict}`) }} · {{ chance }}%
-                        </span>
-                        <span class="forecast-power">⚔ {{ props.forecast.enemyPower }}</span>
-                    </div>
-                    <slot name="preview-footer"></slot>
+                        <div v-if="props.arena.description" class="arena-info-description">{{ props.arena.description }}</div>
+                        <div v-if="props.arena.effectName" class="arena-info-effect">
+                            {{ t(props.arena.effectName === 'Frost' ? 'campaign.arenaEffectFrost' : 'campaign.arenaEffect', { effect: statusLabel(props.arena.effectName), power: props.arena.effectPower }) }}
+                        </div>
+                    </aside>
                 </div>
             </slot>
         </div>
@@ -114,61 +129,28 @@ const backgroundImage = computed(() => `url(${arenaPreview(props.arena?.backgrou
     </div>
 </template>
 
+<style scoped src="@/components/common/glowCard.css"></style>
+
 <style scoped>
-/* Слои внутри изолированной карточки: металлическая рамка (::before, -2) → арена (-1) → содержимое.
-   Ореол текущего боя — ::after поверх рамки, но без кликов */
+/* Карточка — светящаяся, как у боссов гильдии (glowCard.css): рамка и ореол цвета стихии.
+   Слои внутри изолированной карточки: арена (-2) → ореол (::after, -1) → содержимое → блик по рамке (::before) */
 .stage-card {
     --accent: #cbd5e1;
-    position: relative;
-    isolation: isolate;
+    --glow-color: var(--accent);
     width: 100%;
-    min-height: 172px;
+    min-height: 150px;
     display: flex;
     align-items: stretch;
     border-radius: 14px;
-    transition: transform 0.15s ease;
-}
-
-.stage-card::before {
-    content: '';
-    position: absolute;
-    inset: -4px;
-    z-index: -2;
-    border-radius: 17px;
-    background: var(--metalic-background);
-    box-shadow: 0 4px 3px 2px #181717, 0 2px 12px 2px color-mix(in srgb, var(--accent) 45%, transparent);
-}
-
-.stage-card:not(.locked):hover {
-    transform: translateY(-2px);
-}
-
-/* Текущий бой: рамка в цвете стихии и пульсирующий ореол */
-.stage-card.current::after {
-    content: '';
-    position: absolute;
-    inset: -4px;
-    border-radius: 17px;
-    pointer-events: none;
-    box-shadow:
-        0 0 0 2px var(--accent),
-        0 0 16px 3px var(--accent),
-        0 0 32px 8px color-mix(in srgb, var(--accent) 40%, transparent);
-    animation: stage-current-pulse 2.2s ease-in-out infinite;
-}
-
-@keyframes stage-current-pulse {
-    0%, 100% { opacity: 0.55; }
-    50% { opacity: 1; }
 }
 
 .stage-card-arena {
     position: absolute;
     inset: 0;
-    z-index: -1;
+    z-index: -2;
     overflow: hidden;
-    border-radius: 14px;
-    box-shadow: inset 0 0 0 2px #333;
+    /* Внутри рамки в 2px */
+    border-radius: 12px;
 }
 
 .stage-card-arena-image {
@@ -191,7 +173,7 @@ const backgroundImage = computed(() => `url(${arenaPreview(props.arena?.backgrou
 }
 
 .stage-card:not(.locked):hover .stage-card-arena-image {
-    transform: scale(1.05);
+    transform: scale(1.08);
 }
 
 /* Заблокированный: арена и отряды приглушены, без реакции на наведение */
@@ -202,10 +184,6 @@ const backgroundImage = computed(() => `url(${arenaPreview(props.arena?.backgrou
 .stage-card.locked .list-middle,
 .stage-card.locked .list-start {
     filter: grayscale(0.75) brightness(0.75);
-}
-
-.stage-card.locked::before {
-    box-shadow: 0 4px 3px 2px #181717;
 }
 
 .list-start, .list-middle, .list-end {
@@ -223,7 +201,7 @@ const backgroundImage = computed(() => `url(${arenaPreview(props.arena?.backgrou
 
 .list-start {
     width: 84px;
-    border-radius: 14px 0 0 14px;
+    border-radius: 12px 0 0 12px;
     border-right: 2px solid color-mix(in srgb, var(--accent) 55%, transparent);
     font-size: 2.6em;
     font-weight: 900;
@@ -233,7 +211,7 @@ const backgroundImage = computed(() => `url(${arenaPreview(props.arena?.backgrou
 
 .list-end {
     width: 132px;
-    border-radius: 0 14px 14px 0;
+    border-radius: 0 12px 12px 0;
     border-left: 2px solid color-mix(in srgb, var(--accent) 55%, transparent);
 }
 
@@ -243,14 +221,25 @@ const backgroundImage = computed(() => `url(${arenaPreview(props.arena?.backgrou
     min-width: 0;
 }
 
+/* Две части: слева бой (по ширине содержимого), справа — панель арены во всю оставшуюся высоту */
 .preview {
     width: 100%;
+    align-self: stretch;
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
+    align-items: stretch;
+    gap: 14px;
     padding: 10px 12px;
     box-sizing: border-box;
+}
+
+.preview-main {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 8px;
 }
 
 .preview-title {
@@ -288,14 +277,22 @@ const backgroundImage = computed(() => `url(${arenaPreview(props.arena?.backgrou
     box-shadow: 0 0 10px rgba(255, 123, 0, 0.45);
 }
 
-/* Три колонки: отряды — равные половины, значок арены — посередине. Так он всегда ровно по центру карточки,
-   сколько бы ни было дворфов и врагов */
-.preview-body {
-    width: 100%;
+/* Три колонки: свой отряд, «VS», враги; во второй строке — мощь под каждым отрядом и вердикт под «VS».
+   Сетка по ширине содержимого и прижата влево */
+.preview-grid {
+    max-width: 100%;
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    grid-template-columns: minmax(0, auto) auto minmax(0, auto);
     align-items: center;
-    gap: 12px;
+    gap: 6px 10px;
+}
+
+.preview-vs {
+    font-size: 15px;
+    font-weight: 900;
+    font-family: RunesFont, sans-serif;
+    color: #e2e8f0;
+    text-shadow: 0 0 8px var(--accent), 0 1px 2px #000;
 }
 
 .preview-team {
@@ -315,52 +312,92 @@ const backgroundImage = computed(() => `url(${arenaPreview(props.arena?.backgrou
     justify-content: flex-start;
 }
 
-.preview-arena {
-    grid-column: 2;
+/* ===== Панель арены справа: стекло с рамкой цвета стихии ===== */
+.preview-arena-info {
+    flex: 0 0 250px;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 12px;
+    box-sizing: border-box;
+    border-radius: 10px;
+    background: rgba(8, 11, 18, 0.62);
+    border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+    text-align: left;
+    font-size: 12px;
+    line-height: 1.3;
+    text-shadow: 0 1px 2px #000;
+}
+
+.arena-info-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.arena-info-name {
+    min-width: 0;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.arena-info-description {
+    color: #cbd5e1;
+}
+
+.arena-info-effect {
+    color: #ffd166;
+    font-weight: 700;
 }
 
 .arena-effect {
-    width: 50px;
-    height: 50px;
+    width: 40px;
+    height: 40px;
     display: flex;
     justify-content: center;
     align-items: center;
     border-radius: 50%;
     background: var(--wood-background);
-    box-shadow: 0 0 0 3px rgb(157, 173, 175), 0 0 0 5px #333, 0 0 14px 4px var(--accent);
-    cursor: help;
+    box-shadow: 0 0 0 2px rgb(157, 173, 175), 0 0 0 4px #333, 0 0 12px 3px var(--accent);
 }
 
 .arena-vs {
+    font-size: 13px;
     font-weight: 900;
     font-family: RunesFont, sans-serif;
 }
 
-/* Вердикт — под значком арены, мощь отрядов — по краям */
-.preview-forecast {
-    width: 100%;
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    align-items: center;
-    gap: 12px;
+/* Прогноз — вторая строка сетки: мощь под отрядами, вердикт под «VS» */
+.forecast-power,
+.forecast-verdict {
     font-size: 13px;
     font-weight: 700;
+    white-space: nowrap;
     text-shadow: 0 1px 3px #000, 0 0 6px #000;
 }
 
 .forecast-power {
-    justify-self: start;
     padding: 1px 8px;
     border-radius: 8px;
     background: rgba(0, 0, 0, 0.45);
     color: #ffd166;
 }
 
-.forecast-power:last-child {
+/* Мощь — у края своего отряда со стороны «VS», как и передняя линия */
+.forecast-power-player {
     justify-self: end;
 }
 
+.forecast-power-enemy {
+    justify-self: start;
+}
+
 .forecast-verdict {
+    justify-self: center;
     padding: 1px 10px;
     border-radius: 10px;
     background: rgba(0, 0, 0, 0.55);
@@ -373,12 +410,6 @@ const backgroundImage = computed(() => `url(${arenaPreview(props.arena?.backgrou
 .forecast-deadly { color: #f87171; }
 
 @media (prefers-reduced-motion: reduce) {
-    .stage-card.current::after {
-        animation: none;
-        opacity: 0.8;
-    }
-
-    .stage-card:not(.locked):hover,
     .stage-card:not(.locked):hover .stage-card-arena-image {
         transform: none;
     }

@@ -1,0 +1,128 @@
+/* Светящаяся карточка — как у боссов гильдии (GuildBosses.vue) и экспедиций (ExpeditionsModal.vue):
+   рамка цвета --glow-color, по ней бежит блик (::before), вокруг пульсирует ореол (::after).
+   Подключается в компонент: <style scoped src="@/components/common/glowCard.css"></style>, на корень — класс glow-card
+   и одно из состояний ниже. Фон карточки (арену) кладите внутрь с z-index: -2 — под ореол.
+   Состояния: glow-card-ready — можно действовать, горит ярко; glow-card-waiting — ждём, приглушено;
+   glow-card-claimable — награда ждёт, золото; glow-card-done — погасла, без свечения и подъёма */
+
+.glow-card {
+    --glow-color: #9ca3af;
+    --spin-duration: 4s;
+    --pulse-duration: 2.4s;
+    --glow-strength: 1;
+    position: relative;
+    isolation: isolate;
+    box-sizing: border-box;
+    border: 2px solid color-mix(in srgb, var(--glow-color) 70%, transparent);
+    background: rgb(15, 23, 32);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+/* Наведение: карточка приподнимается, рамка и ореол разгораются */
+.glow-card:hover {
+    --glow-strength: 1.6;
+    --spin-duration: 1.6s;
+    transform: translateY(-4px);
+    border-color: var(--glow-color);
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.65);
+}
+
+/* Угол блика анимируется как число — для этого его нужно объявить */
+@property --glow-angle {
+    syntax: '<angle>';
+    initial-value: 0deg;
+    inherits: false;
+}
+
+.glow-card::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    z-index: 1;
+    padding: 2px;
+    border-radius: inherit;
+    pointer-events: none;
+    background: conic-gradient(
+        from var(--glow-angle),
+        transparent 0deg,
+        transparent 250deg,
+        var(--glow-color) 300deg,
+        #fff 330deg,
+        var(--glow-color) 345deg,
+        transparent 360deg
+    );
+    /* Остаётся только кольцо толщиной в рамку */
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    opacity: var(--glow-strength);
+    animation: glow-card-spin var(--spin-duration) linear infinite;
+}
+
+.glow-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    pointer-events: none;
+    box-shadow:
+        0 0 14px 2px var(--glow-color),
+        0 0 28px 6px color-mix(in srgb, var(--glow-color) 45%, transparent);
+    opacity: calc(0.55 * var(--glow-strength));
+    animation: glow-card-pulse var(--pulse-duration) ease-in-out infinite;
+}
+
+.glow-card-ready {
+    --spin-duration: 3s;
+    --pulse-duration: 1.8s;
+}
+
+.glow-card-waiting {
+    --spin-duration: 8s;
+    --pulse-duration: 4s;
+    --glow-strength: 0.45;
+}
+
+/* Два класса — чтобы золото перебило цвет, который карточка задаёт себе сама */
+.glow-card.glow-card-claimable {
+    --glow-color: #ffd166;
+    --spin-duration: 2.2s;
+    --pulse-duration: 1.4s;
+}
+
+.glow-card.glow-card-done {
+    border-color: rgba(157, 173, 175, 0.5);
+}
+
+.glow-card-done:hover {
+    transform: none;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+}
+
+.glow-card-done::before,
+.glow-card-done::after {
+    display: none;
+}
+
+@keyframes glow-card-spin {
+    to { --glow-angle: 360deg; }
+}
+
+@keyframes glow-card-pulse {
+    0%, 100% { opacity: calc(0.35 * var(--glow-strength)); }
+    50% { opacity: calc(0.85 * var(--glow-strength)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .glow-card::before,
+    .glow-card::after {
+        animation: none !important;
+    }
+
+    .glow-card:hover {
+        transform: none;
+    }
+}

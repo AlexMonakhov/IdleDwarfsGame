@@ -6,6 +6,7 @@ import InputComponent from '@/components/common/InputComponent.vue';
 import GuildApiService from '@/services/apiServices/GuildApiService';
 import { GuildOutgoingRequestInfo, GuildOverview, GuildSearchResult } from '@/models/types/Guild';
 import { GuildRun, guildErrorText } from './guildShared';
+import { IconGuild, IconSearch } from '@/components/icons/ui';
 
 // Игрок без гильдии: найти гильдию и подать заявку или создать свою
 const props = defineProps<{
@@ -93,12 +94,12 @@ const create = () => {
             <div class="guild-hint">{{ t('guild.noGuildHint') }}</div>
             <div class="guild-options">
                 <button type="button" class="guild-option" @click="openSearch">
-                    <span class="guild-option-icon">🔍</span>
+                    <span class="guild-option-icon"><IconSearch /></span>
                     <span class="guild-option-title">{{ t('guild.find') }}</span>
                     <span class="guild-option-text">{{ t('guild.findHint') }}</span>
                 </button>
                 <button type="button" class="guild-option" @click="mode = 'create'">
-                    <span class="guild-option-icon">🛡</span>
+                    <span class="guild-option-icon"><IconGuild /></span>
                     <span class="guild-option-title">{{ t('guild.create') }}</span>
                     <span class="guild-option-text">{{ t('guild.createHint') }}</span>
                 </button>
@@ -122,7 +123,7 @@ const create = () => {
                 <div v-if="searchError" class="guild-hint guild-error">{{ searchError }}</div>
                 <ul v-else-if="results.length" class="guild-list">
                     <li v-for="guild in results" :key="guild.guildId" class="guild-row">
-                        <span class="guild-emblem">🛡</span>
+                        <span class="guild-emblem"><IconGuild /></span>
                         <div class="guild-row-main">
                             <span class="guild-row-name">{{ guild.name }}</span>
                             <span class="guild-row-status">
@@ -167,7 +168,7 @@ const create = () => {
             <h4 class="guild-subtitle">{{ t('guild.myRequests', { count: outgoing.length, max: overview.maxOutgoingRequests }) }}</h4>
             <ul class="guild-list">
                 <li v-for="request in outgoing" :key="request.guildId" class="guild-row">
-                    <span class="guild-emblem">🛡</span>
+                    <span class="guild-emblem"><IconGuild /></span>
                     <div class="guild-row-main">
                         <span class="guild-row-name">{{ request.guildName }}</span>
                         <span class="guild-row-status">{{ t('guild.waitingForLeader') }}</span>

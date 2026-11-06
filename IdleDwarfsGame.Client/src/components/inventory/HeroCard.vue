@@ -7,6 +7,7 @@ import CssAuraEffect from '@/components/effects/CssAuraEffect.vue';
 import { AURA_MIN_RANK, elementAura } from '@/components/effects/elementAura';
 import { HeroInfo } from '@/models/types/Heroes';
 import { elementColor } from '@/battle/sprites';
+import StatIcon from '@/components/icons/stats/StatIcon.vue';
 
 const { t } = useI18n();
 
@@ -68,7 +69,7 @@ const upgradeStars = computed<number[]>(() => {
                 <UnitPortrait :unit="hero" :size="72" :show-level="false" />
             </CssAuraEffect>
             <div class="hero-card-name" v-tooltip="hero.name">{{ hero.name }}</div>
-            <div class="hero-card-power" v-tooltip="t('power.value', { power: hero.power.total })">⚔ {{ hero.power.total }}</div>
+            <div class="hero-card-power" v-tooltip="t('power.value', { power: hero.power.total })"><StatIcon stat="power" /> {{ hero.power.total }}</div>
             <div v-if="hero.onExpedition" class="hero-card-busy">{{ t('squad.onExpedition') }}</div>
             <div v-else-if="hero.inMine" class="hero-card-busy">{{ t('squad.inMine') }}</div>
         </GlassButton>

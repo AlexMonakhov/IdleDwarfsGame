@@ -52,6 +52,9 @@ onMounted(async () => {
     box-sizing: border-box;
     width: max-content;
     max-width: 250px;
+    /* Строка, которую нельзя переносить (white-space: nowrap), расширяет подсказку, а не вылезает за неё:
+       min-width сильнее max-width */
+    min-width: min-content;
     padding: 10px 12px;
     display: flex;
     flex-direction: column;

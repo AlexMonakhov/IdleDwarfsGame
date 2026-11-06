@@ -20,6 +20,9 @@ import { GuildBossesOverview, GuildBossInfo } from '@/models/types/Guild';
 import { RewardInfo } from '@/models/types/Inventory';
 import { GuildRun, formatTime } from './guildShared';
 import { arenaPreview } from '@/battle/arenaBackgrounds';
+import StatIcon from '@/components/icons/stats/StatIcon.vue';
+import { IconPower } from '@/components/icons/stats';
+import { IconChest, IconCoin, IconExperience } from '@/components/icons/ui';
 
 // Боссы гильдии: общее на гильдию HP, удар раз в час, награда за убитого босса — раз в сутки на аккаунт
 const props = defineProps<{
@@ -158,7 +161,7 @@ const claim = async (boss: GuildBossInfo) => {
             <div class="boss-squad-heading">
                 <span class="boss-squad-title">{{ t('guild.bosses.squad') }}</span>
                 <span v-if="noSquad" class="boss-squad-empty">{{ t('guild.bosses.noSquad') }}</span>
-                <span v-else class="boss-squad-power">⚔ {{ t('power.squad', { power: squadPower }) }}</span>
+                <span v-else class="boss-squad-power"><StatIcon stat="power" /> {{ t('power.squad', { power: squadPower }) }}</span>
                 <GemButton :color="'pink'" :disabled="!!busy" @click="squadOpen = true">{{ t('guild.bosses.editSquad') }}</GemButton>
             </div>
             <!-- Тот же ряд слотов, что в окне отряда; клик по слоту открывает окно отряда -->
@@ -215,8 +218,8 @@ const claim = async (boss: GuildBossInfo) => {
 
                 <div class="boss-reward">
                     <span class="boss-label">{{ t('guild.bosses.reward') }}</span>
-                    <span>🪙 {{ format(boss.reward.gold) }} · ✦ {{ format(boss.reward.experience) }}</span>
-                    <span v-if="boss.reward.chests.length">🎁 {{ chestsText(boss.reward) }}</span>
+                    <span><IconCoin /> {{ format(boss.reward.gold) }} · <IconExperience /> {{ format(boss.reward.experience) }}</span>
+                    <span v-if="boss.reward.chests.length"><IconChest /> {{ chestsText(boss.reward) }}</span>
                 </div>
 
                 <div class="boss-damage">
@@ -253,7 +256,7 @@ const claim = async (boss: GuildBossInfo) => {
                             :disabled="!!busy || noSquad"
                             v-tooltip="noSquad ? t('guild.bosses.noSquad') : undefined"
                             @click="attack(boss)"
-                        >⚔ {{ t('guild.bosses.attack') }}</GemButton>
+                        ><IconPower /> {{ t('guild.bosses.attack') }}</GemButton>
                     </template>
                 </div>
             </article>

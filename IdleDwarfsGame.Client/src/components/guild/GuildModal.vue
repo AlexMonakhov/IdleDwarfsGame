@@ -8,7 +8,8 @@ import GuildMembers from './GuildMembers.vue';
 import GuildBosses from './GuildBosses.vue';
 import GuildApiService from '@/services/apiServices/GuildApiService';
 import { GuildOverview } from '@/models/types/Guild';
-import type { ModalTab } from '@/models/types/Modal';
+import type { ModalTab, TabIcon } from '@/models/types/Modal';
+import { IconGuild, IconPouch, IconSkull } from '@/components/icons/ui';
 import { GuildRun, guildErrorText } from './guildShared';
 
 const props = defineProps<{ modelValue: boolean }>();
@@ -34,10 +35,10 @@ const notice = ref<string | null>(null);
 /* ===== Вкладки (только у тех, кто в гильдии) ===== */
 type GuildTab = 'guild' | 'bosses' | 'shop';
 
-const ICONS: Record<GuildTab, string> = {
-    guild: '🛡',
-    bosses: '🐉',
-    shop: '🏪',
+const ICONS: Record<GuildTab, TabIcon> = {
+    guild: IconGuild,
+    bosses: IconSkull,
+    shop: IconPouch,
 };
 
 const tab = ref<GuildTab>('guild');
