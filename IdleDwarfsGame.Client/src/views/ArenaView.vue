@@ -1,5 +1,6 @@
 <template>
-  <div class="arena">
+  <!-- Клик в любом месте арены после боя открывает кнопки под баннером -->
+  <div class="arena" @click="openResult">
     <!-- Фон отдельным слоем: временные фоны арен перекрашиваются фильтром, юниты — нет -->
     <div class="arena-bg" :style="bgStyle"></div>
     <CanvasLayer ref="layerRef">
@@ -59,54 +60,42 @@
         <button v-if="pvpOpponentId" class="result-next" @click="goToPvp()">{{ t('arena.toPvp') }}</button>
       </div>
 
-      <!-- PvP: победа или поражение и сколько очков сезона это стоило -->
-      <div v-if="state.finished && pvpResult" class="arena-message" :class="pvpResult.won ? 'victory' : 'defeat'">
-        <div class="result-title">{{ pvpResult.won ? t('arena.victory') : t('arena.defeat') }}</div>
-        <div class="result-rewards">{{ t(pvpRanked ? 'arena.rankedVs' : 'arena.pvpVs', { name: pvpResult.opponentName }) }}</div>
-        <div class="result-rewards" :class="pvpResult.points >= 0 ? 'pvp-points-up' : 'pvp-points-down'">
-          {{ t(pvpRanked ? 'arena.rankedPoints' : 'arena.pvpPoints', { points: pvpResult.points > 0 ? `+${pvpResult.points}` : pvpResult.points }) }}
-        </div>
-        <div class="result-rewards">
-          <span v-for="season in pvpResult.seasons" :key="season.type" class="pvp-season-points">
-            {{ t(`pvp.seasons.${season.type}`) }}: {{ season.points }}
-          </span>
-        </div>
-        <div v-if="pvpResult.won" class="result-rewards">{{ t('arena.pvpBeaten') }}</div>
-        <div class="result-rounds">{{ t('arena.rounds', { rounds: result?.rounds ?? 0 }) }}</div>
-        <button class="result-next" @click="goToPvp()">{{ t('arena.toPvp') }}</button>
-      </div>
+      <!-- Итог боя: сцена под «вуалью» притеняется (при поражении — сереет), частицы вылетают из-за баннера (конфетти и звёзды или дождь и снег) -->
+      <template v-if="outcome">
+        <!-- Вуаль: при победе чуть притеняет сцену, при поражении — обесцвечивает -->
+        <div class="arena-result-veil" :class="`arena-result-veil-${outcome.tone}`" aria-hidden="true"></div>
+        <ResultParticles v-if="outcome.particles" :key="outcome.tone" :mode="outcome.tone" :anchor="bannerEl" class="arena-result-particles" />
 
-      <!-- Босса гильдии за один бой обычно не убить: вместо победы/поражения — нанесённый урон -->
-      <div v-else-if="state.finished && guildResult" class="arena-message" :class="guildResult.killed ? 'victory' : 'guild-hit'">
-        <div class="result-title">{{ guildResult.killed ? t('arena.guildBossKilled') : t('arena.guildBossHit') }}</div>
-        <div class="result-rewards">{{ t('arena.guildBossDamage', { damage: guildResult.damage.toLocaleString(locale) }) }}</div>
-        <div class="result-rewards">
-          {{ t('arena.guildBossHp', { hp: guildResult.bossHp.toLocaleString(locale), max: guildResult.maxHp.toLocaleString(locale) }) }}
-        </div>
-        <div v-if="guildResult.killed" class="result-rewards">{{ t('arena.guildRewardWaiting') }}</div>
-        <div class="result-rounds">{{ t('arena.rounds', { rounds: result?.rounds ?? 0 }) }}</div>
-        <button class="result-next" @click="goToGuild()">{{ t('arena.toGuild') }}</button>
-      </div>
+        <div class="arena-result">
+          <!-- Сначала только баннер; по клику под ним появляются кнопки -->
+          <button
+            ref="bannerEl"
+            type="button"
+            class="arena-result-banner"
+            :class="{ 'arena-result-banner-open': resultOpen || !hasResultActions }"
+            :aria-expanded="resultOpen"
+            :disabled="!hasResultActions"
+          >
+            <ResultBanner :title="outcome.title" :tone="outcome.tone" />
+          </button>
+          <span v-if="hasResultActions && !resultOpen" class="arena-result-hint">{{ t('arena.showResults') }}</span>
 
-      <div v-else-if="state.finished" class="arena-message" :class="playerWon ? 'victory' : 'defeat'">
-        <div class="result-title">{{ playerWon ? t('arena.victory') : t('arena.defeat') }}</div>
-        <div v-if="result?.rewards" class="result-rewards">
-          {{ t('arena.rewards', { gold: result.rewards.gold, experience: result.rewards.experience }) }}
+          <!-- Только гем-кнопки, без таблички. Награда не держит прогресс: можно сразу в следующий бой, а забрать её — в окне -->
+          <Transition name="arena-result-actions">
+            <div v-if="resultOpen" class="result-actions">
+              <GemButton v-if="pvpResult" :color="'blue'" @click="goToPvp()">{{ t('arena.toPvp') }}</GemButton>
+              <GemButton v-else-if="guildResult" :color="'blue'" @click="goToGuild()">{{ t('arena.toGuild') }}</GemButton>
+              <template v-else>
+                <GemButton v-if="stageId" :color="'blue'" @click="goToCampaign()">{{ t('arena.toCampaign') }}</GemButton>
+                <GemButton v-if="nextStageId" :color="'green'" @click="goToNextStage()"><IconPower /> {{ t('arena.nextStage') }}</GemButton>
+                <!-- Башня: после победы — дальше или в окно за наградой, после поражения — сменить отряд и попробовать снова -->
+                <GemButton v-if="towerFloor" :color="'blue'" @click="goToTower()">{{ t('arena.toTower') }}</GemButton>
+                <GemButton v-if="nextTowerFloor" :color="'green'" @click="goToNextFloor()"><IconPower /> {{ t('arena.nextFloor') }}</GemButton>
+              </template>
+            </div>
+          </Transition>
         </div>
-        <div v-if="campaignResult?.firstClear" class="result-rewards">{{ t('arena.stageCleared', { id: campaignResult.stageId }) }}</div>
-        <div v-if="campaignResult?.firstClear" class="result-rewards">{{ t('arena.rewardWaiting') }}</div>
-        <div v-if="towerResult?.cleared" class="result-rewards">{{ t('arena.towerCleared', { floor: towerResult.floor }) }}</div>
-        <div v-if="towerResult?.cleared" class="result-rewards">{{ t('arena.towerRewardWaiting') }}</div>
-        <div class="result-rounds">{{ t('arena.rounds', { rounds: result?.rounds ?? 0 }) }}</div>
-        <!-- Награда не держит прогресс: можно сразу в следующий бой, а забрать её — в любой момент в окне кампании -->
-        <div v-if="stageId || towerFloor" class="result-actions">
-          <button v-if="nextStageId" class="result-next" @click="goToNextStage()">{{ t('arena.nextStage') }}</button>
-          <button v-if="stageId" class="result-next" @click="goToCampaign()">{{ t('arena.toCampaign') }}</button>
-          <!-- Башня: после победы — дальше или в окно за наградой, после поражения — сменить отряд и попробовать снова -->
-          <button v-if="nextTowerFloor" class="result-next" @click="goToNextFloor()">{{ t('arena.nextFloor') }}</button>
-          <button v-if="towerFloor" class="result-next" @click="goToTower()">{{ t('arena.toTower') }}</button>
-        </div>
-      </div>
+      </template>
 
       <CombatLogFeed v-if="result" :logs="result.logs" :shown-logs="state.shownLogs" :units="state.units" :speed="speed" />
     </CanvasLayer>
@@ -141,6 +130,10 @@ import { usePvp } from '@/composables/UsePvp';
 import CanvasComponent from '@/components/canvas/CanvasComponent.vue';
 import CanvasLayer from '@/components/canvas/CanvasLayer.vue';
 import CombatLogFeed from '@/components/interface/CombatLogFeed.vue';
+import ResultBanner from '@/components/interface/ResultBanner.vue';
+import ResultParticles from '@/components/interface/ResultParticles.vue';
+import GemButton from '@/components/common/GemButton.vue';
+import { IconPower } from '@/components/icons/stats';
 import { createBattleState, teamUnits } from '@/battle/BattleState';
 import { BattlePlayer } from '@/battle/BattlePlayer';
 import { BATTLE_FX_KEY, BattleFx } from '@/battle/BattleFx';
@@ -149,7 +142,7 @@ import { soundService } from '@/services/soundService/SoundService';
 import { useI18n } from 'vue-i18n';
 import { IconFlame, IconMute, IconSound } from '@/components/icons/ui';
 
-const { t, locale } = useI18n();
+const { t } = useI18n();
 
 // Размер юнитов на арене (1 — кадр 409.6px; по умолчанию у юнитов 0.65)
 const UNIT_SCALE = 0.8;
@@ -202,6 +195,45 @@ provide(BATTLE_FX_KEY, fx);
 const teamA = computed(() => teamUnits(state, 1));
 const teamB = computed(() => teamUnits(state, 2));
 const playerWon = computed(() => state.winningTeam === 1);
+
+// Итог боя для баннера и частиц: победа — конфетти и звёзды, поражение — серая сцена, дождь и снег.
+// Удар по боссу гильдии без убийства — не победа и не поражение: баннер без частиц
+const outcome = computed<{ title: string; tone: 'victory' | 'defeat'; particles: boolean } | null>(() => {
+  if (!state.finished || error.value !== null) return null;
+  if (pvpResult.value) {
+    const won = pvpResult.value.won;
+    return { title: won ? t('arena.victory') : t('arena.defeat'), tone: won ? 'victory' : 'defeat', particles: true };
+  }
+  if (guildResult.value) {
+    const killed = guildResult.value.killed;
+    return { title: killed ? t('arena.guildBossKilled') : t('arena.guildBossHit'), tone: 'victory', particles: killed };
+  }
+  return { title: playerWon.value ? t('arena.victory') : t('arena.defeat'), tone: playerWon.value ? 'victory' : 'defeat', particles: true };
+});
+
+// Кнопки под баннером появляются по клику в любом месте арены или сами через RESULT_AUTO_OPEN_MS;
+// новый бой снова начинается с одного баннера. В обычном бою на арене кнопок нет — тогда и подсказки нет
+const RESULT_AUTO_OPEN_MS = 10_000;
+const resultOpen = ref(false);
+const hasResultActions = computed(() => !!(pvpResult.value || guildResult.value || stageId.value || towerFloor.value));
+const canOpenResult = computed(() => !!outcome.value && hasResultActions.value && !resultOpen.value);
+let resultTimer = 0;
+
+const openResult = () => {
+  if (canOpenResult.value) resultOpen.value = true;
+};
+
+watch(canOpenResult, canOpen => {
+  window.clearTimeout(resultTimer);
+  if (canOpen) resultTimer = window.setTimeout(openResult, RESULT_AUTO_OPEN_MS);
+});
+
+watch(() => state.finished, finished => {
+  if (!finished) resultOpen.value = false;
+});
+
+// Баннер — точка, из-за которой вылетают конфетти и вокруг которой вспыхивают звёзды
+const bannerEl = ref<HTMLElement | null>(null);
 
 const bgStyle = computed(() => ({
   // Ключи lava/ice приходят с сервера (Arena.Background, фон босса гильдии)
@@ -346,7 +378,10 @@ onMounted(() => {
   startArenaFight();
 });
 
-onBeforeUnmount(() => player.stop());
+onBeforeUnmount(() => {
+  player.stop();
+  window.clearTimeout(resultTimer);
+});
 </script>
 
 <style lang="scss">
@@ -527,22 +562,6 @@ onBeforeUnmount(() => player.stop());
   }
 }
 
-.pvp-points-up {
-  color: #4ade80;
-  font-size: 18px;
-  font-weight: 800;
-}
-
-.pvp-points-down {
-  color: #f87171;
-  font-size: 18px;
-  font-weight: 800;
-}
-
-.pvp-season-points + .pvp-season-points::before {
-  content: ' · ';
-}
-
 .arena-message {
   position: absolute;
   top: 35%;
@@ -593,42 +612,122 @@ onBeforeUnmount(() => player.stop());
   to { opacity: 1; }
 }
 
-.arena-message.victory .result-title {
-  color: #ffd166;
-}
-
-.arena-message.defeat .result-title {
-  color: #f87171;
-}
-
-.arena-message.guild-hit .result-title {
-  color: #fca5a5;
-}
-
 .arena-message.error .result-next {
   display: block;
   margin: 12px auto 0;
 }
 
-.result-title {
-  font-size: 40px;
-  font-weight: 800;
+/* ===== Итог боя: баннер с лентой (ResultBanner), по клику под ним — табличка с итогами ===== */
+/* Баннер закреплён сверху: когда под ним выезжает табличка, он стоит на месте, а не уезжает вверх */
+.arena-result {
+  position: absolute;
+  top: 13%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 13;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-.result-rewards,
-.result-rounds {
-  margin-top: 6px;
-  font-size: 14px;
-  color: #e2e8f0;
+/* Баннер — кнопка без своего вида: до клика слегка «дышит», при наведении приподнимается */
+.arena-result-banner {
+  position: relative;
+  z-index: 1;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  transition: transform 0.2s ease, filter 0.2s ease;
 }
 
-/* Кнопки после боя кампании и башни — в ряд: дальше и обратно в окно */
+.arena-result-banner:not(.arena-result-banner-open):hover {
+  transform: translateY(-4px) scale(1.02);
+  filter: brightness(1.08);
+}
+
+.arena-result-banner-open {
+  cursor: default;
+}
+
+.arena-result-hint {
+  margin-top: 10px;
+  padding: 3px 14px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.55);
+  color: #ffe2a0;
+  font-family: 'Arial', sans-serif;
+  font-size: 13px;
+  font-weight: bold;
+  letter-spacing: 0.04em;
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.85);
+  pointer-events: none;
+  animation: arena-result-hint 1.6s ease-in-out 0.8s infinite both;
+}
+
+@keyframes arena-result-hint {
+  0%, 100% { opacity: 0.45; }
+  50% { opacity: 1; }
+}
+
+/* Под баннером — только гем-кнопки в ряд: обратно в окно и дальше. Выпрыгивают снизу по клику */
 .result-actions {
   display: flex;
   justify-content: center;
-  gap: 10px;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 22px;
 }
 
+.arena-result-actions-enter-active {
+  transition: opacity 0.25s ease, transform 0.35s cubic-bezier(0.2, 1.4, 0.4, 1);
+}
+
+.arena-result-actions-enter-from {
+  opacity: 0;
+  transform: translateY(16px) scale(0.85);
+}
+
+/* Вуаль над сценой (фон, юниты, эффекты): победа — лёгкая тень, чтобы баннер читался; поражение — сцена теряет цвет */
+.arena-result-veil {
+  position: absolute;
+  inset: 0;
+  z-index: 12;
+  pointer-events: none;
+  animation: arena-result-veil-in 1.2s ease both;
+}
+
+.arena-result-veil-victory {
+  background: rgba(8, 11, 18, 0.22);
+}
+
+.arena-result-veil-defeat {
+  backdrop-filter: grayscale(0.9) brightness(0.75);
+  background: rgba(20, 24, 32, 0.15);
+}
+
+@keyframes arena-result-veil-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Частицы итога — над сценой и вуалью, под баннером: конфетти вылетают из-за него */
+.arena-result-particles {
+  z-index: 12;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .arena-result-hint,
+  .arena-result-veil {
+    animation: none;
+  }
+
+  .arena-result-actions-enter-active {
+    transition: none;
+  }
+}
+
+/* Кнопка в сообщении об ошибке */
 .result-next {
   margin-top: 12px;
   border: 1px solid #ffd166;

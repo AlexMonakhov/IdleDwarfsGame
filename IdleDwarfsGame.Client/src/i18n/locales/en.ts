@@ -1000,6 +1000,7 @@ const en = {
     rewards: '+{gold} gold · +{experience} xp',
     stageCleared: 'Stage {id} cleared!',
     rounds: 'Rounds: {rounds}',
+    showResults: 'Click anywhere to continue',
     nextStage: 'Next stage',
     rewardWaiting: 'Your reward is waiting in the campaign — claim it whenever you like',
     toCampaign: 'To the campaign',

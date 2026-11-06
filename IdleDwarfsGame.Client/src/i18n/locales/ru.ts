@@ -1000,6 +1000,7 @@ const ru: LocaleMessages = {
     rewards: '+{gold} золота · +{experience} опыта',
     stageCleared: 'Уровень {id} пройден!',
     rounds: 'Раундов: {rounds}',
+    showResults: 'Нажмите в любом месте, чтобы продолжить',
     nextStage: 'Следующий уровень',
     rewardWaiting: 'Награда ждёт вас в кампании — заберите, когда удобно',
     toCampaign: 'В кампанию',
