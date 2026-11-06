@@ -5,6 +5,7 @@ import CollectionSplit from './CollectionSplit.vue';
 import CssAuraEffect from '@/components/effects/CssAuraEffect.vue';
 import UnitAvatar from '@/components/interface/UnitAvatar.vue';
 import { STATUS_ICONS } from '@/components/icons/status';
+import { spellIcon } from '@/components/icons/spells';
 import { elementAura } from '@/components/effects/elementAura';
 import { DAMAGE_COLORS, resolveSpellVisual } from '@/battle/FxRegistry';
 import { elementColor } from '@/battle/sprites';
@@ -68,7 +69,7 @@ const avatar = (kind: HeroKind) => ({
                         :class="{ 'spell-chip-active': spell === selected.spell }"
                         :style="{ '--spell-color': spellColor(spell) }"
                         @click="selectSpell(selected.kind, spell)"
-                    >{{ spell.name }}</button>
+                    ><component :is="spellIcon(spell.name)" v-if="spellIcon(spell.name)" /> {{ spell.name }}</button>
                 </div>
                 <div class="spell-switcher" v-tooltip="t('collection.spellLevelHint')">
                     <button
@@ -135,7 +136,7 @@ const avatar = (kind: HeroKind) => ({
                         :class="{ 'spell-chip-active': isSelected(kind, spell) }"
                         :style="{ '--spell-color': spellColor(spell) }"
                         @click.stop="selectSpell(kind, spell)"
-                    >{{ spell.name }}</button>
+                    ><component :is="spellIcon(spell.name)" v-if="spellIcon(spell.name)" /> {{ spell.name }}</button>
                 </div>
             </div>
         </div>

@@ -1,4 +1,5 @@
 // Контракт с сервером (IdleDwarfsGame.Server/ECS/ECSEntities.cs). Енамы приходят строками.
+import type { HeroProfession } from '@/models/types/Heroes';
 
 export type CombatEventType =
   | 'CombatStart'
@@ -78,6 +79,8 @@ export interface CombatUnitInfo {
   name: string;
   unitType: string;
   element: HeroElement;
+  // Специализация дворфа; у монстров её нет
+  profession?: HeroProfession | null;
   level: number;
   team: number;
   position: number;
@@ -113,7 +116,7 @@ export type HeroElement = 'Basic' | 'Fire' | 'Frost' | 'Lightning' | 'Nature' | 
 
 // То, что нужно портрету: подходит и юнит боя, и герой из инвентаря
 export type PortraitUnit = Pick<CombatUnitInfo,
-  'name' | 'unitType' | 'element' | 'level' | 'maxHp' | 'attack' | 'speed' | 'spells' | 'immunities' | 'aura' | 'isBoss' | 'power'>;
+  'name' | 'unitType' | 'element' | 'profession' | 'level' | 'maxHp' | 'attack' | 'speed' | 'spells' | 'immunities' | 'aura' | 'isBoss' | 'power'>;
 
 export interface CombatRewards {
   gold: number;

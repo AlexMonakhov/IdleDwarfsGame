@@ -24,6 +24,7 @@ import { useSquadModal } from '@/composables/UseSquadModal';
 import { useInterface } from '@/composables/UseInterface';
 import { soundService } from '@/services/soundService/SoundService';
 import { useI18n } from 'vue-i18n';
+import { IconCoin, IconExperience } from '@/components/icons/ui';
 
 const { t, locale } = useI18n();
 const router = useRouter();
@@ -101,8 +102,8 @@ watchEffect(() => {
         </div>
         <div class="settings">
             <div v-if="isAuthenticated && resources" class="resources">
-                <span class="resource resource-gold" v-tooltip="t('resources.gold')">🪙 {{ resources.gold.toLocaleString(locale) }}</span>
-                <span class="resource resource-experience" v-tooltip="t('resources.experience')">✦ {{ resources.experience.toLocaleString(locale) }}</span>
+                <span class="resource resource-gold" v-tooltip="t('resources.gold')"><IconCoin /> {{ resources.gold.toLocaleString(locale) }}</span>
+                <span class="resource resource-experience" v-tooltip="t('resources.experience')"><IconExperience /> {{ resources.experience.toLocaleString(locale) }}</span>
             </div>
             <AccountButton @click="accountOpen = true" />
         </div>

@@ -5,6 +5,9 @@ import { useI18n } from 'vue-i18n';
 import CharacterSkeleton from '@/components/character-skeleton.vue';
 import GemButton from '@/components/common/GemButton.vue';
 import { STATUS_ICONS } from '@/components/icons/status';
+import StatIcon from '@/components/icons/stats/StatIcon.vue';
+import SpellName from '@/components/icons/spells/SpellName.vue';
+import AuraName from '@/components/icons/status/AuraName.vue';
 import EquipmentSlots from '@/components/equipment/EquipmentSlots.vue';
 import { passiveName, passiveText } from '@/components/equipment/equipmentText';
 import HeroesApiService from '@/services/apiServices/HeroesApiService';
@@ -16,6 +19,9 @@ import { elementColor, spriteColor } from '@/battle/sprites';
 import { statusLabel } from '@/i18n';
 import { vDragScroll } from '@/directives/dragScroll';
 import { elementPreview } from '@/battle/arenaBackgrounds';
+import { PASSIVE_ICONS } from '@/components/icons/passives';
+import { PROFESSION_ICONS } from '@/components/icons/professions';
+import { IconCoin, IconExperience } from '@/components/icons/ui';
 
 // Выбранный герой в окне прокачки: сцена со спрайтом, характеристики и кнопка повышения уровня
 const props = defineProps<{ hero: HeroInfo }>();
@@ -148,7 +154,7 @@ const hint = computed(() => {
                 <div class="upgrade-stage-name">{{ hero.name }}</div>
                 <div class="upgrade-stage-tags">
                     <span class="upgrade-tag">{{ t('heroUpgrade.rank', { rank: hero.level }) }}</span>
-                    <span v-if="hero.profession" class="upgrade-tag">{{ t(`professions.${hero.profession}`) }}</span>
+                    <span v-if="hero.profession" class="upgrade-tag"><component :is="PROFESSION_ICONS[hero.profession]" v-if="PROFESSION_ICONS[hero.profession]" /> {{ t(`professions.${hero.profession}`) }}</span>
                     <span class="upgrade-tag" :class="`upgrade-tag-${color}`">{{ t(`elements.${hero.element}`) }}</span>
                     <span v-if="hero.onExpedition" class="upgrade-tag upgrade-tag-busy">{{ t('squad.onExpedition') }}</span>
                 </div>
@@ -184,6 +190,7 @@ const hint = computed(() => {
         <aside v-drag-scroll="{ fade: false }" class="upgrade-stats">
             <h4 class="upgrade-subtitle">{{ t('heroUpgrade.stats') }}</h4>
             <div v-for="row in stats" :key="row.key" class="stat-row" :class="`stat-row-${row.key}`">
+                <StatIcon :stat="row.key" class="stat-row-icon" size="18px" />
                 <span class="stat-label">{{ t(`heroUpgrade.statNames.${row.key}`) }}</span>
                 <span class="stat-value">{{ format(row.value) }}</span>
                 <span
@@ -196,7 +203,10 @@ const hint = computed(() => {
 
             <div class="stat-group">
                 <span class="stat-label">{{ t('heroUpgrade.statNames.spells') }}</span>
-                <span class="stat-text">{{ hero.spells.length ? hero.spells.join(', ') : t('heroUpgrade.none') }}</span>
+                <span v-if="hero.spells.length" class="stat-text stat-spells">
+                    <SpellName v-for="spell in hero.spells" :key="spell" :spell="spell" />
+                </span>
+                <span v-else class="stat-text">{{ t('heroUpgrade.none') }}</span>
             </div>
             <div class="stat-group">
                 <span class="stat-label">{{ t('heroUpgrade.statNames.immunities') }}</span>
@@ -210,12 +220,13 @@ const hint = computed(() => {
             </div>
             <div class="stat-group">
                 <span class="stat-label">{{ t('heroUpgrade.statNames.aura') }}</span>
-                <span class="stat-text">{{ hero.aura ?? t('heroUpgrade.none') }}</span>
+                <span v-if="hero.aura" class="stat-text"><AuraName :aura="hero.aura" size="16px" /></span>
+                <span v-else class="stat-text">{{ t('heroUpgrade.none') }}</span>
             </div>
             <div class="stat-group">
                 <span class="stat-label">{{ t('heroUpgrade.statNames.passives') }}</span>
                 <div v-for="passive in hero.passives ?? []" :key="passive.passive" class="stat-passive">
-                    <span class="stat-text stat-passive-name">{{ passiveName(passive) }} · {{ t('passives.level', { level: passive.level }) }}</span>
+                    <span class="stat-text stat-passive-name"><component :is="PASSIVE_ICONS[passive.passive]" v-if="PASSIVE_ICONS[passive.passive]" /> {{ passiveName(passive) }} · {{ t('passives.level', { level: passive.level }) }}</span>
                     <span class="stat-passive-text">{{ passiveText(passive) }}</span>
                 </div>
                 <span v-if="!hero.passives?.length" class="stat-text">{{ t('heroUpgrade.none') }}</span>
@@ -244,10 +255,10 @@ const hint = computed(() => {
                 <div v-if="upgrade.cost" class="upgrade-cost">
                     <span class="upgrade-cost-label">{{ t('heroUpgrade.cost') }}</span>
                     <span class="upgrade-cost-gold" :class="{ 'upgrade-cost-lacking': lacksGold }" v-tooltip="t('resources.gold')">
-                        🪙 {{ format(upgrade.cost.gold) }}
+                        <IconCoin /> {{ format(upgrade.cost.gold) }}
                     </span>
                     <span class="upgrade-cost-experience" :class="{ 'upgrade-cost-lacking': lacksExperience }" v-tooltip="t('resources.experience')">
-                        ✦ {{ format(upgrade.cost.experience) }}
+                        <IconExperience /> {{ format(upgrade.cost.experience) }}
                     </span>
                 </div>
                 <span class="upgrade-hint" :class="{ 'upgrade-hint-error': message?.error }">{{ hint }}</span>
@@ -425,6 +436,11 @@ const hint = computed(() => {
     border-bottom: 1px solid rgba(157, 173, 175, 0.2);
 }
 
+/* Строка выровнена по базовой линии текста: значок сажаем на неё сами */
+.stat-row-icon {
+    align-self: center;
+}
+
 .stat-label {
     flex: 1;
     color: #cbd5e1;
@@ -464,6 +480,12 @@ const hint = computed(() => {
 .stat-text {
     color: #f8fafc;
     font-size: 13px;
+}
+
+.stat-spells {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 10px;
 }
 
 .stat-icons {

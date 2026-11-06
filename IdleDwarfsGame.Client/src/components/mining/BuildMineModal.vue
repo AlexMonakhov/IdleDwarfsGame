@@ -5,9 +5,10 @@ import { useI18n } from 'vue-i18n';
 import ModalComponent from '@/components/common/ModalComponent.vue';
 import GemButton from '@/components/common/GemButton.vue';
 import MineCostView from './MineCostView.vue';
-import { mineColor, mineGlyph } from './miningArt';
+import { mineColor } from './miningArt';
 import MiningApiService from '@/services/apiServices/MiningApiService';
 import { MINE_TYPES, MineCost, MineType, MiningActionResult, MiningError, MiningWallet, canAfford } from '@/models/types/Mining';
+import MineResourceIcon from './MineResourceIcon.vue';
 
 // Постройка шахты на свободном месте: выбор, что она будет добывать
 const props = defineProps<{
@@ -76,7 +77,7 @@ const build = async () => {
                     :style="{ '--mine-color': mineColor(mineType) }"
                     @click="type = mineType"
                 >
-                    <span class="build-mine-glyph">{{ mineGlyph(mineType) }}</span>
+                    <span class="build-mine-glyph"><MineResourceIcon :type="mineType" /></span>
                     <span class="build-mine-name">{{ t(`mining.types.${mineType}`) }}</span>
                 </button>
             </div>

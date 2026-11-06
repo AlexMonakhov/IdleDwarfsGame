@@ -288,6 +288,9 @@ const onStageClick = (n: number) => {
 <style lang="scss" scoped>
 .about-container {
   position: relative;
+  /* Свой контекст наложения: z-index зданий и плашек (до 3) остаётся внутри города
+     и не поднимает их над интерфейсом (InterfaceView, z-index 1) — иначе клик по аккаунту попадал в башню */
+  isolation: isolate;
   width: 100%;
   height: var(--stage-h);
   overflow-x: auto;

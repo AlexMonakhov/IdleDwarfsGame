@@ -19,8 +19,9 @@ import { useResources } from '@/composables/UseResources';
 import { useItemDrag } from '@/composables/UseItemDrag';
 import { HeroInfo, HeroUpgradeResult } from '@/models/types/Heroes';
 import { EquipmentChangeResult, EquipmentError, EquipmentInfo, EquipmentSlot, EquipmentType, canWear } from '@/models/types/Equipment';
-import type { ModalTab } from '@/models/types/Modal';
+import type { ModalTab, TabIcon } from '@/models/types/Modal';
 import { vDragScroll } from '@/directives/dragScroll';
+import { IconBanner, IconDwarf, IconDwarfExtract, IconDwarfFusion, IconRune, IconShield } from '@/components/icons/ui';
 
 // Окно алтаря. Первая вкладка — состав отряда (SquadPanel, свои загрузка и сохранение).
 // Прокачка и снаряжение героев: справа список героев или предметов, по клику на героя слева выезжает его панель.
@@ -43,7 +44,14 @@ const errorMessage = ref<string | null>(null);
 const selectedId = ref<string | null>(null);
 
 type UpgradeTab = 'squad' | 'heroes' | 'items' | 'extract' | 'abilities' | 'fusion';
-const TAB_ICONS: Record<UpgradeTab, string> = { squad: '⚑', heroes: '⚔', items: '🛡', extract: '⚗', abilities: '✦', fusion: '⚒' };
+const TAB_ICONS: Record<UpgradeTab, TabIcon> = {
+    squad: IconBanner,
+    heroes: IconDwarf,
+    items: IconShield,
+    extract: IconDwarfExtract,
+    abilities: IconRune,
+    fusion: IconDwarfFusion,
+};
 // На этих вкладках своя раскладка, без панели героя
 const FORGE_TABS: UpgradeTab[] = ['extract', 'abilities', 'fusion'];
 

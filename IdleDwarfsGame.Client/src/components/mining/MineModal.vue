@@ -1,12 +1,12 @@
 <script lang="ts" setup>
-import { computed, onBeforeUnmount, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, ref, watch, type Component } from 'vue';
 import { AxiosError } from 'axios';
 import { useI18n } from 'vue-i18n';
 import ModalComponent from '@/components/common/ModalComponent.vue';
 import GemButton from '@/components/common/GemButton.vue';
 import HeroCard from '@/components/inventory/HeroCard.vue';
 import MineCostView from './MineCostView.vue';
-import { mineColor, mineGlyph, oreImage } from './miningArt';
+import { mineColor, oreImage } from './miningArt';
 import MiningApiService from '@/services/apiServices/MiningApiService';
 import HeroesApiService from '@/services/apiServices/HeroesApiService';
 import { HeroInfo, isBusy } from '@/models/types/Heroes';
@@ -21,6 +21,8 @@ import {
     storedNow,
 } from '@/models/types/Mining';
 import { vDragScroll } from '@/directives/dragScroll';
+import MineResourceIcon from './MineResourceIcon.vue';
+import { IconCrate, IconHourglass, IconMinecart, IconPickaxe } from '@/components/icons/ui';
 
 // Окно шахты: слева жила (клик — добыча) и дворф со складом, справа улучшения
 const props = defineProps<{
@@ -190,7 +192,7 @@ const upgradeBlocked = (info: MineUpgradeInfo) => {
         : t('mining.upgrades.needLevel');
 };
 
-const UPGRADE_ICONS: Record<MineUpgrade, string> = { Level: '⛏', Speed: '⏱', Yield: '⚒', Storage: '📦' };
+const UPGRADE_ICONS: Record<MineUpgrade, Component> = { Level: IconPickaxe, Speed: IconHourglass, Yield: IconMinecart, Storage: IconCrate };
 
 /* ===== Открытие и закрытие ===== */
 watch(open, isOpen => {
@@ -229,7 +231,7 @@ onBeforeUnmount(() => {
                 <button type="button" class="mine-ore" @click="dig">
                     <span :key="hit" class="mine-ore-art" :class="{ 'mine-ore-hit': hit }">
                         <img v-if="ore" :src="ore" class="mine-ore-image" alt="" draggable="false" />
-                        <span v-else class="mine-ore-glyph">{{ mineGlyph(mine.type) }}</span>
+                        <span v-else class="mine-ore-glyph"><MineResourceIcon :type="mine.type" /></span>
                     </span>
                     <span
                         v-for="float in floats"
@@ -286,7 +288,7 @@ onBeforeUnmount(() => {
             <section v-drag-scroll="{ fade: false }" class="mine-right">
                 <h4 class="mine-subtitle">{{ t('mining.upgrades.title') }}</h4>
                 <div v-for="info in mine.upgrades" :key="info.upgrade" class="mine-upgrade">
-                    <span class="mine-upgrade-icon">{{ UPGRADE_ICONS[info.upgrade] }}</span>
+                    <span class="mine-upgrade-icon"><component :is="UPGRADE_ICONS[info.upgrade]" /></span>
                     <div class="mine-upgrade-body">
                         <div class="mine-upgrade-title">
                             <span>{{ t(`mining.upgrades.names.${info.upgrade}`) }}</span>

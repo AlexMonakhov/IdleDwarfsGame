@@ -3,6 +3,8 @@ import { useI18n } from 'vue-i18n';
 import { RewardInfo } from '@/models/types/Inventory';
 import { CHEST_ICONS, ELEMENT_COLORS, GEM_COLORS, RARITY_COLORS } from '@/components/inventory/lootStyles';
 import { chestLabel } from '@/i18n';
+import GemIcon from '@/components/icons/GemIcon.vue';
+import { IconCoin, IconExperience } from '@/components/icons/ui';
 
 // Награда одной строкой: золото, опыт, камни (цвет — камень, рамка — редкость) и сундуки (цвет — стихия)
 const props = defineProps<{ reward: RewardInfo }>();
@@ -15,8 +17,8 @@ const gemName = (subType: string) => te(`gems.${subType}`) ? t(`gems.${subType}`
 
 <template>
     <div class="reward-line">
-        <span>🪙 {{ format(props.reward.gold) }}</span>
-        <span>✦ {{ format(props.reward.experience) }}</span>
+        <span><IconCoin /> {{ format(props.reward.gold) }}</span>
+        <span><IconExperience /> {{ format(props.reward.experience) }}</span>
         <span
             v-for="item in props.reward.items"
             :key="`${item.subType}-${item.rarity}`"
@@ -24,7 +26,7 @@ const gemName = (subType: string) => te(`gems.${subType}`) ? t(`gems.${subType}`
             :style="{ '--gem-color': GEM_COLORS[item.subType] ?? '#cbd5e1', '--rarity-color': RARITY_COLORS[item.rarity] }"
             v-tooltip="`${gemName(item.subType)} · ${t(`rarity.${item.rarity}`)}`"
         >
-            <span class="reward-gem-stone">◆</span>×{{ item.quantity }}
+            <GemIcon class="reward-gem-stone" :gem="item.subType" />×{{ item.quantity }}
         </span>
         <span
             v-for="(chest, index) in props.reward.chests"
@@ -33,7 +35,7 @@ const gemName = (subType: string) => te(`gems.${subType}`) ? t(`gems.${subType}`
             :style="{ '--chest-color': ELEMENT_COLORS[chest.element] ?? ELEMENT_COLORS.Basic }"
             v-tooltip="chestLabel(chest)"
         >
-            {{ CHEST_ICONS[chest.type] }} {{ chest.level }}
+            <component :is="CHEST_ICONS[chest.type]" /> {{ chest.level }}
         </span>
     </div>
 </template>

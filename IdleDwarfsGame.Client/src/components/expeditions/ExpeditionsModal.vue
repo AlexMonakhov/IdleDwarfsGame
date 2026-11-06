@@ -13,6 +13,8 @@ import { HeroInfo, isBusy } from '@/models/types/Heroes';
 import { estimateReward, ExpeditionBoard, ExpeditionInfo, ExpeditionStatus } from '@/models/types/Expeditions';
 import caveBackground from '@/assets/red_crystal_arena.png';
 import crystalsBackground from '@/assets/arenas/arena_blue.png';
+import StatIcon from '@/components/icons/stats/StatIcon.vue';
+import { IconCoin, IconExperience, IconHourglass } from '@/components/icons/ui';
 
 const props = defineProps<{ modelValue: boolean }>();
 const emit = defineEmits<{ (e: 'update:modelValue', value: boolean): void }>();
@@ -106,8 +108,34 @@ const maxHeroes = computed(() => board.value?.maxHeroes ?? 4);
 const templateText = (key: string, field: 'name' | 'description') =>
     te(`expeditions.templates.${key}.${field}`) ? t(`expeditions.templates.${key}.${field}`) : key;
 
-const BACKGROUNDS = [caveBackground, crystalsBackground];
-const backgroundOf = (expedition: ExpeditionInfo) => BACKGROUNDS[(expedition.slot - 1) % BACKGROUNDS.length];
+// Фон задания и цвет его карточки (рамка, блик, ореол) — как у карточек боссов гильдии
+const BACKGROUNDS = [
+    { image: caveBackground, color: 'red' },
+    { image: crystalsBackground, color: 'blue' },
+];
+const sceneOf = (expedition: ExpeditionInfo) => BACKGROUNDS[(expedition.slot - 1) % BACKGROUNDS.length];
+const backgroundOf = (expedition: ExpeditionInfo) => sceneOf(expedition).image;
+
+// Свечение карточки: доступное — горит цветом фона, в пути — приглушено, выполнено — золотом, награда забрана — гаснет
+const CARD_STATE: Record<ExpeditionStatus, string> = {
+    Available: 'exp-card-ready',
+    InProgress: 'exp-card-waiting',
+    Ready: 'exp-card-claimable',
+    Claimed: 'exp-card-done',
+};
+
+// Сколько задания пройдено, 0…100
+const progressOf = (expedition: ExpeditionInfo) => {
+    if (statusOf(expedition) !== 'InProgress') return 100;
+    const start = expedition.startedAt ? new Date(expedition.startedAt).getTime() : 0;
+    const end = expedition.endsAt ? new Date(expedition.endsAt).getTime() : 0;
+    if (end <= start) return 100;
+    return Math.min(100, Math.max(0, ((serverNow.value - start) / (end - start)) * 100));
+};
+
+// У доступного задания награда ещё не зафиксирована — показываем, сколько дадут даже без мощи
+const cardReward = (expedition: ExpeditionInfo) =>
+    (expedition.status === 'Available' ? estimateReward(expedition.rates, 0) : expedition.reward);
 
 const openExpedition = (expedition: ExpeditionInfo) => {
     if (expedition.status === 'Claimed') return;
@@ -182,12 +210,13 @@ const start = async () => {
     await load();
 };
 
-const claim = async () => {
-    if (!selected.value || busy.value) return;
+// Забрать можно и из открытого задания, и прямо с карточки в списке
+const claim = async (expedition: ExpeditionInfo | null = selected.value) => {
+    if (!expedition || busy.value) return;
     busy.value = true;
     errorMessage.value = null;
     try {
-        const result = await ExpeditionsApiService.claim(selected.value.id);
+        const result = await ExpeditionsApiService.claim(expedition.id);
         setResources(result.resources);
         notice.value = t('expeditions.claimed', { gold: result.reward.gold, experience: result.reward.experience });
         selectedId.value = null;
@@ -220,39 +249,66 @@ const footerText = computed(() => {
 
             <!-- ===== Список заданий ===== -->
             <div v-else-if="!selected" class="expedition-list">
-                <button
+                <!-- Карточка — как у боссов гильдии, только без портрета. Клик по карточке открывает задание -->
+                <article
                     v-for="expedition in expeditions"
                     :key="expedition.id"
-                    type="button"
-                    class="expedition-card"
-                    :class="`expedition-card-${statusOf(expedition)}`"
-                    :disabled="expedition.status === 'Claimed'"
+                    class="exp-card"
+                    :class="[`exp-card-${sceneOf(expedition).color}`, CARD_STATE[statusOf(expedition)]]"
+                    :role="expedition.status === 'Claimed' ? undefined : 'button'"
+                    :tabindex="expedition.status === 'Claimed' ? undefined : 0"
                     @click="openExpedition(expedition)"
+                    @keydown.enter="openExpedition(expedition)"
                 >
-                    <div class="expedition-card-image" :style="{ backgroundImage: `url(${backgroundOf(expedition)})` }">
-                        <span class="expedition-duration">⏳ {{ t('expeditions.duration', { hours: expedition.durationHours }) }}</span>
+                    <!-- Фон — место, куда идут герои -->
+                    <div class="exp-card-arena" aria-hidden="true">
+                        <div class="exp-card-arena-image" :style="{ backgroundImage: `url(${backgroundOf(expedition)})` }"></div>
                     </div>
-                    <div class="expedition-card-body">
-                        <div class="expedition-card-title">{{ templateText(expedition.templateKey, 'name') }}</div>
-                        <div class="expedition-card-description">{{ templateText(expedition.templateKey, 'description') }}</div>
-                        <div class="expedition-card-footer">
-                            <span class="expedition-status">{{ t(`expeditions.status.${statusOf(expedition)}`) }}</span>
-                            <span v-if="statusOf(expedition) === 'InProgress'" class="expedition-timer">
-                                {{ t('expeditions.timeLeft', { time: formatTime(msUntil(expedition.endsAt)) }) }}
-                            </span>
-                            <span v-else-if="expedition.status !== 'Available'" class="expedition-reward">
-                                {{ t('expeditions.reward', { gold: expedition.reward.gold, experience: expedition.reward.experience }) }}
-                            </span>
+
+                    <div class="exp-card-top">
+                        <span class="exp-tier"><IconHourglass /> {{ t('expeditions.duration', { hours: expedition.durationHours }) }}</span>
+                        <span class="exp-name">{{ templateText(expedition.templateKey, 'name') }}</span>
+                        <span class="exp-status">{{ t(`expeditions.status.${statusOf(expedition)}`) }}</span>
+                    </div>
+
+                    <div class="exp-description">{{ templateText(expedition.templateKey, 'description') }}</div>
+
+                    <!-- Ход задания — как полоска HP босса -->
+                    <div v-if="statusOf(expedition) === 'InProgress' || statusOf(expedition) === 'Ready'" class="exp-progress">
+                        <div class="exp-progress-fill" :style="{ width: `${progressOf(expedition)}%` }">
+                            <span class="exp-progress-shine"></span>
                         </div>
+                        <span class="exp-progress-text">
+                            <template v-if="statusOf(expedition) === 'InProgress'">{{ t('expeditions.timeLeft', { time: formatTime(msUntil(expedition.endsAt)) }) }}</template>
+                            <template v-else>{{ t('expeditions.status.Ready') }}</template>
+                        </span>
                     </div>
-                </button>
+
+                    <div class="exp-reward">
+                        <span class="exp-label">{{ expedition.status === 'Available' ? t('expeditions.rewardFrom') : t('expeditions.rewardLabel') }}</span>
+                        <span><IconCoin /> +{{ cardReward(expedition).gold }} · <IconExperience /> +{{ cardReward(expedition).experience }}</span>
+                        <span v-if="expedition.power" class="exp-power"><StatIcon stat="power" /> {{ t('expeditions.power', { power: expedition.power }) }}</span>
+                    </div>
+
+                    <div class="exp-actions">
+                        <GemButton v-if="statusOf(expedition) === 'Available'" :color="'green'" :disabled="busy">{{ t('expeditions.pickParty') }}</GemButton>
+                        <GemButton v-else-if="statusOf(expedition) === 'InProgress'" :color="'blue'" :disabled="busy">{{ t('expeditions.watch') }}</GemButton>
+                        <GemButton
+                            v-else-if="statusOf(expedition) === 'Ready'"
+                            :color="'yellow'"
+                            :disabled="busy"
+                            @click.stop="claim(expedition)"
+                        >{{ busy ? t('expeditions.claiming') : t('expeditions.claim') }}</GemButton>
+                        <span v-else class="exp-done">{{ t('expeditions.status.Claimed') }}</span>
+                    </div>
+                </article>
             </div>
 
             <!-- ===== Подбор группы ===== -->
             <div v-else-if="selectedStatus === 'Available'" class="expedition-details">
                 <div class="expedition-heading">
                     <h3 class="expedition-title">{{ templateText(selected.templateKey, 'name') }}</h3>
-                    <span class="expedition-duration">⏳ {{ t('expeditions.duration', { hours: selected.durationHours }) }}</span>
+                    <span class="expedition-duration"><IconHourglass /> {{ t('expeditions.duration', { hours: selected.durationHours }) }}</span>
                 </div>
                 <div class="expeditions-hint">{{ templateText(selected.templateKey, 'description') }}</div>
 
@@ -260,8 +316,8 @@ const footerText = computed(() => {
                     <div class="expedition-heading">
                         <h4 class="expedition-subtitle">{{ t('expeditions.party') }}</h4>
                         <span class="expedition-power">
-                            ⚔ {{ t('expeditions.power', { power: partyPower }) }}
-                            <template v-if="estimate"> · {{ t('expeditions.reward', estimate) }}</template>
+                            <StatIcon stat="power" /> {{ t('expeditions.power', { power: partyPower }) }}
+                            <template v-if="estimate"> · {{ t('expeditions.reward', { ...estimate }) }}</template>
                         </span>
                     </div>
                     <div class="expeditions-hint">{{ t('expeditions.rewardHint') }}</div>
@@ -303,7 +359,7 @@ const footerText = computed(() => {
                 <div class="expedition-heading">
                     <h3 class="expedition-title">{{ templateText(selected.templateKey, 'name') }}</h3>
                     <span class="expedition-power">
-                        ⚔ {{ t('expeditions.power', { power: selected.power }) }}
+                        <StatIcon stat="power" /> {{ t('expeditions.power', { power: selected.power }) }}
                         · {{ t('expeditions.reward', { gold: selected.reward.gold, experience: selected.reward.experience }) }}
                     </span>
                 </div>
@@ -337,7 +393,7 @@ const footerText = computed(() => {
                     v-if="selectedStatus === 'InProgress' || selectedStatus === 'Ready'"
                     :color="'yellow'"
                     :disabled="selectedStatus !== 'Ready' || busy"
-                    @click="claim"
+                    @click="claim()"
                 >{{ busy ? t('expeditions.claiming') : t('expeditions.claim') }}</GemButton>
             </div>
         </template>
@@ -363,69 +419,333 @@ const footerText = computed(() => {
 /* ===== Список ===== */
 .expedition-list {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: 16px;
-    padding: 6px;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 22px;
+    /* Место под ореол карточек: тело модалки обрезает всё, что вылезает за край */
+    padding: 14px;
 }
 
-.expedition-card {
+/* ===== Карточка задания — по образцу карточки босса гильдии (GuildBosses.vue), без портрета.
+   Свечение в два слоя: ::before — блик, бегущий по рамке, ::after — пульсирующий ореол вокруг карточки ===== */
+.exp-card {
+    --arena-color: #9ca3af;
+    --spin-duration: 4s;
+    --pulse-duration: 2.4s;
+    --glow-strength: 1;
+    position: relative;
+    isolation: isolate;
     display: flex;
     flex-direction: column;
-    padding: 0;
-    overflow: hidden;
+    row-gap: 10px;
+    padding: 12px;
     border-radius: 12px;
-    border: 2px solid rgba(157, 173, 175, 0.7);
-    background: rgba(15, 23, 32, 0.8);
+    border: 2px solid color-mix(in srgb, var(--arena-color) 70%, transparent);
+    background: rgb(15, 23, 32);
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
-    color: inherit;
-    font: inherit;
-    text-align: left;
     cursor: pointer;
-    transition: transform 0.12s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+    outline: none;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
 }
 
-.expedition-card:hover:not(:disabled) {
-    transform: translateY(-3px);
-    border-color: var(--yellow-gem-color);
-    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.6), 0 0 12px 2px var(--yellow-gem-color);
+.exp-card:hover,
+.exp-card:focus-visible {
+    --glow-strength: 1.6;
+    --spin-duration: 1.6s;
+    transform: translateY(-4px);
+    border-color: var(--arena-color);
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.65);
 }
 
-.expedition-card:disabled {
-    cursor: default;
-    filter: grayscale(0.7) brightness(0.75);
+.exp-card-red { --arena-color: var(--red-gem-color); }
+.exp-card-blue { --arena-color: var(--blue-gem-color); }
+
+/* Фон под содержимым (внутри изолированной карточки -1 — уровень ореола ::after, поэтому -2) */
+.exp-card-arena {
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    overflow: hidden;
+    border-radius: 10px;
 }
 
-.expedition-card-InProgress {
-    border-color: var(--blue-gem-color);
-}
-
-.expedition-card-Ready {
-    border-color: var(--green-gem-color);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5), 0 0 14px 2px var(--green-gem-color);
-}
-
-.expedition-card-image {
-    position: relative;
-    height: 110px;
+.exp-card-arena-image {
+    position: absolute;
+    inset: 0;
     background-size: cover;
     background-position: center 60%;
+    transition: transform 0.4s ease, filter 0.3s ease;
 }
 
-.expedition-card-image .expedition-duration {
+/* Сверху светлее — видно место задания, книзу темнее — под текстом; плюс подсветка цветом карточки */
+.exp-card-arena::after {
+    content: '';
     position: absolute;
-    top: 8px;
-    right: 8px;
+    inset: 0;
+    background:
+        radial-gradient(ellipse 80% 45% at 50% 0%, color-mix(in srgb, var(--arena-color) 30%, transparent), transparent),
+        linear-gradient(to bottom, rgba(15, 23, 32, 0.35) 0%, rgba(15, 23, 32, 0.75) 45%, rgba(15, 23, 32, 0.92) 100%);
 }
 
-.expedition-card-body {
-    flex: 1;
+.exp-card:hover .exp-card-arena-image {
+    transform: scale(1.08);
+}
+
+/* Угол блика анимируется как число — для этого его нужно объявить */
+@property --exp-angle {
+    syntax: '<angle>';
+    initial-value: 0deg;
+    inherits: false;
+}
+
+.exp-card::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    z-index: 1;
+    padding: 2px;
+    border-radius: inherit;
+    pointer-events: none;
+    background: conic-gradient(
+        from var(--exp-angle),
+        transparent 0deg,
+        transparent 250deg,
+        var(--arena-color) 300deg,
+        #fff 330deg,
+        var(--arena-color) 345deg,
+        transparent 360deg
+    );
+    /* Остаётся только кольцо толщиной в рамку */
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    opacity: var(--glow-strength);
+    animation: exp-border-spin var(--spin-duration) linear infinite;
+}
+
+.exp-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    pointer-events: none;
+    box-shadow:
+        0 0 14px 2px var(--arena-color),
+        0 0 28px 6px color-mix(in srgb, var(--arena-color) 45%, transparent);
+    opacity: calc(0.55 * var(--glow-strength));
+    animation: exp-glow-pulse var(--pulse-duration) ease-in-out infinite;
+}
+
+/* Можно отправлять — горит ярче и быстрее */
+.exp-card-ready {
+    --spin-duration: 3s;
+    --pulse-duration: 1.8s;
+}
+
+/* Герои в пути — свечение приглушено и медленнее */
+.exp-card-waiting {
+    --spin-duration: 8s;
+    --pulse-duration: 4s;
+    --glow-strength: 0.45;
+}
+
+/* Выполнено, награда ждёт — карточка светится золотом */
+.exp-card-claimable {
+    --arena-color: #ffd166;
+    --spin-duration: 2.2s;
+    --pulse-duration: 1.4s;
+}
+
+/* Награда забрана — карточка гаснет, серая и не кликается */
+.exp-card-done {
+    border-color: rgba(157, 173, 175, 0.6);
+    cursor: default;
+}
+
+.exp-card-done:hover {
+    transform: none;
+    border-color: rgba(157, 173, 175, 0.6);
+}
+
+.exp-card-done::before,
+.exp-card-done::after {
+    display: none;
+}
+
+.exp-card-done .exp-card-arena-image {
+    filter: grayscale(0.85) brightness(0.7);
+}
+
+.exp-card-done:hover .exp-card-arena-image {
+    transform: none;
+}
+
+@keyframes exp-border-spin {
+    to { --exp-angle: 360deg; }
+}
+
+@keyframes exp-glow-pulse {
+    0%, 100% { opacity: calc(0.35 * var(--glow-strength)); }
+    50% { opacity: calc(0.85 * var(--glow-strength)); }
+}
+
+.exp-card-top {
     display: flex;
     flex-direction: column;
-    row-gap: 6px;
-    padding: 10px 12px 12px;
+    align-items: center;
+    row-gap: 4px;
 }
 
-.expedition-card-title,
+/* Длительность — плашкой цвета карточки, как ранг босса */
+.exp-tier {
+    display: inline-flex;
+    align-items: center;
+    column-gap: 4px;
+    padding: 2px 10px;
+    border-radius: 8px;
+    background: var(--arena-color);
+    color: #fff;
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.6);
+}
+
+.exp-card-claimable .exp-tier {
+    color: #3b2a00;
+    text-shadow: none;
+}
+
+.exp-name {
+    margin-top: 6px;
+    color: #f8fafc;
+    font-size: 16px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-align: center;
+    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.8);
+}
+
+.exp-status {
+    color: #cbd5e1;
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.exp-card-claimable .exp-status {
+    color: #ffd166;
+}
+
+.exp-description {
+    flex: 1;
+    color: #e2e8f0;
+    font-size: 13px;
+    line-height: 1.35;
+    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.8);
+}
+
+/* Полоска хода задания — как HP босса, только голубая */
+.exp-progress {
+    position: relative;
+    height: 20px;
+    overflow: hidden;
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.6);
+    box-shadow: inset 0 0 4px #000, 0 0 0 2px rgba(157, 173, 175, 0.6);
+}
+
+.exp-progress-fill {
+    position: relative;
+    overflow: hidden;
+    height: 100%;
+    background: linear-gradient(to bottom, #7dd3fc, #0369a1);
+    box-shadow: 0 0 8px 1px rgba(125, 211, 252, 0.7);
+    transition: width 0.9s linear;
+}
+
+.exp-card-claimable .exp-progress-fill {
+    background: linear-gradient(to bottom, #ffe08a, #d89020);
+    box-shadow: 0 0 8px 1px rgba(255, 209, 102, 0.7);
+}
+
+.exp-progress-shine {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, 0.45) 50%, transparent 70%);
+    transform: translateX(-100%);
+    animation: exp-progress-shine 2.6s ease-in-out infinite;
+}
+
+@keyframes exp-progress-shine {
+    0% { transform: translateX(-100%); }
+    60%, 100% { transform: translateX(100%); }
+}
+
+.exp-progress-text {
+    position: absolute;
+    inset: 0;
+    color: #fff;
+    font-size: 12px;
+    font-weight: bold;
+    line-height: 20px;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.9);
+}
+
+.exp-reward {
+    display: flex;
+    flex-direction: column;
+    row-gap: 2px;
+    color: #ffd166;
+    font-size: 13px;
+    font-weight: bold;
+}
+
+.exp-label {
+    color: #e2e8f0;
+    font-size: 12px;
+    text-transform: uppercase;
+}
+
+.exp-power {
+    color: #cbd5e1;
+    font-size: 12px;
+}
+
+.exp-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    row-gap: 6px;
+    min-height: 46px;
+}
+
+.exp-done {
+    color: var(--green-gem-color);
+    font-size: 13px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .exp-card::before,
+    .exp-card::after,
+    .exp-progress-shine {
+        animation: none !important;
+    }
+
+    .exp-card:hover,
+    .exp-card:hover .exp-card-arena-image {
+        transform: none;
+    }
+}
+
 .expedition-title {
     margin: 0;
     color: #f8fafc;
@@ -436,37 +756,10 @@ const footerText = computed(() => {
     text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.8);
 }
 
-.expedition-card-description {
-    flex: 1;
-    color: #cbd5e1;
-    font-size: 13px;
-    line-height: 1.35;
-}
-
-.expedition-card-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    column-gap: 8px;
-    font-size: 12px;
-    font-weight: bold;
-}
-
-.expedition-status {
-    color: #e2e8f0;
-    text-transform: uppercase;
-}
-
-.expedition-card-Ready .expedition-status {
-    color: var(--green-gem-color);
-}
-
-.expedition-timer,
-.expedition-reward {
-    color: #ffd166;
-}
-
 .expedition-duration {
+    display: inline-flex;
+    align-items: center;
+    column-gap: 4px;
     padding: 2px 8px;
     border-radius: 8px;
     background: rgba(0, 0, 0, 0.65);

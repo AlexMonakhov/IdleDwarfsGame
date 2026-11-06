@@ -2,7 +2,8 @@
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import ModalComponent from '@/components/common/ModalComponent.vue';
-import type { ModalTab } from '@/models/types/Modal';
+import type { ModalTab, TabIcon } from '@/models/types/Modal';
+import { IconAura, IconDwarf, IconFlame } from '@/components/icons/ui';
 import CollectionHeroes from './CollectionHeroes.vue';
 import CollectionAuras from './CollectionAuras.vue';
 import CollectionEffects from './CollectionEffects.vue';
@@ -20,10 +21,10 @@ const open = computed({
 
 type CollectionTab = 'heroes' | 'auras' | 'effects';
 
-const ICONS: Record<CollectionTab, string> = {
-    heroes: '⚔',
-    auras: '✺',
-    effects: '🔥',
+const ICONS: Record<CollectionTab, TabIcon> = {
+    heroes: IconDwarf,
+    auras: IconAura,
+    effects: IconFlame,
 };
 
 const tab = ref<CollectionTab>('heroes');

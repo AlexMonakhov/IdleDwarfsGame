@@ -5,6 +5,10 @@ import { powerParts } from '@/battle/power';
 import { STATUS_ICONS } from '@/components/icons/status';
 import { ELEMENT_COLORS } from '@/components/inventory/lootStyles';
 import TooltipComponent from '@/components/common/TooltipComponent.vue';
+import StatIcon from '@/components/icons/stats/StatIcon.vue';
+import SpellName from '@/components/icons/spells/SpellName.vue';
+import AuraName from '@/components/icons/status/AuraName.vue';
+import { PROFESSION_ICONS } from '@/components/icons/professions';
 import UnitAvatar from './UnitAvatar.vue';
 import { useI18n } from 'vue-i18n';
 import { statusLabel } from '@/i18n';
@@ -23,6 +27,12 @@ const props = withDefaults(defineProps<Props>(), {
     showLevel: true
 });
 
+const stats = computed(() => [
+    { key: 'hp', value: props.unit.maxHp },
+    { key: 'attack', value: props.unit.attack },
+    { key: 'speed', value: props.unit.speed },
+]);
+
 // "статы 520 · умения 140 · пассивки 60" — откуда взялась мощь
 const powerDetails = computed(() => powerParts(props.unit.power)
     .map(({ part, value }) => t(`power.parts.${part}`, { value }))
@@ -35,25 +45,63 @@ const powerDetails = computed(() => powerParts(props.unit.power)
 
         <template #title>{{ unit.name }}<template v-if="unit.isBoss"> · {{ t('unit.boss') }}</template></template>
         <template #description>
-            {{ t('unit.stats', { type: unit.unitType, hp: unit.maxHp, attack: unit.attack, speed: unit.speed }) }}
-        </template>
-        <template #stats>
-            <div class="portrait-power">⚔ {{ t('power.value', { power: unit.power.total }) }}</div>
-            <div class="portrait-power-parts">{{ powerDetails }}</div>
-            <div v-if="unit.spells.length">{{ t('unit.spells', { list: unit.spells.join(', ') }) }}</div>
-            <div v-if="unit.immunities.length" class="portrait-immunities">
-                {{ t('unit.immune') }}
-                <span v-for="name in unit.immunities" :key="name" :title="statusLabel(name)">
-                    <component v-if="STATUS_ICONS[name]" :is="STATUS_ICONS[name]" size="14px" />
-                    <template v-else>{{ statusLabel(name) }}</template>
+            <div class="portrait-stats">
+                <!-- У дворфа — специализация, у монстров (гоблин, голем…) — их вид -->
+                <span v-if="unit.profession" class="portrait-stat">
+                    <component :is="PROFESSION_ICONS[unit.profession]" v-if="PROFESSION_ICONS[unit.profession]" size="14px" />
+                    {{ t(`professions.${unit.profession}`) }}
+                </span>
+                <span v-else>{{ unit.unitType }}</span>
+                <span v-for="stat in stats" :key="stat.key" class="portrait-stat" :title="t(`heroUpgrade.statNames.${stat.key}`)">
+                    <StatIcon :stat="stat.key" size="14px" />{{ stat.value }}
                 </span>
             </div>
-            <div v-if="unit.aura">{{ t('unit.aura', { aura: unit.aura }) }}</div>
+        </template>
+        <template #stats>
+            <div class="portrait-power"><StatIcon stat="power" size="14px" /> {{ t('power.value', { power: unit.power.total }) }}</div>
+            <div class="portrait-power-parts">{{ powerDetails }}</div>
+            <!-- «Подпись: значения» — две колонки: перенесённые значения остаются в своей колонке, а не уходят под подпись -->
+            <div v-if="unit.spells.length || unit.immunities.length || unit.aura" class="portrait-facts">
+                <template v-if="unit.spells.length">
+                    <span class="portrait-fact-label">{{ t('unit.spells') }}</span>
+                    <span class="portrait-fact-value">
+                        <SpellName v-for="spell in unit.spells" :key="spell" :spell="spell" />
+                    </span>
+                </template>
+                <template v-if="unit.immunities.length">
+                    <span class="portrait-fact-label">{{ t('unit.immune') }}</span>
+                    <span class="portrait-fact-value">
+                        <span v-for="name in unit.immunities" :key="name" :title="statusLabel(name)">
+                            <component v-if="STATUS_ICONS[name]" :is="STATUS_ICONS[name]" size="14px" />
+                            <template v-else>{{ statusLabel(name) }}</template>
+                        </span>
+                    </span>
+                </template>
+                <template v-if="unit.aura">
+                    <span class="portrait-fact-label">{{ t('unit.aura') }}</span>
+                    <span class="portrait-fact-value"><AuraName :aura="unit.aura" size="14px" /></span>
+                </template>
+            </div>
         </template>
     </TooltipComponent>
 </template>
 
 <style scoped>
+/* Вид или специализация и статы — всегда одной строкой: подсказка расширяется под неё (min-width в TooltipPanel) */
+.portrait-stats {
+    display: flex;
+    align-items: center;
+    column-gap: 10px;
+    white-space: nowrap;
+}
+
+.portrait-stat {
+    display: inline-flex;
+    align-items: center;
+    column-gap: 3px;
+    font-weight: 700;
+}
+
 .portrait-power {
     font-weight: 700;
     color: #ffd166;
@@ -64,9 +112,23 @@ const powerDetails = computed(() => powerParts(props.unit.power)
     font-size: 0.85em;
 }
 
-.portrait-immunities {
+/* Подписи — левая колонка по самой длинной, значения — правая */
+.portrait-facts {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 3px 6px;
+    align-items: start;
+}
+
+.portrait-fact-label {
+    white-space: nowrap;
+}
+
+.portrait-fact-value {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    gap: 4px;
+    gap: 2px 8px;
+    min-width: 0;
 }
 </style>

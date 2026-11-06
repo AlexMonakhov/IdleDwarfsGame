@@ -1,10 +1,13 @@
 <script lang="ts" setup>
+import type { TabIcon } from '@/models/types/Modal';
+
 // Выпуклое стекло-кристалл в металлической оправе: блик сверху, свет изнутри снизу,
 // отблеск пробегает при наведении и при выборе
 interface Props {
   // Выбранная: стекло разгорается, подпись золотая
   active?: boolean
-  icon?: string
+  // Компонент-иконка (components/icons) или символ
+  icon?: TabIcon
   label?: string
   // Внутри другой кнопки (например, вкладки) рисуем span — кнопку в кнопку вкладывать нельзя
   tag?: 'button' | 'span' | 'div'
@@ -24,7 +27,8 @@ const props = withDefaults(defineProps<Props>(), {
         :class="{ 'glass-button-active': props.active }"
     >
         <slot>
-            <span v-if="props.icon" class="glass-button-icon">{{ props.icon }}</span>
+            <span v-if="typeof props.icon === 'string'" class="glass-button-icon">{{ props.icon }}</span>
+            <component :is="props.icon" v-else-if="props.icon" class="glass-button-icon" size="30px" />
             <span v-if="props.label" class="glass-button-label">{{ props.label }}</span>
         </slot>
     </component>

@@ -5,6 +5,7 @@ import TooltipComponent from '@/components/common/TooltipComponent.vue';
 import { HeroInfo } from '@/models/types/Heroes';
 import { EquipmentInfo } from '@/models/types/Equipment';
 import { ELEMENT_ICONS, RARITY_COLORS } from '@/components/inventory/lootStyles';
+import StatIcon from '@/components/icons/stats/StatIcon.vue';
 import { effectActive, effectText, itemName, itemStatLines } from './equipmentText';
 
 // Подробности о предмете поверх общей подсказки. Дефолтный слот — то, на что наводят
@@ -28,16 +29,22 @@ const accent = computed(() => RARITY_COLORS[props.item.rarity]);
         <template #subtitle>{{ t(`rarity.${item.rarity}`) }} · {{ t(`equipment.types.${item.type}`) }}</template>
         <template #description>
             <div class="item-tooltip">
+                <!-- Две колонки: подпись слева, стихии справа — перенесённые стихии остаются под стихиями, а не уходят под подпись -->
                 <div v-if="item.elements.length" class="item-tooltip-elements">
-                    {{ t('equipment.onlyFor') }}
-                    <span v-for="element in item.elements" :key="element" class="item-tooltip-element">
-                        <img v-if="ELEMENT_ICONS[element]" :src="ELEMENT_ICONS[element]" alt="" />
-                        {{ t(`elements.${element}`) }}
+                    <span class="item-tooltip-elements-label">{{ t('equipment.onlyFor') }}</span>
+                    <span class="item-tooltip-elements-list">
+                        <span v-for="element in item.elements" :key="element" class="item-tooltip-element">
+                            <img v-if="ELEMENT_ICONS[element]" :src="ELEMENT_ICONS[element]" alt="" />
+                            {{ t(`elements.${element}`) }}
+                        </span>
                     </span>
                 </div>
 
                 <div v-for="stat in itemStatLines(item.stats)" :key="stat.key" class="item-tooltip-stat">
-                    <span>{{ t(`equipment.stats.${stat.key}`) }}</span>
+                    <span class="item-tooltip-stat-name">
+                        <StatIcon :stat="stat.key" size="16px" />
+                        {{ t(`equipment.stats.${stat.key}`) }}
+                    </span>
                     <span class="item-tooltip-value">+{{ stat.value }}</span>
                 </div>
 
@@ -62,15 +69,30 @@ const accent = computed(() => RARITY_COLORS[props.item.rarity]);
 }
 
 .item-tooltip-elements {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
+    display: grid;
+    grid-template-columns: auto 1fr;
     column-gap: 6px;
+    align-items: start;
     font-size: 12px;
     font-weight: bold;
 }
 
+/* Подпись по высоте строки стихий (у них иконка 16px), чтобы стояла вровень с первой */
+.item-tooltip-elements-label {
+    line-height: 16px;
+    white-space: nowrap;
+}
+
+.item-tooltip-elements-list {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 2px 8px;
+    min-width: 0;
+}
+
 .item-tooltip-element {
+    white-space: nowrap;
     display: inline-flex;
     align-items: center;
     column-gap: 3px;
@@ -84,6 +106,12 @@ const accent = computed(() => RARITY_COLORS[props.item.rarity]);
 .item-tooltip-stat {
     display: flex;
     justify-content: space-between;
+}
+
+.item-tooltip-stat-name {
+    display: inline-flex;
+    align-items: center;
+    column-gap: 4px;
 }
 
 .item-tooltip-value {

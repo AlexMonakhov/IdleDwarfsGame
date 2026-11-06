@@ -3,7 +3,8 @@ import { CombatLogEntry, DamageType } from './types';
 // Что нарисовано между портретами (или после портрета цели)
 export type FeedIcon =
   | { kind: 'sword' }
-  | { kind: 'spell'; damageType: DamageType }
+  // skillName — имя заклинания (по нему иконка), пусто у урона не от заклинания
+  | { kind: 'spell'; damageType: DamageType; skillName: string }
   | { kind: 'status'; name: string }
   | { kind: 'heal' }
   | { kind: 'death' };
@@ -48,7 +49,7 @@ function toItem(log: CombatLogEntry): FeedItem | null {
         ...base,
         type: 'action',
         actorId: byOther(log) ? log.attackerId : undefined,
-        icon: { kind: 'spell', damageType: log.damageType },
+        icon: { kind: 'spell', damageType: log.damageType, skillName: log.skillName },
         value: damage,
       };
     case 'StatusTick': {

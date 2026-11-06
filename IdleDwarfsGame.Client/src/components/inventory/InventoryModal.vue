@@ -1,7 +1,9 @@
 <script lang="ts" setup>
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import ModalComponent from '@/components/common/ModalComponent.vue';import type { ModalTab } from '@/models/types/Modal';
+import ModalComponent from '@/components/common/ModalComponent.vue';
+import type { ModalTab, TabIcon } from '@/models/types/Modal';
+import { IconChest, IconDwarf, IconGem, IconShield } from '@/components/icons/ui';
 import InventoryHeroes from './InventoryHeroes.vue';
 import InventoryGems from './InventoryGems.vue';
 import InventoryChests from './InventoryChests.vue';
@@ -19,11 +21,11 @@ const open = computed({
 
 type InventoryTab = 'heroes' | 'equipment' | 'gems' | 'chests';
 
-const ICONS: Record<InventoryTab, string> = {
-    heroes: '⚔',
-    equipment: '🛡',
-    gems: '💎',
-    chests: '🎁',
+const ICONS: Record<InventoryTab, TabIcon> = {
+    heroes: IconDwarf,
+    equipment: IconShield,
+    gems: IconGem,
+    chests: IconChest,
 };
 
 const tab = ref<InventoryTab>('heroes');

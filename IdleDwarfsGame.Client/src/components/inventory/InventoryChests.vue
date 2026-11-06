@@ -72,7 +72,7 @@ onMounted(load);
 
             <section v-if="opened" class="chest-result">
                 <div class="chest-result-title">
-                    {{ CHEST_ICONS[opened.chest.type] }} {{ chestLabel(opened.chest) }}
+                    <component :is="CHEST_ICONS[opened.chest.type]" /> {{ chestLabel(opened.chest) }}
                     — {{ opened.items.length || opened.heroes.length || opened.equipment?.length ? t('chests.dropped') : t('chests.nothing') }}
                 </div>
                 <div class="inventory-grid">
@@ -93,7 +93,7 @@ onMounted(load);
                     class="chest-card"
                     :style="group.element !== 'Basic' ? { borderColor: ELEMENT_COLORS[group.element] } : undefined"
                 >
-                    <span class="chest-card-icon">{{ CHEST_ICONS[group.type] }}</span>
+                    <span class="chest-card-icon"><component :is="CHEST_ICONS[group.type]" /></span>
                     <span class="chest-card-name">{{ t(`chests.types.${group.type}`) }}</span>
                     <span v-if="group.element !== 'Basic'" class="chest-card-element" :style="{ color: ELEMENT_COLORS[group.element] }">
                         {{ t(`elementNames.${group.element}`) }}

@@ -8,6 +8,7 @@ import HeroCard from '@/components/inventory/HeroCard.vue';
 import HeroesApiService from '@/services/apiServices/HeroesApiService';
 import { HeroInfo, SQUAD_SIZE, isBusy } from '@/models/types/Heroes';
 import { vDragScroll } from '@/directives/dragScroll';
+import StatIcon from '@/components/icons/stats/StatIcon.vue';
 
 const { t } = useI18n();
 
@@ -175,7 +176,7 @@ const statusText = computed(() => {
                 <section class="inventory-section">
                     <div class="inventory-heading">
                         <h3 class="inventory-title">{{ t('squad.squad') }}</h3>
-                        <span class="squad-power">⚔ {{ t('power.squad', { power: squadPower }) }}</span>
+                        <span class="squad-power"><StatIcon stat="power" /> {{ t('power.squad', { power: squadPower }) }}</span>
                     </div>
                     <div class="inventory-hint">{{ t('squad.squadHint') }}</div>
                     <div class="squad-row">

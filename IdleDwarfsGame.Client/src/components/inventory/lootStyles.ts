@@ -1,5 +1,16 @@
+import type { Component } from 'vue';
 import { HeroElement } from '@/battle/types';
 import { EquipmentType } from '@/models/types/Equipment';
+import IconHelm from '@/components/icons/IconHelm.vue';
+import {
+    IconAmulet,
+    IconChestEquipment,
+    IconChestGem,
+    IconChestHero,
+    IconChestInfinity,
+    IconRing,
+    IconSword,
+} from '@/components/icons/ui';
 import { ChestType, Rarity } from '@/models/types/Inventory';
 import itemPlaceholder from '@/assets/portraits/icons/gray_lvl3.png';
 import darkIcon from '@/assets/svgs/elements/dark.svg';
@@ -30,12 +41,12 @@ export const RARITY_COLORS: Record<Rarity, string> = {
     Artifact: '#ef4444',
 };
 
-// Значки предметов и пустых слотов, пока нет своей графики (см. ASSETS_TODO.md)
-export const EQUIPMENT_ICONS: Record<EquipmentType, string> = {
-    Weapon: '⚔',
-    Helmet: '⛑',
-    Neck: '📿',
-    Ring: '💍',
+// Значки видов предметов и пустых слотов (EquipmentIcon)
+export const EQUIPMENT_ICONS: Record<EquipmentType, Component> = {
+    Weapon: IconSword,
+    Helmet: IconHelm,
+    Neck: IconAmulet,
+    Ring: IconRing,
 };
 
 // Картинки предметов: assets/items/{ключ предмета}.webp. Пока нарисованы не все, остальным — заглушка
@@ -68,9 +79,10 @@ export const ELEMENT_ICONS: Partial<Record<HeroElement, string>> = {
     Blood: bloodIcon,
 };
 
-export const CHEST_ICONS: Record<ChestType, string> = {
-    Hero: '🛡',
-    Gem: '💎',
-    Infinity: '♾',
-    Equipment: '⚒',
+// Сундук по типу: общий сундук со значком того, что в нём (шлем, камень, меч, бесконечность)
+export const CHEST_ICONS: Record<ChestType, Component> = {
+    Hero: IconChestHero,
+    Gem: IconChestGem,
+    Infinity: IconChestInfinity,
+    Equipment: IconChestEquipment,
 };

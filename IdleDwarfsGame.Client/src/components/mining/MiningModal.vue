@@ -4,11 +4,14 @@ import { useI18n } from 'vue-i18n';
 import ModalComponent from '@/components/common/ModalComponent.vue';
 import BuildMineModal from '@/components/mining/BuildMineModal.vue';
 import MineModal from '@/components/mining/MineModal.vue';
-import { mineColor, mineGlyph, mineImage, plotImage } from '@/components/mining/miningArt';
+import { mineColor, mineImage, plotImage } from '@/components/mining/miningArt';
 import { GEM_COLORS } from '@/components/inventory/lootStyles';
 import MiningApiService from '@/services/apiServices/MiningApiService';
 import { useResources } from '@/composables/UseResources';
 import { GemType, MineInfo, MiningActionResult, MiningBoard, MiningWallet, storedNow } from '@/models/types/Mining';
+import GemIcon from '@/components/icons/GemIcon.vue';
+import MineResourceIcon from '@/components/mining/MineResourceIcon.vue';
+import { IconPickaxe } from '@/components/icons/ui';
 
 // Шахты: места под шахты, по клику на свободное — постройка, на шахту — её окно (поверх этого)
 const props = defineProps<{ modelValue: boolean }>();
@@ -141,7 +144,7 @@ const onBuilt = async (result: MiningActionResult) => {
                     class="mining-crystal"
                     :style="{ color: GEM_COLORS[crystal.gem] }"
                     v-tooltip="t(`gems.${crystal.gem}`)"
-                >◆ {{ format(crystal.quantity) }}</span>
+                ><GemIcon :gem="crystal.gem" /> {{ format(crystal.quantity) }}</span>
             </div>
 
             <div v-if="loading && !board" class="mining-hint">{{ t('common.loading') }}</div>
@@ -160,8 +163,8 @@ const onBuilt = async (result: MiningActionResult) => {
                     <template v-if="mine">
                         <div class="mining-plot-art">
                             <img v-if="mineImage(mine.type)" :src="mineImage(mine.type)!" class="mining-plot-image" alt="" />
-                            <span v-else class="mining-plot-glyph">⛏</span>
-                            <span class="mining-plot-resource">{{ mineGlyph(mine.type) }}</span>
+                            <span v-else class="mining-plot-glyph"><IconPickaxe /></span>
+                            <span class="mining-plot-resource"><MineResourceIcon :type="mine.type" /></span>
                             <span class="mining-plot-level">{{ t('mining.level', { level: mine.level }) }}</span>
                         </div>
                         <div class="mining-plot-name">{{ t(`mining.types.${mine.type}`) }}</div>

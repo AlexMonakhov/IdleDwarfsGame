@@ -9,13 +9,16 @@ import PvpApiService from '@/services/apiServices/PvpApiService';
 import { PvpBattleInfo, PvpOpponentInfo, PvpOverview, PvpSeasonInfo, RankedOverview } from '@/models/types/Pvp';
 import type { BattleForecast } from '@/models/types/Campaign';
 import type { CombatUnitInfo } from '@/battle/types';
-import type { ModalTab } from '@/models/types/Modal';
+import type { ModalTab, TabIcon } from '@/models/types/Modal';
 import { forecastVerdict } from '@/battle/power';
 import { arenaPreview } from '@/battle/arenaBackgrounds';
 import { useSquadModal } from '@/composables/UseSquadModal';
 import { isRankedTab, PvpTab, usePvp } from '@/composables/UsePvp';
 import { formatTime } from '@/components/guild/guildShared';
 import { formatSeasonLeft, pvpErrorText, signed } from './pvpShared';
+import StatIcon from '@/components/icons/stats/StatIcon.vue';
+import { IconPower } from '@/components/icons/stats';
+import { IconBattle, IconBattleRanked, IconCheck, IconCrown, IconCrownRanked, IconFlame, IconLock, IconRanked, IconRefresh, IconScroll, IconScrollRanked, IconSearch, IconShield, IconStar } from '@/components/icons/ui';
 
 // PvP: 5 соперников по мощи отряда (±10%, а если игроков мало — шире), бой на арене нарастающей ярости,
 // очки в дневном, недельном и месячном сезонах. Побеждённый соперник пропадает из подбора до 00:00 UTC.
@@ -33,13 +36,13 @@ const open = computed({
 });
 
 /* ===== Вкладки ===== */
-const ICONS: Record<PvpTab, string> = {
-    fight: '⚔',
-    seasons: '🏆',
-    history: '📜',
-    ranked: '⚜',
-    rankedSeasons: '👑',
-    rankedHistory: '📖',
+const ICONS: Record<PvpTab, TabIcon> = {
+    fight: IconBattle,
+    seasons: IconCrown,
+    history: IconScroll,
+    ranked: IconBattleRanked,
+    rankedSeasons: IconCrownRanked,
+    rankedHistory: IconScrollRanked,
 };
 
 const { pvpTab: tab } = usePvp();
@@ -258,7 +261,7 @@ const footerText = computed(() => {
                         aria-hidden="true"
                     ></div>
                     <div class="pvp-arena-body">
-                        <span class="pvp-arena-name">{{ ranked ? `⚜ ${t('pvp.ranked.arenaName')}` : `🔥 ${t('pvp.arenaName')}` }}</span>
+                        <span class="pvp-arena-name"><IconRanked v-if="ranked" /><IconFlame v-else /> {{ ranked ? t('pvp.ranked.arenaName') : t('pvp.arenaName') }}</span>
                         <span class="pvp-arena-rule">
                             {{ t('pvp.arenaRule', { rounds: current.arena.intervalRounds, bonus: current.arena.damageBonusPercent }) }}
                         </span>
@@ -271,7 +274,7 @@ const footerText = computed(() => {
                     <div class="pvp-squad-heading">
                         <span class="pvp-subtitle">{{ t('pvp.mySquad') }}</span>
                         <span v-if="noSquad" class="pvp-error">{{ t('pvp.noSquad') }}</span>
-                        <span v-else class="pvp-power">⚔ {{ t('power.squad', { power: format(overview.myPower) }) }}</span>
+                        <span v-else class="pvp-power"><StatIcon stat="power" /> {{ t('power.squad', { power: format(overview.myPower) }) }}</span>
                         <GemButton :color="'pink'" :disabled="loading" @click="squadOpen = true">{{ t('pvp.editSquad') }}</GemButton>
                     </div>
                     <div class="pvp-team">
@@ -285,11 +288,11 @@ const footerText = computed(() => {
                         <div class="pvp-squad-heading">
                             <span class="pvp-subtitle">{{ t('pvp.ranked.lockedSquad') }}</span>
                             <template v-if="rankedSquad">
-                                <span class="pvp-power">⚔ {{ t('power.squad', { power: format(rankedSquad.power) }) }}</span>
+                                <span class="pvp-power"><StatIcon stat="power" /> {{ t('power.squad', { power: format(rankedSquad.power) }) }}</span>
                                 <span class="pvp-muted">{{ t('pvp.ranked.lockedAt', { time: lockedAt }) }}</span>
                             </template>
                             <span v-else class="pvp-error">{{ t('pvp.ranked.notLocked') }}</span>
-                            <span class="pvp-rating">⭐ {{ t('pvp.ranked.myRating', { rating: format(rankedOverview.myRating) }) }}</span>
+                            <span class="pvp-rating"><IconStar /> {{ t('pvp.ranked.myRating', { rating: format(rankedOverview.myRating) }) }}</span>
                         </div>
                         <div v-if="rankedSquad" class="pvp-team">
                             <UnitPortrait v-for="unit in lockedFrontRight" :key="unit.entityId" :unit="unit" :size="44" />
@@ -300,15 +303,15 @@ const footerText = computed(() => {
                         <div class="pvp-squad-heading">
                             <span class="pvp-subtitle">{{ t('pvp.ranked.accountSquad') }}</span>
                             <span v-if="!rankedOverview.accountSquad.length" class="pvp-error">{{ t('pvp.noSquad') }}</span>
-                            <span v-else class="pvp-power">⚔ {{ t('power.squad', { power: format(rankedOverview.accountPower) }) }}</span>
+                            <span v-else class="pvp-power"><StatIcon stat="power" /> {{ t('power.squad', { power: format(rankedOverview.accountPower) }) }}</span>
                             <div class="pvp-squad-actions">
                                 <GemButton :color="'pink'" :disabled="loading" @click="squadOpen = true">{{ t('pvp.editSquad') }}</GemButton>
                                 <template v-if="canLock">
                                     <GemButton v-if="!confirmLock" :color="'green'" :disabled="loading" @click="confirmLock = true">
-                                        🔒 {{ rankedSquad ? t('pvp.ranked.relock') : t('pvp.ranked.lock') }}
+                                        <IconLock /> {{ rankedSquad ? t('pvp.ranked.relock') : t('pvp.ranked.lock') }}
                                     </GemButton>
                                     <template v-else>
-                                        <GemButton :color="'green'" :disabled="loading" @click="lockSquad">✔ {{ t('pvp.ranked.confirm') }}</GemButton>
+                                        <GemButton :color="'green'" :disabled="loading" @click="lockSquad"><IconCheck /> {{ t('pvp.ranked.confirm') }}</GemButton>
                                         <GemButton :color="'blue'" :disabled="loading" @click="confirmLock = false">{{ t('pvp.ranked.cancel') }}</GemButton>
                                     </template>
                                 </template>
@@ -346,8 +349,8 @@ const footerText = computed(() => {
                     <li v-for="opponent in opponents" :key="opponent.userId" class="pvp-opponent">
                         <div class="pvp-opponent-info">
                             <span class="pvp-opponent-name">{{ opponent.username }}</span>
-                            <span v-if="opponent.rating !== null" class="pvp-rating">⭐ {{ format(opponent.rating) }}</span>
-                            <span class="pvp-power">⚔ {{ format(opponent.power) }}</span>
+                            <span v-if="opponent.rating !== null" class="pvp-rating"><IconStar /> {{ format(opponent.rating) }}</span>
+                            <span class="pvp-power"><StatIcon stat="power" /> {{ format(opponent.power) }}</span>
                             <span
                                 class="pvp-diff"
                                 :class="diffClass(opponent)"
@@ -367,7 +370,7 @@ const footerText = computed(() => {
                                 :class="`forecast-${verdict(opponent.forecast)}`"
                                 v-tooltip="t('power.chance', { chance: chance(opponent.forecast) })"
                             >
-                                🔍 {{ t(`power.verdict.${verdict(opponent.forecast)}`) }} · {{ chance(opponent.forecast) }}%
+                                <IconSearch /> {{ t(`power.verdict.${verdict(opponent.forecast)}`) }} · {{ chance(opponent.forecast) }}%
                             </span>
                             <span v-else class="pvp-verdict" :class="`threat-${opponent.threat}`" v-tooltip="t('pvp.threatHint')">
                                 {{ t(`pvp.threat.${opponent.threat}`) }}
@@ -384,11 +387,13 @@ const footerText = computed(() => {
                                 v-tooltip="opponent.forecast ? t('pvp.rescoutHint') : t('pvp.scoutHint', { left: scoutsLeft, limit: scoutLimit })"
                                 @click="scout(opponent)"
                             >
-                                {{ scouting === opponent.userId ? '…' : opponent.forecast ? '↻' : `🔍 ${t('pvp.scout')}` }}
+                                <template v-if="scouting === opponent.userId">…</template>
+                                <template v-else-if="opponent.forecast"><IconRefresh /> {{ t('pvp.rescout') }}</template>
+                                <template v-else><IconSearch /> {{ t('pvp.scout') }}</template>
                             </button>
                         </div>
 
-                        <GemButton :color="'red'" :disabled="loading || noSquad" @click="fight(opponent)">⚔ {{ t('pvp.fight') }}</GemButton>
+                        <GemButton :color="'red'" :disabled="loading || noSquad" @click="fight(opponent)"><IconPower /> {{ t('pvp.fight') }}</GemButton>
                     </li>
                 </ul>
             </template>
@@ -427,15 +432,15 @@ const footerText = computed(() => {
                 <div v-if="!history.length" class="pvp-empty">{{ t('pvp.noHistory') }}</div>
                 <ul class="pvp-list">
                     <li v-for="battle in history" :key="battle.id" class="pvp-battle" :class="battle.won ? 'pvp-battle-won' : 'pvp-battle-lost'">
-                        <span class="pvp-battle-icon" v-tooltip="battle.isAttack ? t('pvp.attack') : t('pvp.defence')">{{ battle.isAttack ? '⚔' : '🛡' }}</span>
+                        <span class="pvp-battle-icon" v-tooltip="battle.isAttack ? t('pvp.attack') : t('pvp.defence')"><IconBattle v-if="battle.isAttack" /><IconShield v-else /></span>
                         <div class="pvp-battle-main">
                             <span class="pvp-opponent-name">
                                 {{ battle.isAttack ? t('pvp.attackedPlayer', { name: battle.opponentName }) : t('pvp.attackedBy', { name: battle.opponentName }) }}
                             </span>
                             <span class="pvp-muted">
-                                {{ battleTime(battle) }} · ⚔ {{ format(battle.myPower) }} vs {{ format(battle.opponentPower) }}
+                                {{ battleTime(battle) }} · <StatIcon stat="power" /> {{ format(battle.myPower) }} vs {{ format(battle.opponentPower) }}
                                 <template v-if="battle.myRating !== null && battle.opponentRating !== null">
-                                    · ⭐ {{ format(battle.myRating) }} vs {{ format(battle.opponentRating) }}
+                                    · <IconStar /> {{ format(battle.myRating) }} vs {{ format(battle.opponentRating) }}
                                 </template>
                             </span>
                         </div>

@@ -12,6 +12,8 @@ import { CampaignOverview, CampaignStageInfo } from "@/models/types/Campaign";
 import { scrollToAnchor, useStageRewards } from "@/composables/UseStageRewards";
 import { useSquadModal } from "@/composables/UseSquadModal";
 import { vDragScroll } from "@/directives/dragScroll";
+import { IconBanner, IconLock } from '@/components/icons/ui';
+import { IconPower } from '@/components/icons/stats';
 
 // Окно кампании. Список: пройденные уровни с незабранной наградой и последний пройденный (без врагов и прогноза),
 // дальше текущий и несколько заблокированных. При открытии список прокручен к последнему пройденному —
@@ -97,7 +99,7 @@ const status = computed(() => campaign.value
         <div v-if="campaign" class="stage-modal-header">
             <div class="stage-modal-status">
                 <span>{{ status }}</span>
-                <button class="stage-button" v-tooltip="t('tower.squadHint')" @click="squadOpen = true">⚔ {{ t('tower.squad') }}</button>
+                <button class="stage-button" v-tooltip="t('tower.squadHint')" @click="squadOpen = true"><IconBanner /> {{ t('tower.squad') }}</button>
             </div>
         </div>
 
@@ -145,8 +147,8 @@ const status = computed(() => campaign.value
                               class="stage-fight stage-fight-ready"
                               v-tooltip="stage.description"
                               @click="startStage(stage)"
-                            >⚔ {{ t('campaign.fight') }}</GemButton>
-                            <span v-else class="stage-lock" v-tooltip="t('campaign.locked')">🔒</span>
+                            ><IconPower /> {{ t('campaign.fight') }}</GemButton>
+                            <span v-else class="stage-lock" v-tooltip="t('campaign.locked')"><IconLock /></span>
                         </template>
                     </FightPreviewList>
                 </li>

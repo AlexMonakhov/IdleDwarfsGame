@@ -366,9 +366,10 @@ export class BattlePlayer {
     if (team === 1) soundService.victory();
     else soundService.defeat();
 
+    // Не через animate: тот при пропуске боя молчит, а победная поза нужна и после пропуска — юниты в ней и остаются
     Object.values(this.state.units)
       .filter(u => u.team === team && u.alive)
-      .forEach(u => this.animate(u.id, v => v.victory?.()));
+      .forEach(u => getUnitView(u.id)?.victory?.());
   }
 
   // ===== Изменение состояния =====

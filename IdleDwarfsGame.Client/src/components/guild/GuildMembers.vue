@@ -5,6 +5,7 @@ import GemButton from '@/components/common/GemButton.vue';
 import GuildApiService from '@/services/apiServices/GuildApiService';
 import { GuildInfo, GuildJoinRequestInfo, GuildMemberInfo } from '@/models/types/Guild';
 import { GuildRun } from './guildShared';
+import { IconCrown, IconGuild } from '@/components/icons/ui';
 
 // Своя гильдия: участники, заявки на вступление (у главы) и выход
 const props = defineProps<{
@@ -82,7 +83,7 @@ const leave = () => props.run('leave', async () => {
 <template>
     <div class="guild-page">
         <div class="guild-summary">
-            <span class="guild-summary-emblem">🛡</span>
+            <span class="guild-summary-emblem"><IconGuild /></span>
             <div class="guild-row-main">
                 <span class="guild-summary-name">{{ guild.name }}</span>
                 <span class="guild-row-status">
@@ -128,7 +129,7 @@ const leave = () => props.run('leave', async () => {
                     <div class="guild-row-main">
                         <span class="guild-row-name" v-tooltip="t('guild.joinedAt', { date: formatDate(member.joinedAt) })">
                             {{ member.username }}
-                            <span v-if="member.role === 'Leader'" class="guild-role">👑 {{ t('guild.roles.Leader') }}</span>
+                            <span v-if="member.role === 'Leader'" class="guild-role"><IconCrown /> {{ t('guild.roles.Leader') }}</span>
                             <span v-if="member.isMe" class="guild-you">{{ t('guild.you') }}</span>
                         </span>
                         <span class="guild-row-status">{{ statusText(member) }}</span>

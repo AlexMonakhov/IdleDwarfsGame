@@ -12,6 +12,7 @@ import { HeroInfo, isBusy } from '@/models/types/Heroes';
 import { HeroElement } from '@/battle/types';
 import { vDragScroll } from '@/directives/dragScroll';
 import { abilityErrorText } from './abilityText';
+import { IconCoin, IconExperience } from '@/components/icons/ui';
 
 // Слияние: FUSION_SIZE дворфов одного ранга распыляются в одного рангом выше.
 // Стихия — как у случайного из них, у дворфов 1-го ранга стихии нет — тогда любая поровну
@@ -159,7 +160,11 @@ const buttonText = computed(() => {
             </template>
 
             <div v-if="refund.gold > 0 || refund.experience > 0" class="forge-note">
-                {{ t('abilities.fusion.refund', { percent: FUSION_REFUND * 100, gold: refund.gold, experience: refund.experience }) }}
+                <i18n-t keypath="abilities.fusion.refund" tag="span">
+                    <template #percent>{{ FUSION_REFUND * 100 }}</template>
+                    <template #gold><IconCoin /> {{ refund.gold }}</template>
+                    <template #experience><IconExperience /> {{ refund.experience }}</template>
+                </i18n-t>
             </div>
             <div class="forge-note forge-note-warn">{{ t('abilities.fusion.lost') }}</div>
 

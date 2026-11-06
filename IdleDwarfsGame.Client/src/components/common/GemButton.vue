@@ -36,6 +36,9 @@ const buttonClasses = computed<string[]>(() => {
 
 <style scoped>
 .gem-button {
+  /* Иконки на SplitIcon внутри кнопки — под белый текст на цветном камне, а не бежево-бирюзовые */
+  --split-icon-primary: #ffffff;
+  --split-icon-secondary: #ffe08a;
   position: relative;
   z-index: 1;
   background: var(--metalic-background);
