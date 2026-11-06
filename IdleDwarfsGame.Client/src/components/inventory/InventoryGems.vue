@@ -1,7 +1,9 @@
 <script lang="ts" setup>
-import { onMounted, ref, watch } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import GemTile from './GemTile.vue';
+import GemFilters from './GemFilters.vue';
+import type { Rarity } from '@/models/types/Inventory';
 import InventoryApiService from '@/services/apiServices/InventoryApiService';
 import { ItemInfo } from '@/models/types/Inventory';
 
@@ -11,6 +13,13 @@ const props = defineProps<{ refreshToken?: number }>();
 const { t } = useI18n();
 
 const gems = ref<ItemInfo[]>([]);
+
+// Фильтры по камню и ступени
+const gemFilter = ref<string | null>(null);
+const rarityFilter = ref<Rarity | null>(null);
+const stacks = computed(() => gems.value.map(g => ({ gem: g.subType, rarity: g.rarity })));
+const visible = computed(() => gems.value
+    .filter(g => (!gemFilter.value || g.subType === gemFilter.value) && (!rarityFilter.value || g.rarity === rarityFilter.value)));
 const loading = ref(true);
 const errorMessage = ref<string | null>(null);
 
@@ -35,9 +44,13 @@ watch(() => props.refreshToken, load);
         <div v-if="loading" class="inventory-hint">{{ t('common.loading') }}</div>
         <div v-else-if="errorMessage" class="inventory-hint inventory-hint-error">{{ errorMessage }}</div>
         <div v-else-if="!gems.length" class="inventory-hint">{{ t('inventory.noGems') }}</div>
-        <div v-else class="inventory-grid">
-            <GemTile v-for="gem in gems" :key="`${gem.subType}-${gem.rarity}-${gem.level}`" :item="gem" />
-        </div>
+        <template v-else>
+            <GemFilters v-model:gem="gemFilter" v-model:rarity="rarityFilter" :gems="stacks" />
+            <div v-if="!visible.length" class="inventory-hint">{{ t('lootFilters.nothing') }}</div>
+            <div class="inventory-grid">
+                <GemTile v-for="gem in visible" :key="`${gem.subType}-${gem.rarity}-${gem.level}`" :item="gem" />
+            </div>
+        </template>
     </div>
 </template>
 

@@ -2,7 +2,7 @@
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import ModalComponent from '@/components/common/ModalComponent.vue';
-import TabPlaceholder from '@/components/common/TabPlaceholder.vue';
+import ShopPanel from '@/components/shop/ShopPanel.vue';
 import GuildJoin from './GuildJoin.vue';
 import GuildMembers from './GuildMembers.vue';
 import GuildBosses from './GuildBosses.vue';
@@ -164,12 +164,8 @@ const footerText = computed(() => errorMessage.value ?? notice.value ?? '');
                 :server-now="serverNow"
                 @navigate="open = false"
             />
-            <TabPlaceholder
-                v-else
-                :icon="ICONS.shop"
-                :title="t('guild.tabs.shop')"
-                :hint="t('guild.shopHint')"
-            />
+            <!-- Лавка гильдии: та же полка, что на рынке, но за значки почёта с боссов -->
+            <ShopPanel v-else shop="Guild" :sections="['Item', 'Hero']" />
         </template>
 
         <template #modalFooter>

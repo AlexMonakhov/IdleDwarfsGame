@@ -1,5 +1,7 @@
 <script lang="ts" setup>
 import { computed, ref, watch } from 'vue';
+import HeroFilters from '@/components/inventory/HeroFilters.vue';
+import { useHeroFilters } from '@/composables/UseHeroFilters';
 import { AxiosError } from 'axios';
 import { useI18n } from 'vue-i18n';
 import ModalComponent from '@/components/common/ModalComponent.vue';
@@ -99,7 +101,10 @@ watch(open, isOpen => {
 }, { immediate: true });
 
 // Порядок не зависит от прокачки, иначе выбранная карточка прыгала бы по списку после каждого клика
-const sorted = computed(() => [...heroes.value]
+// Фильтры по стихии и рангу
+const { element: elementFilter, rank: rankFilter, filtered } = useHeroFilters(heroes);
+
+const sorted = computed(() => [...filtered.value]
     .sort((a, b) => b.level - a.level || a.name.localeCompare(b.name)));
 
 const selected = computed(() => heroes.value.find(h => h.id === selectedId.value) ?? null);
@@ -268,6 +273,7 @@ watch([tab, sorted], () => {
                 </template>
                 <template v-else>
                     <div class="hero-upgrade-hint">{{ selected ? t('heroUpgrade.switchHero') : t('heroUpgrade.chooseHero') }}</div>
+                    <HeroFilters v-model:element="elementFilter" v-model:rank="rankFilter" :heroes="heroes" />
                     <div class="hero-upgrade-grid">
                         <HeroCard
                             v-for="hero in sorted"

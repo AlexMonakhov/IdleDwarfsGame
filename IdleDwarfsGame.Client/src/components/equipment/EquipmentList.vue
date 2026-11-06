@@ -1,12 +1,14 @@
 <script lang="ts" setup>
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { HeroInfo } from '@/models/types/Heroes';
-import { EQUIPMENT_TYPES, EquipmentInfo, EquipmentType } from '@/models/types/Equipment';
-import EquipmentIcon from './EquipmentIcon.vue';
+import { EquipmentInfo, EquipmentType } from '@/models/types/Equipment';
+import type { Rarity } from '@/models/types/Inventory';
+import ItemFilters from './ItemFilters.vue';
 import ItemTile from './ItemTile.vue';
 
-// Предметы игрока с фильтром по виду. Без выбранного героя — только просмотр
+// Предметы игрока с фильтрами по виду и редкости. Без выбранного героя — только просмотр.
+// Вид — снаружи (v-model:filter): его выбирает и клик по слоту героя; редкость — здесь
 const props = defineProps<{
     items: EquipmentInfo[];
     // Все герои игрока: по ним подписываем, на ком надет предмет
@@ -23,7 +25,10 @@ const emit = defineEmits<{
 
 const { t } = useI18n();
 
-const visible = computed(() => props.items.filter(item => !props.filter || item.type === props.filter));
+const rarity = ref<Rarity | null>(null);
+
+const visible = computed(() => props.items
+    .filter(item => (!props.filter || item.type === props.filter) && (!rarity.value || item.rarity === rarity.value)));
 
 const ownerName = (item: EquipmentInfo) =>
     item.heroId ? props.heroes.find(hero => hero.id === item.heroId)?.name ?? null : null;
@@ -31,21 +36,7 @@ const ownerName = (item: EquipmentInfo) =>
 
 <template>
     <div class="equipment-list">
-        <div class="equipment-filters">
-            <button
-                class="equipment-filter"
-                :class="{ 'equipment-filter-active': !filter }"
-                @click="emit('update:filter', null)"
-            >{{ t('equipment.all') }}</button>
-            <button
-                v-for="type in EQUIPMENT_TYPES"
-                :key="type"
-                class="equipment-filter"
-                :class="{ 'equipment-filter-active': filter === type }"
-                v-tooltip="t(`equipment.types.${type}`)"
-                @click="emit('update:filter', type)"
-            ><EquipmentIcon :type="type" /> {{ t(`equipment.types.${type}`) }}</button>
-        </div>
+        <ItemFilters v-model:rarity="rarity" :type="filter" :items="items" @update:type="emit('update:filter', $event)" />
 
         <div v-if="!visible.length" class="equipment-empty">{{ t('equipment.empty') }}</div>
         <div v-else class="equipment-grid">
@@ -68,33 +59,6 @@ const ownerName = (item: EquipmentInfo) =>
     flex-direction: column;
     row-gap: 10px;
     font-family: 'Arial', sans-serif;
-}
-
-.equipment-filters {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 6px;
-}
-
-.equipment-filter {
-    padding: 4px 10px;
-    border: 1px solid rgba(157, 173, 175, 0.5);
-    border-radius: 8px;
-    background: rgba(14, 19, 34, 0.7);
-    color: #cbd5e1;
-    font-size: 12px;
-    cursor: pointer;
-}
-
-.equipment-filter:hover {
-    color: #f8fafc;
-    border-color: rgba(255, 209, 102, 0.7);
-}
-
-.equipment-filter-active {
-    color: #ffd166;
-    border-color: #ffd166;
 }
 
 .equipment-empty {

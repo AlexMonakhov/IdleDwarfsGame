@@ -9,6 +9,8 @@ import InventoryModal from '@/components/inventory/InventoryModal.vue';
 import CollectionModal from '@/components/collection/CollectionModal.vue';
 import HeroUpgradeModal from '@/components/upgrade/HeroUpgradeModal.vue';
 import SquadModal from '@/components/inventory/SquadModal.vue';
+import ShopModal from '@/components/shop/ShopModal.vue';
+import BlacksmithModal from '@/components/forge/BlacksmithModal.vue';
 import AccountButton from '@/components/account/AccountButton.vue';
 import AccountModal from '@/components/account/AccountModal.vue';
 import { ref, watch, watchEffect } from 'vue';
@@ -24,7 +26,7 @@ import { useSquadModal } from '@/composables/UseSquadModal';
 import { useInterface } from '@/composables/UseInterface';
 import { soundService } from '@/services/soundService/SoundService';
 import { useI18n } from 'vue-i18n';
-import { IconCoin, IconExperience } from '@/components/icons/ui';
+import { IconCoin, IconExperience, IconRainbowCoin } from '@/components/icons/ui';
 
 const { t, locale } = useI18n();
 const router = useRouter();
@@ -40,7 +42,7 @@ const { pvpOpen } = usePvp();
 const collectionOpen = ref(false);
 const { squadOpen } = useSquadModal();
 // Экспедиции, склад (инвентарь), алтарь (прокачка) и шахты открываются кликом по зданиям города
-const { interfaceHidden, expeditionsOpen, inventoryOpen, upgradeOpen, miningOpen } = useInterface();
+const { interfaceHidden, expeditionsOpen, inventoryOpen, upgradeOpen, miningOpen, shopOpen, forgeOpen } = useInterface();
 const accountOpen = ref(false);
 
 // Ресурсы аккаунта подтягиваем при входе и сбрасываем при выходе; там же открываем и закрываем сессию вкладки
@@ -64,6 +66,8 @@ const onLogout = () => {
     collectionOpen.value = false;
     upgradeOpen.value = false;
     miningOpen.value = false;
+    shopOpen.value = false;
+    forgeOpen.value = false;
     squadOpen.value = false;
     accountOpen.value = false;
     // Пока токен ещё есть — им закрывается сессия
@@ -104,6 +108,7 @@ watchEffect(() => {
             <div v-if="isAuthenticated && resources" class="resources">
                 <span class="resource resource-gold" v-tooltip="t('resources.gold')"><IconCoin /> {{ resources.gold.toLocaleString(locale) }}</span>
                 <span class="resource resource-experience" v-tooltip="t('resources.experience')"><IconExperience /> {{ resources.experience.toLocaleString(locale) }}</span>
+                <span v-if="resources.rainbowCoins !== undefined" class="resource resource-rainbow" v-tooltip="t('shop.currency.rainbowCoins')"><IconRainbowCoin /> {{ resources.rainbowCoins.toLocaleString(locale) }}</span>
             </div>
             <AccountButton @click="accountOpen = true" />
         </div>
@@ -118,6 +123,8 @@ watchEffect(() => {
     <CollectionModal v-if="isAuthenticated" v-model="collectionOpen" />
     <HeroUpgradeModal v-if="isAuthenticated" v-model="upgradeOpen" />
     <SquadModal v-if="isAuthenticated" v-model="squadOpen" />
+    <ShopModal v-if="isAuthenticated" v-model="shopOpen" />
+    <BlacksmithModal v-if="isAuthenticated" v-model="forgeOpen" />
 </template>
 
 <style scoped>
@@ -167,6 +174,10 @@ watchEffect(() => {
 
 .resource-gold {
   color: #ffd166;
+}
+
+.resource-rainbow {
+  color: #f5d0fe;
 }
 
 .resource-experience {

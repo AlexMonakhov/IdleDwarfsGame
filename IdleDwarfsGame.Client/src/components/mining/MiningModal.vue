@@ -8,9 +8,10 @@ import { mineColor, mineImage, plotImage } from '@/components/mining/miningArt';
 import { GEM_COLORS } from '@/components/inventory/lootStyles';
 import MiningApiService from '@/services/apiServices/MiningApiService';
 import { useResources } from '@/composables/UseResources';
-import { GemType, MineInfo, MiningActionResult, MiningBoard, MiningWallet, storedNow } from '@/models/types/Mining';
+import { GemType, MineInfo, MiningActionResult, MiningBoard, MiningWallet, formatPerClick, storedNow } from '@/models/types/Mining';
 import GemIcon from '@/components/icons/GemIcon.vue';
 import MineResourceIcon from '@/components/mining/MineResourceIcon.vue';
+import PickaxePanel from '@/components/mining/PickaxePanel.vue';
 import { IconPickaxe } from '@/components/icons/ui';
 
 // Шахты: места под шахты, по клику на свободное — постройка, на шахту — её окно (поверх этого)
@@ -77,7 +78,7 @@ const emptyPlotImage = plotImage();
 const format = (value: number) => Math.floor(value).toLocaleString(locale.value);
 
 const storedOf = (mine: MineInfo) => storedNow(mine, serverNow.value);
-const isFull = (mine: MineInfo) => !!mine.heroId && storedOf(mine) >= mine.capacity;
+const isFull = (mine: MineInfo) => mine.heroIds.length > 0 && storedOf(mine) >= mine.capacity;
 
 // Кристаллы — те, что есть у игрока (золото и опыт и так видны в шапке)
 const crystals = computed(() => Object.entries(board.value?.wallet.crystals ?? {})
@@ -110,6 +111,12 @@ const applyResult = (result: MiningActionResult) => {
     const mines = board.value.mines.filter(m => m.id !== result.mine.id);
     board.value = { ...board.value, mines: [...mines, result.mine].sort((a, b) => a.plot - b.plot) };
     applyWallet(result.wallet);
+};
+
+// Улучшили кирку — сервер прислал всю доску: другой запас кликов и добыча клика во всех шахтах
+const applyBoard = (next: MiningBoard) => {
+    board.value = next;
+    setResources({ gold: next.wallet.gold, experience: next.wallet.experience });
 };
 
 const applyWallet = (wallet: MiningWallet) => {
@@ -150,42 +157,48 @@ const onBuilt = async (result: MiningActionResult) => {
             <div v-if="loading && !board" class="mining-hint">{{ t('common.loading') }}</div>
             <div v-else-if="errorMessage" class="mining-hint mining-hint-error">{{ errorMessage }}</div>
 
-            <div v-else class="mining-plots">
-                <button
-                    v-for="{ plot, mine } in plots"
-                    :key="plot"
-                    type="button"
-                    class="mining-plot"
-                    :class="{ 'mining-plot-empty': !mine, 'mining-plot-full': mine && isFull(mine) }"
-                    :style="mine ? { '--mine-color': mineColor(mine.type) } : undefined"
-                    @click="openPlot(plot, mine)"
-                >
-                    <template v-if="mine">
-                        <div class="mining-plot-art">
-                            <img v-if="mineImage(mine.type)" :src="mineImage(mine.type)!" class="mining-plot-image" alt="" />
-                            <span v-else class="mining-plot-glyph"><IconPickaxe /></span>
-                            <span class="mining-plot-resource"><MineResourceIcon :type="mine.type" /></span>
-                            <span class="mining-plot-level">{{ t('mining.level', { level: mine.level }) }}</span>
-                        </div>
-                        <div class="mining-plot-name">{{ t(`mining.types.${mine.type}`) }}</div>
-                        <div v-if="mine.heroId" class="mining-plot-storage">
-                            <div class="mining-bar">
-                                <div class="mining-bar-fill" :style="{ width: `${Math.min(100, (storedOf(mine) / mine.capacity) * 100)}%` }"></div>
+            <!-- Одним блоком после загрузки: кирка (общая на все шахты) и места под шахты.
+                 Отдельный v-if у кирки разорвал бы цепочку v-if / v-else, и места бы пропали -->
+            <template v-else-if="board">
+                <PickaxePanel :board="board" :server-now="serverNow" @upgraded="applyBoard" />
+
+                <div class="mining-plots">
+                    <button
+                        v-for="{ plot, mine } in plots"
+                        :key="plot"
+                        type="button"
+                        class="mining-plot"
+                        :class="{ 'mining-plot-empty': !mine, 'mining-plot-full': mine && isFull(mine) }"
+                        :style="mine ? { '--mine-color': mineColor(mine.type) } : undefined"
+                        @click="openPlot(plot, mine)"
+                    >
+                        <template v-if="mine">
+                            <div class="mining-plot-art">
+                                <img v-if="mineImage(mine.type)" :src="mineImage(mine.type)!" class="mining-plot-image" alt="" />
+                                <span v-else class="mining-plot-glyph"><IconPickaxe /></span>
+                                <span class="mining-plot-resource"><MineResourceIcon :type="mine.type" /></span>
+                                <span class="mining-plot-level">{{ t('mining.level', { level: mine.level }) }}</span>
                             </div>
-                            <span>{{ isFull(mine) ? t('mining.dwarf.full') : t('mining.dwarf.storage', { stored: format(storedOf(mine)), capacity: format(mine.capacity) }) }}</span>
-                        </div>
-                        <div v-else class="mining-plot-sub">{{ t('mining.dig.perClick', { amount: mine.perClick }) }}</div>
-                    </template>
-                    <template v-else>
-                        <div class="mining-plot-art">
-                            <img v-if="emptyPlotImage" :src="emptyPlotImage" class="mining-plot-image" alt="" />
-                            <span v-else class="mining-plot-glyph mining-plot-glyph-empty">＋</span>
-                        </div>
-                        <div class="mining-plot-name">{{ t('mining.emptyPlot') }}</div>
-                        <div class="mining-plot-sub">{{ t('mining.buildHere') }}</div>
-                    </template>
-                </button>
-            </div>
+                            <div class="mining-plot-name">{{ t(`mining.types.${mine.type}`) }}</div>
+                            <div v-if="mine.heroIds.length" class="mining-plot-storage">
+                                <div class="mining-bar">
+                                    <div class="mining-bar-fill" :style="{ width: `${Math.min(100, (storedOf(mine) / mine.capacity) * 100)}%` }"></div>
+                                </div>
+                                <span>{{ isFull(mine) ? t('mining.dwarf.full') : t('mining.dwarf.storage', { stored: format(storedOf(mine)), capacity: format(mine.capacity) }) }}</span>
+                            </div>
+                            <div v-else class="mining-plot-sub">{{ t('mining.dig.perClick', { amount: formatPerClick(mine.perClick, locale) }) }}</div>
+                        </template>
+                        <template v-else>
+                            <div class="mining-plot-art">
+                                <img v-if="emptyPlotImage" :src="emptyPlotImage" class="mining-plot-image" alt="" />
+                                <span v-else class="mining-plot-glyph mining-plot-glyph-empty">＋</span>
+                            </div>
+                            <div class="mining-plot-name">{{ t('mining.emptyPlot') }}</div>
+                            <div class="mining-plot-sub">{{ t('mining.buildHere') }}</div>
+                        </template>
+                    </button>
+                </div>
+            </template>
         </div>
     </ModalComponent>
 
@@ -203,6 +216,8 @@ const onBuilt = async (result: MiningActionResult) => {
         :mine="selectedMine"
         :wallet="board.wallet"
         :dwarf-unlock-level="board.dwarfUnlockLevel"
+        :dig-energy-max="board.digEnergyMax"
+        :dig-energy-per-hour="board.digEnergyPerHour"
         :server-now="serverNow"
         @changed="applyResult"
         @wallet="applyWallet"

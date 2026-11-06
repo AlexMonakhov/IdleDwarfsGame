@@ -1,0 +1,48 @@
+/* Общее для вкладок кузницы поверх forge.css алтаря: ряд слотов, шансы, кнопки действия */
+.forge-slots {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+}
+
+.forge-chances {
+    display: flex;
+    flex-direction: column;
+    row-gap: 4px;
+}
+
+.forge-chance {
+    display: flex;
+    align-items: center;
+    column-gap: 8px;
+    padding: 3px 0;
+    border-bottom: 1px solid rgba(157, 173, 175, 0.2);
+}
+
+.forge-chance-name {
+    flex: 1;
+    color: #f8fafc;
+    font-size: 13px;
+}
+
+.forge-chance-value {
+    color: #ffd166;
+    font-size: 14px;
+    font-weight: bold;
+    font-variant-numeric: tabular-nums;
+}
+
+.forge-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    column-gap: 10px;
+}
+
+.forge-actions .forge-action {
+    min-width: 160px;
+}
+
+.forge-rarity {
+    font-weight: bold;
+}

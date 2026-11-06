@@ -3,6 +3,7 @@ import { useAuth } from '@/composables/UseAuth';
 import {
     MineType,
     MineUpgrade,
+    PickaxeUpgrade,
     MiningActionResult,
     MiningBoard,
     MiningCollectResult,
@@ -79,12 +80,24 @@ class MiningApiService {
         }
     }
 
-    async removeDwarf(mineId: string): Promise<MiningActionResult> {
+    // Дворфов в шахте может быть несколько — отзываем конкретного
+    async removeDwarf(mineId: string, heroId: string): Promise<MiningActionResult> {
         try {
-            const response = await apiClient.delete<MiningActionResult>(`/mining/${mineId}/dwarf`);
+            const response = await apiClient.delete<MiningActionResult>(`/mining/${mineId}/dwarf/${heroId}`);
             return response.data;
         } catch (error) {
             console.error('Ошибка при отзыве дворфа из шахты:', error);
+            throw error;
+        }
+    }
+
+    // Кирка общая на все шахты: в ответ — вся доска (меняется запас кликов и добыча клика во всех шахтах)
+    async upgradePickaxe(upgrade: PickaxeUpgrade): Promise<MiningBoard> {
+        try {
+            const response = await apiClient.post<MiningBoard>('/mining/pickaxe/upgrade', { upgrade });
+            return response.data;
+        } catch (error) {
+            console.error('Ошибка при улучшении кирки:', error);
             throw error;
         }
     }

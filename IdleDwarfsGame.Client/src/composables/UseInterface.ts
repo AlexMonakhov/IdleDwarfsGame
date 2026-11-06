@@ -9,6 +9,8 @@ const expeditionsOpen = ref(false)
 const inventoryOpen = ref(false)
 const upgradeOpen = ref(false)
 const miningOpen = ref(false)
+const shopOpen = ref(false)
+const forgeOpen = ref(false)
 
 export function useInterface() {
   return {
@@ -16,6 +18,8 @@ export function useInterface() {
     expeditionsOpen,
     inventoryOpen,
     upgradeOpen,
-    miningOpen
+    miningOpen,
+    shopOpen,
+    forgeOpen
   }
 }

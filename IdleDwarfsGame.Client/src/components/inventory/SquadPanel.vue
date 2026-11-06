@@ -1,5 +1,8 @@
 <script lang="ts" setup>
 import { computed, onMounted, ref } from 'vue';
+import HeroFilters from '@/components/inventory/HeroFilters.vue';
+import InfoComponent from '@/components/common/InfoComponent.vue';
+import { useHeroFilters } from '@/composables/UseHeroFilters';
 import { AxiosError } from 'axios';
 import { useI18n } from 'vue-i18n';
 import GemButton from '@/components/common/GemButton.vue';
@@ -34,8 +37,11 @@ const slotHeroes = computed(() => slots.value.map(id => (id ? heroById.value.get
 // Мощь отряда — сумма мощи героев в слотах, меняется сразу при перетаскивании
 const squadPower = computed(() => slotHeroes.value.reduce((sum, hero) => sum + (hero?.power.total ?? 0), 0));
 // Все, кто не в отряде: сильные сверху, ушедшие в экспедицию — в конце
-const reserve = computed(() => heroes.value
-    .filter(h => !slots.value.includes(h.id))
+// Фильтры по стихии и рангу — поверх героев вне отряда
+const outsideSquad = computed(() => heroes.value.filter(h => !slots.value.includes(h.id)));
+const { element: elementFilter, rank: rankFilter, filtered: filteredReserve } = useHeroFilters(outsideSquad);
+
+const reserve = computed(() => [...filteredReserve.value]
     .sort((a, b) => Number(isBusy(a)) - Number(isBusy(b)) || b.level - a.level || a.name.localeCompare(b.name)));
 
 const dirty = computed(() => slots.value.some((id, i) => id !== savedSlots.value[i]));
@@ -183,11 +189,12 @@ const statusText = computed(() => {
 
         <template v-else-if="heroes.length">
             <section class="inventory-section">
+                <!-- Шапка одной строкой: заголовок, подсказка за значком «i», мощь справа -->
                 <div class="inventory-heading">
                     <h3 class="inventory-title">{{ t('squad.squad') }}</h3>
+                    <InfoComponent inline :title="t('squad.squad')" :text="t('squad.squadHint')" />
                     <span class="squad-power"><StatIcon stat="power" /> {{ t('power.squad', { power: squadPower }) }}</span>
                 </div>
-                <div class="inventory-hint">{{ t('squad.squadHint') }}</div>
                 <SquadRow
                     :heroes="slotHeroes"
                     :hover-slot="hoverSlot"
@@ -208,8 +215,12 @@ const statusText = computed(() => {
                 @dragleave="hoverReserve = false"
                 @drop.prevent="dropOnReserve"
             >
-                <h3 class="inventory-title">{{ t('squad.heroes') }}</h3>
-                <div class="inventory-hint">{{ t('squad.heroesHint') }}</div>
+                <!-- Шапка одной строкой: заголовок с числом, подсказка за «i», фильтры справа -->
+                <div class="inventory-heading inventory-heading-reserve">
+                    <h3 class="inventory-title">{{ t('squad.heroes') }} <span class="inventory-count">{{ reserve.length }}</span></h3>
+                    <InfoComponent inline :title="t('squad.heroes')" :text="t('squad.heroesHint')" />
+                    <HeroFilters v-model:element="elementFilter" v-model:rank="rankFilter" :heroes="outsideSquad" inline class="inventory-filters" />
+                </div>
                 <div v-drag-scroll class="reserve-grid">
                     <HeroCard
                         v-for="hero in reserve"
@@ -246,8 +257,8 @@ const statusText = computed(() => {
 }
 
 .inventory-section {
-    margin-bottom: 16px;
-    padding: 8px;
+    margin-bottom: 8px;
+    padding: 6px 8px;
     border-radius: 12px;
     border: 2px dashed transparent;
     transition: border-color 0.15s ease, background-color 0.15s ease;
@@ -262,7 +273,7 @@ const statusText = computed(() => {
 }
 
 .inventory-title {
-    margin: 0 0 2px;
+    margin: 0;
     color: #f8fafc;
     font-family: 'Arial', sans-serif;
     text-transform: uppercase;
@@ -270,13 +281,31 @@ const statusText = computed(() => {
     text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.8);
 }
 
+/* Шапка секции одной строкой: заголовок и «i» слева, мощь или фильтры — справа */
 .inventory-heading {
     display: flex;
-    justify-content: space-between;
-    align-items: baseline;
+    align-items: center;
+    column-gap: 8px;
+    margin-bottom: 6px;
+}
+
+.inventory-heading-reserve {
+    flex-wrap: wrap;
+    row-gap: 6px;
+}
+
+.inventory-count {
+    color: #cbd5e1;
+    font-size: 0.8em;
+}
+
+.inventory-filters {
+    flex: 1;
+    min-width: 0;
 }
 
 .squad-power {
+    margin-left: auto;
     color: #ffd166;
     font-family: 'Arial', sans-serif;
     font-size: 14px;

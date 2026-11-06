@@ -21,6 +21,26 @@ export interface MiningWallet {
     experience: number;
     // Камней, которых нет, в словаре нет
     crystals: Partial<Record<GemType, number>>;
+    // Сила кирки на момент digEnergyAt (время сервера в ответе) — дальше досчитываем сами (digEnergyNow)
+    digEnergy: number;
+    digEnergyAt: string | null;
+    // Уровни улучшений кирки
+    pickaxeCapacityLevel: number;
+    pickaxeRecoveryLevel: number;
+    pickaxeStrengthLevel: number;
+}
+
+// Улучшения кирки — общие на все шахты: запас кликов, восстановление в час, сила (добыча клика)
+export type PickaxeUpgrade = 'Capacity' | 'Recovery' | 'Strength';
+
+// value — что даёт сейчас (запас кликов, кликов в час или процент добычи клика), next — после улучшения
+export interface PickaxeUpgradeInfo {
+    upgrade: PickaxeUpgrade;
+    level: number;
+    maxLevel: number;
+    cost: MineCost | null;
+    value: number;
+    next: number | null;
 }
 
 export interface MineUpgradeInfo {
@@ -42,10 +62,19 @@ export interface MineInfo {
     gem: GemType | null;
     level: number;
     maxLevel: number;
+    // Сколько приносит клик — дробное (у кристаллов меньше единицы); накопленная кликами доля — digProgress
     perClick: number;
+    digProgress: number;
+    // Добыча всех дворфов в час (без дворфов — сколько даст один) и одного дворфа
     ratePerHour: number;
+    ratePerDwarf: number;
+    // Склад растёт вместе с числом дворфов
     capacity: number;
-    heroId: string | null;
+    // Дворфы по местам; мест открыто dwarfSlots из maxDwarves, следующее — на уровне nextSlotLevel
+    heroIds: string[];
+    dwarfSlots: number;
+    maxDwarves: number;
+    nextSlotLevel: number | null;
     // Накоплено дворфом на момент storedAt — дальше досчитываем сами (storedNow)
     stored: number;
     storedAt: string;
@@ -57,6 +86,10 @@ export interface MiningBoard {
     plotCount: number;
     dwarfUnlockLevel: number;
     maxClicksPerSecond: number;
+    // Сила кирки: запас кликов на все шахты и сколько восстанавливается в час
+    digEnergyMax: number;
+    digEnergyPerHour: number;
+    pickaxe: PickaxeUpgradeInfo[];
     buildCost: MineCost;
     mines: MineInfo[];
     wallet: MiningWallet;
@@ -80,11 +113,11 @@ export interface MiningCollectResult extends MiningActionResult {
 export type MiningError =
     | 'PlotNotFound' | 'PlotTaken' | 'MineNotFound' | 'MaxLevel' | 'MineLevelTooLow'
     | 'NotEnoughGold' | 'NotEnoughExperience' | 'NotEnoughCrystals' | 'DwarfLocked'
-    | 'HeroNotFound' | 'HeroInSquad' | 'HeroBusy' | 'NoDwarf' | 'NothingToCollect' | 'Changed';
+    | 'HeroNotFound' | 'HeroInSquad' | 'HeroBusy' | 'NoFreeSlot' | 'NoDwarf' | 'NothingToCollect' | 'Changed';
 
-// Та же формула, что MiningService.StoredAt: склад дворфа на момент serverNow (мс)
+// Та же формула, что MiningService.StoredAt: склад дворфов на момент serverNow (мс)
 export const storedNow = (mine: MineInfo, serverNow: number): number => {
-    if (!mine.heroId) return mine.stored;
+    if (!mine.heroIds.length) return mine.stored;
     const hours = Math.max(0, serverNow - new Date(mine.storedAt).getTime()) / 3_600_000;
     return Math.max(mine.stored, Math.min(mine.capacity, mine.stored + mine.ratePerHour * hours));
 };
@@ -95,3 +128,15 @@ export const canAfford = (wallet: MiningWallet | null, cost: MineCost | null): b
     if (wallet.gold < cost.gold || wallet.experience < cost.experience) return false;
     return !cost.gem || (wallet.crystals[cost.gem] ?? 0) >= cost.crystals;
 };
+
+// Та же формула, что MiningService.DigEnergyAt: сила кирки на момент serverNow (мс). null — ни разу не тратилась, полная
+export const digEnergyNow = (wallet: MiningWallet, max: number, perHour: number, serverNow: number): number => {
+    if (!wallet.digEnergyAt) return max;
+    const hours = Math.max(0, serverNow - new Date(wallet.digEnergyAt).getTime()) / 3_600_000;
+    return Math.min(max, wallet.digEnergy + hours * perHour);
+};
+
+// Сколько приносит клик: у кристаллов это доли — показываем без округления до нуля (0.075, 2.5, 140)
+export const formatPerClick = (amount: number, locale: string): string => amount >= 10
+    ? Math.round(amount).toLocaleString(locale)
+    : amount.toLocaleString(locale, { maximumSignificantDigits: amount < 1 ? 2 : 3 });

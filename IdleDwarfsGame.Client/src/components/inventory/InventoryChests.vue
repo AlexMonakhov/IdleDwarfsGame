@@ -3,13 +3,23 @@ import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { AxiosError } from 'axios';
 import GemTile from './GemTile.vue';
+import ChestFilters from './ChestFilters.vue';
 import HeroCard from '@/components/inventory/HeroCard.vue';
 import ItemTile from '@/components/equipment/ItemTile.vue';
 import InventoryApiService from '@/services/apiServices/InventoryApiService';
 import { ChestInfo, ChestOpenResult, ChestType } from '@/models/types/Inventory';
-import { CHEST_ICONS, ELEMENT_COLORS } from './lootStyles';
+import { CHEST_ICONS, ELEMENT_COLORS, RARITY_COLORS } from './lootStyles';
 import { HeroElement } from '@/battle/types';
 import { chestLabel } from '@/i18n';
+import GlassButton from '@/components/common/GlassButton.vue';
+import GemButton from '@/components/common/GemButton.vue';
+import { RARITY_ORDER } from '@/models/types/Forge';
+import type { Rarity } from '@/models/types/Inventory';
+
+// Уровень сундука — как редкость: 1 — обычный … 5 — легендарный (цвет стекла и свечение)
+const chestRarity = (level: number): Rarity => RARITY_ORDER[Math.min(Math.max(level, 1), 5) - 1];
+const chestColor = (group: { level: number; element: HeroElement }) =>
+    group.element !== 'Basic' ? ELEMENT_COLORS[group.element] : RARITY_COLORS[chestRarity(group.level)];
 
 const emit = defineEmits<{ (e: 'opened'): void }>();
 
@@ -22,9 +32,14 @@ const errorMessage = ref<string | null>(null);
 const opened = ref<ChestOpenResult | null>(null);
 
 // Одинаковые сундуки показываем одной карточкой со счётчиком, «Открыть» открывает один из них
+// Фильтры по виду и уровню
+const typeFilter = ref<ChestType | null>(null);
+const levelFilter = ref<number | null>(null);
+
 const groups = computed(() => {
     const byKind = new Map<string, { type: ChestType; level: number; element: HeroElement; ids: string[] }>();
-    for (const chest of chests.value) {
+    const shown = chests.value.filter(c => (!typeFilter.value || c.type === typeFilter.value) && (!levelFilter.value || c.level === levelFilter.value));
+    for (const chest of shown) {
         const key = `${chest.type}-${chest.level}-${chest.element}`;
         const group = byKind.get(key) ?? { type: chest.type, level: chest.level, element: chest.element, ids: [] };
         group.ids.push(chest.id);
@@ -85,24 +100,29 @@ onMounted(load);
             <div class="inventory-hint">
                 {{ chests.length ? t('inventory.chestsCount', { count: chests.length }) : t('inventory.noChests') }}
             </div>
+            <ChestFilters v-model:type="typeFilter" v-model:level="levelFilter" :chests="chests" />
+            <div v-if="chests.length && !groups.length" class="inventory-hint">{{ t('lootFilters.nothing') }}</div>
             <div class="inventory-grid">
-                <!-- Сундук со стихией (бесконечности) — в рамке её цвета и с её названием -->
+                <!-- Карточка как у предмета (lootTile.css): стекло цвета стихии сундука (бесконечности) или его уровня -->
                 <div
                     v-for="group in groups"
                     :key="group.key"
-                    class="chest-card"
-                    :style="group.element !== 'Basic' ? { borderColor: ELEMENT_COLORS[group.element] } : undefined"
+                    class="loot-tile chest-card"
+                    :class="`loot-tile-${chestRarity(group.level)}`"
+                    :style="{ '--rarity-color': chestColor(group) }"
                 >
-                    <span class="chest-card-icon"><component :is="CHEST_ICONS[group.type]" /></span>
-                    <span class="chest-card-name">{{ t(`chests.types.${group.type}`) }}</span>
-                    <span v-if="group.element !== 'Basic'" class="chest-card-element" :style="{ color: ELEMENT_COLORS[group.element] }">
-                        {{ t(`elementNames.${group.element}`) }}
-                    </span>
-                    <span class="chest-card-level">{{ t('chests.level', { level: group.level }) }}</span>
-                    <span v-if="group.ids.length > 1" class="chest-card-count">×{{ group.ids.length }}</span>
-                    <button class="chest-card-open" :disabled="opening" @click="open(group.ids[0])">
+                    <GlassButton tag="div" class="loot-tile-glass">
+                        <span class="loot-tile-picture"><component :is="CHEST_ICONS[group.type]" size="52px" /></span>
+                        <span class="loot-tile-name">{{ t(`chests.types.${group.type}`) }}</span>
+                        <span v-if="group.element !== 'Basic'" class="chest-card-element" :style="{ color: ELEMENT_COLORS[group.element] }">
+                            {{ t(`elementNames.${group.element}`) }}
+                        </span>
+                        <span class="loot-tile-rarity">{{ t('chests.level', { level: group.level }) }}</span>
+                    </GlassButton>
+                    <span v-if="group.ids.length > 1" class="loot-tile-count">×{{ group.ids.length }}</span>
+                    <GemButton class="chest-card-open" :color="'yellow'" :disabled="opening" @click="open(group.ids[0])">
                         {{ opening ? t('chests.opening') : t('chests.open') }}
-                    </button>
+                    </GemButton>
                 </div>
             </div>
         </template>
@@ -157,62 +177,21 @@ onMounted(load);
     text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.6);
 }
 
-.chest-card {
-    width: 132px;
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    row-gap: 4px;
-    padding: 12px 8px 10px;
-    border: 1px solid rgba(255, 255, 255, 0.25);
-    border-radius: 12px;
-    background: linear-gradient(180deg, rgba(14, 19, 34, 0.5), rgba(14, 19, 34, 0.85));
-    font-family: 'Arial', sans-serif;
-    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.6);
-}
-
-.chest-card-icon {
-    font-size: 34px;
-    line-height: 1;
-    filter: drop-shadow(0 2px 4px #000);
-}
-
-.chest-card-name {
-    color: #f8fafc;
-    font-size: 13px;
-    font-weight: 700;
-    text-align: center;
-}
-
+/* Стихия сундука бесконечности — под названием, её цветом */
 .chest-card-element {
     font-size: 12px;
     font-weight: 700;
 }
 
-.chest-card-level {
-    color: #cbd5e1;
-    font-size: 12px;
+/* Кнопка под стеклом, на оправе */
+.chest-card .chest-card-open {
+    align-self: center;
+    margin-top: 8px;
 }
 
-.chest-card-count {
-    color: #ffd166;
+.chest-card-open :deep(.gem-text) {
     font-size: 13px;
-    font-weight: 700;
-}
-
-.chest-card-open {
-    margin-top: 4px;
-    border: 1px solid #ffd166;
-    border-radius: 8px;
-    padding: 5px 14px;
-    background: rgba(14, 19, 34, 0.7);
-    color: #ffd166;
-    cursor: pointer;
-}
-
-.chest-card-open:disabled {
-    opacity: 0.5;
-    cursor: default;
 }
 </style>
+
+<style scoped src="./lootTile.css"></style>

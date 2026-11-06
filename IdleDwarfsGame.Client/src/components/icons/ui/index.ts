@@ -39,6 +39,9 @@ import IconScroll from './IconScroll.vue';
 import IconScrollRanked from './IconScrollRanked.vue';
 import IconSearch from './IconSearch.vue';
 import IconRefresh from './IconRefresh.vue';
+import IconRainbowCoin from './IconRainbowCoin.vue';
+import IconBloodCoin from './IconBloodCoin.vue';
+import IconHonorBadge from './IconHonorBadge.vue';
 import IconShield from './IconShield.vue';
 import IconSkull from './IconSkull.vue';
 import IconSound from './IconSound.vue';
@@ -88,6 +91,9 @@ export {
   IconScrollRanked,
   IconSearch,
   IconRefresh,
+  IconRainbowCoin,
+  IconBloodCoin,
+  IconHonorBadge,
   IconShield,
   IconSkull,
   IconSound,
