@@ -24879,8 +24879,8 @@ namespace IdleDwarfsGame.Server.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("HeroId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<double>("DigProgress")
+                        .HasColumnType("float");
 
                     b.Property<DateTime?>("LastDigAt")
                         .HasColumnType("datetime2");
@@ -24920,14 +24920,32 @@ namespace IdleDwarfsGame.Server.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("HeroId")
-                        .IsUnique()
-                        .HasFilter("[HeroId] IS NOT NULL");
-
                     b.HasIndex("PlayerId", "Plot")
                         .IsUnique();
 
                     b.ToTable("Mines");
+                });
+
+            modelBuilder.Entity("MineDwarf", b =>
+                {
+                    b.Property<Guid>("MineId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("HeroId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Slot")
+                        .HasColumnType("int");
+
+                    b.HasKey("MineId", "HeroId");
+
+                    b.HasIndex("HeroId")
+                        .IsUnique();
+
+                    b.HasIndex("MineId", "Slot")
+                        .IsUnique();
+
+                    b.ToTable("MineDwarves");
                 });
 
             modelBuilder.Entity("Player", b =>
@@ -24936,15 +24954,45 @@ namespace IdleDwarfsGame.Server.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("nvarchar(36)");
 
+                    b.Property<long>("BloodCoins")
+                        .HasColumnType("bigint");
+
+                    b.Property<double>("DigEnergy")
+                        .HasColumnType("float");
+
+                    b.Property<DateTime?>("DigEnergyAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<long>("Experience")
                         .HasColumnType("bigint");
 
                     b.Property<long>("Gold")
                         .HasColumnType("bigint");
 
+                    b.Property<long>("HonorBadges")
+                        .HasColumnType("bigint");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("PickaxeCapacityLevel")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
+                    b.Property<int>("PickaxeRecoveryLevel")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
+                    b.Property<int>("PickaxeStrengthLevel")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
+                    b.Property<long>("RainbowCoins")
+                        .HasColumnType("bigint");
 
                     b.Property<int>("Rating")
                         .HasColumnType("int");
@@ -24960,36 +25008,64 @@ namespace IdleDwarfsGame.Server.Migrations
                         new
                         {
                             Id = "a1d2f3e4-0000-4000-8000-000000000001",
+                            BloodCoins = 0L,
+                            DigEnergy = 0.0,
                             Experience = 0L,
                             Gold = 0L,
+                            HonorBadges = 0L,
                             Name = "Demo Player",
+                            PickaxeCapacityLevel = 1,
+                            PickaxeRecoveryLevel = 1,
+                            PickaxeStrengthLevel = 1,
+                            RainbowCoins = 0L,
                             Rating = 0,
                             SquadPower = 0
                         },
                         new
                         {
                             Id = "e0e0e0e0-0000-4000-8000-000000000002",
+                            BloodCoins = 0L,
+                            DigEnergy = 0.0,
                             Experience = 0L,
                             Gold = 0L,
+                            HonorBadges = 0L,
                             Name = "Tower Monsters",
+                            PickaxeCapacityLevel = 1,
+                            PickaxeRecoveryLevel = 1,
+                            PickaxeStrengthLevel = 1,
+                            RainbowCoins = 0L,
                             Rating = 0,
                             SquadPower = 0
                         },
                         new
                         {
                             Id = "c0c0c0c0-0000-4000-8000-000000000003",
+                            BloodCoins = 0L,
+                            DigEnergy = 0.0,
                             Experience = 0L,
                             Gold = 0L,
+                            HonorBadges = 0L,
                             Name = "Campaign Monsters",
+                            PickaxeCapacityLevel = 1,
+                            PickaxeRecoveryLevel = 1,
+                            PickaxeStrengthLevel = 1,
+                            RainbowCoins = 0L,
                             Rating = 0,
                             SquadPower = 0
                         },
                         new
                         {
                             Id = "b0b0b0b0-0000-4000-8000-000000000004",
+                            BloodCoins = 0L,
+                            DigEnergy = 0.0,
                             Experience = 0L,
                             Gold = 0L,
+                            HonorBadges = 0L,
                             Name = "Guild Bosses",
+                            PickaxeCapacityLevel = 1,
+                            PickaxeRecoveryLevel = 1,
+                            PickaxeStrengthLevel = 1,
+                            RainbowCoins = 0L,
                             Rating = 0,
                             SquadPower = 0
                         });
@@ -25423,6 +25499,99 @@ namespace IdleDwarfsGame.Server.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Resourses");
+                });
+
+            modelBuilder.Entity("ShopOffer", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("HeroJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ItemKey")
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(8)
+                        .HasColumnType("nvarchar(8)");
+
+                    b.Property<bool>("Locked")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("PlayerId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(36)");
+
+                    b.Property<long>("PriceCurrency")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("PriceGem")
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
+
+                    b.Property<string>("PriceGemRarity")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
+
+                    b.Property<int>("PriceGems")
+                        .HasColumnType("int");
+
+                    b.Property<long>("PriceGold")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Rarity")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
+
+                    b.Property<string>("Shop")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
+
+                    b.Property<int>("Slot")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("Sold")
+                        .HasColumnType("bit");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PlayerId", "Shop", "Kind", "Slot")
+                        .IsUnique();
+
+                    b.ToTable("ShopOffers");
+                });
+
+            modelBuilder.Entity("ShopState", b =>
+                {
+                    b.Property<string>("PlayerId")
+                        .HasColumnType("nvarchar(36)");
+
+                    b.Property<string>("Shop")
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
+
+                    b.Property<DateTime?>("FreeRerollDay")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("RefreshedDay")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("int");
+
+                    b.HasKey("PlayerId", "Shop");
+
+                    b.ToTable("ShopStates");
                 });
 
             modelBuilder.Entity("User", b =>
@@ -33974,14 +34143,24 @@ namespace IdleDwarfsGame.Server.Migrations
 
             modelBuilder.Entity("Mine", b =>
                 {
-                    b.HasOne("Hero", null)
-                        .WithMany()
-                        .HasForeignKey("HeroId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.HasOne("Player", null)
                         .WithMany()
                         .HasForeignKey("PlayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("MineDwarf", b =>
+                {
+                    b.HasOne("Hero", null)
+                        .WithMany()
+                        .HasForeignKey("HeroId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Mine", null)
+                        .WithMany("Dwarves")
+                        .HasForeignKey("MineId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
@@ -34111,6 +34290,24 @@ namespace IdleDwarfsGame.Server.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("ShopOffer", b =>
+                {
+                    b.HasOne("Player", null)
+                        .WithMany()
+                        .HasForeignKey("PlayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ShopState", b =>
+                {
+                    b.HasOne("Player", null)
+                        .WithMany()
+                        .HasForeignKey("PlayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("User", b =>
                 {
                     b.HasOne("Player", "Player")
@@ -34144,6 +34341,11 @@ namespace IdleDwarfsGame.Server.Migrations
             modelBuilder.Entity("Hero", b =>
                 {
                     b.Navigation("Equipment");
+                });
+
+            modelBuilder.Entity("Mine", b =>
+                {
+                    b.Navigation("Dwarves");
                 });
 
             modelBuilder.Entity("PlayerReward", b =>

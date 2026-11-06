@@ -66,7 +66,26 @@ public class PlayerRepository : IPlayerRepository
         return await _context.Players
             .AsNoTracking()
             .Where(p => p.Id == playerId)
-            .Select(p => new PlayerResources { Gold = p.Gold, Experience = p.Experience })
+            .Select(p => new PlayerResources
+            {
+                Gold = p.Gold,
+                Experience = p.Experience,
+                RainbowCoins = p.RainbowCoins,
+                BloodCoins = p.BloodCoins,
+                HonorBadges = p.HonorBadges
+            })
             .FirstOrDefaultAsync();
+    }
+
+    public async Task AddCurrenciesAsync(Guid playerId, long bloodCoins, long honorBadges)
+    {
+        if (bloodCoins == 0 && honorBadges == 0)
+            return;
+
+        await _context.Players
+            .Where(p => p.Id == playerId)
+            .ExecuteUpdateAsync(s => s
+                .SetProperty(p => p.BloodCoins, p => p.BloodCoins + bloodCoins)
+                .SetProperty(p => p.HonorBadges, p => p.HonorBadges + honorBadges));
     }
 }

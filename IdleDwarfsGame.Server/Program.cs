@@ -118,6 +118,10 @@ builder.Services.AddScoped<IWorldFactory, WorldFactory>();
 builder.Services.AddScoped<ICombatEngine, CombatEngine>();
 builder.Services.AddScoped<CombatService>();
 builder.Services.AddScoped<IEntityFactory, EntityFactory>();
+builder.Services.AddScoped<IShopRepository, ShopRepository>();
+builder.Services.AddScoped<ShopService>();
+builder.Services.AddScoped<IForgeRepository, ForgeRepository>();
+builder.Services.AddScoped<ForgeService>();
 //builder.Services.AddScoped<IMonsterRepository, MonsterRepository>();
 
 var app = builder.Build();

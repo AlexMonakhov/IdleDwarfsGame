@@ -305,9 +305,14 @@ public class GuildService(
         var combat = await combatService.StartGuildBossFight(user.PlayerId, scenario, arena);
         var result = await guilds.ApplyDamageAsync(boss.Id, userId, boss.CurrentHp - scenario.BossHpLeft, now);
 
+        // Значки почёта лавки гильдии — за каждый удар
+        int badges = ShopRules.HonorBadgesForAttack(tier);
+        await players.AddCurrenciesAsync(user.PlayerId, 0, badges);
+
         return new GuildBossAttackResult
         {
             Tier = tier,
+            HonorBadges = badges,
             Damage = result.AppliedDamage,
             Killed = result.Killed,
             BossHp = result.CurrentHp,
@@ -345,6 +350,9 @@ public class GuildService(
         };
         if (!await guilds.ClaimBossRewardAsync(claim, reward))
             throw new GuildException(GuildError.RewardAlreadyClaimed, "You have already claimed the reward for this boss today");
+
+        // За убитого босса сверху — пачка значков почёта (награду можно забрать раз в сутки, значки — вместе с ней)
+        await players.AddCurrenciesAsync(user.PlayerId, 0, ShopRules.HonorBadgesForKill(tier));
 
         return new RewardClaimResult
         {

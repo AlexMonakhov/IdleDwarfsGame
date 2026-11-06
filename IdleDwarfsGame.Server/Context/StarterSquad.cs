@@ -1,8 +1,20 @@
-// Отряд, который получает каждый новый аккаунт: 5 базовых дворфов 1-го уровня, сразу расставленных по слотам.
+// Отряд, который получает каждый новый аккаунт: 5 базовых дворфов 1-го уровня, сразу расставленных по слотам,
+// и ещё ReserveSize таких же в запасе (Roster) — на шахты, экспедиции и первые слияния.
 // Способностей у дворфов 1-го ранга нет (HeroGenerator.GrantAbilities)
 public static class StarterSquad
 {
     public const int Size = 5;
+    public const int ReserveSize = 10;
+
+    // Всё, с чем начинает новый игрок: отряд (Create) и запас дворфов 1-го ранга вне отряда — всего 15
+    public static List<Hero> Roster(Guid playerId, Random? random = null)
+    {
+        random ??= Random.Shared;
+        var heroes = Create(playerId, random);
+        for (int i = 0; i < ReserveSize; i++)
+            heroes.Add(HeroGenerator.Create(playerId, HeroLevels.Min, string.Empty, random));
+        return heroes;
+    }
 
     // Имена берёт и HeroGenerator для героев из сундуков; статы — по профессии (ProfessionBook)
     internal static readonly string[] Names =

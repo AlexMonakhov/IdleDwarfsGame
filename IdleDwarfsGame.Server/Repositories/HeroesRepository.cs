@@ -51,9 +51,9 @@ public class HeroesRepository : IHeroesRepository
 
     public async Task<HashSet<Guid>> GetMiningHeroIdsAsync(Guid playerId)
     {
-        var ids = await _context.Mines
-            .Where(m => m.PlayerId == playerId && m.HeroId != null)
-            .Select(m => m.HeroId!.Value)
+        var ids = await _context.MineDwarves
+            .Where(d => _context.Mines.Any(m => m.Id == d.MineId && m.PlayerId == playerId))
+            .Select(d => d.HeroId)
             .ToListAsync();
 
         return ids.ToHashSet();
@@ -63,9 +63,9 @@ public class HeroesRepository : IHeroesRepository
     private IQueryable<Guid> BusyHeroIds(List<Guid> heroIds) => _context.ExpeditionHeroes
         .Where(h => heroIds.Contains(h.HeroId))
         .Select(h => h.HeroId)
-        .Concat(_context.Mines
-            .Where(m => m.HeroId != null && heroIds.Contains(m.HeroId.Value))
-            .Select(m => m.HeroId!.Value));
+        .Concat(_context.MineDwarves
+            .Where(d => heroIds.Contains(d.HeroId))
+            .Select(d => d.HeroId));
 
     public async Task CreateAsync(Hero hero)
     {

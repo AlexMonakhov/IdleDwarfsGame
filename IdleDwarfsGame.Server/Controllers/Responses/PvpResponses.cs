@@ -162,6 +162,8 @@ public class PvpFightResult
     public bool Won { get; set; }
     // Изменение очков во всех сезонах
     public int Points { get; set; }
+    // Кровавые монеты подпольного рынка за этот бой
+    public int BloodCoins { get; set; }
     // Очки после боя в каждом сезоне
     public List<PvpSeasonPointsInfo> Seasons { get; set; } = new();
     public PvpArenaInfo Arena { get; set; } = new();

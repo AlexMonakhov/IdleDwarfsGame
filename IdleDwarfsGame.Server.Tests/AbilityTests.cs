@@ -165,7 +165,8 @@ public class AbilityTests : IDisposable
         Assert.Equal(AbilityError.NothingToExtract, await ErrorOf(() => _service.ExtractAsync(_playerId, hero.Id, AbilityKind.Passive, "DoubleStrike")));
         Assert.Equal(AbilityError.HeroNotFound, await ErrorOf(() => _service.ExtractAsync(Guid.NewGuid(), hero.Id, AbilityKind.Spell, "1")));
 
-        _context.Mines.Add(new Mine { Id = Guid.NewGuid(), PlayerId = _playerId, Plot = 1, Type = MineType.Gold, HeroId = hero.Id, UpdatedAt = DateTime.UtcNow });
+        var busyMine = Guid.NewGuid();
+        _context.Mines.Add(new Mine { Id = busyMine, PlayerId = _playerId, Plot = 1, Type = MineType.Gold, UpdatedAt = DateTime.UtcNow, Dwarves = [new MineDwarf { MineId = busyMine, HeroId = hero.Id, Slot = 1 }] });
         await _context.SaveChangesAsync();
         _context.ChangeTracker.Clear();
         string family = ElementSpellBook.FamilyOf(hero.SpellIds[0])!.Value.ToString();
@@ -384,7 +385,8 @@ public class AbilityTests : IDisposable
             rankFour.Add((await AddHero(HeroLevels.Available, seed: n)).Id);
         Assert.Equal(AbilityError.MaxRank, await ErrorOf(() => _service.FuseAsync(_playerId, rankFour)));
 
-        _context.Mines.Add(new Mine { Id = Guid.NewGuid(), PlayerId = _playerId, Plot = 1, Type = MineType.Gold, HeroId = rankTwo[2], UpdatedAt = DateTime.UtcNow });
+        var busyMine = Guid.NewGuid();
+        _context.Mines.Add(new Mine { Id = busyMine, PlayerId = _playerId, Plot = 1, Type = MineType.Gold, UpdatedAt = DateTime.UtcNow, Dwarves = [new MineDwarf { MineId = busyMine, HeroId = rankTwo[2], Slot = 1 }] });
         await _context.SaveChangesAsync();
         _context.ChangeTracker.Clear();
         Assert.Equal(AbilityError.HeroBusy, await ErrorOf(() => _service.FuseAsync(_playerId, rankTwo)));

@@ -42,13 +42,21 @@ public class GameDbContext : DbContext
     public DbSet<RankedSquad> RankedSquads => Set<RankedSquad>();
     public DbSet<PvpScout> PvpScouts => Set<PvpScout>();
     public DbSet<Mine> Mines => Set<Mine>();
+    public DbSet<MineDwarf> MineDwarves => Set<MineDwarf>();
     public DbSet<PlayerAbility> PlayerAbilities => Set<PlayerAbility>();
     public DbSet<PlayerTowerProgress> PlayerTowerProgress => Set<PlayerTowerProgress>();
+    public DbSet<ShopState> ShopStates => Set<ShopState>();
+    public DbSet<ShopOffer> ShopOffers => Set<ShopOffer>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Player>()
             .HasKey(p => p.Id);
+
+        // Улучшения кирки начинаются с 1-го уровня — и у тех, кто уже был в базе до них
+        modelBuilder.Entity<Player>().Property(p => p.PickaxeCapacityLevel).HasDefaultValue(1);
+        modelBuilder.Entity<Player>().Property(p => p.PickaxeRecoveryLevel).HasDefaultValue(1);
+        modelBuilder.Entity<Player>().Property(p => p.PickaxeStrengthLevel).HasDefaultValue(1);
 
         modelBuilder.Entity<Player>()
             .Property(p => p.Id)
@@ -884,21 +892,35 @@ public class GameDbContext : DbContext
             .HasForeignKey(m => m.PlayerId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // Герой исчез — шахта остаётся без дворфа
-        modelBuilder.Entity<Mine>()
-            .HasOne<Hero>()
-            .WithMany()
-            .HasForeignKey(m => m.HeroId)
-            .OnDelete(DeleteBehavior.SetNull);
-
         // Одна шахта на место — заодно защищает от двойной постройки
         modelBuilder.Entity<Mine>()
             .HasIndex(m => new { m.PlayerId, m.Plot })
             .IsUnique();
 
-        // Дворф работает только в одной шахте. Шахты без дворфа (null) индекс не ограничивает
+        // Дворфы шахты — как герои экспедиции: шахта снесена или герой исчез — строка уходит
         modelBuilder.Entity<Mine>()
-            .HasIndex(m => m.HeroId)
+            .HasMany(m => m.Dwarves)
+            .WithOne()
+            .HasForeignKey(d => d.MineId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<MineDwarf>()
+            .HasKey(d => new { d.MineId, d.HeroId });
+
+        modelBuilder.Entity<MineDwarf>()
+            .HasOne<Hero>()
+            .WithMany()
+            .HasForeignKey(d => d.HeroId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Дворф работает только в одной шахте — даже при параллельных запросах
+        modelBuilder.Entity<MineDwarf>()
+            .HasIndex(d => d.HeroId)
+            .IsUnique();
+
+        // Одно место в шахте — один дворф
+        modelBuilder.Entity<MineDwarf>()
+            .HasIndex(d => new { d.MineId, d.Slot })
             .IsUnique();
 
         // ===== Извлечённые способности =====
@@ -941,5 +963,72 @@ public class GameDbContext : DbContext
             .WithMany()
             .HasForeignKey(p => p.PlayerId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        // ===== Магазины =====
+        // Одна строка на игрока и магазин — заодно защищает от двойного создания полки параллельными заходами
+        modelBuilder.Entity<ShopState>()
+            .HasKey(s => new { s.PlayerId, s.Shop });
+
+        modelBuilder.Entity<ShopState>()
+            .Property(s => s.PlayerId)
+            .HasConversion<string>();
+
+        modelBuilder.Entity<ShopState>()
+            .Property(s => s.Shop)
+            .HasConversion<string>()
+            .HasMaxLength(16);
+
+        modelBuilder.Entity<ShopState>()
+            .HasOne<Player>()
+            .WithMany()
+            .HasForeignKey(s => s.PlayerId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<ShopOffer>()
+            .HasKey(o => o.Id);
+
+        modelBuilder.Entity<ShopOffer>()
+            .Property(o => o.PlayerId)
+            .HasConversion<string>();
+
+        modelBuilder.Entity<ShopOffer>()
+            .Property(o => o.Shop)
+            .HasConversion<string>()
+            .HasMaxLength(16);
+
+        modelBuilder.Entity<ShopOffer>()
+            .Property(o => o.Kind)
+            .HasConversion<string>()
+            .HasMaxLength(8);
+
+        modelBuilder.Entity<ShopOffer>()
+            .Property(o => o.Rarity)
+            .HasConversion<string>()
+            .HasMaxLength(16);
+
+        modelBuilder.Entity<ShopOffer>()
+            .Property(o => o.PriceGem)
+            .HasConversion<string>()
+            .HasMaxLength(16);
+
+        modelBuilder.Entity<ShopOffer>()
+            .Property(o => o.PriceGemRarity)
+            .HasConversion<string>()
+            .HasMaxLength(16);
+
+        modelBuilder.Entity<ShopOffer>()
+            .Property(o => o.ItemKey)
+            .HasMaxLength(32);
+
+        modelBuilder.Entity<ShopOffer>()
+            .HasOne<Player>()
+            .WithMany()
+            .HasForeignKey(o => o.PlayerId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Одно место на полке — один товар
+        modelBuilder.Entity<ShopOffer>()
+            .HasIndex(o => new { o.PlayerId, o.Shop, o.Kind, o.Slot })
+            .IsUnique();
     }
 }

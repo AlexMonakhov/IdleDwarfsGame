@@ -11,6 +11,7 @@ public class MiningRepository(GameDbContext context) : IMiningRepository
     {
         return await context.Mines
             .AsNoTracking()
+            .Include(m => m.Dwarves)
             .Where(m => m.PlayerId == playerId)
             .OrderBy(m => m.Plot)
             .ToListAsync();
@@ -20,14 +21,15 @@ public class MiningRepository(GameDbContext context) : IMiningRepository
     {
         return await context.Mines
             .AsNoTracking()
+            .Include(m => m.Dwarves)
             .FirstOrDefaultAsync(m => m.Id == mineId && m.PlayerId == playerId);
     }
 
     public async Task<HashSet<Guid>> GetHeroIdsAsync(Guid playerId)
     {
-        var ids = await context.Mines
-            .Where(m => m.PlayerId == playerId && m.HeroId != null)
-            .Select(m => m.HeroId!.Value)
+        var ids = await context.MineDwarves
+            .Where(d => context.Mines.Any(m => m.Id == d.MineId && m.PlayerId == playerId))
+            .Select(d => d.HeroId)
             .ToListAsync();
 
         return ids.ToHashSet();
@@ -39,7 +41,11 @@ public class MiningRepository(GameDbContext context) : IMiningRepository
         var resources = await context.Players
             .AsNoTracking()
             .Where(p => p.Id == playerId)
-            .Select(p => new { p.Gold, p.Experience })
+            .Select(p => new
+            {
+                p.Gold, p.Experience, p.DigEnergy, p.DigEnergyAt,
+                p.PickaxeCapacityLevel, p.PickaxeRecoveryLevel, p.PickaxeStrengthLevel
+            })
             .FirstOrDefaultAsync();
 
         var stacks = await context.PlayerItems
@@ -60,8 +66,53 @@ public class MiningRepository(GameDbContext context) : IMiningRepository
         {
             Gold = resources?.Gold ?? 0,
             Experience = resources?.Experience ?? 0,
-            Crystals = crystals
+            Crystals = crystals,
+            // Как лежит в БД; на текущий момент её досчитывает MiningService.DigEnergyAt
+            DigEnergy = resources?.DigEnergy ?? 0,
+            DigEnergyAt = resources?.DigEnergyAt,
+            PickaxeCapacityLevel = resources?.PickaxeCapacityLevel ?? 1,
+            PickaxeRecoveryLevel = resources?.PickaxeRecoveryLevel ?? 1,
+            PickaxeStrengthLevel = resources?.PickaxeStrengthLevel ?? 1
         };
+    }
+
+    public async Task<bool> UpgradePickaxeAsync(Guid playerId, PickaxeUpgrade upgrade, int expectedLevel, MineCost cost, DigEnergySpend settle)
+    {
+        // Одним условным апдейтом: уровень тот же, кирку с прошлого чтения не тратили и ресурсов хватает
+        var expectedAt = settle.ExpectedAt;
+        long gold = cost.Gold;
+        long experience = cost.Experience;
+        var players = context.Players.Where(p => p.Id == playerId && p.DigEnergyAt == expectedAt
+            && p.Gold >= gold && p.Experience >= experience);
+
+        int updated = upgrade switch
+        {
+            PickaxeUpgrade.Capacity => await players
+                .Where(p => p.PickaxeCapacityLevel == expectedLevel)
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(p => p.PickaxeCapacityLevel, expectedLevel + 1)
+                    .SetProperty(p => p.Gold, p => p.Gold - gold)
+                    .SetProperty(p => p.Experience, p => p.Experience - experience)
+                    .SetProperty(p => p.DigEnergy, settle.Value)
+                    .SetProperty(p => p.DigEnergyAt, (DateTime?)settle.At)),
+            PickaxeUpgrade.Recovery => await players
+                .Where(p => p.PickaxeRecoveryLevel == expectedLevel)
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(p => p.PickaxeRecoveryLevel, expectedLevel + 1)
+                    .SetProperty(p => p.Gold, p => p.Gold - gold)
+                    .SetProperty(p => p.Experience, p => p.Experience - experience)
+                    .SetProperty(p => p.DigEnergy, settle.Value)
+                    .SetProperty(p => p.DigEnergyAt, (DateTime?)settle.At)),
+            _ => await players
+                .Where(p => p.PickaxeStrengthLevel == expectedLevel)
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(p => p.PickaxeStrengthLevel, expectedLevel + 1)
+                    .SetProperty(p => p.Gold, p => p.Gold - gold)
+                    .SetProperty(p => p.Experience, p => p.Experience - experience)
+                    .SetProperty(p => p.DigEnergy, settle.Value)
+                    .SetProperty(p => p.DigEnergyAt, (DateTime?)settle.At))
+        };
+        return updated > 0;
     }
 
     public async Task<MiningSaveOutcome> BuildAsync(Mine mine, MiningChange change)
@@ -88,34 +139,61 @@ public class MiningRepository(GameDbContext context) : IMiningRepository
         return MiningSaveOutcome.Saved;
     }
 
-    public async Task<MiningSaveOutcome> SaveAsync(Mine mine, int expectedVersion, MiningChange change)
+    public async Task<MiningSaveOutcome> SaveAsync(Mine mine, int expectedVersion, MiningChange change, MineDwarfChange? dwarf = null)
     {
         await using var transaction = await context.Database.BeginTransactionAsync();
 
-        int updated;
-        try
-        {
-            // Условный апдейт: из двух параллельных изменений одной шахты пройдёт только первое
-            updated = await context.Mines
-                .Where(m => m.Id == mine.Id && m.PlayerId == mine.PlayerId && m.Version == expectedVersion)
-                .ExecuteUpdateAsync(s => s
-                    .SetProperty(m => m.Level, mine.Level)
-                    .SetProperty(m => m.SpeedLevel, mine.SpeedLevel)
-                    .SetProperty(m => m.YieldLevel, mine.YieldLevel)
-                    .SetProperty(m => m.StorageLevel, mine.StorageLevel)
-                    .SetProperty(m => m.HeroId, mine.HeroId)
-                    .SetProperty(m => m.Stored, mine.Stored)
-                    .SetProperty(m => m.UpdatedAt, mine.UpdatedAt)
-                    .SetProperty(m => m.LastDigAt, mine.LastDigAt)
-                    .SetProperty(m => m.Version, expectedVersion + 1));
-        }
-        catch (DbException ex) when (DbErrors.IsUniqueViolation(ex))
-        {
-            // Уникальный индекс по HeroId: дворфа только что поставили в другую шахту
-            return MiningSaveOutcome.HeroTaken;
-        }
+        // Условный апдейт: из двух параллельных изменений одной шахты пройдёт только первое
+        int updated = await context.Mines
+            .Where(m => m.Id == mine.Id && m.PlayerId == mine.PlayerId && m.Version == expectedVersion)
+            .ExecuteUpdateAsync(s => s
+                .SetProperty(m => m.Level, mine.Level)
+                .SetProperty(m => m.SpeedLevel, mine.SpeedLevel)
+                .SetProperty(m => m.YieldLevel, mine.YieldLevel)
+                .SetProperty(m => m.StorageLevel, mine.StorageLevel)
+                .SetProperty(m => m.Stored, mine.Stored)
+                .SetProperty(m => m.UpdatedAt, mine.UpdatedAt)
+                .SetProperty(m => m.LastDigAt, mine.LastDigAt)
+                .SetProperty(m => m.DigProgress, mine.DigProgress)
+                .SetProperty(m => m.Version, expectedVersion + 1));
         if (updated == 0)
             return MiningSaveOutcome.Changed;
+
+        // Сила кирки общая на все шахты: клики в двух шахтах параллельно не должны потратить её дважды —
+        // пишем, только если с прошлого чтения её никто не тратил
+        if (change.Energy is { } energy)
+        {
+            var expectedAt = energy.ExpectedAt;
+            int spent = await context.Players
+                .Where(p => p.Id == mine.PlayerId && p.DigEnergyAt == expectedAt)
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(p => p.DigEnergy, energy.Value)
+                    .SetProperty(p => p.DigEnergyAt, (DateTime?)energy.At));
+            if (spent == 0)
+                return MiningSaveOutcome.Changed;
+        }
+
+        if (dwarf is { Add: true })
+        {
+            context.MineDwarves.Add(new MineDwarf { MineId = mine.Id, HeroId = dwarf.HeroId, Slot = dwarf.Slot });
+            try
+            {
+                await context.SaveChangesAsync();
+            }
+            catch (DbUpdateException ex) when (ex.InnerException is DbException inner && DbErrors.IsUniqueViolation(inner))
+            {
+                // Уникальный индекс по HeroId: дворфа только что поставили в другую шахту
+                context.ChangeTracker.Clear();
+                return MiningSaveOutcome.HeroTaken;
+            }
+            context.ChangeTracker.Clear();
+        }
+        else if (dwarf is { Add: false })
+        {
+            await context.MineDwarves
+                .Where(d => d.MineId == mine.Id && d.HeroId == dwarf.HeroId)
+                .ExecuteDeleteAsync();
+        }
 
         if (!await ApplyAsync(mine.PlayerId, change))
             return MiningSaveOutcome.NotEnoughResources;

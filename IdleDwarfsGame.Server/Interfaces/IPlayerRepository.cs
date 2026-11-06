@@ -5,4 +5,8 @@
     /// Account-wide resources (gold, experience), read straight from the database. Null if the player doesn't exist.
     /// </summary>
     Task<PlayerResources?> GetResourcesAsync(Guid playerId);
+    /// <summary>
+    /// Credits shop currencies earned outside the shop: blood coins (arena) and honor badges (guild bosses).
+    /// </summary>
+    Task AddCurrenciesAsync(Guid playerId, long bloodCoins, long honorBadges);
 }

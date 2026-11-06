@@ -269,6 +269,7 @@ public class PvpService(
             OpponentName = opponentName,
             Won = battle.AttackerWon,
             Points = battle.Points,
+            BloodCoins = ShopRules.BloodCoinsFor(battle.Mode, battle.AttackerWon),
             Seasons = seasons,
             Arena = PvpArenaInfo.Current,
             Combat = combat
