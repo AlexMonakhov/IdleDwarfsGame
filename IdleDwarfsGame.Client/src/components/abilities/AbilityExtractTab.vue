@@ -1,5 +1,7 @@
 <script lang="ts" setup>
-import { computed, ref, watch } from 'vue';
+import { computed, ref, toRef, watch } from 'vue';
+import HeroFilters from '@/components/inventory/HeroFilters.vue';
+import { useHeroFilters } from '@/composables/UseHeroFilters';
 import { useI18n } from 'vue-i18n';
 import GemButton from '@/components/common/GemButton.vue';
 import HeroCard from '@/components/inventory/HeroCard.vue';
@@ -32,7 +34,10 @@ const hero = computed(() => props.heroes.find(h => h.id === heroId.value) ?? nul
 const abilities = computed(() => hero.value?.abilities ?? []);
 
 // Сначала дворфы, из которых есть что достать
-const sorted = computed(() => [...props.heroes].sort((a, b) =>
+// Фильтры по стихии и рангу
+const { element: elementFilter, rank: rankFilter, filtered } = useHeroFilters(toRef(props, 'heroes'));
+
+const sorted = computed(() => [...filtered.value].sort((a, b) =>
     Number(!a.abilities?.length) - Number(!b.abilities?.length)
     || b.level - a.level
     || a.name.localeCompare(b.name)));
@@ -118,6 +123,7 @@ const buttonText = computed(() => {
         </aside>
 
         <section v-drag-scroll class="forge-list">
+            <HeroFilters v-model:element="elementFilter" v-model:rank="rankFilter" :heroes="heroes" />
             <div class="forge-grid">
                 <HeroCard
                     v-for="item in sorted"

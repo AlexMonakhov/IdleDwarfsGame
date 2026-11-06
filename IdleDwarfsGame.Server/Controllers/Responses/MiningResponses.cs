@@ -16,6 +16,30 @@ public class MiningWallet
     public long Experience { get; set; }
     // Обычные гемы 1-го уровня по камням; камней, которых нет, в словаре нет
     public Dictionary<GemType, int> Crystals { get; set; } = new();
+    // Сила кирки на момент DigEnergyAt (время сервера в ответе); дальше фронт растит её по MiningBoard.DigEnergyPerHour
+    public double DigEnergy { get; set; }
+    public DateTime? DigEnergyAt { get; set; }
+    // Уровни улучшений кирки (MiningService.PickaxeMaxLevel)
+    public int PickaxeCapacityLevel { get; set; } = 1;
+    public int PickaxeRecoveryLevel { get; set; } = 1;
+    public int PickaxeStrengthLevel { get; set; } = 1;
+}
+
+// Улучшение кирки: Value — что даёт сейчас (запас кликов, кликов в час или процент добычи клика), Next — после улучшения
+public class PickaxeUpgradeInfo
+{
+    public PickaxeUpgrade Upgrade { get; set; }
+    public int Level { get; set; }
+    public int MaxLevel { get; set; }
+    // null — уровень максимальный
+    public MineCost? Cost { get; set; }
+    public double Value { get; set; }
+    public double? Next { get; set; }
+}
+
+public class UpgradePickaxeRequest
+{
+    public PickaxeUpgrade Upgrade { get; set; }
 }
 
 public class MineUpgradeInfo
@@ -41,11 +65,19 @@ public class MineInfo
     public GemType? Gem { get; set; }
     public int Level { get; set; }
     public int MaxLevel { get; set; }
-    public int PerClick { get; set; }
-    // Добыча дворфа в час; без дворфа шахта сама не копает
+    // Сколько приносит клик — дробное (у кристаллов меньше единицы); накопленная кликами доля — DigProgress
+    public double PerClick { get; set; }
+    public double DigProgress { get; set; }
+    // Добыча всех дворфов шахты в час (без дворфов — сколько даст один; сама шахта не копает) и одного дворфа
     public double RatePerHour { get; set; }
+    public double RatePerDwarf { get; set; }
+    // Склад растёт вместе с числом дворфов
     public int Capacity { get; set; }
-    public Guid? HeroId { get; set; }
+    // Дворфы по местам; мест открыто DwarfSlots из MaxDwarves, следующее — на уровне NextSlotLevel
+    public List<Guid> HeroIds { get; set; } = new();
+    public int DwarfSlots { get; set; }
+    public int MaxDwarves { get; set; }
+    public int? NextSlotLevel { get; set; }
     // Накоплено дворфом на момент StoredAt (дробное — забирается целая часть)
     public double Stored { get; set; }
     public DateTime StoredAt { get; set; }
@@ -59,6 +91,10 @@ public class MiningBoard
     public int PlotCount { get; set; }
     public int DwarfUnlockLevel { get; set; }
     public int MaxClicksPerSecond { get; set; }
+    // Сила кирки: запас кликов на все шахты и сколько восстанавливается в час
+    public int DigEnergyMax { get; set; }
+    public double DigEnergyPerHour { get; set; }
+    public List<PickaxeUpgradeInfo> Pickaxe { get; set; } = new();
     // Цена следующей шахты
     public MineCost BuildCost { get; set; } = new();
     public List<MineInfo> Mines { get; set; } = new();

@@ -2,9 +2,13 @@
 
 export type ExpeditionStatus = 'Available' | 'InProgress' | 'Ready' | 'Claimed';
 
+// Валюты магазинов приходят не во всех ответах (шахты присылают только золото и опыт) — поэтому необязательные
 export interface PlayerResources {
     gold: number;
     experience: number;
+    rainbowCoins?: number;
+    bloodCoins?: number;
+    honorBadges?: number;
 }
 
 export interface ExpeditionReward {

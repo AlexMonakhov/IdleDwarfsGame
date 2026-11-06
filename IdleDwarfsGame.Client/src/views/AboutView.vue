@@ -99,7 +99,7 @@ const router = useRouter();
 const { isAuthenticated } = useAuth();
 const { guildOpen } = useGuild();
 const { pvpOpen } = usePvp();
-const { expeditionsOpen, inventoryOpen, upgradeOpen, miningOpen } = useInterface();
+const { expeditionsOpen, inventoryOpen, upgradeOpen, miningOpen, shopOpen, forgeOpen } = useInterface();
 
 
 // --- НАСТРОЙКИ ---
@@ -148,15 +148,14 @@ const requireAuth = (open: () => void) => () => {
   open();
 };
 
-// Кузница и рынок пока без раздела: подсвечиваются, но по клику ничего не открывают
 const buildings: TownBuilding[] = [
   { key: 'expedition', image: expedition, hover: expeditionHover, left: 34,   top: 31,   width: 8,    onClick: requireAuth(() => (expeditionsOpen.value = true)) },
   { key: 'guild',      image: guild,      hover: guildHover,      left: 14.5, top: 43,   width: 12,   onClick: requireAuth(() => (guildOpen.value = true)) },
   { key: 'tower',      image: tower,      hover: towerHover,      left: 83,   top: 51,   width: 13.5, onClick: () => (infinityTowerDialogOpen.value = true) },
   { key: 'altar',      image: altar,      hover: altarHover,      left: 38,   top: 53,   width: 9,    onClick: requireAuth(() => (upgradeOpen.value = true)) },
-  { key: 'blacksmith', image: blacksmith, hover: blacksmithHover, left: 26.5, top: 56,   width: 9 },
+  { key: 'blacksmith', image: blacksmith, hover: blacksmithHover, left: 26.5, top: 56,   width: 9,    onClick: requireAuth(() => (forgeOpen.value = true)) },
   { key: 'campaign',   image: campaign,   hover: campaignHover,   left: 51,   top: 56,   width: 14.5, onClick: () => (campaignDialogOpen.value = true) },
-  { key: 'market',     image: market,     hover: marketHover,     left: 61.5, top: 61.5, width: 7.5 },
+  { key: 'market',     image: market,     hover: marketHover,     left: 61.5, top: 61.5, width: 7.5,  onClick: requireAuth(() => (shopOpen.value = true)) },
   { key: 'arena',      image: arena,      hover: arenaHover,      left: 59,   top: 83,   width: 9,    onClick: requireAuth(() => (pvpOpen.value = true)) },
   { key: 'warehouse',  image: warehouse,  hover: warehouseHover,  left: 35,   top: 87,   width: 9,    onClick: requireAuth(() => (inventoryOpen.value = true)) },
   { key: 'mine',       image: mine,       hover: mineHover,       left: 47,   top: 84,   width: 9,    onClick: requireAuth(() => (miningOpen.value = true)) },

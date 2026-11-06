@@ -34,6 +34,23 @@ public class SquadTests : IDisposable
     }
 
     [Fact]
+    public void StarterRoster_IsFifteenRankOneDwarfs_FiveInSquadTenInReserve()
+    {
+        var roster = StarterSquad.Roster(_playerId, new Random(3));
+
+        Assert.Equal(15, roster.Count);
+        Assert.All(roster, h =>
+        {
+            Assert.Equal(_playerId, h.PlayerId);
+            Assert.Equal(HeroLevels.Min, h.Level);
+            Assert.Equal(HeroElement.Basic, h.Element);
+        });
+        Assert.Equal(StarterSquad.Size, roster.Count(h => h.PlaceInSquad != null));
+        Assert.Equal(StarterSquad.ReserveSize, roster.Count(h => h.PlaceInSquad == null));
+        Assert.Equal(15, roster.Select(h => h.Id).Distinct().Count());
+    }
+
+    [Fact]
     public void StarterSquad_IsFiveBasicLevelOneDwarfsInSquad()
     {
         var squad = StarterSquad.Create(_playerId, new Random(42));

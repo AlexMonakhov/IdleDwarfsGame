@@ -14,9 +14,10 @@ export function useResources() {
     }
   }
 
-  // Сервер присылает итог после начисления — так шапка обновляется без лишнего запроса
+  // Сервер присылает итог после начисления — так шапка обновляется без лишнего запроса.
+  // Сливаем с прежним: ответ шахт без валют магазинов не должен их обнулять
   const set = (value: PlayerResources) => {
-    resources.value = value
+    resources.value = { ...resources.value, ...value }
   }
 
   const clear = () => {

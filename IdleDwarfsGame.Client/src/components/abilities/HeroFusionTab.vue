@@ -1,5 +1,7 @@
 <script lang="ts" setup>
-import { computed, ref, watch } from 'vue';
+import { computed, ref, toRef, watch } from 'vue';
+import HeroFilters from '@/components/inventory/HeroFilters.vue';
+import { useHeroFilters } from '@/composables/UseHeroFilters';
 import { useI18n } from 'vue-i18n';
 import GemButton from '@/components/common/GemButton.vue';
 import HeroCard from '@/components/inventory/HeroCard.vue';
@@ -30,6 +32,8 @@ const pickedIds = ref<string[]>([]);
 const confirming = ref(false);
 const busy = ref(false);
 const message = ref<{ text: string; error: boolean } | null>(null);
+// Последний полученный дворф — показываем под сообщением, как выкованный предмет в кузнице
+const fused = ref<HeroInfo | null>(null);
 
 const picked = computed(() => pickedIds.value
     .map(id => props.heroes.find(h => h.id === id))
@@ -44,8 +48,11 @@ watch(() => props.heroes, () => {
 
 watch(pickedIds, () => { confirming.value = false; }, { deep: true });
 
+// Фильтры по стихии и рангу
+const { element: elementFilter, rank: rankFilter, filtered } = useHeroFilters(toRef(props, 'heroes'));
+
 // Ранги по возрастанию: сливают обычно младших
-const sorted = computed(() => [...props.heroes]
+const sorted = computed(() => [...filtered.value]
     .sort((a, b) => a.level - b.level || a.element.localeCompare(b.element) || a.name.localeCompare(b.name)));
 
 const unavailable = (hero: HeroInfo) =>
@@ -106,6 +113,7 @@ const fuse = async () => {
             ? ' ' + t('abilities.fusion.refunded', { gold: result.refund.gold, experience: result.refund.experience })
             : '';
         message.value = hero ? { text: t('abilities.fusion.done', { name: hero.name, rank: hero.level }) + returned, error: false } : null;
+        fused.value = hero ?? null;
         if (result.resources) setResources(result.resources);
         pickedIds.value = [];
         emit('fused', result);
@@ -179,9 +187,16 @@ const buttonText = computed(() => {
             </div>
 
             <div v-if="message" class="forge-message" :class="{ 'forge-message-error': message.error }">{{ message.text }}</div>
+
+            <!-- Последний полученный дворф -->
+            <div v-if="fused" class="fusion-result">
+                <h4 class="forge-subtitle">{{ t('abilities.fusion.received') }}</h4>
+                <HeroCard :hero="fused" />
+            </div>
         </aside>
 
         <section v-drag-scroll class="forge-list">
+            <HeroFilters v-model:element="elementFilter" v-model:rank="rankFilter" :heroes="heroes" />
             <div class="forge-grid">
                 <HeroCard
                     v-for="item in sorted"
@@ -274,5 +289,14 @@ const buttonText = computed(() => {
 
 .fusion-actions .forge-action {
     min-width: 160px;
+}
+
+/* Сверху место под звёзды ранга карточки */
+.fusion-result {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    row-gap: 6px;
+    padding-top: 6px;
 }
 </style>

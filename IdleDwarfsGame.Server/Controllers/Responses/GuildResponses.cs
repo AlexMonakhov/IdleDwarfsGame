@@ -103,6 +103,8 @@ public class GuildBossesOverview
 public class GuildBossAttackResult
 {
     public GuildBossTier Tier { get; set; }
+    // Значки почёта лавки гильдии за этот удар
+    public int HonorBadges { get; set; }
     // Сколько урона дошло до босса
     public int Damage { get; set; }
     // Этот удар добил босса

@@ -23,6 +23,15 @@ public enum MineUpgrade
     Storage
 }
 
+// Улучшения кирки — общие на все шахты (хранятся у игрока): Capacity — запас кликов, Recovery — сколько кликов
+// восстанавливается в час, Strength — сколько приносит клик
+public enum PickaxeUpgrade
+{
+    Capacity,
+    Recovery,
+    Strength
+}
+
 // Шахта игрока на месте Plot (1..MiningService.PlotCount).
 // Клик по шахте сразу начисляет ресурс игроку; дворф копит добычу в Stored, пока склад не заполнится.
 // Добыча дворфа считается лениво: Stored посчитан на момент UpdatedAt, остальное досчитывается при чтении
@@ -38,8 +47,8 @@ public class Mine
     public int YieldLevel { get; set; } = 1;
     public int StorageLevel { get; set; } = 1;
 
-    // Дворф-добытчик; null — шахту копают только кликами
-    public Guid? HeroId { get; set; }
+    // Дворфы-добытчики (не больше MiningService.DwarfSlots(Level)); пусто — шахту копают только кликами
+    public List<MineDwarf> Dwarves { get; set; } = new();
 
     // Накоплено дворфом и ещё не забрано (дробная часть копится между сборами)
     public double Stored { get; set; }
@@ -48,6 +57,19 @@ public class Mine
     // Последняя пачка кликов: по ней ограничиваем частоту кликов
     public DateTime? LastDigAt { get; set; }
 
+    // Накопленная кликами доля ресурса, ещё не дотянувшая до целой штуки: клик приносит дробную часть
+    // (MiningService.ClickValue), целые зачисляются сразу, остаток ждёт следующих кликов
+    public double DigProgress { get; set; }
+
     // Растёт с каждым изменением: из двух параллельных изменений шахты проходит только первое
     public int Version { get; set; }
+}
+
+// Дворф в шахте. HeroId уникален: один дворф работает только в одной шахте, даже при параллельных запросах
+public class MineDwarf
+{
+    public Guid MineId { get; set; }
+    public Guid HeroId { get; set; }
+    // Место в шахте 1..MiningService.DwarfSlots(уровень шахты)
+    public int Slot { get; set; }
 }

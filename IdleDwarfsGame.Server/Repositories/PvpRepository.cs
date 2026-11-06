@@ -190,6 +190,13 @@ public class PvpRepository(GameDbContext context) : IPvpRepository
         foreach (var (type, start) in seasons)
             await AddPointsAsync(battle, type, start);
 
+        // Кровавые монеты подпольного рынка — за каждый бой, за победу больше (ShopRules.BloodCoinsFor)
+        long coins = ShopRules.BloodCoinsFor(battle.Mode, battle.AttackerWon);
+        var attackerUserId = battle.AttackerUserId;
+        await context.Players
+            .Where(p => context.Users.Any(u => u.Id == attackerUserId && u.PlayerId == p.Id))
+            .ExecuteUpdateAsync(s => s.SetProperty(p => p.BloodCoins, p => p.BloodCoins + coins));
+
         await transaction.CommitAsync();
         return true;
     }

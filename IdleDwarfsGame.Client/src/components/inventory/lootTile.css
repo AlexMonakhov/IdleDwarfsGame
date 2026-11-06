@@ -1,0 +1,143 @@
+/* Карточка добычи в стиле карточки предмета (ItemTile): металлическая оправа кольцом, внутри — почти прозрачное
+   стекло цвета редкости (GlassButton) с бликом. Подключается: <style scoped src="@/components/inventory/lootTile.css">.
+   На корне — класс loot-tile, --rarity-color и loot-tile-<Rarity>; стекло — GlassButton с классом loot-tile-glass */
+.loot-tile {
+    /* Насколько плотное стекло */
+    --glass-alpha: 18%;
+    --glass-top: color-mix(in srgb, var(--rarity-color) var(--glass-alpha), transparent);
+    --glass-mid: color-mix(in srgb, var(--rarity-color) calc(var(--glass-alpha) * 0.7), transparent);
+    --glass-bottom: color-mix(in srgb, var(--rarity-color) calc(var(--glass-alpha) * 0.4), rgba(10, 14, 24, 0.5));
+    position: relative;
+    width: 124px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    padding: 8px;
+    border-radius: 14px;
+    box-shadow:
+        0 4px 3px 2px #181717,
+        0 3px 12px 2px rgba(0, 0, 0, 0.6);
+    font-family: 'Arial', sans-serif;
+    text-align: center;
+    /* Стекло бывает любого цвета: читаемость держит обводка */
+    text-shadow: var(--text-outline);
+    user-select: none;
+    transition: transform 0.2s cubic-bezier(0.34, 1.4, 0.64, 1), box-shadow 0.3s ease;
+}
+
+/* Металл только кольцом по краю: под стеклом его быть не должно */
+.loot-tile::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    padding: 8px;
+    border-radius: inherit;
+    background: var(--metalic-background);
+    box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.8);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    pointer-events: none;
+}
+
+.loot-tile:hover {
+    transform: translateY(-3px);
+    box-shadow:
+        0 4px 3px 2px #181717,
+        0 3px 18px 4px color-mix(in srgb, var(--rarity-color) 55%, transparent);
+}
+
+/* Два класса — чтобы перебить размеры, скругление и оправу самого GlassButton */
+.loot-tile .loot-tile-glass {
+    --glass-glow: color-mix(in srgb, var(--rarity-color) 35%, transparent);
+    flex: 1;
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
+    justify-content: flex-start;
+    row-gap: 2px;
+    padding: 8px 4px;
+    border-radius: 8px;
+    box-shadow:
+        0 0 0 2px var(--rarity-color),
+        0 0 0 3px #333,
+        inset 0 2px 1px rgba(255, 255, 255, 0.35),
+        inset 0 -4px 8px rgba(0, 0, 0, 0.25),
+        inset 0 0 14px var(--glass-glow);
+}
+
+.loot-tile:hover .loot-tile-glass {
+    --glass-glow: color-mix(in srgb, var(--rarity-color) 70%, transparent);
+}
+
+.loot-tile:hover .loot-tile-glass::after {
+    transform: translateX(120%);
+}
+
+/* Блик по форме плитки и слабее: прозрачное стекло он бы засветил */
+.loot-tile .loot-tile-glass::before {
+    border-radius: 6px 6px 50% 50% / 6px 6px 30% 30%;
+    opacity: 0.35;
+}
+
+/* Содержимое над бликом; пробегающий отблеск — поверх всего */
+.loot-tile-glass > * {
+    position: relative;
+    z-index: 1;
+}
+
+.loot-tile .loot-tile-glass::after {
+    z-index: 2;
+}
+
+/* Артефакты — стекло плотнее и краснее, легендарные светятся — как у предметов */
+.loot-tile-Artifact {
+    --glass-alpha: 55%;
+    box-shadow:
+        0 4px 3px 2px #181717,
+        0 0 12px 2px rgba(239, 68, 68, 0.6);
+}
+
+.loot-tile-Legendary {
+    box-shadow:
+        0 4px 3px 2px #181717,
+        0 0 10px 2px color-mix(in srgb, var(--rarity-color) 45%, transparent);
+}
+
+/* Картинка (значок камня, сундука) — по центру стекла и светится цветом редкости */
+.loot-tile-picture {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 64px;
+    filter: drop-shadow(0 0 5px var(--rarity-color));
+}
+
+.loot-tile-name {
+    color: #f8fafc;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.15;
+}
+
+.loot-tile-rarity {
+    color: var(--rarity-color);
+    font-size: 11px;
+}
+
+/* Сколько штук — бейдж в правом верхнем углу стекла */
+.loot-tile-count {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 3;
+    padding: 0 6px;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.6);
+    color: #ffd166;
+    font-size: 12px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    pointer-events: none;
+}

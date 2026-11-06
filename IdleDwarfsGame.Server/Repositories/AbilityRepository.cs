@@ -122,7 +122,7 @@ public class AbilityRepository(GameDbContext context) : IAbilityRepository
         int dissolved = await context.Heroes
             .Where(h => h.PlayerId == playerId && heroIds.Contains(h.Id)
                 && !context.ExpeditionHeroes.Any(e => e.HeroId == h.Id)
-                && !context.Mines.Any(m => m.HeroId == h.Id))
+                && !context.MineDwarves.Any(d => d.HeroId == h.Id))
             .ExecuteDeleteAsync();
         return dissolved == heroIds.Count;
     }

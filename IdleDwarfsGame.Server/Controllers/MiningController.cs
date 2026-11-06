@@ -33,9 +33,20 @@ public class MiningController(MiningService miningService) : ControllerBase
     public Task<ActionResult<MiningActionResult>> AssignDwarf(Guid mineId, [FromBody] AssignMineDwarfRequest request) =>
         Run(playerId => miningService.AssignDwarfAsync(playerId, mineId, request.HeroId));
 
+    // Дворфов в шахте может быть несколько — отзываем конкретного
+    [HttpDelete("{mineId:guid}/dwarf/{heroId:guid}")]
+    public Task<ActionResult<MiningActionResult>> RemoveDwarf(Guid mineId, Guid heroId) =>
+        Run(playerId => miningService.RemoveDwarfAsync(playerId, mineId, heroId));
+
+    // Старый вызов без дворфа: работает, пока дворф в шахте один
     [HttpDelete("{mineId:guid}/dwarf")]
-    public Task<ActionResult<MiningActionResult>> RemoveDwarf(Guid mineId) =>
+    public Task<ActionResult<MiningActionResult>> RemoveOnlyDwarf(Guid mineId) =>
         Run(playerId => miningService.RemoveDwarfAsync(playerId, mineId));
+
+    // Кирка общая на все шахты: в ответ — вся доска (меняется запас кликов и добыча клика во всех шахтах)
+    [HttpPost("pickaxe/upgrade")]
+    public Task<ActionResult<MiningBoard>> UpgradePickaxe([FromBody] UpgradePickaxeRequest request) =>
+        Run(playerId => miningService.UpgradePickaxeAsync(playerId, request.Upgrade));
 
     [HttpPost("{mineId:guid}/collect")]
     public Task<ActionResult<MiningCollectResult>> Collect(Guid mineId) =>

@@ -1,11 +1,21 @@
 <script lang="ts" setup>
 import TooltipComponent from './TooltipComponent.vue';
 
-
+// Значок «i» с подсказкой при наведении: title и text — её заголовок и текст (или слоты title / description).
+// inline — стоит в строке (рядом с заголовком), иначе — в правом верхнем углу родителя
+withDefaults(defineProps<{
+  title?: string;
+  text?: string;
+  inline?: boolean;
+}>(), {
+  inline: false,
+});
 </script>
 
 <template>
-  <TooltipComponent class="info-tooltip" >
+  <TooltipComponent class="info-tooltip" :class="{ 'info-tooltip-inline': inline }">
+  <template v-if="title || $slots.title" #title><slot name="title">{{ title }}</slot></template>
+  <template v-if="text || $slots.description" #description><slot name="description">{{ text }}</slot></template>
   <div class="info-outer">
     
     <div  :class="['info-inner', 'info-info']">
@@ -89,6 +99,19 @@ import TooltipComponent from './TooltipComponent.vue';
   top: 0;
   right: 0;
   z-index: 1000;
+}
+
+/* В строке рядом с заголовком: обычный поток, по центру строки */
+.info-tooltip-inline {
+  position: relative;
+  top: auto;
+  right: auto;
+  z-index: auto;
+  vertical-align: middle;
+}
+
+.info-outer {
+  position: relative;
 }
 
 </style>

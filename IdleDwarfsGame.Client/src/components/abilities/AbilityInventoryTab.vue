@@ -1,5 +1,7 @@
 <script lang="ts" setup>
-import { computed, ref, watch } from 'vue';
+import { computed, ref, toRef, watch } from 'vue';
+import HeroFilters from '@/components/inventory/HeroFilters.vue';
+import { useHeroFilters } from '@/composables/UseHeroFilters';
 import { useI18n } from 'vue-i18n';
 import GemButton from '@/components/common/GemButton.vue';
 import HeroCard from '@/components/inventory/HeroCard.vue';
@@ -53,7 +55,10 @@ const replaced = computed(() => {
 
 // Сначала те, кому выбранную способность можно вставить
 const fits = (target: HeroInfo) => !selected.value || canInsert(selected.value, target);
-const sortedHeroes = computed(() => [...props.heroes]
+// Фильтры по стихии и рангу — для выбора дворфа, в которого вставляем способность
+const { element: elementFilter, rank: rankFilter, filtered } = useHeroFilters(toRef(props, 'heroes'));
+
+const sortedHeroes = computed(() => [...filtered.value]
     .sort((a, b) => Number(fits(b)) - Number(fits(a)) || b.level - a.level || a.name.localeCompare(b.name)));
 
 const insertBlocked = (target: HeroInfo) =>
@@ -196,6 +201,7 @@ const insert = async () => {
         </aside>
 
         <section v-drag-scroll class="forge-list">
+            <HeroFilters v-if="selected && mode === 'insert'" v-model:element="elementFilter" v-model:rank="rankFilter" :heroes="heroes" />
             <div v-if="selected && mode === 'insert'" class="forge-grid">
                 <HeroCard
                     v-for="item in sortedHeroes"

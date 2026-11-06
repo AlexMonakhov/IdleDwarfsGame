@@ -2,6 +2,9 @@ public class PlayerResources
 {
     public long Gold { get; set; }
     public long Experience { get; set; }
+    public long RainbowCoins { get; set; }
+    public long BloodCoins { get; set; }
+    public long HonorBadges { get; set; }
 }
 
 public class ExpeditionReward

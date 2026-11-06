@@ -1,5 +1,7 @@
 <script lang="ts" setup>
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
+import HeroFilters from '@/components/inventory/HeroFilters.vue';
+import { useHeroFilters } from '@/composables/UseHeroFilters';
 import { AxiosError } from 'axios';
 import { useI18n } from 'vue-i18n';
 import ModalComponent from '@/components/common/ModalComponent.vue';
@@ -157,8 +159,11 @@ const selectedStatus = computed(() => (selected.value ? statusOf(selected.value)
 const heroById = computed(() => new Map(heroes.value.map(h => [h.id, h])));
 
 // В задание идут только герои из инвентаря: отряд остаётся дома. Ушедшие в экспедицию видны, но недоступны
-const reserve = computed(() => heroes.value
-    .filter(h => h.placeInSquad === null)
+// Фильтры по стихии и рангу — поверх героев вне отряда
+const outsideSquad = computed(() => heroes.value.filter(h => h.placeInSquad === null));
+const { element: elementFilter, rank: rankFilter, filtered: filteredReserve } = useHeroFilters(outsideSquad);
+
+const reserve = computed(() => [...filteredReserve.value]
     .sort((a, b) => Number(isBusy(a)) - Number(isBusy(b)) || b.power.total - a.power.total || a.name.localeCompare(b.name)));
 
 const partyHeroes = computed(() => party.value.map(id => (id ? heroById.value.get(id) ?? null : null)));
@@ -338,6 +343,7 @@ const footerText = computed(() => {
                 <section class="expedition-section">
                     <h4 class="expedition-subtitle">{{ t('expeditions.heroes') }}</h4>
                     <div class="expeditions-hint">{{ t('expeditions.heroesHint') }}</div>
+                    <HeroFilters v-model:element="elementFilter" v-model:rank="rankFilter" :heroes="outsideSquad" />
                     <div class="reserve-grid">
                         <HeroCard
                             v-for="hero in reserve"
@@ -349,7 +355,7 @@ const footerText = computed(() => {
                             :class="{ 'hero-picked': isInParty(hero.id) }"
                             @click="toggleHero(hero)"
                         />
-                        <div v-if="!reserve.length" class="expeditions-hint">{{ t('expeditions.noHeroes') }}</div>
+                        <div v-if="!reserve.length" class="expeditions-hint">{{ outsideSquad.length ? t('heroFilters.nothing') : t('expeditions.noHeroes') }}</div>
                     </div>
                 </section>
             </div>

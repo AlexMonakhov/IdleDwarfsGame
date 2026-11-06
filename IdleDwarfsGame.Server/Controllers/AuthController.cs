@@ -27,7 +27,7 @@ public class AuthController(
             return ValidationProblem(ModelState);
 
         // Каждому аккаунту — свой игрок, к которому потом привязываются герои, сундуки и т.д.
-        var player = new Player { Id = Guid.NewGuid(), Name = username, Rating = 0 };
+        var player = new Player { Id = Guid.NewGuid(), Name = username, Rating = 0, RainbowCoins = ShopRules.StarterRainbowCoins };
         var user = new User
         {
             Id = Guid.NewGuid(),
@@ -42,8 +42,10 @@ public class AuthController(
         user.PasswordHash = passwordHasher.HashPassword(user, request.Password);
 
         await context.Players.AddAsync(player);
-        var starter = StarterSquad.Create(player.Id);
-        player.SquadPower = squadPower.Of(starter);
+        // Отряд из 5 и ещё 10 дворфов 1-го ранга в запасе
+        var starter = StarterSquad.Roster(player.Id);
+        // Мощь — только отряда: запас в бой не ходит
+        player.SquadPower = squadPower.Of(starter.Where(h => h.PlaceInSquad != null));
         await context.Heroes.AddRangeAsync(starter);
         // Сохраняется одной транзакцией вместе с игроком и героями
         await userRepository.CreateAsync(user);
