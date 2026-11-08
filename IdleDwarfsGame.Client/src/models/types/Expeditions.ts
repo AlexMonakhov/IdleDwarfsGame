@@ -9,6 +9,8 @@ export interface PlayerResources {
     rainbowCoins?: number;
     bloodCoins?: number;
     honorBadges?: number;
+    // Печати старейшин — за ежедневные задания, тратятся в лавке старейшин
+    elderSeals?: number;
 }
 
 export interface ExpeditionReward {

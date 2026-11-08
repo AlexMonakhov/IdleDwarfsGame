@@ -11,6 +11,9 @@ const upgradeOpen = ref(false)
 const miningOpen = ref(false)
 const shopOpen = ref(false)
 const forgeOpen = ref(false)
+// Ежедневные задания и ивент недели открываются кнопками в шапке
+const questsOpen = ref(false)
+const eventOpen = ref(false)
 
 export function useInterface() {
   return {
@@ -20,6 +23,8 @@ export function useInterface() {
     upgradeOpen,
     miningOpen,
     shopOpen,
-    forgeOpen
+    forgeOpen,
+    questsOpen,
+    eventOpen
   }
 }

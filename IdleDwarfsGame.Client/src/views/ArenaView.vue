@@ -31,6 +31,9 @@
           {{ pvpResult ? t(pvpRanked ? 'arena.rankedVs' : 'arena.pvpVs', { name: pvpResult.opponentName }) : t(pvpRanked ? 'arena.ranked' : 'arena.pvp') }}
         </div>
         <div v-else-if="guildBossTier" class="floor-select">{{ t('arena.guildBoss', { tier: t(`guild.bosses.tiers.${guildBossTier}`) }) }}</div>
+        <div v-else-if="worldBossMode" class="floor-select">
+          {{ worldBossResult ? t('arena.worldBossStage', { stage: worldBossResult.stage }) : t('arena.worldBoss') }}
+        </div>
         <div v-else-if="stageId" class="floor-select">{{ t('arena.stage', { id: stageId }) }}</div>
         <div v-else-if="towerFloor" class="floor-select">{{ t('arena.tower', { floor: towerFloor }) }}</div>
         <label v-else class="floor-select">
@@ -38,8 +41,8 @@
           <input v-model.number="floor" type="number" min="1" max="50" :disabled="state.playing" />
         </label>
         <!-- По боссу гильдии бьют раз в час из окна гильдии, соперника PvP выбирают в окне PvP — повтора здесь нет -->
-        <button v-if="!guildBossTier && !pvpOpponentId" :disabled="state.playing || loading" @click="startArenaFight()">{{ t('arena.startFight') }}</button>
-        <button v-if="!stageId && !towerFloor && !guildBossTier && !pvpOpponentId" :disabled="state.playing || loading" @click="startBossFight()">{{ t('arena.boss') }}</button>
+        <button v-if="!guildBossTier && !pvpOpponentId && !worldBossMode" :disabled="state.playing || loading" @click="startArenaFight()">{{ t('arena.startFight') }}</button>
+        <button v-if="!stageId && !towerFloor && !guildBossTier && !pvpOpponentId && !worldBossMode" :disabled="state.playing || loading" @click="startBossFight()">{{ t('arena.boss') }}</button>
         <button :disabled="!state.playing" @click="skipFight()">{{ t('arena.skip') }}</button>
         <button v-for="value in [1, 2, 4]" :key="value" :class="{ active: speed === value }" @click="setSpeed(value)">x{{ value }}</button>
         <div class="sound-control">
@@ -58,6 +61,7 @@
         {{ error || t('arena.startError') }}
         <button v-if="guildBossTier" class="result-next" @click="goToGuild()">{{ t('arena.toGuild') }}</button>
         <button v-if="pvpOpponentId" class="result-next" @click="goToPvp()">{{ t('arena.toPvp') }}</button>
+        <button v-if="worldBossMode" class="result-next" @click="goToEvent()">{{ t('arena.toEvent') }}</button>
       </div>
 
       <!-- Итог боя: сцена под «вуалью» притеняется (при поражении — сереет), частицы вылетают из-за баннера (конфетти и звёзды или дождь и снег) -->
@@ -85,6 +89,7 @@
             <div v-if="resultOpen" class="result-actions">
               <GemButton v-if="pvpResult" :color="'blue'" @click="goToPvp()">{{ t('arena.toPvp') }}</GemButton>
               <GemButton v-else-if="guildResult" :color="'blue'" @click="goToGuild()">{{ t('arena.toGuild') }}</GemButton>
+              <GemButton v-else-if="worldBossResult" :color="'blue'" @click="goToEvent()">{{ t('arena.toEvent') }}</GemButton>
               <template v-else>
                 <GemButton v-if="stageId" :color="'blue'" @click="goToCampaign()">{{ t('arena.toCampaign') }}</GemButton>
                 <GemButton v-if="nextStageId" :color="'green'" @click="goToNextStage()"><IconPower /> {{ t('arena.nextStage') }}</GemButton>
@@ -127,6 +132,9 @@ import PvpApiService from '@/services/apiServices/PvpApiService';
 import { PvpFightResult } from '@/models/types/Pvp';
 import { pvpErrorText } from '@/components/pvp/pvpShared';
 import { usePvp } from '@/composables/UsePvp';
+import EventsApiService from '@/services/apiServices/EventsApiService';
+import type { WorldBossAttackResult } from '@/models/types/WorldEvents';
+import { useInterface } from '@/composables/UseInterface';
 import CanvasComponent from '@/components/canvas/CanvasComponent.vue';
 import CanvasLayer from '@/components/canvas/CanvasLayer.vue';
 import CombatLogFeed from '@/components/interface/CombatLogFeed.vue';
@@ -142,7 +150,7 @@ import { soundService } from '@/services/soundService/SoundService';
 import { useI18n } from 'vue-i18n';
 import { IconFlame, IconMute, IconSound } from '@/components/icons/ui';
 
-const { t } = useI18n();
+const { t, te } = useI18n();
 
 // Размер юнитов на арене (1 — кадр 409.6px; по умолчанию у юнитов 0.65)
 const UNIT_SCALE = 0.8;
@@ -180,6 +188,15 @@ const guildBossTier = computed(() => {
 const guildResult = ref<GuildBossAttackResult | null>(null);
 const { guildOpen } = useGuild();
 
+// Режим мирового босса: /arena?worldBoss=1&attack=<метка> — удар по общему боссу сервера (ивент «Мировые боссы»)
+const worldBossMode = computed(() => route.query.worldBoss === '1');
+const worldBossResult = ref<WorldBossAttackResult | null>(null);
+const { eventOpen } = useInterface();
+const worldBossErrorText = (e: unknown) => {
+  const code = (e as { response?: { data?: { code?: string } } }).response?.data?.code;
+  return code && te(`worldBoss.errors.${code}`) ? t(`worldBoss.errors.${code}`) : '';
+};
+
 // Режим PvP: /arena?pvp=<userId соперника>&attack=<метка> — бой с отрядом другого игрока;
 // &ranked=1 — на рейтинговой арене (закреплённые снимки отрядов, очки рейтинга)
 const pvpOpponentId = computed(() => (typeof route.query.pvp === 'string' && route.query.pvp) || null);
@@ -208,6 +225,14 @@ const outcome = computed<{ title: string; tone: 'victory' | 'defeat'; particles:
     const killed = guildResult.value.killed;
     return { title: killed ? t('arena.guildBossKilled') : t('arena.guildBossHit'), tone: 'victory', particles: killed };
   }
+  if (worldBossResult.value) {
+    const { killed, damage, currency } = worldBossResult.value;
+    return {
+      title: killed ? t('arena.guildBossKilled') : t('arena.worldBossHit', { damage: damage.toLocaleString(), currency }),
+      tone: 'victory',
+      particles: killed,
+    };
+  }
   return { title: playerWon.value ? t('arena.victory') : t('arena.defeat'), tone: playerWon.value ? 'victory' : 'defeat', particles: true };
 });
 
@@ -215,7 +240,7 @@ const outcome = computed<{ title: string; tone: 'victory' | 'defeat'; particles:
 // новый бой снова начинается с одного баннера. В обычном бою на арене кнопок нет — тогда и подсказки нет
 const RESULT_AUTO_OPEN_MS = 10_000;
 const resultOpen = ref(false);
-const hasResultActions = computed(() => !!(pvpResult.value || guildResult.value || stageId.value || towerFloor.value));
+const hasResultActions = computed(() => !!(pvpResult.value || guildResult.value || worldBossResult.value || stageId.value || towerFloor.value));
 const canOpenResult = computed(() => !!outcome.value && hasResultActions.value && !resultOpen.value);
 let resultTimer = 0;
 
@@ -266,6 +291,7 @@ const playFight = async (load: () => Promise<CombatResult>) => {
   error.value = null;
   // Итог прошлого боя PvP не должен остаться на экране после боя другого режима
   pvpResult.value = null;
+  worldBossResult.value = null;
 
   try {
     result.value = await load();
@@ -277,7 +303,9 @@ const playFight = async (load: () => Promise<CombatResult>) => {
     const message = (e as { response?: { data?: unknown } }).response?.data;
     error.value = typeof message === 'string'
       ? message
-      : pvpOpponentId.value ? pvpErrorText(e, '') : guildBossTier.value ? guildErrorText(e, '') : '';
+      : pvpOpponentId.value ? pvpErrorText(e, '')
+        : guildBossTier.value ? guildErrorText(e, '')
+          : worldBossMode.value ? worldBossErrorText(e) : '';
     return;
   } finally {
     loading.value = false;
@@ -313,6 +341,18 @@ const startGuildBossFight = (tier: GuildBossTier) => playFight(async () => {
   return attack.combat;
 });
 
+const startWorldBossFight = () => playFight(async () => {
+  // Метку удара убираем сразу: перезагрузка страницы не должна бить босса ещё раз
+  router.replace({ query: { worldBoss: '1' } });
+  campaignResult.value = null;
+  guildResult.value = null;
+  worldBossResult.value = null;
+  const attack = await EventsApiService.attackWorldBoss();
+  worldBossResult.value = attack;
+  bgImage.value = attack.background;
+  return attack.combat;
+});
+
 const startPvpFight = (opponentId: string, ranked: boolean) => playFight(async () => {
   // Метку боя убираем сразу: перезагрузка страницы не должна начинать бой ещё раз
   router.replace({ query: ranked ? { pvp: opponentId, ranked: '1' } : { pvp: opponentId } });
@@ -327,6 +367,7 @@ const startPvpFight = (opponentId: string, ranked: boolean) => playFight(async (
 const startArenaFight = () => {
   if (pvpOpponentId.value) return startPvpFight(pvpOpponentId.value, pvpRanked.value);
   if (guildBossTier.value) return startGuildBossFight(guildBossTier.value);
+  if (worldBossMode.value) return startWorldBossFight();
   if (towerFloor.value) return startTowerFight(towerFloor.value);
   return stageId.value
     ? startCampaignFight(stageId.value)
@@ -335,11 +376,14 @@ const startArenaFight = () => {
 
 // Новый удар из окна гильдии или бой из окна PvP, когда арена уже открыта: компонент тот же, меняется только метка attack
 watch(() => route.query.attack, (attack, previous) => {
-  if (attack && attack !== previous && (guildBossTier.value || pvpOpponentId.value)) startArenaFight();
+  if (attack && attack !== previous && (guildBossTier.value || pvpOpponentId.value || worldBossMode.value)) startArenaFight();
 });
 
 const goToGuild = () => {
   guildOpen.value = true;
+};
+const goToEvent = () => {
+  eventOpen.value = true;
 };
 // Возвращаем на вкладку соперников той арены, на которой шёл бой
 const goToPvp = () => {
@@ -373,6 +417,11 @@ onMounted(() => {
   // То же для PvP — в окно PvP
   if (pvpOpponentId.value && !route.query.attack) {
     goToPvp();
+    return;
+  }
+  // И для мирового босса — в окно ивента
+  if (worldBossMode.value && !route.query.attack) {
+    goToEvent();
     return;
   }
   startArenaFight();

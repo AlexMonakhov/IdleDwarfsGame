@@ -11,6 +11,8 @@ import HeroUpgradeModal from '@/components/upgrade/HeroUpgradeModal.vue';
 import SquadModal from '@/components/inventory/SquadModal.vue';
 import ShopModal from '@/components/shop/ShopModal.vue';
 import BlacksmithModal from '@/components/forge/BlacksmithModal.vue';
+import QuestsModal from '@/components/quests/QuestsModal.vue';
+import EventModal from '@/components/events/EventModal.vue';
 import AccountButton from '@/components/account/AccountButton.vue';
 import AccountModal from '@/components/account/AccountModal.vue';
 import { ref, watch, watchEffect } from 'vue';
@@ -24,6 +26,7 @@ import { useGuild } from '@/composables/UseGuild';
 import { usePvp } from '@/composables/UsePvp';
 import { useSquadModal } from '@/composables/UseSquadModal';
 import { useInterface } from '@/composables/UseInterface';
+import { useQuests } from '@/composables/UseQuests';
 import { soundService } from '@/services/soundService/SoundService';
 import { useI18n } from 'vue-i18n';
 import { IconCoin, IconExperience, IconRainbowCoin } from '@/components/icons/ui';
@@ -42,18 +45,22 @@ const { pvpOpen } = usePvp();
 const collectionOpen = ref(false);
 const { squadOpen } = useSquadModal();
 // Экспедиции, склад (инвентарь), алтарь (прокачка) и шахты открываются кликом по зданиям города
-const { interfaceHidden, expeditionsOpen, inventoryOpen, upgradeOpen, miningOpen, shopOpen, forgeOpen } = useInterface();
+const { interfaceHidden, expeditionsOpen, inventoryOpen, upgradeOpen, miningOpen, shopOpen, forgeOpen, questsOpen, eventOpen } = useInterface();
+const { claimable: questsClaimable, start: startQuests, clear: clearQuests } = useQuests();
 const accountOpen = ref(false);
 
 // Ресурсы аккаунта подтягиваем при входе и сбрасываем при выходе; там же открываем и закрываем сессию вкладки
+// и следим за доской заданий (значок готовых наград на кнопке)
 watch(isAuthenticated, authenticated => {
     if (authenticated) {
         refreshResources();
         startPresence();
+        startQuests();
     } else {
         clearResources();
         clearHeroes();
         stopPresence();
+        clearQuests();
     }
 }, { immediate: true });
 
@@ -68,6 +75,8 @@ const onLogout = () => {
     miningOpen.value = false;
     shopOpen.value = false;
     forgeOpen.value = false;
+    questsOpen.value = false;
+    eventOpen.value = false;
     squadOpen.value = false;
     accountOpen.value = false;
     // Пока токен ещё есть — им закрывается сессия
@@ -98,6 +107,8 @@ watchEffect(() => {
             <GemButton @click="router.push('town')" :color="'blue'">{{ t('nav.town') }}</GemButton>
             <GemButton v-if="isAuthenticated" @click="collectionOpen = true" :color="'yellow'">{{ t('nav.collection') }}</GemButton>
             <GemButton v-if="isAuthenticated" @click="friendsOpen = true" :color="'green'" :badge-count="incomingFriendRequests">{{ t('nav.friends') }}</GemButton>
+            <GemButton v-if="isAuthenticated" @click="questsOpen = true" :color="'yellow'" :badge-count="questsClaimable">{{ t('nav.quests') }}</GemButton>
+            <GemButton v-if="isAuthenticated" @click="eventOpen = true" :color="'red'">{{ t('nav.event') }}</GemButton>
             <template v-if="!isAuthenticated">
                 <GemButton v-if="route.name != 'login'" @click="router.push('/login')" :color="'green'">{{ t('nav.login') }}</GemButton>
                 <GemButton v-if="route.name != 'register'" @click="router.push('/register')" :color="'yellow'">{{ t('nav.register') }}</GemButton>
@@ -125,6 +136,8 @@ watchEffect(() => {
     <SquadModal v-if="isAuthenticated" v-model="squadOpen" />
     <ShopModal v-if="isAuthenticated" v-model="shopOpen" />
     <BlacksmithModal v-if="isAuthenticated" v-model="forgeOpen" />
+    <QuestsModal v-if="isAuthenticated" v-model="questsOpen" />
+    <EventModal v-if="isAuthenticated" v-model="eventOpen" />
 </template>
 
 <style scoped>
