@@ -47,6 +47,19 @@ public class GameDbContext : DbContext
     public DbSet<PlayerTowerProgress> PlayerTowerProgress => Set<PlayerTowerProgress>();
     public DbSet<ShopState> ShopStates => Set<ShopState>();
     public DbSet<ShopOffer> ShopOffers => Set<ShopOffer>();
+    public DbSet<PlayerDailyActivity> PlayerDailyActivities => Set<PlayerDailyActivity>();
+    public DbSet<DailyQuestState> DailyQuestStates => Set<DailyQuestState>();
+    public DbSet<PlayerQuest> PlayerQuests => Set<PlayerQuest>();
+    public DbSet<PlayerEventWallet> PlayerEventWallets => Set<PlayerEventWallet>();
+    public DbSet<FixedShopPurchase> FixedShopPurchases => Set<FixedShopPurchase>();
+    public DbSet<WorldBoss> WorldBosses => Set<WorldBoss>();
+    public DbSet<WorldBossContribution> WorldBossContributions => Set<WorldBossContribution>();
+    public DbSet<WorldBossCooldown> WorldBossCooldowns => Set<WorldBossCooldown>();
+    public DbSet<WorldBossRewardClaim> WorldBossRewardClaims => Set<WorldBossRewardClaim>();
+    public DbSet<CommunityDeposit> CommunityDeposits => Set<CommunityDeposit>();
+    public DbSet<DepositWorker> DepositWorkers => Set<DepositWorker>();
+    public DbSet<DepositDwarf> DepositDwarves => Set<DepositDwarf>();
+    public DbSet<DepositRewardClaim> DepositRewardClaims => Set<DepositRewardClaim>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -1030,5 +1043,252 @@ public class GameDbContext : DbContext
         modelBuilder.Entity<ShopOffer>()
             .HasIndex(o => new { o.PlayerId, o.Shop, o.Kind, o.Slot })
             .IsUnique();
+
+        // ===== Ежедневные задания =====
+        modelBuilder.Entity<PlayerDailyActivity>()
+            .HasKey(a => new { a.PlayerId, a.Day, a.Kind });
+
+        modelBuilder.Entity<PlayerDailyActivity>()
+            .Property(a => a.PlayerId)
+            .HasConversion<string>();
+
+        modelBuilder.Entity<PlayerDailyActivity>()
+            .Property(a => a.Kind)
+            .HasConversion<string>()
+            .HasMaxLength(32);
+
+        modelBuilder.Entity<PlayerDailyActivity>()
+            .HasOne<Player>()
+            .WithMany()
+            .HasForeignKey(a => a.PlayerId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<DailyQuestState>()
+            .HasKey(s => s.PlayerId);
+
+        modelBuilder.Entity<DailyQuestState>()
+            .Property(s => s.PlayerId)
+            .HasConversion<string>();
+
+        modelBuilder.Entity<DailyQuestState>()
+            .HasOne<Player>()
+            .WithMany()
+            .HasForeignKey(s => s.PlayerId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<PlayerQuest>()
+            .HasKey(q => q.Id);
+
+        modelBuilder.Entity<PlayerQuest>()
+            .Property(q => q.PlayerId)
+            .HasConversion<string>();
+
+        modelBuilder.Entity<PlayerQuest>()
+            .Property(q => q.Key)
+            .HasMaxLength(32);
+
+        modelBuilder.Entity<PlayerQuest>()
+            .Property(q => q.Kind)
+            .HasConversion<string>()
+            .HasMaxLength(32);
+
+        modelBuilder.Entity<PlayerQuest>()
+            .HasOne<Player>()
+            .WithMany()
+            .HasForeignKey(q => q.PlayerId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Одно место на доске — одно задание; заодно защищает от двойной генерации доски
+        modelBuilder.Entity<PlayerQuest>()
+            .HasIndex(q => new { q.PlayerId, q.Day, q.Slot })
+            .IsUnique();
+
+        // ===== Ивенты =====
+        modelBuilder.Entity<PlayerEventWallet>()
+            .HasKey(w => new { w.PlayerId, w.EventStart });
+
+        modelBuilder.Entity<PlayerEventWallet>()
+            .Property(w => w.PlayerId)
+            .HasConversion<string>();
+
+        modelBuilder.Entity<PlayerEventWallet>()
+            .HasOne<Player>()
+            .WithMany()
+            .HasForeignKey(w => w.PlayerId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<FixedShopPurchase>()
+            .HasKey(p => new { p.PlayerId, p.Shop, p.Period, p.OfferKey });
+
+        modelBuilder.Entity<FixedShopPurchase>()
+            .Property(p => p.PlayerId)
+            .HasConversion<string>();
+
+        modelBuilder.Entity<FixedShopPurchase>()
+            .Property(p => p.Shop)
+            .HasConversion<string>()
+            .HasMaxLength(16);
+
+        modelBuilder.Entity<FixedShopPurchase>()
+            .Property(p => p.OfferKey)
+            .HasMaxLength(32);
+
+        modelBuilder.Entity<FixedShopPurchase>()
+            .HasOne<Player>()
+            .WithMany()
+            .HasForeignKey(p => p.PlayerId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // ===== Мировые боссы =====
+        modelBuilder.Entity<WorldBoss>()
+            .HasKey(b => b.Id);
+
+        modelBuilder.Entity<WorldBoss>()
+            .Property(b => b.KilledByPlayerId)
+            .HasConversion<string>();
+
+        // Один босс на этап ивента — защищает от двойного появления следующего этапа
+        modelBuilder.Entity<WorldBoss>()
+            .HasIndex(b => new { b.EventStart, b.Stage })
+            .IsUnique();
+
+        modelBuilder.Entity<WorldBossContribution>()
+            .HasKey(c => new { c.BossId, c.PlayerId });
+
+        modelBuilder.Entity<WorldBossContribution>()
+            .Property(c => c.PlayerId)
+            .HasConversion<string>();
+
+        modelBuilder.Entity<WorldBossContribution>()
+            .HasOne<WorldBoss>()
+            .WithMany()
+            .HasForeignKey(c => c.BossId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Босс с игроком не связан, так что два каскада сюда идут из разных таблиц — SQL Server это допускает
+        modelBuilder.Entity<WorldBossContribution>()
+            .HasOne<Player>()
+            .WithMany()
+            .HasForeignKey(c => c.PlayerId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Урон игрока за ивент
+        modelBuilder.Entity<WorldBossContribution>()
+            .HasIndex(c => c.PlayerId);
+
+        modelBuilder.Entity<WorldBossCooldown>()
+            .HasKey(c => c.PlayerId);
+
+        modelBuilder.Entity<WorldBossCooldown>()
+            .Property(c => c.PlayerId)
+            .HasConversion<string>();
+
+        modelBuilder.Entity<WorldBossCooldown>()
+            .HasOne<Player>()
+            .WithMany()
+            .HasForeignKey(c => c.PlayerId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<WorldBossRewardClaim>()
+            .HasKey(r => new { r.BossId, r.PlayerId });
+
+        modelBuilder.Entity<WorldBossRewardClaim>()
+            .Property(r => r.PlayerId)
+            .HasConversion<string>();
+
+        modelBuilder.Entity<WorldBossRewardClaim>()
+            .HasOne<WorldBoss>()
+            .WithMany()
+            .HasForeignKey(r => r.BossId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<WorldBossRewardClaim>()
+            .HasOne<Player>()
+            .WithMany()
+            .HasForeignKey(r => r.PlayerId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // ===== Общие шахты =====
+        modelBuilder.Entity<CommunityDeposit>()
+            .HasKey(d => d.Id);
+
+        modelBuilder.Entity<CommunityDeposit>()
+            .Property(d => d.Kind)
+            .HasConversion<string>()
+            .HasMaxLength(16);
+
+        modelBuilder.Entity<CommunityDeposit>()
+            .Property(d => d.SpeedLevel)
+            .HasDefaultValue(1);
+
+        // Одно месторождение на номер ивента — защищает от двойного появления
+        modelBuilder.Entity<CommunityDeposit>()
+            .HasIndex(d => new { d.EventStart, d.Index })
+            .IsUnique();
+
+        modelBuilder.Entity<DepositWorker>()
+            .HasKey(w => new { w.DepositId, w.PlayerId });
+
+        modelBuilder.Entity<DepositWorker>()
+            .Property(w => w.PlayerId)
+            .HasConversion<string>();
+
+        modelBuilder.Entity<DepositWorker>()
+            .HasOne<CommunityDeposit>()
+            .WithMany()
+            .HasForeignKey(w => w.DepositId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<DepositWorker>()
+            .HasOne<Player>()
+            .WithMany()
+            .HasForeignKey(w => w.PlayerId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<DepositWorker>()
+            .HasIndex(w => w.PlayerId);
+
+        // Ключ — дворф: он работает только на одном месторождении, даже при параллельных запросах
+        modelBuilder.Entity<DepositDwarf>()
+            .HasKey(d => d.HeroId);
+
+        modelBuilder.Entity<DepositDwarf>()
+            .Property(d => d.PlayerId)
+            .HasConversion<string>();
+
+        modelBuilder.Entity<DepositDwarf>()
+            .HasOne<CommunityDeposit>()
+            .WithMany()
+            .HasForeignKey(d => d.DepositId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Герой удаляется (слияние) — с месторождения он уходит. Связи с игроком нет: каскад от игрока идёт через героя
+        modelBuilder.Entity<DepositDwarf>()
+            .HasOne<Hero>()
+            .WithMany()
+            .HasForeignKey(d => d.HeroId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<DepositDwarf>()
+            .HasIndex(d => d.PlayerId);
+
+        modelBuilder.Entity<DepositRewardClaim>()
+            .HasKey(c => new { c.DepositId, c.PlayerId });
+
+        modelBuilder.Entity<DepositRewardClaim>()
+            .Property(c => c.PlayerId)
+            .HasConversion<string>();
+
+        modelBuilder.Entity<DepositRewardClaim>()
+            .HasOne<CommunityDeposit>()
+            .WithMany()
+            .HasForeignKey(c => c.DepositId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<DepositRewardClaim>()
+            .HasOne<Player>()
+            .WithMany()
+            .HasForeignKey(c => c.PlayerId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

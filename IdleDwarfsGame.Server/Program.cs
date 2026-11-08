@@ -3,7 +3,9 @@ using System.Security.Claims;
 using System.Text;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
@@ -27,6 +29,14 @@ builder.Services.AddCors(options =>
                   .AllowCredentials(); // Добавьте, если используете куки или авторизацию
         });
 });
+// За балансировщиком (Azure App Service) HTTPS заканчивается на прокси, к приложению приходит http + X-Forwarded-Proto.
+// Без этого UseHttpsRedirection считал бы каждый запрос нешифрованным и редиректил по кругу
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.KnownIPNetworks.Clear();
+    options.KnownProxies.Clear();
+});
 builder.Services.AddDbContext<GameDbContext>(options =>
 {
     // Строку подключения можно переопределить переменной окружения ConnectionStrings__GameDb или user-secrets
@@ -44,6 +54,9 @@ builder.Services.AddDbContext<GameDbContext>(options =>
 var jwtSection = builder.Configuration.GetSection(JwtOptions.SectionName);
 builder.Services.Configure<JwtOptions>(jwtSection);
 var jwtOptions = jwtSection.Get<JwtOptions>() ?? throw new InvalidOperationException("Jwt settings are missing");
+// Ключ подписи есть только в appsettings.Development.json; на проде он задаётся переменной окружения Jwt__Key
+if (string.IsNullOrWhiteSpace(jwtOptions.Key) || Encoding.UTF8.GetByteCount(jwtOptions.Key) < 32)
+    throw new InvalidOperationException("Jwt:Key is missing or shorter than 32 bytes. Set the Jwt__Key environment variable");
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -122,6 +135,20 @@ builder.Services.AddScoped<IShopRepository, ShopRepository>();
 builder.Services.AddScoped<ShopService>();
 builder.Services.AddScoped<IForgeRepository, ForgeRepository>();
 builder.Services.AddScoped<ForgeService>();
+// Счётчики действий за сутки — по ним идут ежедневные задания
+builder.Services.AddScoped<IActivityRepository, ActivityRepository>();
+builder.Services.AddScoped<IActivityTracker, ActivityTracker>();
+builder.Services.AddScoped<IQuestRepository, QuestRepository>();
+builder.Services.AddScoped<QuestService>();
+// Лавка старейшин и лавка ивента недели (WorldEvents)
+builder.Services.AddScoped<IFixedShopRepository, FixedShopRepository>();
+builder.Services.AddScoped<FixedShopService>();
+// Ивенты недели: мировые боссы и общие шахты (их месторождения ведёт ещё и фоновая задача)
+builder.Services.AddScoped<IWorldBossRepository, WorldBossRepository>();
+builder.Services.AddScoped<WorldBossService>();
+builder.Services.AddScoped<ICommunityMineRepository, CommunityMineRepository>();
+builder.Services.AddScoped<CommunityMineService>();
+builder.Services.AddHostedService<WorldEventsTicker>();
 //builder.Services.AddScoped<IMonsterRepository, MonsterRepository>();
 
 var app = builder.Build();
@@ -130,20 +157,36 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<GameDbContext>();
-    db.Database.Migrate();
 
-    // Соперники для PvP на локальной базе
-    if (app.Environment.IsDevelopment())
+    // Бесплатная Azure SQL (serverless) засыпает без нагрузки и просыпается около минуты — пока она встаёт,
+    // подключения отбиваются. Ждём её на старте, а не падаем: иначе App Service перезапускает приложение по кругу
+    const int migrateAttempts = 12;
+    for (var attempt = 1; ; attempt++)
     {
-        await TestAccountsSeed.SeedAsync(db, scope.ServiceProvider.GetRequiredService<IPasswordHasher<User>>());
-        await EquipmentDevSeed.SeedAsync(db);
+        try
+        {
+            db.Database.Migrate();
+            break;
+        }
+        catch (SqlException ex) when (attempt < migrateAttempts)
+        {
+            app.Logger.LogWarning("Database is not available yet (attempt {Attempt}/{Total}): {Message}", attempt, migrateAttempts, ex.Message);
+            await Task.Delay(TimeSpan.FromSeconds(10));
+        }
     }
+
+    // Боты арены — соперники для PvP. Локально под ними можно войти (общий пароль), на проде пароли случайные
+    var hasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher<User>>();
+    await TestAccountsSeed.SeedAsync(db, hasher, app.Environment.IsDevelopment() ? TestAccountsSeed.Password : null);
+    if (app.Environment.IsDevelopment())
+        await EquipmentDevSeed.SeedAsync(db);
 
     // Мощь отрядов хранится в БД; правки баланса меняют формулу, поэтому на старте пересчитываем у всех
     await scope.ServiceProvider.GetRequiredService<SquadPowerService>().RefreshAllAsync();
 }
 
 
+app.UseForwardedHeaders();
 
 app.UseDefaultFiles();
 app.UseStaticFiles(); // явная подача статических файлов

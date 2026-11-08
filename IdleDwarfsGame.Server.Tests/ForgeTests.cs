@@ -24,7 +24,7 @@ public class ForgeTests : IDisposable
         _context.Players.Add(new Player { Id = _playerId, Name = "Smith" });
         _context.SaveChanges();
 
-        _service = new ForgeService(new ForgeRepository(_context), new Random(5));
+        _service = new ForgeService(new ForgeRepository(_context), new Random(5), NoActivity.Instance);
     }
 
     public void Dispose()

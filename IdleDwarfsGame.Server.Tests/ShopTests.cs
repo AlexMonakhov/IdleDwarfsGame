@@ -26,7 +26,7 @@ public class ShopTests : IDisposable
         _context.Players.Add(new Player { Id = _playerId, Name = "Shopper", RainbowCoins = ShopRules.StarterRainbowCoins });
         _context.SaveChanges();
 
-        _service = new ShopService(new ShopRepository(_context), new PlayerRepository(_context), Factory, new Random(7), _clock);
+        _service = new ShopService(new ShopRepository(_context), new PlayerRepository(_context), Factory, new Random(7), _clock, NoActivity.Instance);
     }
 
     public void Dispose()

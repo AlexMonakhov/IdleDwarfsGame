@@ -1,3 +1,4 @@
+import { API_BASE_URL } from './apiConfig';
 import axios, { AxiosError } from 'axios';
 import { t } from '@/i18n';
 
@@ -34,7 +35,7 @@ export class AuthApiError extends Error {
 }
 
 const apiClient = axios.create({
-    baseURL: 'https://localhost:7232',
+    baseURL: API_BASE_URL,
     timeout: 5000,
     headers: {
         'Content-Type': 'application/json'

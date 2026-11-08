@@ -29,7 +29,8 @@ public class PvpService(
     IEntityFactory entityFactory,
     CombatService combatService,
     SquadPowerService squadPower,
-    TimeProvider time
+    TimeProvider time,
+    IActivityTracker activity
 )
 {
     // Сколько лучших показывать в таблице каждого сезона и сколько боёв в истории
@@ -107,7 +108,7 @@ public class PvpService(
             DefenderPower = opponent.Candidate.Power,
             Points = points
         };
-        return await RecordFightAsync(battle, opponent.Candidate.Username, combat);
+        return await RecordFightAsync(battle, user.PlayerId, opponent.Candidate.Username, combat);
     }
 
     // Разведка соперника из сегодняшнего подбора: точный прогноз боя за счёт дневного лимита
@@ -250,11 +251,15 @@ public class PvpService(
     };
 
     // Записывает бой и очки во всех сезонах его арены
-    public async Task<PvpFightResult> RecordFightAsync(PvpBattle battle, string opponentName, CombatResult combat)
+    public async Task<PvpFightResult> RecordFightAsync(PvpBattle battle, Guid attackerPlayerId, string opponentName, CombatResult combat)
     {
         // Параллельный бой успел победить этого соперника раньше — второй победы за сутки не будет
         if (!await pvp.RecordBattleAsync(battle, SeasonsOf(battle.FoughtAt)))
             throw new PvpException(PvpError.AlreadyBeaten, "You have already beaten this player today");
+
+        await activity.RecordAsync(attackerPlayerId, ActivityKind.PvpFight);
+        if (battle.AttackerWon)
+            await activity.RecordAsync(attackerPlayerId, ActivityKind.PvpWin);
 
         var seasons = new List<PvpSeasonPointsInfo>();
         foreach (var (type, start) in SeasonsOf(battle.FoughtAt))

@@ -38,7 +38,8 @@ public class MiningService(
     IMiningRepository mining,
     IHeroesRepository heroes,
     IExpeditionRepository expeditions,
-    TimeProvider time)
+    TimeProvider time,
+    IActivityTracker activity)
 {
     public const int PlotCount = 6;
     public const int MaxLevel = 10;
@@ -353,6 +354,7 @@ public class MiningService(
         };
         if (await mining.SaveAsync(mine, version, change) != MiningSaveOutcome.Saved)
             throw new MiningException(MiningError.Changed, "Mine has just changed, try again");
+        await activity.RecordAsync(playerId, ActivityKind.MineDig, allowed);
 
         var result = await ResultAsync(playerId, mine, now);
         return new MiningDigResult { Mined = mined, Clicks = allowed, Mine = result.Mine, Wallet = result.Wallet };
@@ -453,6 +455,7 @@ public class MiningService(
         mine.Stored -= collected;
 
         await SaveOrThrowAsync(mine, version, MiningChange.Credit(mine.Type, collected), null);
+        await activity.RecordAsync(playerId, ActivityKind.MineCollect);
         var result = await ResultAsync(playerId, mine, now);
         return new MiningCollectResult { Collected = collected, Mine = result.Mine, Wallet = result.Wallet };
     }

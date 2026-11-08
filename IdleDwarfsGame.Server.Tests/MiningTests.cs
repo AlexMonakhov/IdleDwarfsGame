@@ -37,7 +37,7 @@ public class MiningTests : IDisposable
 
         _heroes = new HeroesRepository(_context);
         _mining = new MiningRepository(_context);
-        _service = new MiningService(_mining, _heroes, new ExpeditionRepository(_context), _clock);
+        _service = new MiningService(_mining, _heroes, new ExpeditionRepository(_context), _clock, NoActivity.Instance);
     }
 
     public void Dispose()
@@ -276,7 +276,7 @@ public class MiningTests : IDisposable
         await Assert.ThrowsAsync<InvalidOperationException>(() => _heroes.SaveSquadAsync(_playerId, [dwarf.Id]));
         Assert.Contains(dwarf.Id, await _heroes.GetMiningHeroIdsAsync(_playerId));
 
-        var expeditions = new ExpeditionService(new ExpeditionRepository(_context), _heroes, new PlayerRepository(_context), new EntityFactory(), _clock);
+        var expeditions = new ExpeditionService(new ExpeditionRepository(_context), _heroes, new PlayerRepository(_context), new EntityFactory(), _clock, NoActivity.Instance);
         var offer = (await expeditions.GetBoardAsync(_playerId)).Expeditions.First();
         await Assert.ThrowsAsync<InvalidOperationException>(() => expeditions.StartAsync(_playerId, offer.Id, [dwarf.Id]));
 

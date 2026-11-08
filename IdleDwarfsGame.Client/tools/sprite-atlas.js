@@ -7,10 +7,13 @@
 // В листе персонаж занимает малую часть кадра (у атак с zoom ~15%): остальное — прозрачное поле под прыжки и шлейфы.
 // Игра держит лист распакованным в размере экрана, и это поле занимает память и видеокарту впустую.
 // В атласе каждый кадр обрезан по непрозрачным пикселям, одинаковые кадры хранятся один раз, всё плотно уложено;
-// в meta для каждого кадра — где он в атласе и где лежал в своей клетке листа. Разрешение то же, что у листа.
-// WebP без потерь: те же пиксели, файл в несколько раз меньше PNG.
+// в meta для каждого кадра — где он в атласе и где лежал в своей клетке листа (в пикселях листа).
+// Картинка атласа хранится уменьшенной в 1/SCALE раз и в WebP с потерями (прозрачность — без потерь): в бою юнит на экране
+// в разы меньше клетки листа, а весь атлас иначе не влезает в хостинг. Meta от этого не меняется — игра переводит её
+// координаты в пиксели картинки по её реальному размеру (character-skeleton.vue), так что годится атлас любого размера.
 // Лист пересобирается, только если он новее своего атласа.
-// Сами листы можно хранить вне проекта: атлас без листа остаётся, игре нужен только он. Ненужный атлас удаляется вручную
+// Сами листы можно хранить вне проекта: атлас без листа остаётся, игре нужен только он. Ненужный атлас удаляется вручную.
+// npm run atlas -- --shrink — пережать уже готовые атласы, которые крупнее SCALE (листы для этого не нужны)
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
@@ -29,6 +32,25 @@ const COLS = 5;
 const PAD = 8;
 // Пиксели прозрачнее этого считаются пустыми (шум сжатия на краю свечения)
 const MIN_ALPHA = 2;
+// Во сколько раз картинка атласа меньше листа и качество WebP (0–100) для цвета
+const SCALE = 1 / 1.5;
+const QUALITY = 82;
+
+// Аргументы ffmpeg: уменьшить картинку w x h в SCALE раз и сохранить WebP с потерями
+const encodeArgs = (w, h, target) => [
+  '-vf', `scale=${Math.max(1, Math.round(w * SCALE))}:${Math.max(1, Math.round(h * SCALE))}:flags=lanczos`,
+  '-c:v', 'libwebp', '-lossless', '0', '-quality', String(QUALITY), '-pix_fmt', 'yuva420p',
+  '-compression_level', '6', '-frames:v', '1', target,
+];
+
+// Ширина картинки WebP из заголовка (VP8X, VP8L или VP8)
+function webpWidth(file) {
+  const b = fs.readFileSync(file).subarray(0, 30);
+  const chunk = b.toString('ascii', 12, 16);
+  if (chunk === 'VP8X') return 1 + b.readUIntLE(24, 3);
+  if (chunk === 'VP8L') return 1 + (b.readUInt16LE(21) & 0x3fff);
+  return b.readUInt16LE(26) & 0x3fff;
+}
 
 const listSheets = dir => fs.readdirSync(dir, { withFileTypes: true }).flatMap(entry => {
   const full = path.join(dir, entry.name);
@@ -115,7 +137,7 @@ function build(file) {
   execFileSync(ffmpeg, [
     '-v', 'error', '-y',
     '-f', 'rawvideo', '-pix_fmt', 'rgba', '-s', `${width}x${height}`, '-i', '-',
-    '-c:v', 'libwebp', '-lossless', '1', '-compression_level', '6', '-frames:v', '1', target,
+    ...encodeArgs(width, height, target),
   ], { input: atlas.data, maxBuffer: 2 ** 30 });
 
   return {
@@ -131,9 +153,29 @@ function build(file) {
   };
 }
 
-const filter = process.argv[2] ?? '';
+// Пережать готовый атлас, если он крупнее SCALE от размера в meta. Повторный запуск уже пережатые пропускает
+function shrink(name, entry) {
+  const file = path.join(ATLAS, path.basename(name, '.png') + '.webp');
+  if (!fs.existsSync(file)) return;
+  const before = fs.statSync(file).size;
+  const width = webpWidth(file);
+  if (width <= Math.round(entry.width * SCALE) + 1) return;
+  const tmp = file.replace(/\.webp$/, '.tmp.webp');
+  execFileSync(ffmpeg, ['-v', 'error', '-y', '-i', file, ...encodeArgs(width, Math.round((width * entry.height) / entry.width), tmp)]);
+  fs.renameSync(tmp, file);
+  console.log(`${name}: ${width}px ${before >> 10} КБ -> ${fs.statSync(file).size >> 10} КБ`);
+}
+
+const args = process.argv.slice(2);
+const filter = args.find(a => !a.startsWith('--')) ?? '';
 fs.mkdirSync(ATLAS, { recursive: true });
 const meta = fs.existsSync(META) ? JSON.parse(fs.readFileSync(META, 'utf8')) : {};
+
+if (args.includes('--shrink')) {
+  Object.entries(meta).filter(([name]) => name.includes(filter)).forEach(([name, entry]) => shrink(name, entry));
+  process.exit(0);
+}
+
 const sheets = listSheets(SPRITES);
 
 for (const file of sheets) {

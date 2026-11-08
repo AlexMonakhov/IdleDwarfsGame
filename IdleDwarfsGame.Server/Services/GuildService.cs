@@ -41,7 +41,8 @@ public class GuildService(
     IEntityFactory entityFactory,
     CombatService combatService,
     SessionService sessions,
-    TimeProvider time
+    TimeProvider time,
+    IActivityTracker activity
 )
 {
     public const int MinNameLength = 3;
@@ -308,6 +309,7 @@ public class GuildService(
         // Значки почёта лавки гильдии — за каждый удар
         int badges = ShopRules.HonorBadgesForAttack(tier);
         await players.AddCurrenciesAsync(user.PlayerId, 0, badges);
+        await activity.RecordAsync(user.PlayerId, ActivityKind.GuildBossAttack);
 
         return new GuildBossAttackResult
         {

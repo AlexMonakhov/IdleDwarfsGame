@@ -49,6 +49,9 @@ import IconSpyglass from './IconSpyglass.vue';
 import IconStar from './IconStar.vue';
 import IconSword from './IconSword.vue';
 import IconTrophy from './IconTrophy.vue';
+import IconElderSeal from './IconElderSeal.vue';
+import IconNugget from './IconNugget.vue';
+import IconFang from './IconFang.vue';
 
 export {
   IconAmulet,
@@ -101,4 +104,7 @@ export {
   IconStar,
   IconSword,
   IconTrophy,
+  IconElderSeal,
+  IconNugget,
+  IconFang,
 };

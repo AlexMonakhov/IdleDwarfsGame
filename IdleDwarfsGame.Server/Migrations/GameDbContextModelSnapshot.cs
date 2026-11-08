@@ -23011,6 +23011,148 @@ namespace IdleDwarfsGame.Server.Migrations
                         });
                 });
 
+            modelBuilder.Entity("CommunityDeposit", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("ClosedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("EventStart")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("ExhaustedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Index")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
+
+                    b.Property<double>("OreMined")
+                        .HasColumnType("float");
+
+                    b.Property<double>("OreTotal")
+                        .HasColumnType("float");
+
+                    b.Property<DateTime>("SpawnedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("SpeedLevel")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EventStart", "Index")
+                        .IsUnique();
+
+                    b.ToTable("CommunityDeposits");
+                });
+
+            modelBuilder.Entity("DailyQuestState", b =>
+                {
+                    b.Property<string>("PlayerId")
+                        .HasColumnType("nvarchar(36)");
+
+                    b.Property<DateTime>("Day")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("FreeRerollUsed")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("MilestonesClaimed")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("int");
+
+                    b.HasKey("PlayerId");
+
+                    b.ToTable("DailyQuestStates");
+                });
+
+            modelBuilder.Entity("DepositDwarf", b =>
+                {
+                    b.Property<Guid>("HeroId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("DepositId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("PlayerId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(36)");
+
+                    b.Property<double>("Rate")
+                        .HasColumnType("float");
+
+                    b.HasKey("HeroId");
+
+                    b.HasIndex("DepositId");
+
+                    b.HasIndex("PlayerId");
+
+                    b.ToTable("DepositDwarves");
+                });
+
+            modelBuilder.Entity("DepositRewardClaim", b =>
+                {
+                    b.Property<Guid>("DepositId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("PlayerId")
+                        .HasColumnType("nvarchar(36)");
+
+                    b.Property<DateTime>("ClaimedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Currency")
+                        .HasColumnType("int");
+
+                    b.HasKey("DepositId", "PlayerId");
+
+                    b.HasIndex("PlayerId");
+
+                    b.ToTable("DepositRewardClaims");
+                });
+
+            modelBuilder.Entity("DepositWorker", b =>
+                {
+                    b.Property<Guid>("DepositId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("PlayerId")
+                        .HasColumnType("nvarchar(36)");
+
+                    b.Property<double>("Mined")
+                        .HasColumnType("float");
+
+                    b.Property<double>("UpgradePoints")
+                        .HasColumnType("float");
+
+                    b.Property<int>("Upgrades")
+                        .HasColumnType("int");
+
+                    b.HasKey("DepositId", "PlayerId");
+
+                    b.HasIndex("PlayerId");
+
+                    b.ToTable("DepositWorkers");
+                });
+
             modelBuilder.Entity("Expedition", b =>
                 {
                     b.Property<Guid>("Id")
@@ -23083,6 +23225,30 @@ namespace IdleDwarfsGame.Server.Migrations
                         .IsUnique();
 
                     b.ToTable("ExpeditionHeroes");
+                });
+
+            modelBuilder.Entity("FixedShopPurchase", b =>
+                {
+                    b.Property<string>("PlayerId")
+                        .HasColumnType("nvarchar(36)");
+
+                    b.Property<string>("Shop")
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
+
+                    b.Property<DateTime>("Period")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("OfferKey")
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<int>("Count")
+                        .HasColumnType("int");
+
+                    b.HasKey("PlayerId", "Shop", "Period", "OfferKey");
+
+                    b.ToTable("FixedShopPurchases");
                 });
 
             modelBuilder.Entity("FriendRequest", b =>
@@ -24963,6 +25129,9 @@ namespace IdleDwarfsGame.Server.Migrations
                     b.Property<DateTime?>("DigEnergyAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<long>("ElderSeals")
+                        .HasColumnType("bigint");
+
                     b.Property<long>("Experience")
                         .HasColumnType("bigint");
 
@@ -25010,6 +25179,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Id = "a1d2f3e4-0000-4000-8000-000000000001",
                             BloodCoins = 0L,
                             DigEnergy = 0.0,
+                            ElderSeals = 0L,
                             Experience = 0L,
                             Gold = 0L,
                             HonorBadges = 0L,
@@ -25026,6 +25196,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Id = "e0e0e0e0-0000-4000-8000-000000000002",
                             BloodCoins = 0L,
                             DigEnergy = 0.0,
+                            ElderSeals = 0L,
                             Experience = 0L,
                             Gold = 0L,
                             HonorBadges = 0L,
@@ -25042,6 +25213,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Id = "c0c0c0c0-0000-4000-8000-000000000003",
                             BloodCoins = 0L,
                             DigEnergy = 0.0,
+                            ElderSeals = 0L,
                             Experience = 0L,
                             Gold = 0L,
                             HonorBadges = 0L,
@@ -25058,6 +25230,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Id = "b0b0b0b0-0000-4000-8000-000000000004",
                             BloodCoins = 0L,
                             DigEnergy = 0.0,
+                            ElderSeals = 0L,
                             Experience = 0L,
                             Gold = 0L,
                             HonorBadges = 0L,
@@ -25119,6 +25292,26 @@ namespace IdleDwarfsGame.Server.Migrations
                     b.ToTable("PlayerCampaignProgress");
                 });
 
+            modelBuilder.Entity("PlayerDailyActivity", b =>
+                {
+                    b.Property<string>("PlayerId")
+                        .HasColumnType("nvarchar(36)");
+
+                    b.Property<DateTime>("Day")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Kind")
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<int>("Count")
+                        .HasColumnType("int");
+
+                    b.HasKey("PlayerId", "Day", "Kind");
+
+                    b.ToTable("PlayerDailyActivities");
+                });
+
             modelBuilder.Entity("PlayerEquipment", b =>
                 {
                     b.Property<Guid>("Id")
@@ -25150,6 +25343,25 @@ namespace IdleDwarfsGame.Server.Migrations
                         .HasFilter("[HeroId] IS NOT NULL AND [Slot] IS NOT NULL");
 
                     b.ToTable("PlayerEquipment");
+                });
+
+            modelBuilder.Entity("PlayerEventWallet", b =>
+                {
+                    b.Property<string>("PlayerId")
+                        .HasColumnType("nvarchar(36)");
+
+                    b.Property<DateTime>("EventStart")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("Currency")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("Earned")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("PlayerId", "EventStart");
+
+                    b.ToTable("PlayerEventWallets");
                 });
 
             modelBuilder.Entity("PlayerItem", b =>
@@ -25189,6 +25401,61 @@ namespace IdleDwarfsGame.Server.Migrations
                         .IsUnique();
 
                     b.ToTable("PlayerItems");
+                });
+
+            modelBuilder.Entity("PlayerQuest", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("ClaimedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("Day")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ElderSeals")
+                        .HasColumnType("int");
+
+                    b.Property<int>("EventCurrency")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Experience")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Gold")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<string>("PlayerId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(36)");
+
+                    b.Property<int>("Points")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Slot")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Target")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PlayerId", "Day", "Slot")
+                        .IsUnique();
+
+                    b.ToTable("PlayerQuests");
                 });
 
             modelBuilder.Entity("PlayerResourses", b =>
@@ -25671,6 +25938,99 @@ namespace IdleDwarfsGame.Server.Migrations
                     b.HasIndex("UserId", "LastSeenAt");
 
                     b.ToTable("UserSessions");
+                });
+
+            modelBuilder.Entity("WorldBoss", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("CurrentHp")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("DefeatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("EventStart")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("KilledByPlayerId")
+                        .HasColumnType("nvarchar(36)");
+
+                    b.Property<int>("MaxHp")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("SpawnedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Stage")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EventStart", "Stage")
+                        .IsUnique();
+
+                    b.ToTable("WorldBosses");
+                });
+
+            modelBuilder.Entity("WorldBossContribution", b =>
+                {
+                    b.Property<Guid>("BossId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("PlayerId")
+                        .HasColumnType("nvarchar(36)");
+
+                    b.Property<int>("Attacks")
+                        .HasColumnType("int");
+
+                    b.Property<long>("Damage")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("LastAttackAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("BossId", "PlayerId");
+
+                    b.HasIndex("PlayerId");
+
+                    b.ToTable("WorldBossContributions");
+                });
+
+            modelBuilder.Entity("WorldBossCooldown", b =>
+                {
+                    b.Property<string>("PlayerId")
+                        .HasColumnType("nvarchar(36)");
+
+                    b.Property<DateTime>("ReadyAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("PlayerId");
+
+                    b.ToTable("WorldBossCooldowns");
+                });
+
+            modelBuilder.Entity("WorldBossRewardClaim", b =>
+                {
+                    b.Property<Guid>("BossId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("PlayerId")
+                        .HasColumnType("nvarchar(36)");
+
+                    b.Property<DateTime>("ClaimedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Currency")
+                        .HasColumnType("int");
+
+                    b.HasKey("BossId", "PlayerId");
+
+                    b.HasIndex("PlayerId");
+
+                    b.ToTable("WorldBossRewardClaims");
                 });
 
             modelBuilder.Entity("CampaignStage", b =>
@@ -33982,6 +34342,60 @@ namespace IdleDwarfsGame.Server.Migrations
                     b.Navigation("Entries");
                 });
 
+            modelBuilder.Entity("DailyQuestState", b =>
+                {
+                    b.HasOne("Player", null)
+                        .WithMany()
+                        .HasForeignKey("PlayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("DepositDwarf", b =>
+                {
+                    b.HasOne("CommunityDeposit", null)
+                        .WithMany()
+                        .HasForeignKey("DepositId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Hero", null)
+                        .WithMany()
+                        .HasForeignKey("HeroId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("DepositRewardClaim", b =>
+                {
+                    b.HasOne("CommunityDeposit", null)
+                        .WithMany()
+                        .HasForeignKey("DepositId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Player", null)
+                        .WithMany()
+                        .HasForeignKey("PlayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("DepositWorker", b =>
+                {
+                    b.HasOne("CommunityDeposit", null)
+                        .WithMany()
+                        .HasForeignKey("DepositId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Player", null)
+                        .WithMany()
+                        .HasForeignKey("PlayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Expedition", b =>
                 {
                     b.HasOne("Player", null)
@@ -34002,6 +34416,15 @@ namespace IdleDwarfsGame.Server.Migrations
                     b.HasOne("Hero", null)
                         .WithMany()
                         .HasForeignKey("HeroId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("FixedShopPurchase", b =>
+                {
+                    b.HasOne("Player", null)
+                        .WithMany()
+                        .HasForeignKey("PlayerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
@@ -34189,6 +34612,15 @@ namespace IdleDwarfsGame.Server.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("PlayerDailyActivity", b =>
+                {
+                    b.HasOne("Player", null)
+                        .WithMany()
+                        .HasForeignKey("PlayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("PlayerEquipment", b =>
                 {
                     b.HasOne("Hero", null)
@@ -34203,7 +34635,25 @@ namespace IdleDwarfsGame.Server.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("PlayerEventWallet", b =>
+                {
+                    b.HasOne("Player", null)
+                        .WithMany()
+                        .HasForeignKey("PlayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("PlayerItem", b =>
+                {
+                    b.HasOne("Player", null)
+                        .WithMany()
+                        .HasForeignKey("PlayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("PlayerQuest", b =>
                 {
                     b.HasOne("Player", null)
                         .WithMany()
@@ -34324,6 +34774,45 @@ namespace IdleDwarfsGame.Server.Migrations
                     b.HasOne("User", null)
                         .WithMany()
                         .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("WorldBossContribution", b =>
+                {
+                    b.HasOne("WorldBoss", null)
+                        .WithMany()
+                        .HasForeignKey("BossId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Player", null)
+                        .WithMany()
+                        .HasForeignKey("PlayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("WorldBossCooldown", b =>
+                {
+                    b.HasOne("Player", null)
+                        .WithMany()
+                        .HasForeignKey("PlayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("WorldBossRewardClaim", b =>
+                {
+                    b.HasOne("WorldBoss", null)
+                        .WithMany()
+                        .HasForeignKey("BossId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Player", null)
+                        .WithMany()
+                        .HasForeignKey("PlayerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

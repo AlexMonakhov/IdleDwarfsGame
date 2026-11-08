@@ -1,10 +1,11 @@
+import { API_BASE_URL } from './apiConfig';
 import axios from 'axios';
 import { useAuth } from '@/composables/UseAuth';
 import type { Rarity } from '@/models/types/Inventory';
 import { ForgeGemResult, ForgeItemResult, ForgeOverview } from '@/models/types/Forge';
 
 const apiClient = axios.create({
-    baseURL: 'https://localhost:7232',
+    baseURL: API_BASE_URL,
     timeout: 5000,
     headers: {
         'Content-Type': 'application/json'

@@ -6,7 +6,8 @@ public class CampaignService(
     CombatService combatService,
     IRewardRepository rewards,
     Random random,
-    TimeProvider time
+    TimeProvider time,
+    IActivityTracker activity
 )
 {
     // Сколько заблокированных уровней показываем после текущего
@@ -69,7 +70,9 @@ public class CampaignService(
             var reward = alreadyCleared ? null : CampaignRewards.Roll(playerId, stage, random, time.GetUtcNow().UtcDateTime);
             firstClear = await campaign.MarkClearedAsync(playerId, stageId, reward);
             cleared.Add(stageId);
+            await activity.RecordAsync(playerId, ActivityKind.CampaignWin);
         }
+        await activity.RecordAsync(playerId, ActivityKind.CampaignFight);
 
         return new CampaignFightResult
         {

@@ -45,6 +45,16 @@ public class CombatService(
         return await ProcessCombat(playerId, scenario.Definition.Level, scenario, globalEffects);
     }
 
+    // Мировой босс ивента — на арене его варианта, как босс гильдии
+    public async Task<CombatResult> StartWorldBossFight(Guid playerId, WorldBossScenario scenario, Arena arena)
+    {
+        var globalEffects = new List<IGlobalEffect>();
+        if (ArenaStatusEffect.FromArena(arena) is { } arenaEffect)
+            globalEffects.Add(arenaEffect);
+
+        return await ProcessCombat(playerId, scenario.Level, scenario, globalEffects);
+    }
+
     // Отряд игрока против сохранённого отряда другого игрока на арене PvP
     public async Task<CombatResult> StartPvpFight(Guid playerId, PvpScenario scenario)
     {

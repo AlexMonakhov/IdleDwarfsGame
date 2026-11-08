@@ -97,7 +97,7 @@ public class RankedPvpService(
     {
         var now = Now;
         var day = PvpSeasons.DayOf(now);
-        await RequireUserAsync(userId);
+        var user = await RequireUserAsync(userId);
         var locked = await pvp.GetRankedSquadAsync(userId)
             ?? throw new PvpException(PvpError.NoRankedSquad, "Lock your squad to fight in the ranked arena");
         var mySquad = locked.Heroes();
@@ -130,7 +130,7 @@ public class RankedPvpService(
             DefenderRating = theirRating,
             Points = PvpRating.DeltaFor(won, myRating, theirRating)
         };
-        return await pvpService.RecordFightAsync(battle, opponent.Candidate.Username, combat);
+        return await pvpService.RecordFightAsync(battle, user.PlayerId, opponent.Candidate.Username, combat);
     }
 
     // Разведка: снимок против снимка, лимит общий с обычной ареной

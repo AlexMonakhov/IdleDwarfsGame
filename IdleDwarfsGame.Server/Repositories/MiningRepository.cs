@@ -27,9 +27,11 @@ public class MiningRepository(GameDbContext context) : IMiningRepository
 
     public async Task<HashSet<Guid>> GetHeroIdsAsync(Guid playerId)
     {
+        // Дворф на месторождении ивента «Общие шахты» тоже занят — в личную шахту его не поставить
         var ids = await context.MineDwarves
             .Where(d => context.Mines.Any(m => m.Id == d.MineId && m.PlayerId == playerId))
             .Select(d => d.HeroId)
+            .Concat(context.DepositDwarves.Where(d => d.PlayerId == playerId).Select(d => d.HeroId))
             .ToListAsync();
 
         return ids.ToHashSet();
