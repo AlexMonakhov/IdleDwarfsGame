@@ -10,9 +10,9 @@ Run both in the background, write logs to the scratchpad, and wait for the ready
 
 ## Gotchas
 - `dotnet` is **not on PATH**. It lives at `~/.dotnet/dotnet`. Export `DOTNET_ROOT=$HOME/.dotnet PATH=$HOME/.dotnet:$PATH` first.
-- The client calls the API at `https://localhost:7232` (src baseURL), so use the **`https`** launch profile, not `http`.
+- The client calls the API at `https://localhost:7232` (`VUE_APP_API_URL` in `IdleDwarfsGame.Client/.env.development`), so use the **`https`** launch profile, not `http`.
 - Before starting, check that ports 7232/5015/8080 are free: `lsof -iTCP -sTCP:LISTEN -n -P | grep -E "7232|5015|8080"`.
-- The database is **SQL Server**. The default connection string (`appsettings.json` → `ConnectionStrings:GameDb`) points to Windows LocalDB, which does not exist on macOS — see step 0.
+- The database is **SQL Server**. The default connection string (`appsettings.Development.json` → `ConnectionStrings:GameDb`) points to Windows LocalDB, which does not exist on macOS — see step 0.
 
 ## 0. Database (macOS)
 Run SQL Server in Docker once, then point the server at it via an env var (migrations create the `IdleDwarfs` database on startup):

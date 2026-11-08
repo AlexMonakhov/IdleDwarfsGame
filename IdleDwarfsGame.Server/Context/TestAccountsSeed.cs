@@ -1,8 +1,10 @@
+using System.Security.Cryptography;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
-// Тестовые аккаунты TestUser1..TestUser{Count} — соперники для PvP на локальной базе. Добавляются при старте сервера
-// в Development, если их ещё нет (Program.cs). Под ними можно войти: пароль Password, почта testuser{n}@test.local.
+// Тестовые аккаунты TestUser1..TestUser{Count} — соперники для PvP (боты арены). Добавляются при старте сервера,
+// если их ещё нет (Program.cs). Локально под ними можно войти: пароль Password, почта testuser{n}@test.local.
+// На проде пароль не передаётся — каждому достаётся случайный, и войти под ботом нельзя.
 // Отряд — 5 случайных героев 1–5 ранга со случайными статами и ровно одним заклинанием случайного уровня 1–3,
 // он же закреплён на рейтинговой арене. Сид фиксированный: на чистой базе аккаунты получаются одинаковыми
 public static class TestAccountsSeed
@@ -16,11 +18,12 @@ public static class TestAccountsSeed
     private const double MinStatJitter = 0.8;
     private const double MaxStatJitter = 1.25;
 
-    public static async Task SeedAsync(GameDbContext context, IPasswordHasher<User> hasher)
+    // password == null — у каждого аккаунта случайный пароль, который никто не знает
+    public static async Task SeedAsync(GameDbContext context, IPasswordHasher<User> hasher, string? password = Password)
     {
         var normalizedFirst = UserRepository.Normalize(UsernamePrefix + 1);
         if (!await context.Users.AnyAsync(u => u.NormalizedUsername == normalizedFirst))
-            await SeedAccountsAsync(context, hasher);
+            await SeedAccountsAsync(context, hasher, password);
 
         // Отдельным шагом: на базах, где аккаунты появились до рейтинговой арены, отрядов арены ещё нет
         await SeedRankedSquadsAsync(context);
@@ -52,7 +55,7 @@ public static class TestAccountsSeed
         context.ChangeTracker.Clear();
     }
 
-    private static async Task SeedAccountsAsync(GameDbContext context, IPasswordHasher<User> hasher)
+    private static async Task SeedAccountsAsync(GameDbContext context, IPasswordHasher<User> hasher, string? password)
     {
         var random = new Random(Seed);
         var now = DateTime.UtcNow;
@@ -79,7 +82,7 @@ public static class TestAccountsSeed
                 PlayerId = player.Id,
                 Player = player
             };
-            user.PasswordHash = hasher.HashPassword(user, Password);
+            user.PasswordHash = hasher.HashPassword(user, password ?? Convert.ToBase64String(RandomNumberGenerator.GetBytes(32)));
 
             context.Players.Add(player);
             context.Users.Add(user);

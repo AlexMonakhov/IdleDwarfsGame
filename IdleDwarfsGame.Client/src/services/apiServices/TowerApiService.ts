@@ -1,10 +1,11 @@
+import { API_BASE_URL } from './apiConfig';
 import axios from 'axios';
 import { useAuth } from '@/composables/UseAuth';
 import { TowerFightResult, TowerOverview, TowerSkipResult } from '@/models/types/Tower';
 import { RewardClaimAllResult, RewardClaimResult } from '@/models/types/Inventory';
 
 const apiClient = axios.create({
-    baseURL: 'https://localhost:7232',
+    baseURL: API_BASE_URL,
     // Обзор башни прогоняет прогноз боя для пяти этажей
     timeout: 10000,
     headers: {

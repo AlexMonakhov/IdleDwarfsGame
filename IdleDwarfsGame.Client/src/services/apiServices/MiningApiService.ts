@@ -1,3 +1,4 @@
+import { API_BASE_URL } from './apiConfig';
 import axios from 'axios';
 import { useAuth } from '@/composables/UseAuth';
 import {
@@ -11,7 +12,7 @@ import {
 } from '@/models/types/Mining';
 
 const apiClient = axios.create({
-    baseURL: 'https://localhost:7232',
+    baseURL: API_BASE_URL,
     timeout: 5000,
     headers: {
         'Content-Type': 'application/json'
