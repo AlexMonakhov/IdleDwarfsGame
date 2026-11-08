@@ -27,7 +27,7 @@ public class PvpTests : IDisposable
         var heroes = new HeroesRepository(_context);
         var combat = new CombatService(new WorldFactory(heroes, Factory), new CombatEngine(new Random(1)), []);
         _squadPower = new SquadPowerService(new PvpRepository(_context), Factory);
-        _service = new PvpService(new PvpRepository(_context), new UserRepository(_context), heroes, Factory, combat, _squadPower, _clock);
+        _service = new PvpService(new PvpRepository(_context), new UserRepository(_context), heroes, Factory, combat, _squadPower, _clock, NoActivity.Instance);
     }
 
     public void Dispose()

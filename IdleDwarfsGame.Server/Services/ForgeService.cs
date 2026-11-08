@@ -25,7 +25,7 @@ public class ForgeException(ForgeError code, string message) : InvalidOperationE
 //     Вид нового предмета — как у случайного из переплавленных: 5 оружий — точно оружие, 1 оружие и 4 кольца — кольцо в 80%;
 //   камни — GemFusionSize камней одной ступени сплавляются в один камень того же вида ступенью выше.
 // Выше MaxForgedRarity не куётся: артефакт из легендарных не получить — артефакты только из сундуков и магазина
-public class ForgeService(IForgeRepository forge, Random random)
+public class ForgeService(IForgeRepository forge, Random random, IActivityTracker activity)
 {
     public const int ItemFusionSize = 5;
     public const int GemFusionSize = 5;
@@ -82,6 +82,7 @@ public class ForgeService(IForgeRepository forge, Random random)
         var result = new PlayerEquipment { Id = Guid.NewGuid(), PlayerId = playerId, ItemKey = forged.Key };
         if (!await forge.FuseItemsAsync(playerId, equipmentIds, result))
             throw new ForgeException(ForgeError.Changed, "One of the items has just changed, try again");
+        await activity.RecordAsync(playerId, ActivityKind.ForgeFuse);
 
         return new ForgeItemResult
         {
@@ -103,6 +104,7 @@ public class ForgeService(IForgeRepository forge, Random random)
         int cost = GemFusionSize * times;
         if (!await forge.FuseGemsAsync(playerId, gem, rarity, cost, rarity + 1, times))
             throw new ForgeException(ForgeError.NotEnoughGems, $"Not enough {rarity} {gem}: {cost} needed");
+        await activity.RecordAsync(playerId, ActivityKind.ForgeFuse, times);
 
         return new ForgeGemResult
         {

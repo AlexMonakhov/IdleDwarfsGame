@@ -37,7 +37,7 @@ public class ExpeditionTests : IDisposable
 
         _heroes = new HeroesRepository(_context);
         _service = new ExpeditionService(
-            new ExpeditionRepository(_context), _heroes, new PlayerRepository(_context), Factory, _clock);
+            new ExpeditionRepository(_context), _heroes, new PlayerRepository(_context), Factory, _clock, NoActivity.Instance);
     }
 
     public void Dispose()

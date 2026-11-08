@@ -135,6 +135,20 @@ builder.Services.AddScoped<IShopRepository, ShopRepository>();
 builder.Services.AddScoped<ShopService>();
 builder.Services.AddScoped<IForgeRepository, ForgeRepository>();
 builder.Services.AddScoped<ForgeService>();
+// Счётчики действий за сутки — по ним идут ежедневные задания
+builder.Services.AddScoped<IActivityRepository, ActivityRepository>();
+builder.Services.AddScoped<IActivityTracker, ActivityTracker>();
+builder.Services.AddScoped<IQuestRepository, QuestRepository>();
+builder.Services.AddScoped<QuestService>();
+// Лавка старейшин и лавка ивента недели (WorldEvents)
+builder.Services.AddScoped<IFixedShopRepository, FixedShopRepository>();
+builder.Services.AddScoped<FixedShopService>();
+// Ивенты недели: мировые боссы и общие шахты (их месторождения ведёт ещё и фоновая задача)
+builder.Services.AddScoped<IWorldBossRepository, WorldBossRepository>();
+builder.Services.AddScoped<WorldBossService>();
+builder.Services.AddScoped<ICommunityMineRepository, CommunityMineRepository>();
+builder.Services.AddScoped<CommunityMineService>();
+builder.Services.AddHostedService<WorldEventsTicker>();
 //builder.Services.AddScoped<IMonsterRepository, MonsterRepository>();
 
 var app = builder.Build();

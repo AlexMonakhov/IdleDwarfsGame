@@ -154,7 +154,7 @@ public class RewardTests : IDisposable
             .ClaimAsync(_playerId, reward.Id);
 
         var inventory = new InventoryRepository(_context);
-        var chests = new ChestService(inventory, new ItemDropService(new Random(5)), Factory, new Random(5));
+        var chests = new ChestService(inventory, new ItemDropService(new Random(5)), Factory, new Random(5), NoActivity.Instance);
         var gemChest = (await chests.GetInventoryAsync(_playerId)).Chests.Single(c => c.Type == ChestType.Gem);
         var heroChest = (await chests.GetInventoryAsync(_playerId)).Chests.Single(c => c.Type == ChestType.Hero);
 

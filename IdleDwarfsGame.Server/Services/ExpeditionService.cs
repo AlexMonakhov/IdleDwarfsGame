@@ -7,7 +7,8 @@ public class ExpeditionService(
     IHeroesRepository heroes,
     IPlayerRepository players,
     IEntityFactory entityFactory,
-    TimeProvider time
+    TimeProvider time,
+    IActivityTracker activity
 )
 {
     public const int MaxHeroes = 4;
@@ -105,6 +106,7 @@ public class ExpeditionService(
             .ToList();
 
         await expeditions.StartAsync(expedition);
+        await activity.RecordAsync(playerId, ActivityKind.ExpeditionStart);
         return ToInfo(expedition, now);
     }
 
@@ -121,6 +123,7 @@ public class ExpeditionService(
 
         if (!await expeditions.ClaimAsync(expedition, now))
             throw new InvalidOperationException("Reward is already claimed");
+        await activity.RecordAsync(playerId, ActivityKind.ExpeditionClaim);
 
         return new ExpeditionClaimResult
         {

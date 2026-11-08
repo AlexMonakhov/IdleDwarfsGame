@@ -72,7 +72,8 @@ public class PlayerRepository : IPlayerRepository
                 Experience = p.Experience,
                 RainbowCoins = p.RainbowCoins,
                 BloodCoins = p.BloodCoins,
-                HonorBadges = p.HonorBadges
+                HonorBadges = p.HonorBadges,
+                ElderSeals = p.ElderSeals
             })
             .FirstOrDefaultAsync();
     }
@@ -87,5 +88,23 @@ public class PlayerRepository : IPlayerRepository
             .ExecuteUpdateAsync(s => s
                 .SetProperty(p => p.BloodCoins, p => p.BloodCoins + bloodCoins)
                 .SetProperty(p => p.HonorBadges, p => p.HonorBadges + honorBadges));
+    }
+
+    public async Task<PlayerProgress> GetProgressAsync(Guid playerId)
+    {
+        int cleared = await _context.PlayerCampaignProgress.CountAsync(p => p.PlayerId == playerId);
+
+        // Текущий уровень — следующий после пройденных; в конце кампании — последний
+        int lastStage = await _context.CampaignStages.MaxAsync(s => (int?)s.Id) ?? 0;
+        int currentId = Math.Min(cleared + 1, lastStage);
+        var stage = currentId > 0
+            ? await _context.CampaignStages.AsNoTracking().FirstOrDefaultAsync(s => s.Id == currentId)
+            : null;
+
+        bool inGuild = await _context.Users
+            .Where(u => u.PlayerId == playerId)
+            .AnyAsync(u => _context.GuildMembers.Any(m => m.UserId == u.Id));
+
+        return new PlayerProgress(cleared, stage, inGuild);
     }
 }

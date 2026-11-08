@@ -5,6 +5,7 @@ public class PlayerResources
     public long RainbowCoins { get; set; }
     public long BloodCoins { get; set; }
     public long HonorBadges { get; set; }
+    public long ElderSeals { get; set; }
 }
 
 public class ExpeditionReward

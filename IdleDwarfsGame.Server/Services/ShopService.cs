@@ -29,7 +29,8 @@ public class ShopService(
     IPlayerRepository players,
     IEntityFactory entityFactory,
     Random random,
-    TimeProvider clock)
+    TimeProvider clock,
+    IActivityTracker activity)
 {
     private static readonly JsonSerializerOptions HeroJson = new() { Converters = { new JsonStringEnumConverter() } };
 
@@ -119,6 +120,7 @@ public class ShopService(
                 EnsureAffordable(await shops.GetWalletAsync(playerId), offer);
                 throw new ShopException(ShopError.NotEnoughGold, "Not enough resources");
         }
+        await activity.RecordAsync(playerId, ActivityKind.ShopBuy);
 
         return new ShopBuyResult
         {

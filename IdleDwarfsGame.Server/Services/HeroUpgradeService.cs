@@ -24,7 +24,8 @@ public class HeroUpgradeService(
     IPlayerRepository players,
     IExpeditionRepository expeditions,
     IEntityFactory entityFactory,
-    SquadPowerService squadPower)
+    SquadPowerService squadPower,
+    IActivityTracker activity)
 {
     public const int MinLevel = 1;
 
@@ -125,6 +126,7 @@ public class HeroUpgradeService(
         }
 
         await squadPower.RefreshIfInSquadAsync(playerId, [hero]);
+        await activity.RecordAsync(playerId, ActivityKind.HeroUpgrade);
 
         var busy = await expeditions.GetBusyHeroIdsAsync(playerId);
         var mining = await heroes.GetMiningHeroIdsAsync(playerId);

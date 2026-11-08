@@ -15,6 +15,8 @@ public class Player
     public long BloodCoins { get; set; }
     // Значки почёта — валюта лавки гильдии, даются за удары по боссам гильдии и их убийство (ShopRules)
     public long HonorBadges { get; set; }
+    // Печати старейшин — валюта лавки старейшин, даются за ежедневные задания (DailyQuests)
+    public long ElderSeals { get; set; }
 
     // Сила кирки — общий на все шахты запас кликов (MiningService.DigEnergyMax), восстанавливается со временем.
     // Посчитана на момент DigEnergyAt, дальше растёт лениво; DigEnergyAt == null — кирка полная

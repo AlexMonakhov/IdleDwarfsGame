@@ -260,7 +260,7 @@ public class TowerTests : IDisposable
         await tower.AdvanceAsync(_playerId, Week.AddDays(-7), 0, 5, Reward(), Now.AddDays(-7));
         await CreateService().SkipAsync(_playerId);
 
-        var chests = new ChestService(new InventoryRepository(_context), new ItemDropService(new Random(3)), Factory, new Random(3));
+        var chests = new ChestService(new InventoryRepository(_context), new ItemDropService(new Random(3)), Factory, new Random(3), NoActivity.Instance);
         var chest = (await chests.GetInventoryAsync(_playerId)).Chests.Single(c => c.Type == ChestType.Infinity);
         Assert.Equal(HeroElement.Fire, chest.Element);
 
@@ -389,7 +389,7 @@ public class TowerTests : IDisposable
         var clock = new TestClock(Now);
         var combat = new CombatService(Mock.Of<IWorldFactory>(), Mock.Of<ICombatEngine>(), []);
         return new TowerService(new TowerRepository(_context), heroes.Object, Factory, combat, rewards,
-            new RewardService(rewards, new PlayerRepository(_context), clock), clock);
+            new RewardService(rewards, new PlayerRepository(_context), clock), clock, NoActivity.Instance);
     }
 
     private sealed class TestClock(DateTime now) : TimeProvider

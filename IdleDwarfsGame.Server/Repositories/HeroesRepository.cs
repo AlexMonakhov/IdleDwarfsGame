@@ -49,21 +49,26 @@ public class HeroesRepository : IHeroesRepository
         return heroes.Where(h => !busy.Contains(h.Id)).OrderBy(h => h.Name).Take(maxSize).ToList();
     }
 
+    // Дворфы в личных шахтах и на месторождениях ивента «Общие шахты» — для всех проверок «занят ли герой»
     public async Task<HashSet<Guid>> GetMiningHeroIdsAsync(Guid playerId)
     {
         var ids = await _context.MineDwarves
             .Where(d => _context.Mines.Any(m => m.Id == d.MineId && m.PlayerId == playerId))
             .Select(d => d.HeroId)
+            .Concat(_context.DepositDwarves.Where(d => d.PlayerId == playerId).Select(d => d.HeroId))
             .ToListAsync();
 
         return ids.ToHashSet();
     }
 
-    // Заняты герои в экспедиции и дворфы, работающие в шахтах
+    // Заняты герои в экспедиции и дворфы, работающие в шахтах (личных и общих)
     private IQueryable<Guid> BusyHeroIds(List<Guid> heroIds) => _context.ExpeditionHeroes
         .Where(h => heroIds.Contains(h.HeroId))
         .Select(h => h.HeroId)
         .Concat(_context.MineDwarves
+            .Where(d => heroIds.Contains(d.HeroId))
+            .Select(d => d.HeroId))
+        .Concat(_context.DepositDwarves
             .Where(d => heroIds.Contains(d.HeroId))
             .Select(d => d.HeroId));
 

@@ -26,7 +26,7 @@ public class RankedPvpTests : IDisposable
         var pvp = new PvpRepository(_context);
         var users = new UserRepository(_context);
         var squadPower = new SquadPowerService(pvp, factory);
-        _casual = new PvpService(pvp, users, heroes, factory, combat, squadPower, _clock);
+        _casual = new PvpService(pvp, users, heroes, factory, combat, squadPower, _clock, NoActivity.Instance);
         _service = new RankedPvpService(pvp, users, heroes, factory, combat, _casual, squadPower, _clock);
     }
 

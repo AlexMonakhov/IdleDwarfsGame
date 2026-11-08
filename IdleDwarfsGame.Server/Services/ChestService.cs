@@ -4,7 +4,8 @@ public class ChestService(
     IInventoryRepository inventory,
     ItemDropService drops,
     IEntityFactory entityFactory,
-    Random random)
+    Random random,
+    IActivityTracker activity)
 {
     public async Task<InventoryInfo> GetInventoryAsync(Guid playerId)
     {
@@ -42,6 +43,7 @@ public class ChestService(
 
         if (!await inventory.OpenChestAsync(chest, items, heroes, equipment))
             throw new InvalidOperationException("Chest is already opened");
+        await activity.RecordAsync(playerId, ActivityKind.ChestOpen);
 
         return new ChestOpenResult
         {

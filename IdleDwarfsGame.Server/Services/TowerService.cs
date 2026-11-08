@@ -8,7 +8,8 @@ public class TowerService(
     CombatService combatService,
     IRewardRepository rewards,
     RewardService rewardService,
-    TimeProvider time
+    TimeProvider time,
+    IActivityTracker activity
 )
 {
     // Сколько заблокированных этажей показываем после текущего
@@ -66,6 +67,7 @@ public class TowerService(
         // Награда пишется вместе с прогрессом, но на аккаунт попадёт лишь при получении
         bool clearedNow = combat.WinningTeam == 1
             && await tower.AdvanceAsync(playerId, week, cleared, floor, TowerRewards.For(playerId, week, floor, now), now);
+        await activity.RecordAsync(playerId, ActivityKind.TowerFight);
 
         return new TowerFightResult
         {

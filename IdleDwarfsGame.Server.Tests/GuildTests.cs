@@ -35,7 +35,7 @@ public class GuildTests : IDisposable
         var combat = new CombatService(new WorldFactory(heroes, factory), new CombatEngine(new Random(1)), []);
         var sessions = new SessionService(new UserSessionRepository(_context), new FriendRepository(_context), _clock);
         _service = new GuildService(_repository, new UserRepository(_context), new PlayerRepository(_context), heroes, factory,
-            combat, sessions, _clock);
+            combat, sessions, _clock, NoActivity.Instance);
     }
 
     public void Dispose()

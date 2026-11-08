@@ -169,7 +169,7 @@ public class CampaignTests
         var scenarios = new ICombatScenario[] { new CampaignScenario(repository, Factory) };
         var combatService = new CombatService(Mock.Of<IWorldFactory>(), Mock.Of<ICombatEngine>(), scenarios);
         return new CampaignService(repository, heroes.Object, Factory, scenarios, combatService,
-            rewards, new Random(0), TimeProvider.System);
+            rewards, new Random(0), TimeProvider.System, NoActivity.Instance);
     }
 
     // Кампания из сидов в памяти, без БД
