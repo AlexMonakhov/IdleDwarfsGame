@@ -66,7 +66,8 @@ const rewards = useStageRewards({
 // Бой проигрывается на арене, она сама запросит его у сервера по номеру этажа
 const startFloor = (floor: TowerFloorInfo) => {
     if (floor.status !== 'Available') return;
-    router.push({ name: 'arena', query: { tower: floor.floor } });
+    // attack — разовая метка: перезагрузка арены покажет итог этого боя, а не начнёт новый
+    router.push({ name: 'arena', query: { tower: floor.floor, attack: Date.now() } });
 };
 
 // Отряд меняется в общем окне отряда поверх башни; когда его закрыли — перечитываем башню с новым отрядом

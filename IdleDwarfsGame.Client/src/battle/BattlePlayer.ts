@@ -87,7 +87,8 @@ export class BattlePlayer {
     this.runId++;
   }
 
-  async play(result: CombatResult) {
+  // instant — сразу показать итог без анимаций (восстановление боя после перезагрузки страницы)
+  async play(result: CombatResult, options: { instant?: boolean } = {}) {
     const runId = ++this.runId;
     this.skipping = false;
     this.currentActor = null;
@@ -109,6 +110,7 @@ export class BattlePlayer {
     await nextFrame();
     this.state.preparing = false;
     if (runId !== this.runId) return;
+    if (options.instant) this.skipping = true;
 
     const logs = [...result.logs].sort((a, b) => a.sequence - b.sequence);
     let i = 0;
