@@ -32,6 +32,9 @@ public class MiningRepository(GameDbContext context) : IMiningRepository
             .Where(d => context.Mines.Any(m => m.Id == d.MineId && m.PlayerId == playerId))
             .Select(d => d.HeroId)
             .Concat(context.DepositDwarves.Where(d => d.PlayerId == playerId).Select(d => d.HeroId))
+            .Concat(context.GuildDepthDwarves
+                .Where(d => d.PlayerId == playerId && d.HeroId != null && d.ReleaseAt > DateTime.UtcNow)
+                .Select(d => d.HeroId!.Value))
             .ToListAsync();
 
         return ids.ToHashSet();

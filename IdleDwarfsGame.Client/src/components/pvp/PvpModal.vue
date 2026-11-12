@@ -3,6 +3,7 @@ import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import ModalComponent from '@/components/common/ModalComponent.vue';
+import ArenaBetsPanel from './ArenaBetsPanel.vue';
 import GemButton from '@/components/common/GemButton.vue';
 import UnitPortrait from '@/components/interface/UnitPortrait.vue';
 import PvpApiService from '@/services/apiServices/PvpApiService';
@@ -18,7 +19,7 @@ import { formatTime } from '@/components/guild/guildShared';
 import { formatSeasonLeft, pvpErrorText, signed } from './pvpShared';
 import StatIcon from '@/components/icons/stats/StatIcon.vue';
 import { IconPower } from '@/components/icons/stats';
-import { IconBattle, IconBattleRanked, IconCheck, IconCrown, IconCrownRanked, IconFlame, IconLock, IconRanked, IconRefresh, IconScroll, IconScrollRanked, IconSearch, IconShield, IconStar } from '@/components/icons/ui';
+import { IconBattle, IconBattleRanked, IconBloodCoin, IconCheck, IconCrown, IconCrownRanked, IconFlame, IconLock, IconRanked, IconRefresh, IconScroll, IconScrollRanked, IconSearch, IconShield, IconStar } from '@/components/icons/ui';
 
 // PvP: 5 соперников по мощи отряда (±10%, а если игроков мало — шире), бой на арене нарастающей ярости,
 // очки в дневном, недельном и месячном сезонах. Побеждённый соперник пропадает из подбора до 00:00 UTC.
@@ -43,13 +44,15 @@ const ICONS: Record<PvpTab, TabIcon> = {
     ranked: IconBattleRanked,
     rankedSeasons: IconCrownRanked,
     rankedHistory: IconScrollRanked,
+    bets: IconBloodCoin,
 };
 
 const { pvpTab: tab } = usePvp();
 const ranked = computed(() => isRankedTab(tab.value));
 const tabs = computed<ModalTab[]>(() => (Object.keys(ICONS) as PvpTab[]).map(key => ({
     key,
-    label: t(`pvp.tabs.${key}`),
+    // Подпись «Боя дня» — в social.* (i18n/locales/social.ts)
+    label: key === 'bets' ? t('social.bets.tab') : t(`pvp.tabs.${key}`),
     icon: ICONS[key],
 })));
 
@@ -134,6 +137,7 @@ watch(squadOpen, (isOpen, wasOpen) => {
 const header = computed(() => {
     if (tab.value === 'fight') return t('pvp.header');
     if (tab.value === 'ranked') return t('pvp.ranked.header');
+    if (tab.value === 'bets') return t('social.bets.title');
     return t(`pvp.tabs.${tab.value}`);
 });
 
@@ -232,8 +236,15 @@ const history = computed(() => current.value?.history ?? []);
 const battleTime = (battle: PvpBattleInfo) =>
     new Date(battle.foughtAt).toLocaleString(locale.value, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
 
+const betsNotice = ref<string | null>(null);
+const onBetsMessage = (text: string, isError: boolean) => {
+    errorMessage.value = isError ? text : null;
+    betsNotice.value = isError ? null : text;
+};
+
 const footerText = computed(() => {
     if (errorMessage.value) return errorMessage.value;
+    if (tab.value === 'bets') return betsNotice.value ?? '';
     if (!current.value) return '';
     return t('pvp.resetIn', { time: formatTime(msUntil(current.value.dayResetAt)) });
 });
@@ -248,7 +259,10 @@ const footerText = computed(() => {
         width="min(900px, calc(calc(94 * var(--vw)) - 140px))"
         height="min(940px, calc(92 * var(--vh)))"
     >
-        <div v-if="loading && !current" class="pvp-hint pvp-page">{{ t('pvp.searching') }}</div>
+        <!-- «Бой дня» живёт своей загрузкой, независимо от соперников -->
+        <ArenaBetsPanel v-if="tab === 'bets'" class="pvp-page" @navigate="open = false" @message="onBetsMessage" />
+
+        <div v-else-if="loading && !current" class="pvp-hint pvp-page">{{ t('pvp.searching') }}</div>
 
         <div v-else-if="current" class="pvp-page">
             <!-- ===== Соперники (обе арены) ===== -->

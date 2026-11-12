@@ -9,6 +9,9 @@ import BadgeComponent from '@/components/common/BadgeComponent.vue';
 import FriendsApiService from '@/services/apiServices/FriendsApiService';
 import { usePresence } from '@/composables/UsePresence';
 import { FriendInfo, FriendRequestInfo, FriendsOverview } from '@/models/types/Friends';
+import FriendMinesPanel from './FriendMinesPanel.vue';
+import MercenaryPanel from './MercenaryPanel.vue';
+import { useSocial } from '@/composables/UseSocial';
 
 const props = defineProps<{ modelValue: boolean }>();
 const emit = defineEmits<{ (e: 'update:modelValue', value: boolean): void }>();
@@ -31,7 +34,14 @@ const busy = ref<string | null>(null);
 const errorMessage = ref<string | null>(null);
 const notice = ref<string | null>(null);
 
-const tab = ref<'friends' | 'requests'>('friends');
+// Вкладка общая (useSocial): после боя с наёмником арена возвращает на «Наёмников»
+const { friendsTab: tab } = useSocial();
+// Друг, чьи шахты открыты (помощь киркой); null — список друзей
+const minesFriendId = ref<string | null>(null);
+const showMessage = (text: string, isError: boolean) => {
+    errorMessage.value = isError ? text : null;
+    notice.value = isError ? null : text;
+};
 const username = ref('');
 // Друг, у которого нажали «Удалить» и ждут подтверждения
 const confirmRemoveId = ref<string | null>(null);
@@ -102,6 +112,7 @@ watch(open, isOpen => {
     errorMessage.value = null;
     notice.value = null;
     confirmRemoveId.value = null;
+    minesFriendId.value = null;
     load().then(() => {
         // Есть только входящие заявки — сразу показываем их
         if (overview.value && !overview.value.friends.length && overview.value.incoming.length) tab.value = 'requests';
@@ -215,9 +226,26 @@ const footerText = computed(() => errorMessage.value ?? notice.value ?? '');
                     {{ t('friends.tabRequests') }}
                     <BadgeComponent :count="incoming.length" />
                 </button>
+                <button
+                    type="button"
+                    class="friends-tab"
+                    :class="{ 'friends-tab-active': tab === 'mercenaries' }"
+                    @click="tab = 'mercenaries'"
+                >{{ t('social.mercenary.tab') }}</button>
             </div>
 
             <div v-if="loading && !overview" class="friends-hint">{{ t('common.loading') }}</div>
+
+            <!-- ===== Наёмники: герой друга на бой кампании ===== -->
+            <MercenaryPanel v-else-if="tab === 'mercenaries'" @navigate="open = false" @message="showMessage" />
+
+            <!-- ===== Шахты друга: помощь киркой ===== -->
+            <FriendMinesPanel
+                v-else-if="tab === 'friends' && minesFriendId"
+                :friend-id="minesFriendId"
+                @back="minesFriendId = null"
+                @message="showMessage"
+            />
 
             <!-- ===== Друзья ===== -->
             <template v-else-if="tab === 'friends'">
@@ -241,7 +269,10 @@ const footerText = computed(() => errorMessage.value ?? notice.value ?? '');
                                 <GemButton :color="'red'" :disabled="!!busy" @click="remove(friend)">{{ t('friends.yes') }}</GemButton>
                                 <GemButton :color="'blue'" :disabled="busy === friend.userId" @click="confirmRemoveId = null">{{ t('friends.no') }}</GemButton>
                             </template>
-                            <GemButton v-else :color="'red'" :disabled="!!busy" @click="confirmRemoveId = friend.userId">
+                            <GemButton v-if="confirmRemoveId !== friend.userId" :color="'yellow'" :disabled="!!busy" @click="minesFriendId = friend.userId">
+                                {{ t('social.help.mines') }}
+                            </GemButton>
+                            <GemButton v-if="confirmRemoveId !== friend.userId" :color="'red'" :disabled="!!busy" @click="confirmRemoveId = friend.userId">
                                 {{ t('friends.remove') }}
                             </GemButton>
                         </div>

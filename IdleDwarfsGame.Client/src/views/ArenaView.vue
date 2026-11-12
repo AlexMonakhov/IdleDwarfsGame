@@ -34,6 +34,7 @@
         <div v-else-if="worldBossMode" class="floor-select">
           {{ worldBossResult ? t('arena.worldBossStage', { stage: worldBossResult.stage }) : t('arena.worldBoss') }}
         </div>
+        <div v-else-if="externalMode" class="floor-select">{{ pendingFight?.title ?? '' }}</div>
         <div v-else-if="stageId" class="floor-select">{{ t('arena.stage', { id: stageId }) }}</div>
         <div v-else-if="towerFloor" class="floor-select">{{ t('arena.tower', { floor: towerFloor }) }}</div>
         <label v-else class="floor-select">
@@ -41,8 +42,8 @@
           <input v-model.number="floor" type="number" min="1" max="50" :disabled="state.playing" />
         </label>
         <!-- По боссу гильдии бьют раз в час из окна гильдии, соперника PvP выбирают в окне PvP — повтора здесь нет -->
-        <button v-if="!guildBossTier && !pvpOpponentId && !worldBossMode" :disabled="state.playing || loading" @click="startArenaFight()">{{ t('arena.startFight') }}</button>
-        <button v-if="!stageId && !towerFloor && !guildBossTier && !pvpOpponentId && !worldBossMode" :disabled="state.playing || loading" @click="startBossFight()">{{ t('arena.boss') }}</button>
+        <button v-if="!guildBossTier && !pvpOpponentId && !worldBossMode && !externalMode" :disabled="state.playing || loading" @click="startArenaFight()">{{ t('arena.startFight') }}</button>
+        <button v-if="!stageId && !towerFloor && !guildBossTier && !pvpOpponentId && !worldBossMode && !externalMode" :disabled="state.playing || loading" @click="startBossFight()">{{ t('arena.boss') }}</button>
         <button :disabled="!state.playing" @click="skipFight()">{{ t('arena.skip') }}</button>
         <button v-for="value in [1, 2, 4]" :key="value" :class="{ active: speed === value }" @click="setSpeed(value)">x{{ value }}</button>
         <div class="sound-control">
@@ -62,6 +63,7 @@
         <button v-if="guildBossTier" class="result-next" @click="goToGuild()">{{ t('arena.toGuild') }}</button>
         <button v-if="pvpOpponentId" class="result-next" @click="goToPvp()">{{ t('arena.toPvp') }}</button>
         <button v-if="worldBossMode" class="result-next" @click="goToEvent()">{{ t('arena.toEvent') }}</button>
+        <button v-if="externalMode" class="result-next" @click="goBackExternal()">{{ pendingFight?.backLabel ?? t('social.toTown') }}</button>
       </div>
 
       <!-- Итог боя: сцена под «вуалью» притеняется (при поражении — сереет), частицы вылетают из-за баннера (конфетти и звёзды или дождь и снег) -->
@@ -90,6 +92,8 @@
               <GemButton v-if="pvpResult" :color="'blue'" @click="goToPvp()">{{ t('arena.toPvp') }}</GemButton>
               <GemButton v-else-if="guildResult" :color="'blue'" @click="goToGuild()">{{ t('arena.toGuild') }}</GemButton>
               <GemButton v-else-if="worldBossResult" :color="'blue'" @click="goToEvent()">{{ t('arena.toEvent') }}</GemButton>
+              <!-- Внешний режим (наёмник, «Бой дня», спуск): обратно в окно, откуда пришли -->
+              <GemButton v-else-if="externalMode" :color="'blue'" @click="goBackExternal()">{{ pendingFight?.backLabel ?? t('social.toTown') }}</GemButton>
               <template v-else>
                 <GemButton v-if="stageId" :color="'blue'" @click="goToCampaign()">{{ t('arena.toCampaign') }}</GemButton>
                 <GemButton v-if="nextStageId" :color="'green'" @click="goToNextStage()"><IconPower /> {{ t('arena.nextStage') }}</GemButton>
@@ -135,6 +139,7 @@ import { usePvp } from '@/composables/UsePvp';
 import EventsApiService from '@/services/apiServices/EventsApiService';
 import type { WorldBossAttackResult } from '@/models/types/WorldEvents';
 import { useInterface } from '@/composables/UseInterface';
+import { useExternalFight } from '@/composables/UseExternalFight';
 import CanvasComponent from '@/components/canvas/CanvasComponent.vue';
 import CanvasLayer from '@/components/canvas/CanvasLayer.vue';
 import CombatLogFeed from '@/components/interface/CombatLogFeed.vue';
@@ -204,6 +209,10 @@ const pvpRanked = computed(() => !!pvpOpponentId.value && route.query.ranked ===
 const pvpResult = ref<PvpFightResult | null>(null);
 const { pvpOpen, pvpTab } = usePvp();
 
+// Внешний режим: /arena?external=1&attack=<метка> — бой готовит окно другого режима (UseExternalFight)
+const externalMode = computed(() => route.query.external === '1');
+const { pendingFight } = useExternalFight();
+
 const state = createBattleState();
 const fx = new BattleFx(() => layerRef.value?.particleService ?? null, () => speed.value);
 const player = new BattlePlayer(state, fx);
@@ -240,7 +249,7 @@ const outcome = computed<{ title: string; tone: 'victory' | 'defeat'; particles:
 // новый бой снова начинается с одного баннера. В обычном бою на арене кнопок нет — тогда и подсказки нет
 const RESULT_AUTO_OPEN_MS = 10_000;
 const resultOpen = ref(false);
-const hasResultActions = computed(() => !!(pvpResult.value || guildResult.value || worldBossResult.value || stageId.value || towerFloor.value));
+const hasResultActions = computed(() => !!(pvpResult.value || guildResult.value || worldBossResult.value || stageId.value || towerFloor.value || externalMode.value));
 const canOpenResult = computed(() => !!outcome.value && hasResultActions.value && !resultOpen.value);
 let resultTimer = 0;
 
@@ -353,6 +362,16 @@ const startWorldBossFight = () => playFight(async () => {
   return attack.combat;
 });
 
+const startExternalFight = () => playFight(async () => {
+  campaignResult.value = null;
+  guildResult.value = null;
+  const fight = pendingFight.value;
+  if (!fight) throw new Error('No external fight');
+  const prepared = await fight.load();
+  bgImage.value = prepared.background;
+  return prepared.combat;
+});
+
 const startPvpFight = (opponentId: string, ranked: boolean) => playFight(async () => {
   // Метку боя убираем сразу: перезагрузка страницы не должна начинать бой ещё раз
   router.replace({ query: ranked ? { pvp: opponentId, ranked: '1' } : { pvp: opponentId } });
@@ -368,6 +387,7 @@ const startArenaFight = () => {
   if (pvpOpponentId.value) return startPvpFight(pvpOpponentId.value, pvpRanked.value);
   if (guildBossTier.value) return startGuildBossFight(guildBossTier.value);
   if (worldBossMode.value) return startWorldBossFight();
+  if (externalMode.value) return startExternalFight();
   if (towerFloor.value) return startTowerFight(towerFloor.value);
   return stageId.value
     ? startCampaignFight(stageId.value)
@@ -376,7 +396,7 @@ const startArenaFight = () => {
 
 // Новый удар из окна гильдии или бой из окна PvP, когда арена уже открыта: компонент тот же, меняется только метка attack
 watch(() => route.query.attack, (attack, previous) => {
-  if (attack && attack !== previous && (guildBossTier.value || pvpOpponentId.value || worldBossMode.value)) startArenaFight();
+  if (attack && attack !== previous && (guildBossTier.value || pvpOpponentId.value || worldBossMode.value || externalMode.value)) startArenaFight();
 });
 
 const goToGuild = () => {
@@ -390,6 +410,8 @@ const goToPvp = () => {
   pvpTab.value = pvpRanked.value ? 'ranked' : 'fight';
   pvpOpen.value = true;
 };
+// Окна режимов открываются поверх арены — как у гильдии и PvP
+const goBackExternal = () => pendingFight.value?.back();
 const startBossFight = () => playFight(() => CombatApiService.startBoss(undefined, floor.value));
 
 const goToNextStage = async () => {
@@ -422,6 +444,11 @@ onMounted(() => {
   // И для мирового босса — в окно ивента
   if (worldBossMode.value && !route.query.attack) {
     goToEvent();
+    return;
+  }
+  // Внешний режим после перезагрузки: боя в памяти уже нет — в город
+  if (externalMode.value && !route.query.attack) {
+    router.push({ name: 'about' });
     return;
   }
   startArenaFight();
