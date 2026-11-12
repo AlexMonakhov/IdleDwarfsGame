@@ -111,6 +111,8 @@ builder.Services.AddScoped<CampaignService>();
 builder.Services.AddScoped<ITowerRepository, TowerRepository>();
 builder.Services.AddScoped<TowerService>();
 builder.Services.AddSingleton(TimeProvider.System);
+// Время последнего запроса: по нему фоновые задачи не трогают базу, пока в игре никого нет
+builder.Services.AddSingleton<RequestActivity>();
 builder.Services.AddScoped<IExpeditionRepository, ExpeditionRepository>();
 builder.Services.AddScoped<ExpeditionService>();
 builder.Services.AddScoped<IMiningRepository, MiningRepository>();
@@ -186,12 +188,33 @@ using (var scope = app.Services.CreateScope())
     if (app.Environment.IsDevelopment())
         await EquipmentDevSeed.SeedAsync(db);
 
-    // Мощь отрядов хранится в БД; правки баланса меняют формулу, поэтому на старте пересчитываем у всех
-    await scope.ServiceProvider.GetRequiredService<SquadPowerService>().RefreshAllAsync();
+    // Мощь отрядов хранится в БД; правки баланса меняют формулу, поэтому пересчитываем у всех — но только при новой
+    // сборке сервера, а не на каждом старте: на App Service приложение выгружается после простоя, и холодных стартов много.
+    // ModuleVersionId при детерминированной сборке меняется только вместе с кодом
+    const string squadPowerBuildKey = "SquadPowerBuild";
+    var build = typeof(SquadPowerService).Assembly.ManifestModule.ModuleVersionId.ToString();
+    var refreshedFor = await db.AppSettings.FindAsync(squadPowerBuildKey);
+    if (refreshedFor?.Value != build)
+    {
+        await scope.ServiceProvider.GetRequiredService<SquadPowerService>().RefreshAllAsync();
+        if (refreshedFor == null)
+            db.AppSettings.Add(new AppSetting { Key = squadPowerBuildKey, Value = build });
+        else
+            refreshedFor.Value = build;
+        await db.SaveChangesAsync();
+    }
 }
 
 
 app.UseForwardedHeaders();
+
+// Отмечаем, что в игре кто-то есть (см. RequestActivity)
+var requestActivity = app.Services.GetRequiredService<RequestActivity>();
+app.Use((context, next) =>
+{
+    requestActivity.Touch();
+    return next(context);
+});
 
 app.UseDefaultFiles();
 app.UseStaticFiles(); // явная подача статических файлов
