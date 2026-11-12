@@ -123,10 +123,30 @@ export interface CombatRewards {
   experience: number;
 }
 
+// Итог боя по бойцу (IdleDwarfsGame.Server/ECS/CombatStats.cs): урон по источникам, лечение, полученный урон
+export interface CombatUnitStats {
+  entityId: number;
+  team: number;
+  damageDealt: number;
+  attackDamage: number;
+  skillDamage: number;
+  auraDamage: number;
+  passiveDamage: number;
+  healingDone: number;
+  skillHealing: number;
+  auraHealing: number;
+  passiveHealing: number;
+  damageTaken: number;
+  healingReceived: number;
+  kills: number;
+}
+
 export interface CombatResult {
   units: CombatUnitInfo[];
   logs: CombatLogEntry[];
   winningTeam: number;
   rounds: number;
   rewards?: CombatRewards | null;
+  // Старый сервер статистику не присылает
+  stats?: CombatUnitStats[];
 }

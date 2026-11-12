@@ -47,7 +47,10 @@ public class CampaignService(
         };
     }
 
-    public async Task<CampaignFightResult> FightAsync(Guid playerId, int stageId)
+    public Task<CampaignFightResult> FightAsync(Guid playerId, int stageId) => FightAsync(playerId, stageId, null);
+
+    // fight — свой бой вместо обычного (наёмник друга в отряде, FriendHelpService); проверки и награды — те же
+    public async Task<CampaignFightResult> FightAsync(Guid playerId, int stageId, Func<CampaignStage, Task<CombatResult>>? fight)
     {
         var stage = await campaign.GetStageAsync(stageId)
             ?? throw new InvalidOperationException($"Campaign stage {stageId} not found");
@@ -61,7 +64,7 @@ public class CampaignService(
             throw new InvalidOperationException($"Campaign stage {stageId} is locked");
 
         // Незабранные награды не мешают идти дальше: они ждут в списке кампании
-        var combat = await combatService.StartCampaignFight(playerId, stage);
+        var combat = fight != null ? await fight(stage) : await combatService.StartCampaignFight(playerId, stage);
 
         bool firstClear = false;
         if (combat.WinningTeam == 1)

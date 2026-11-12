@@ -149,6 +149,11 @@ builder.Services.AddScoped<WorldBossService>();
 builder.Services.AddScoped<ICommunityMineRepository, CommunityMineRepository>();
 builder.Services.AddScoped<CommunityMineService>();
 builder.Services.AddHostedService<WorldEventsTicker>();
+// Гонка глубины гильдий, помощь друзьям, ставки на «Бой дня», глубинный спуск
+builder.Services.AddScoped<GuildDepthService>();
+builder.Services.AddScoped<FriendHelpService>();
+builder.Services.AddScoped<ArenaBetService>();
+builder.Services.AddScoped<DelveService>();
 //builder.Services.AddScoped<IMonsterRepository, MonsterRepository>();
 
 var app = builder.Build();

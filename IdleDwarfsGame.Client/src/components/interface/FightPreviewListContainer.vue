@@ -72,7 +72,8 @@ watch(() => props.modelValue, isOpen => {
 // Бой проигрывается на арене, она сама запросит его у сервера по номеру уровня
 const startStage = (stage: CampaignStageInfo) => {
     if (stage.status !== 'Available') return;
-    router.push({ name: 'arena', query: { stage: stage.id } });
+    // attack — разовая метка: перезагрузка арены покажет итог этого боя, а не начнёт новый
+    router.push({ name: 'arena', query: { stage: stage.id, attack: Date.now() } });
 };
 
 // Отряд меняется в общем окне отряда поверх кампании; когда его закрыли — прогноз пересчитывается с новым отрядом

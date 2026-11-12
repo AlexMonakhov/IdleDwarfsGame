@@ -60,6 +60,14 @@ public class GameDbContext : DbContext
     public DbSet<DepositWorker> DepositWorkers => Set<DepositWorker>();
     public DbSet<DepositDwarf> DepositDwarves => Set<DepositDwarf>();
     public DbSet<DepositRewardClaim> DepositRewardClaims => Set<DepositRewardClaim>();
+    public DbSet<GuildDepthShaft> GuildDepthShafts => Set<GuildDepthShaft>();
+    public DbSet<GuildDepthDwarf> GuildDepthDwarves => Set<GuildDepthDwarf>();
+    public DbSet<GuildDepthRewardClaim> GuildDepthRewardClaims => Set<GuildDepthRewardClaim>();
+    public DbSet<FriendMineHelp> FriendMineHelps => Set<FriendMineHelp>();
+    public DbSet<FriendHire> FriendHires => Set<FriendHire>();
+    public DbSet<ArenaBetMatch> ArenaBetMatches => Set<ArenaBetMatch>();
+    public DbSet<ArenaBet> ArenaBets => Set<ArenaBet>();
+    public DbSet<DelveRun> DelveRuns => Set<DelveRun>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -1290,5 +1298,98 @@ public class GameDbContext : DbContext
             .WithMany()
             .HasForeignKey(c => c.PlayerId)
             .OnDelete(DeleteBehavior.Cascade);
+    
+        ConfigureSocialAndDelve(modelBuilder);
+    }
+
+    // Гонка глубины гильдий, помощь друзьям, ставки на «Бой дня», глубинный спуск.
+    // Id аккаунтов, игроков и гильдий — строкой, как и везде
+    private static void ConfigureSocialAndDelve(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<GuildDepthShaft>(e =>
+        {
+            e.HasKey(x => new { x.GuildId, x.WeekStart });
+            e.Property(x => x.GuildId).HasConversion<string>();
+            e.Property(x => x.Level).HasDefaultValue(1);
+            e.Property(x => x.Version).IsConcurrencyToken();
+            e.HasOne<Guild>().WithMany().HasForeignKey(x => x.GuildId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // Без внешнего ключа на гильдию: при роспуске вклад и места недели должны остаться
+        modelBuilder.Entity<GuildDepthDwarf>(e =>
+        {
+            e.HasKey(x => new { x.WeekStart, x.UserId });
+            e.Property(x => x.UserId).HasConversion<string>();
+            e.Property(x => x.GuildId).HasConversion<string>();
+            e.Property(x => x.PlayerId).HasConversion<string>();
+            e.Property(x => x.PickLevel).HasDefaultValue(1);
+            e.Property(x => x.Version).IsConcurrencyToken();
+            e.HasIndex(x => new { x.WeekStart, x.GuildId });
+            e.HasIndex(x => x.HeroId);
+            e.HasIndex(x => x.PlayerId);
+            e.HasOne<User>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<GuildDepthRewardClaim>(e =>
+        {
+            e.HasKey(x => new { x.UserId, x.WeekStart });
+            e.Property(x => x.UserId).HasConversion<string>();
+            e.Property(x => x.GuildId).HasConversion<string>();
+            e.HasOne<User>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<FriendMineHelp>(e =>
+        {
+            e.HasKey(x => new { x.HelperUserId, x.TargetUserId, x.Day });
+            e.Property(x => x.HelperUserId).HasConversion<string>();
+            e.Property(x => x.TargetUserId).HasConversion<string>();
+            e.HasIndex(x => new { x.TargetUserId, x.Day });
+            e.HasOne<User>().WithMany().HasForeignKey(x => x.HelperUserId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne<User>().WithMany().HasForeignKey(x => x.TargetUserId).OnDelete(DeleteBehavior.NoAction);
+        });
+
+        modelBuilder.Entity<FriendHire>(e =>
+        {
+            e.HasKey(x => new { x.BorrowerUserId, x.LenderUserId, x.Day });
+            e.Property(x => x.BorrowerUserId).HasConversion<string>();
+            e.Property(x => x.LenderUserId).HasConversion<string>();
+            e.Property(x => x.HeroName).HasMaxLength(64);
+            e.HasIndex(x => new { x.LenderUserId, x.Day });
+            e.HasOne<User>().WithMany().HasForeignKey(x => x.BorrowerUserId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne<User>().WithMany().HasForeignKey(x => x.LenderUserId).OnDelete(DeleteBehavior.NoAction);
+        });
+
+        // Бой дня хранит снимки и имена — внешних ключей на игроков нет, удаление аккаунта бой не ломает
+        modelBuilder.Entity<ArenaBetMatch>(e =>
+        {
+            e.HasKey(x => x.WindowStart);
+            e.Property(x => x.AUserId).HasConversion<string>();
+            e.Property(x => x.BUserId).HasConversion<string>();
+            e.Property(x => x.AName).HasMaxLength(24);
+            e.Property(x => x.BName).HasMaxLength(24);
+        });
+
+        modelBuilder.Entity<ArenaBet>(e =>
+        {
+            e.HasKey(x => new { x.WindowStart, x.UserId });
+            e.Property(x => x.UserId).HasConversion<string>();
+            e.Property(x => x.PlayerId).HasConversion<string>();
+            e.HasIndex(x => x.UserId);
+            e.HasOne<ArenaBetMatch>().WithMany().HasForeignKey(x => x.WindowStart).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne<User>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<DelveRun>(e =>
+        {
+            e.HasKey(x => x.Id);
+            e.Property(x => x.UserId).HasConversion<string>();
+            e.Property(x => x.PlayerId).HasConversion<string>();
+            e.Property(x => x.Status).HasConversion<string>().HasMaxLength(16);
+            e.Property(x => x.Pending).HasConversion<string>().HasMaxLength(16);
+            e.Property(x => x.Version).IsConcurrencyToken();
+            e.HasIndex(x => new { x.UserId, x.Day }).IsUnique();
+            e.HasIndex(x => x.WeekStart);
+            e.HasOne<User>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
+        });
     }
 }

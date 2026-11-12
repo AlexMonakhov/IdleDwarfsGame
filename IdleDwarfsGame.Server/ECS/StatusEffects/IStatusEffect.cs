@@ -21,6 +21,11 @@ public abstract class StatusEffectBase : IStatusEffect
     public int Stacks { get; protected set; } = 1;
     protected virtual DamageType? EffectDamageType => null;
 
+    // Чьё это наложение (боец и чем: спелл, аура, пассивка) — для статистики боя
+    public StatOrigin Origin { get; private set; } = StatOrigin.Environment;
+    // Источники урона или лечения за ход и их вес — сколько силы добавил каждый (слоистые статусы считают по слоям)
+    private readonly Dictionary<StatOrigin, int> _origins = new();
+
     protected StatusEffectBase(int turns, int power)
     {
         RemainingTurns = turns;
@@ -53,6 +58,11 @@ public abstract class StatusEffectBase : IStatusEffect
         if (EffectDamageType != null && sourceId > 0 && world.GetPassive(sourceId, HeroPassive.ElementMastery) is { } mastery)
             Empower(mastery.Percent, mastery.Turns);
 
+        // Аура и пассивки помечают свои наложения (CombatContext.StatusKind); без пометки боец — значит спелл, без бойца — арена
+        SetOrigin(sourceId > 0
+            ? new StatOrigin(sourceId, context.StatusKind ?? CombatStatKind.Skill)
+            : StatOrigin.Environment);
+
         // 3. Вешаем эффект или складываем с уже висящим того же вида
         if (!world.StatusEffects.TryGetValue(targetId, out var component))
         {
@@ -84,6 +94,21 @@ public abstract class StatusEffectBase : IStatusEffect
 
     // Новое наложение того же статуса (added) поверх висящего (this)
     protected abstract void Absorb(StatusEffectBase added);
+
+    protected virtual void SetOrigin(StatOrigin origin)
+    {
+        Origin = origin;
+        _origins.Clear();
+        _origins[origin] = Power;
+    }
+
+    // Наложение added добавило weight к силе за ход: его источник получает свою долю тиков
+    protected void AddOrigin(StatusEffectBase added, int weight) =>
+        _origins[added.Origin] = _origins.GetValueOrDefault(added.Origin) + weight;
+
+    // Источники силы за ход и их вес сейчас
+    protected virtual List<(StatOrigin Origin, int Weight)> OriginWeights() =>
+        _origins.Select(kv => (kv.Key, kv.Value)).ToList();
 
     // Сила наложения больше на percent, длится на turns ходов дольше
     protected virtual void Empower(int percent, int turns)
@@ -125,8 +150,10 @@ public abstract class StatusEffectBase : IStatusEffect
         ActiveEffects = { ToLogData() }
     };
 
-    // Тик урона: наносит damage и пишет лог с типом урона статуса
-    protected void DealTickDamage(World world, int targetId, CombatContext context, int damage, DamageType damageType)
+    // Тик урона: наносит damage и пишет лог с типом урона статуса.
+    // weights — источники силы этого тика, если статус уже сменил состав (слои истекли до тика)
+    protected void DealTickDamage(World world, int targetId, CombatContext context, int damage, DamageType damageType,
+        List<(StatOrigin Origin, int Weight)>? weights = null)
     {
         damage = world.ScaleDamage(damage);
         int hpLeft = world.ApplyDamage(targetId, damage);
@@ -134,6 +161,7 @@ public abstract class StatusEffectBase : IStatusEffect
         log.Damage = damage;
         log.DamageType = damageType;
         log.TargetRemainingHp = hpLeft;
+        log.Shares = CombatStatsTracker.Split(damage, weights ?? OriginWeights());
         context.AddLog(log);
     }
 }
@@ -147,6 +175,7 @@ public abstract class LayeredStatusEffect : StatusEffectBase
     {
         public int Power;
         public int Turns;
+        public StatOrigin Origin = StatOrigin.Environment;
     }
 
     private readonly List<Layer> _layers = new();
@@ -167,6 +196,15 @@ public abstract class LayeredStatusEffect : StatusEffectBase
         foreach (var layer in _layers) layer.Turns = Math.Min(layer.Turns, limit);
         Sync();
     }
+
+    protected override void SetOrigin(StatOrigin origin)
+    {
+        base.SetOrigin(origin);
+        foreach (var layer in _layers) layer.Origin = origin;
+    }
+
+    protected override List<(StatOrigin Origin, int Weight)> OriginWeights() =>
+        _layers.Select(l => (l.Origin, l.Power)).ToList();
 
     protected override void Empower(int percent, int turns)
     {
@@ -208,9 +246,11 @@ public abstract class DamageOverTimeEffect : LayeredStatusEffect
     public override void OnTurnStart(World world, int targetId, CombatContext context)
     {
         int damage = Power;
+        // Источники — до снятия истёкших слоёв: этот тик ещё их
+        var weights = OriginWeights();
         PassTurn();
         if (!world.IsAlive(targetId)) return;
-        DealTickDamage(world, targetId, context, damage, TickDamageType);
+        DealTickDamage(world, targetId, context, damage, TickDamageType, weights);
     }
 }
 

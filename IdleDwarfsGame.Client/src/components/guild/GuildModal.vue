@@ -6,10 +6,11 @@ import ShopPanel from '@/components/shop/ShopPanel.vue';
 import GuildJoin from './GuildJoin.vue';
 import GuildMembers from './GuildMembers.vue';
 import GuildBosses from './GuildBosses.vue';
+import GuildDepth from './GuildDepth.vue';
 import GuildApiService from '@/services/apiServices/GuildApiService';
 import { GuildOverview } from '@/models/types/Guild';
 import type { ModalTab, TabIcon } from '@/models/types/Modal';
-import { IconGuild, IconPouch, IconSkull } from '@/components/icons/ui';
+import { IconGuild, IconMinecart, IconPouch, IconSkull } from '@/components/icons/ui';
 import { GuildRun, guildErrorText } from './guildShared';
 
 const props = defineProps<{ modelValue: boolean }>();
@@ -33,21 +34,25 @@ const errorMessage = ref<string | null>(null);
 const notice = ref<string | null>(null);
 
 /* ===== Вкладки (только у тех, кто в гильдии) ===== */
-type GuildTab = 'guild' | 'bosses' | 'shop';
+type GuildTab = 'guild' | 'bosses' | 'depth' | 'shop';
 
 const ICONS: Record<GuildTab, TabIcon> = {
     guild: IconGuild,
     bosses: IconSkull,
+    // Гонка глубины — недельное соревнование гильдий, сразу под боссами
+    depth: IconMinecart,
     shop: IconPouch,
 };
 
 const tab = ref<GuildTab>('guild');
+// Подпись гонки глубины — в social.* (i18n/locales/social.ts)
+const tabLabel = (key: GuildTab) => (key === 'depth' ? t('social.depth.tab') : t(`guild.tabs.${key}`));
 const guild = computed(() => overview.value?.guild ?? null);
 
 const tabs = computed<ModalTab[]>(() => guild.value
     ? (Object.keys(ICONS) as GuildTab[]).map(key => ({
         key,
-        label: t(`guild.tabs.${key}`),
+        label: tabLabel(key),
         icon: ICONS[key],
         badgeCount: key === 'guild' ? guild.value?.incoming.length : undefined,
     }))
@@ -64,7 +69,7 @@ const activeTab = computed({
 
 const header = computed(() => {
     if (!guild.value) return t('guild.header');
-    return tab.value === 'guild' ? guild.value.name : t(`guild.tabs.${tab.value}`);
+    return tab.value === 'guild' ? guild.value.name : tabLabel(tab.value);
 });
 
 /* ===== Время ===== */
@@ -163,6 +168,12 @@ const footerText = computed(() => errorMessage.value ?? notice.value ?? '');
                 :run="run"
                 :server-now="serverNow"
                 @navigate="open = false"
+            />
+            <GuildDepth
+                v-else-if="tab === 'depth'"
+                :busy="busy"
+                :run="run"
+                :server-now="serverNow"
             />
             <!-- Лавка гильдии: та же полка, что на рынке, но за значки почёта с боссов -->
             <ShopPanel v-else shop="Guild" :sections="['Item', 'Hero']" />

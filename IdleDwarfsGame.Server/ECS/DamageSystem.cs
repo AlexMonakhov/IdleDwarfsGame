@@ -125,11 +125,19 @@ public class DamageSystem : ICombatSystem
         // Ударом цель могла погибнуть — тогда соседи всё равно загораются
         if (targets.Count == 0) targets = enemies.Take(tongue.Targets - 1).ToList();
 
-        foreach (int targetId in targets)
+        context.StatusKind = CombatStatKind.Passive;
+        try
         {
-            new BurnEffect(turns: tongue.Turns, damagePerTurn: burn).ApplyEffect(world, targetId, context, attacker);
-            // ApplyEffect всегда пишет лог по живой цели. Фаза отличает этот статус от срабатывания ауры того же эффекта
-            context.Logs[^1].Phase = "Passive";
+            foreach (int targetId in targets)
+            {
+                new BurnEffect(turns: tongue.Turns, damagePerTurn: burn).ApplyEffect(world, targetId, context, attacker);
+                // ApplyEffect всегда пишет лог по живой цели. Фаза отличает этот статус от срабатывания ауры того же эффекта
+                context.Logs[^1].Phase = "Passive";
+            }
+        }
+        finally
+        {
+            context.StatusKind = null;
         }
     }
 

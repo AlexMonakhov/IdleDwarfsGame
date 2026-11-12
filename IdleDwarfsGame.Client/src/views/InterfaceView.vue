@@ -13,6 +13,8 @@ import ShopModal from '@/components/shop/ShopModal.vue';
 import BlacksmithModal from '@/components/forge/BlacksmithModal.vue';
 import QuestsModal from '@/components/quests/QuestsModal.vue';
 import EventModal from '@/components/events/EventModal.vue';
+import DelveModal from '@/components/delve/DelveModal.vue';
+import { useSocial } from '@/composables/UseSocial';
 import AccountButton from '@/components/account/AccountButton.vue';
 import AccountModal from '@/components/account/AccountModal.vue';
 import { ref, watch, watchEffect } from 'vue';
@@ -39,7 +41,8 @@ const { resources, refresh: refreshResources, clear: clearResources } = useResou
 const { clear: clearHeroes } = useHeroes();
 const { incomingFriendRequests, start: startPresence, stop: stopPresence } = usePresence();
 
-const friendsOpen = ref(false);
+// Окна друзей и спуска — общие (useSocial): после боя арена возвращает в них
+const { friendsOpen, delveOpen } = useSocial();
 const { guildOpen } = useGuild();
 const { pvpOpen } = usePvp();
 const collectionOpen = ref(false);
@@ -77,6 +80,7 @@ const onLogout = () => {
     forgeOpen.value = false;
     questsOpen.value = false;
     eventOpen.value = false;
+    delveOpen.value = false;
     squadOpen.value = false;
     accountOpen.value = false;
     // Пока токен ещё есть — им закрывается сессия
@@ -109,6 +113,7 @@ watchEffect(() => {
             <GemButton v-if="isAuthenticated" @click="friendsOpen = true" :color="'green'" :badge-count="incomingFriendRequests">{{ t('nav.friends') }}</GemButton>
             <GemButton v-if="isAuthenticated" @click="questsOpen = true" :color="'yellow'" :badge-count="questsClaimable">{{ t('nav.quests') }}</GemButton>
             <GemButton v-if="isAuthenticated" @click="eventOpen = true" :color="'red'">{{ t('nav.event') }}</GemButton>
+            <GemButton v-if="isAuthenticated" @click="delveOpen = true" :color="'pink'">{{ t('social.delve.nav') }}</GemButton>
             <template v-if="!isAuthenticated">
                 <GemButton v-if="route.name != 'login'" @click="router.push('/login')" :color="'green'">{{ t('nav.login') }}</GemButton>
                 <GemButton v-if="route.name != 'register'" @click="router.push('/register')" :color="'yellow'">{{ t('nav.register') }}</GemButton>
@@ -138,6 +143,7 @@ watchEffect(() => {
     <BlacksmithModal v-if="isAuthenticated" v-model="forgeOpen" />
     <QuestsModal v-if="isAuthenticated" v-model="questsOpen" />
     <EventModal v-if="isAuthenticated" v-model="eventOpen" />
+    <DelveModal v-if="isAuthenticated" v-model="delveOpen" />
 </template>
 
 <style scoped>

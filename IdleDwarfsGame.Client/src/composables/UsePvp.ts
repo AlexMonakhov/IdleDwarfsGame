@@ -1,7 +1,8 @@
 import { ref } from 'vue'
 
 // Вкладки окна PvP: обычная арена и рейтинговая (ranked*)
-export type PvpTab = 'fight' | 'seasons' | 'history' | 'ranked' | 'rankedSeasons' | 'rankedHistory'
+// bets — «Бой дня»: ставки на бой двух сильнейших отрядов
+export type PvpTab = 'fight' | 'seasons' | 'history' | 'ranked' | 'rankedSeasons' | 'rankedHistory' | 'bets'
 
 export const isRankedTab = (tab: PvpTab) => tab.startsWith('ranked')
 

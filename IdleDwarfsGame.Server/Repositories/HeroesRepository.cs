@@ -56,6 +56,10 @@ public class HeroesRepository : IHeroesRepository
             .Where(d => _context.Mines.Any(m => m.Id == d.MineId && m.PlayerId == playerId))
             .Select(d => d.HeroId)
             .Concat(_context.DepositDwarves.Where(d => d.PlayerId == playerId).Select(d => d.HeroId))
+            // Дворф в шахте «Гонки глубины» гильдии — до конца гонки
+            .Concat(_context.GuildDepthDwarves
+                .Where(d => d.PlayerId == playerId && d.HeroId != null && d.ReleaseAt > DateTime.UtcNow)
+                .Select(d => d.HeroId!.Value))
             .ToListAsync();
 
         return ids.ToHashSet();
@@ -70,7 +74,10 @@ public class HeroesRepository : IHeroesRepository
             .Select(d => d.HeroId))
         .Concat(_context.DepositDwarves
             .Where(d => heroIds.Contains(d.HeroId))
-            .Select(d => d.HeroId));
+            .Select(d => d.HeroId))
+        .Concat(_context.GuildDepthDwarves
+            .Where(d => d.HeroId != null && heroIds.Contains(d.HeroId.Value) && d.ReleaseAt > DateTime.UtcNow)
+            .Select(d => d.HeroId!.Value));
 
     public async Task CreateAsync(Hero hero)
     {
