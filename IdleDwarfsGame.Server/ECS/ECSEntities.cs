@@ -100,6 +100,11 @@ public class CombatLogEntry
     // Список эффектов, которые были применены или активны в момент этого лога.
     public List<StatusEffectLogData> AppliedEffects { get; set; } = new();
     public List<StatusEffectLogData> ActiveEffects { get; set; } = new();
+
+    // Чей урон или лечение в этой записи, если источников несколько (тик статуса со слоями от разных бойцов).
+    // Только для статистики боя (CombatStatsTracker), на фронт не уходит
+    [System.Text.Json.Serialization.JsonIgnore]
+    public List<StatShare>? Shares { get; set; }
 }
 
 // Снимок участника боя на старте — фронт строит по нему сцену, дальше всё восстанавливается из логов.
@@ -139,6 +144,8 @@ public class CombatResult
     public int WinningTeam { get; set; }
     public int Rounds { get; set; }
     public RewardEntity? Rewards { get; set; }
+    // Итоги по каждому бойцу: урон по источникам, лечение, полученный урон (CombatStatsTracker)
+    public List<CombatUnitStats> Stats { get; set; } = new();
 }
 
 public interface ICombatSystem
@@ -168,12 +175,19 @@ public class CombatContext
 
     public int NextAction() => ++CurrentActionId;
 
+    // Статистика боя по бойцам: копится из каждой записи лога
+    public CombatStatsTracker Stats { get; } = new();
+
+    // Чем считать статусы, которые накладываются сейчас (аура, пассивка). null — по источнику: боец — спелл, нет бойца — арена
+    public CombatStatKind? StatusKind { get; set; }
+
     public CombatLogEntry AddLog(CombatLogEntry entry)
     {
         entry.Sequence = Logs.Count;
         entry.Round = CurrentRound;
         if (entry.ActionId == 0) entry.ActionId = CurrentActionId;
         Logs.Add(entry);
+        Stats.Record(entry);
         return entry;
     }
 }

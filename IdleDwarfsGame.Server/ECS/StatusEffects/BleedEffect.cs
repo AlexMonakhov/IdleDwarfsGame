@@ -13,7 +13,9 @@ public class BleedEffect : StatusEffectBase
 
     protected override void Absorb(StatusEffectBase added)
     {
-        Power += (added.Power + 1) / 2;
+        int extra = (added.Power + 1) / 2;
+        Power += extra;
+        AddOrigin(added, extra);
         RemainingTurns++;
         Stacks = RemainingTurns;
     }

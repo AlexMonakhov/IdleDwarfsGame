@@ -97,7 +97,8 @@ public class CombatService(
             Logs = context.Logs,
             WinningTeam = context.Win ? 1 : 2,
             Rounds = context.CurrentRound,
-            Rewards = rewards
+            Rewards = rewards,
+            Stats = context.Stats.Build()
         };
     }
 }

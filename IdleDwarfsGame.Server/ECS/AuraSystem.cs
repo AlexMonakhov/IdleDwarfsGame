@@ -22,10 +22,19 @@ public class AuraSystem : ICombatSystem
             // Находим цели (например, всех живых союзников)
             var targets = GetTargets(world, bearer.Id, aura.TargetType);
 
-            foreach (var targetId in targets)
+            // Урон и лечение этих статусов в статистике — урон аурой
+            context.StatusKind = CombatStatKind.Aura;
+            try
             {
-                // Новый экземпляр эффекта на каждую цель; копится не больше StackLimit
-                aura.CreateEffect().ApplyEffect(world, targetId, context, bearer.Id, AuraComponent.StackLimit);
+                foreach (var targetId in targets)
+                {
+                    // Новый экземпляр эффекта на каждую цель; копится не больше StackLimit
+                    aura.CreateEffect().ApplyEffect(world, targetId, context, bearer.Id, AuraComponent.StackLimit);
+                }
+            }
+            finally
+            {
+                context.StatusKind = null;
             }
         }
     }

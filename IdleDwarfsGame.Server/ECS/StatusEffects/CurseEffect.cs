@@ -15,6 +15,7 @@ public class CurseEffect : StatusEffectBase
     protected override void Absorb(StatusEffectBase added)
     {
         Power += added.Power;
+        AddOrigin(added, added.Power);
         Stacks++;
     }
 

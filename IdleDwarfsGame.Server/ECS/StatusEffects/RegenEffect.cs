@@ -10,6 +10,7 @@ public class RegenEffect : LayeredStatusEffect
     public override void OnTurnStart(World world, int targetId, CombatContext context)
     {
         int heal = Power;
+        var weights = OriginWeights();
         PassTurn();
         if (!world.IsAlive(targetId)) return;
 
@@ -20,6 +21,7 @@ public class RegenEffect : LayeredStatusEffect
         {
             log.EventType = CombatEventType.Heal;
             log.Heal = healed;
+            log.Shares = CombatStatsTracker.Split(healed, weights);
         }
         context.AddLog(log);
     }

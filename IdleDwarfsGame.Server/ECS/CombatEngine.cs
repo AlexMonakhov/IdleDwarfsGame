@@ -30,6 +30,8 @@ public class CombatEngine : ICombatEngine
     public CombatContext Run(World world, int maxRounds = CombatContext.DefaultMaxRounds)
     {
         var context = new CombatContext { Random = _random, MaxRounds = maxRounds };
+        foreach (var entity in world.Entities)
+            context.Stats.Register(entity.Id, world.Team[entity.Id].TeamId);
         context.AddLog(new CombatLogEntry
         {
             EventType = CombatEventType.CombatStart,
