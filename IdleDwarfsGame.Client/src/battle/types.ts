@@ -64,6 +64,8 @@ export interface CombatLogEntry {
   targetRemainingHp: number;
   targetRemainingHpAfter?: number | null;
   attackerEnergy?: number | null;
+  // Энергия цели после записи — у выжигания энергии (аура тьмы)
+  targetEnergy?: number | null;
   isCritical: boolean;
   winningTeam?: number | null;
   // Для ArenaBuff: прибавка ко всему урону с этого раунда, в процентах

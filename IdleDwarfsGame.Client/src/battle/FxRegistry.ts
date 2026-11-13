@@ -908,6 +908,7 @@ export const AURA_VISUALS: Record<string, AuraVisual> = {
   Bleed: AURA_DAMAGE,
   Arcane: AURA_ARCANE,
   Curse: AURA_SHADOW,
+  EnergyBurn: AURA_SHADOW,
 };
 
 // Неизвестный эффект: на врагов — «вредная» красная аура, на союзников — золотой бафф

@@ -8,6 +8,9 @@ import { DAMAGE_COLORS, STATUS_VISUALS, resolveAuraVisual, resolveSpellVisual } 
 import { CombatLogEntry, CombatResult, StatusEffectLogData } from './types';
 import { getUnitView } from './UnitRegistry';
 
+// Аура тьмы (EnergyBurnEffect на сервере)
+const ENERGY_BURN = 'EnergyBurn';
+
 interface DamageOptions {
   // Визуал попадания уже проигран (взрыв заклинания)
   silent?: boolean;
@@ -422,7 +425,14 @@ export class BattlePlayer {
   private applyStatus(log: CombatLogEntry) {
     const target = this.unit(log.targetId);
     if (!target || !target.alive) return;
-    this.setStatus(target, log.appliedEffects[0], log.actionType);
+    const data = log.appliedEffects[0];
+    // Выжигание энергии мгновенное и статусом не висит: только полоска энергии и всплывающая цифра
+    if (data?.name === ENERGY_BURN) {
+      if (log.targetEnergy != null) target.energy = log.targetEnergy;
+      if ((data.power ?? 0) > 0) this.float(target.id, t('arena.float.energyBurn', { value: data.power }), 'status');
+      return;
+    }
+    this.setStatus(target, data, log.actionType);
   }
 
   // Тик статуса (урон, лечение, пропуск хода): в ActiveEffects — сколько осталось после него

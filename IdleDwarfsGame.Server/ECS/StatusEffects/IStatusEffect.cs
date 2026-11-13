@@ -265,6 +265,8 @@ public static class StatusEffectFactory
         "Regen" => new RegenEffect(duration, power),
         "Poison" => new PoisonEffect(duration, power),
         "Curse" => new CurseEffect(duration, power),
+        // Мгновенный: длительности нет, power — сколько энергии сжечь
+        EnergyBurnEffect.Name => new EnergyBurnEffect(power),
         "Shock" => new ShockEffect(duration, power),
         "Freeze" => new FreezeEffect(duration),
         "Bleed" => new BleedEffect(power),
