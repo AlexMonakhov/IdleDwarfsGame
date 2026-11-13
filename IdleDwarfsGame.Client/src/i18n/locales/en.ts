@@ -18,6 +18,7 @@ const en = {
     login: 'Login',
     register: 'Register',
     logout: 'Logout',
+    logoutConfirm: 'Are you sure you want to log out?',
     quests: 'Quests',
     event: 'Event',
   },
@@ -57,6 +58,8 @@ const en = {
     loading: 'Loading...',
     somethingWrong: 'Something went wrong',
     close: 'Close',
+    yes: 'Yes',
+    no: 'No',
   },
   auth: {
     loginHeader: 'login',
