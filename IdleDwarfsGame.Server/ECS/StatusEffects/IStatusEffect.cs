@@ -110,6 +110,15 @@ public abstract class StatusEffectBase : IStatusEffect
     protected virtual List<(StatOrigin Origin, int Weight)> OriginWeights() =>
         _origins.Select(kv => (kv.Key, kv.Value)).ToList();
 
+    // Наложил ли этот боец хоть часть статуса (для эффектов предметов, которые реагируют на «свои» статусы)
+    public bool HasSource(int unitId) => OriginWeights().Any(o => o.Origin.SourceId == unitId);
+
+    // Сколько урона статус ещё нанесёт, если дотикает до конца (0 — статус без урона)
+    public virtual int RemainingDamage => EffectDamageType != null ? Power * Math.Max(0, RemainingTurns) : 0;
+
+    // Оставить только keep самых старых стаков; false — у статуса нет таких стаков (сбрасывается только кровотечение)
+    public virtual bool TrimStacks(int keep) => false;
+
     // Сила наложения больше на percent, длится на turns ходов дольше
     protected virtual void Empower(int percent, int turns)
     {
@@ -224,6 +233,21 @@ public abstract class LayeredStatusEffect : StatusEffectBase
         Sync();
     }
 
+    public override int RemainingDamage => EffectDamageType != null ? _layers.Sum(l => l.Power * Math.Max(0, l.Turns)) : 0;
+
+    // Копия оставшихся слоёв этого статуса — новое наложение того же вида (распространение на другого юнита)
+    public LayeredStatusEffect? CopyRemaining()
+    {
+        var alive = _layers.Where(l => l.Turns > 0).ToList();
+        if (alive.Count == 0) return null;
+
+        var copy = (LayeredStatusEffect)StatusEffectFactory.Create(EffectName, alive[0].Power, alive[0].Turns);
+        foreach (var layer in alive.Skip(1))
+            copy._layers.Add(new Layer { Power = layer.Power, Turns = layer.Turns });
+        copy.Sync();
+        return copy;
+    }
+
     // Статус висит, пока жив самый долгий слой
     private void Sync()
     {
@@ -270,6 +294,7 @@ public static class StatusEffectFactory
         "Shock" => new ShockEffect(duration, power),
         "Freeze" => new FreezeEffect(duration),
         "Bleed" => new BleedEffect(power),
+        MarkEffect.Name => new MarkEffect(duration, power),
         _ => throw new ArgumentException($"Unknown status effect '{name}'")
     };
 }

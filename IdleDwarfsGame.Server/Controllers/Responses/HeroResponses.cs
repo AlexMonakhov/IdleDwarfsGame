@@ -96,6 +96,8 @@ public class SpellDetail
     public int Healing { get; set; }
     // Спеллы, которые предметы вызывают после этого каста (SpellProcEffect): берутся из снаряжения, без списка вручную
     public List<SpellProcDetail> Procs { get; set; } = new();
+    // Другие эффекты предметов на этот спелл (повторы, взрывы, метки…) — фронт пишет их текстом эффекта предмета
+    public List<ItemEffectInfo> Effects { get; set; } = new();
 
     private const int FullSquad = 5;
 
@@ -115,14 +117,22 @@ public class SpellDetail
         perTarget = perTarget * (100 + sorcererPercent) / 100;
 
         // Как в BaseSpell.CastTriggered: урон срабатывания — процент от атаки, без «Чародея» и бонусов предметов
-        var procs = (modifier?.Procs ?? [])
-            .Where(p => SpellRegistry.All.ContainsKey(p.SpellId))
+        var effects = modifier?.Effects ?? [];
+        var procs = effects
+            .OfType<SpellProcEffect>()
+            .Where(p => p.Condition == ProcCondition.Always && SpellRegistry.All.ContainsKey(p.ProcSpellId))
             .Select(p => new SpellProcDetail
             {
-                Spell = SpellRegistry.Describe(p.SpellId),
+                Spell = SpellRegistry.Describe(p.ProcSpellId),
                 Damage = attack * p.DamagePercent / 100,
                 Chance = p.Chance
             })
+            .ToList();
+        // Остальное, что предметы делают со спеллом, — текстом эффекта (equipment.effects.<Kind> на фронте).
+        // Урон и цели уже в числах карточки, простые срабатывания — в procs
+        var itemEffects = effects
+            .Where(e => e is not SpellDamageEffect and not SpellTargetsEffect && e is not SpellProcEffect { Condition: ProcCondition.Always })
+            .Select(e => e.Info)
             .ToList();
 
         return new SpellDetail
@@ -132,7 +142,8 @@ public class SpellDetail
             Damage = (int)Math.Round(perTarget),
             Targets = targets,
             Healing = (int)Math.Round(single.Healing),
-            Procs = procs
+            Procs = procs,
+            Effects = itemEffects
         };
     }
 }

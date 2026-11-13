@@ -11,8 +11,9 @@ public class HealingRune : BaseSpell
     private int HealAmount(int attack) => (int)(attack * (1.5 + 0.5 * Level));
     private int RegenPerTurn(int attack) => (int)(attack * (0.05 + 0.05 * Level));
 
-    public override void Execute(World world, int casterId, CombatContext context)
+    protected override void Perform(CastScope scope)
     {
+        var (world, casterId, context) = (scope.World, scope.CasterId, scope.Context);
         var target = world.GetAliveAllies(casterId)
             .OrderBy(e => (double)world.Health[e.Id].Current / world.Health[e.Id].Max)
             .First();

@@ -68,6 +68,17 @@ public class BleedEffect : StatusEffectBase
         DealTickDamage(world, targetId, context, damage, DamageType.Bleed, weights);
     }
 
+    // Каждый тик снимает самый новый стак: стак i (с нуля, от старого) продержится i + 1 тиков
+    public override int RemainingDamage => _stacks.Select((s, i) => s.Power * (i + 1)).Sum();
+
+    public override bool TrimStacks(int keep)
+    {
+        if (_stacks.Count <= keep) return false;
+        _stacks.RemoveRange(keep, _stacks.Count - keep);
+        Sync();
+        return true;
+    }
+
     private void Sync()
     {
         Power = _stacks.Sum(s => s.Power);

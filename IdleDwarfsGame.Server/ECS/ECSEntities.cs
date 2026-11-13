@@ -187,6 +187,9 @@ public class CombatContext
     // Чем считать статусы, которые накладываются сейчас (аура, пассивка). null — по источнику: боец — спелл, нет бойца — арена
     public CombatStatKind? StatusKind { get; set; }
 
+    // Каст, который идёт сейчас: в него пишутся попадания, убийства и лечение для эффектов предметов (CastScope)
+    public CastScope? CurrentCast { get; set; }
+
     public CombatLogEntry AddLog(CombatLogEntry entry)
     {
         entry.Sequence = Logs.Count;

@@ -16,8 +16,17 @@ public record EquipmentDefinition(
 // Новый предмет в конце каталога меняет таблицы дропа: нужна миграция (LootSeedData)
 public static class EquipmentCatalog
 {
+    // Id спеллов 1 уровня (SpellRegistry), которые артефакты вызывают или берут как визуал срабатывания
+    private const int FireballLevel1 = 1;
+    private const int LightningLevel1 = 4;
+    private const int HealingRuneLevel1 = 7;
+    private const int FlameWaveLevel1 = 10;
     private const int MeteorLevel1 = 13;
     private const int FrostBoltLevel1 = 16;
+    private const int VenomThornsLevel1 = 31;
+    private const int ShadowBoltLevel1 = 37;
+    private const int PrismRayLevel1 = 46;
+    private const int RadiantNovaLevel1 = 49;
 
     private static readonly HeroElement[] AnyElement = [];
 
@@ -78,7 +87,54 @@ public static class EquipmentCatalog
 
         // ===== Добавлено позже: дописываем в конец, чтобы не сдвигать таблицы дропа =====
         new("GlacialRelic", EquipmentType.Weapon, Rarity.Artifact, new(Attack: 160), [HeroElement.Frost],
-            [new SpellProcEffect("Blizzard", FrostBoltLevel1, 100, Chance: 50)])
+            [new SpellProcEffect("Blizzard", FrostBoltLevel1, 100, Chance: 50)]),
+
+        // ===== Артефакты: по одному на каждый спелл стихии, у каждого своя механика (SpellArtifactEffects) =====
+        // Огонь
+        new("PhoenixStaff", EquipmentType.Weapon, Rarity.Artifact, new(Attack: 160), [HeroElement.Fire],
+            [new SpellEchoEffect("Fireball", 70, EchoTrigger.OnKill, Value: 2)]),
+        new("VolcanoHeart", EquipmentType.Weapon, Rarity.Artifact, new(Attack: 150, MaxHp: 200), [HeroElement.Fire],
+            [new DetonateStatusEffect("Meteor", "Burn", 150, FlameWaveLevel1)]),
+        // Лёд
+        new("WinterShard", EquipmentType.Weapon, Rarity.Artifact, new(Attack: 150, Speed: 1), [HeroElement.Frost],
+            [new UpgradeStatusEffect("Frost Bolt", From: "Frost", To: "Freeze", Turns: 1)]),
+        new("GlacierShackles", EquipmentType.Weapon, Rarity.Artifact, new(Attack: 140, MaxHp: 280), [HeroElement.Frost],
+            [new ShatterEffect("Glacial Prison", "Freeze", 80, FrostBoltLevel1)]),
+        // Молния
+        new("ThunderHammer", EquipmentType.Weapon, Rarity.Artifact, new(Attack: 170), [HeroElement.Lightning],
+            [new SpellEchoEffect("Lightning", 100, EchoTrigger.EveryNthCast, Value: 3)]),
+        new("StormCoil", EquipmentType.Weapon, Rarity.Artifact, new(Attack: 140, Speed: 2), [HeroElement.Lightning],
+            [new EnergyRefundEffect("Chain Lightning", PerHit: 4, PerKill: 12)]),
+        new("ThunderHorn", EquipmentType.Weapon, Rarity.Artifact, new(Attack: 150, MaxHp: 200), [HeroElement.Lightning],
+            [new SpellProcEffect("Thunderclap", LightningLevel1, 120, Condition: ProcCondition.StatusApplied, Status: "Stun")]),
+        // Природа
+        new("LifeTreeSeed", EquipmentType.Weapon, Rarity.Artifact, new(Attack: 110, MaxHp: 400), [HeroElement.Nature],
+            [new OverhealProcEffect("Healing Rune", VenomThornsLevel1, 100)]),
+        new("WyvernSting", EquipmentType.Weapon, Rarity.Artifact, new(Attack: 160), [HeroElement.Nature],
+            [new SpreadOnDeathEffect("Venom Thorns", "Poison", Targets: 2, VenomThornsLevel1)]),
+        new("ElderGroveStaff", EquipmentType.Weapon, Rarity.Artifact, new(Attack: 120, MaxHp: 360), [HeroElement.Nature],
+            [new HealAlliesPerStatusEffect("Entangling Roots", "Stun", 120, HealingRuneLevel1)]),
+        // Тьма
+        new("AbyssalSigil", EquipmentType.Weapon, Rarity.Artifact, new(Attack: 160), [HeroElement.Dark],
+            [new MarkTargetsEffect("Shadow Bolt", 30, Turns: 2)]),
+        new("CurseDoll", EquipmentType.Weapon, Rarity.Artifact, new(Attack: 150, MaxHp: 200), [HeroElement.Dark],
+            [new StatusTickProcEffect("Hex", "Curse", Chance: 25, ShadowBoltLevel1, 60)]),
+        new("ReaperScythe", EquipmentType.Weapon, Rarity.Artifact, new(Attack: 150, MaxHp: 240), [HeroElement.Dark],
+            [new ConsumedCurseHealEffect("Soul Harvest", 50)]),
+        // Свет
+        new("PrismLens", EquipmentType.Weapon, Rarity.Artifact, new(Attack: 160), [HeroElement.Radiance],
+            [new SpellProcPoolEffect("Prism Ray", [FireballLevel1, FrostBoltLevel1, LightningLevel1, ShadowBoltLevel1, VenomThornsLevel1], 70)]),
+        new("SunDisc", EquipmentType.Weapon, Rarity.Artifact, new(Attack: 120, MaxHp: 360), [HeroElement.Radiance],
+            [new CleanseAlliesEffect("Radiant Nova", Count: 1, 50, PrismRayLevel1)]),
+        new("MorningStar", EquipmentType.Weapon, Rarity.Artifact, new(Attack: 110, MaxHp: 400), [HeroElement.Radiance],
+            [new SpellProcEffect("Dawnlight", RadiantNovaLevel1, 40, Condition: ProcCondition.AllyBelowHp, Threshold: 30)]),
+        // Кровь
+        new("BloodMoonFang", EquipmentType.Weapon, Rarity.Artifact, new(Attack: 160), [HeroElement.Blood],
+            [new SpellEchoEffect("Life Drain", 60, EchoTrigger.TargetBelowHp, Value: 50)]),
+        new("ThousandCutsDagger", EquipmentType.Weapon, Rarity.Artifact, new(Attack: 150, Speed: 1), [HeroElement.Blood],
+            [new StackBurstEffect("Hemorrhage", "Bleed", Stacks: 5, Ticks: 3)]),
+        new("SacrificialAltar", EquipmentType.Weapon, Rarity.Artifact, new(Attack: 120, MaxHp: 480), [HeroElement.Blood],
+            [new PaidHpHealEffect("Blood Price", 100)])
     ];
 
     private static readonly Dictionary<string, EquipmentDefinition> ByKey = All.ToDictionary(i => i.Key);

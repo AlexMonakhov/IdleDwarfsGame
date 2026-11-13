@@ -28072,7 +28072,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0050000000000000001,
+                                    Probability = 0.00047619047619047619,
                                     Rarity = 5,
                                     SubType = "ArmageddonBlade"
                                 },
@@ -28084,9 +28084,237 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0050000000000000001,
+                                    Probability = 0.00047619047619047619,
                                     Rarity = 5,
                                     SubType = "GlacialRelic"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000300030024"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000003000003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.00047619047619047619,
+                                    Rarity = 5,
+                                    SubType = "PhoenixStaff"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000300030025"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000003000003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.00047619047619047619,
+                                    Rarity = 5,
+                                    SubType = "VolcanoHeart"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000300030026"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000003000003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.00047619047619047619,
+                                    Rarity = 5,
+                                    SubType = "WinterShard"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000300030027"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000003000003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.00047619047619047619,
+                                    Rarity = 5,
+                                    SubType = "GlacierShackles"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000300030028"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000003000003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.00047619047619047619,
+                                    Rarity = 5,
+                                    SubType = "ThunderHammer"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000300030029"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000003000003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.00047619047619047619,
+                                    Rarity = 5,
+                                    SubType = "StormCoil"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000300030030"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000003000003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.00047619047619047619,
+                                    Rarity = 5,
+                                    SubType = "ThunderHorn"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000300030031"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000003000003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.00047619047619047619,
+                                    Rarity = 5,
+                                    SubType = "LifeTreeSeed"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000300030032"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000003000003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.00047619047619047619,
+                                    Rarity = 5,
+                                    SubType = "WyvernSting"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000300030033"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000003000003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.00047619047619047619,
+                                    Rarity = 5,
+                                    SubType = "ElderGroveStaff"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000300030034"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000003000003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.00047619047619047619,
+                                    Rarity = 5,
+                                    SubType = "AbyssalSigil"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000300030035"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000003000003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.00047619047619047619,
+                                    Rarity = 5,
+                                    SubType = "CurseDoll"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000300030036"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000003000003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.00047619047619047619,
+                                    Rarity = 5,
+                                    SubType = "ReaperScythe"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000300030037"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000003000003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.00047619047619047619,
+                                    Rarity = 5,
+                                    SubType = "PrismLens"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000300030038"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000003000003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.00047619047619047619,
+                                    Rarity = 5,
+                                    SubType = "SunDisc"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000300030039"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000003000003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.00047619047619047619,
+                                    Rarity = 5,
+                                    SubType = "MorningStar"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000300030040"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000003000003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.00047619047619047619,
+                                    Rarity = 5,
+                                    SubType = "BloodMoonFang"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000300030041"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000003000003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.00047619047619047619,
+                                    Rarity = 5,
+                                    SubType = "ThousandCutsDagger"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000300030042"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000003000003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.00047619047619047619,
+                                    Rarity = 5,
+                                    SubType = "SacrificialAltar"
                                 },
                                 new
                                 {
@@ -28288,7 +28516,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.025000000000000001,
+                                    Probability = 0.0023809523809523812,
                                     Rarity = 5,
                                     SubType = "ArmageddonBlade"
                                 },
@@ -28300,9 +28528,237 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.025000000000000001,
+                                    Probability = 0.0023809523809523812,
                                     Rarity = 5,
                                     SubType = "GlacialRelic"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000300040018"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000003000004",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0023809523809523812,
+                                    Rarity = 5,
+                                    SubType = "PhoenixStaff"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000300040019"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000003000004",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0023809523809523812,
+                                    Rarity = 5,
+                                    SubType = "VolcanoHeart"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000300040020"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000003000004",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0023809523809523812,
+                                    Rarity = 5,
+                                    SubType = "WinterShard"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000300040021"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000003000004",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0023809523809523812,
+                                    Rarity = 5,
+                                    SubType = "GlacierShackles"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000300040022"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000003000004",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0023809523809523812,
+                                    Rarity = 5,
+                                    SubType = "ThunderHammer"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000300040023"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000003000004",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0023809523809523812,
+                                    Rarity = 5,
+                                    SubType = "StormCoil"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000300040024"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000003000004",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0023809523809523812,
+                                    Rarity = 5,
+                                    SubType = "ThunderHorn"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000300040025"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000003000004",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0023809523809523812,
+                                    Rarity = 5,
+                                    SubType = "LifeTreeSeed"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000300040026"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000003000004",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0023809523809523812,
+                                    Rarity = 5,
+                                    SubType = "WyvernSting"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000300040027"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000003000004",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0023809523809523812,
+                                    Rarity = 5,
+                                    SubType = "ElderGroveStaff"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000300040028"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000003000004",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0023809523809523812,
+                                    Rarity = 5,
+                                    SubType = "AbyssalSigil"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000300040029"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000003000004",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0023809523809523812,
+                                    Rarity = 5,
+                                    SubType = "CurseDoll"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000300040030"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000003000004",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0023809523809523812,
+                                    Rarity = 5,
+                                    SubType = "ReaperScythe"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000300040031"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000003000004",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0023809523809523812,
+                                    Rarity = 5,
+                                    SubType = "PrismLens"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000300040032"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000003000004",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0023809523809523812,
+                                    Rarity = 5,
+                                    SubType = "SunDisc"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000300040033"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000003000004",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0023809523809523812,
+                                    Rarity = 5,
+                                    SubType = "MorningStar"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000300040034"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000003000004",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0023809523809523812,
+                                    Rarity = 5,
+                                    SubType = "BloodMoonFang"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000300040035"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000003000004",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0023809523809523812,
+                                    Rarity = 5,
+                                    SubType = "ThousandCutsDagger"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000300040036"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000003000004",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0023809523809523812,
+                                    Rarity = 5,
+                                    SubType = "SacrificialAltar"
                                 },
                                 new
                                 {
@@ -28420,7 +28876,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.074999999999999997,
+                                    Probability = 0.0071428571428571426,
                                     Rarity = 5,
                                     SubType = "ArmageddonBlade"
                                 },
@@ -28432,9 +28888,237 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.074999999999999997,
+                                    Probability = 0.0071428571428571426,
                                     Rarity = 5,
                                     SubType = "GlacialRelic"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000300050011"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000003000005",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0071428571428571426,
+                                    Rarity = 5,
+                                    SubType = "PhoenixStaff"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000300050012"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000003000005",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0071428571428571426,
+                                    Rarity = 5,
+                                    SubType = "VolcanoHeart"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000300050013"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000003000005",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0071428571428571426,
+                                    Rarity = 5,
+                                    SubType = "WinterShard"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000300050014"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000003000005",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0071428571428571426,
+                                    Rarity = 5,
+                                    SubType = "GlacierShackles"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000300050015"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000003000005",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0071428571428571426,
+                                    Rarity = 5,
+                                    SubType = "ThunderHammer"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000300050016"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000003000005",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0071428571428571426,
+                                    Rarity = 5,
+                                    SubType = "StormCoil"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000300050017"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000003000005",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0071428571428571426,
+                                    Rarity = 5,
+                                    SubType = "ThunderHorn"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000300050018"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000003000005",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0071428571428571426,
+                                    Rarity = 5,
+                                    SubType = "LifeTreeSeed"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000300050019"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000003000005",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0071428571428571426,
+                                    Rarity = 5,
+                                    SubType = "WyvernSting"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000300050020"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000003000005",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0071428571428571426,
+                                    Rarity = 5,
+                                    SubType = "ElderGroveStaff"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000300050021"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000003000005",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0071428571428571426,
+                                    Rarity = 5,
+                                    SubType = "AbyssalSigil"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000300050022"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000003000005",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0071428571428571426,
+                                    Rarity = 5,
+                                    SubType = "CurseDoll"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000300050023"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000003000005",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0071428571428571426,
+                                    Rarity = 5,
+                                    SubType = "ReaperScythe"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000300050024"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000003000005",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0071428571428571426,
+                                    Rarity = 5,
+                                    SubType = "PrismLens"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000300050025"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000003000005",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0071428571428571426,
+                                    Rarity = 5,
+                                    SubType = "SunDisc"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000300050026"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000003000005",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0071428571428571426,
+                                    Rarity = 5,
+                                    SubType = "MorningStar"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000300050027"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000003000005",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0071428571428571426,
+                                    Rarity = 5,
+                                    SubType = "BloodMoonFang"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000300050028"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000003000005",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0071428571428571426,
+                                    Rarity = 5,
+                                    SubType = "ThousandCutsDagger"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000300050029"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000003000005",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0071428571428571426,
+                                    Rarity = 5,
+                                    SubType = "SacrificialAltar"
                                 },
                                 new
                                 {
@@ -29332,7 +30016,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0025000000000000001,
+                                    Probability = 0.0002380952380952381,
                                     Rarity = 5,
                                     SubType = "ArmageddonBlade"
                                 },
@@ -29344,9 +30028,237 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0025000000000000001,
+                                    Probability = 0.0002380952380952381,
                                     Rarity = 5,
                                     SubType = "GlacialRelic"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000201030024"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002010003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "PhoenixStaff"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000201030025"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002010003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "VolcanoHeart"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000201030026"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002010003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "WinterShard"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000201030027"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002010003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "GlacierShackles"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000201030028"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002010003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "ThunderHammer"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000201030029"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002010003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "StormCoil"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000201030030"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002010003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "ThunderHorn"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000201030031"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002010003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "LifeTreeSeed"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000201030032"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002010003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "WyvernSting"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000201030033"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002010003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "ElderGroveStaff"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000201030034"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002010003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "AbyssalSigil"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000201030035"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002010003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "CurseDoll"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000201030036"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002010003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "ReaperScythe"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000201030037"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002010003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "PrismLens"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000201030038"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002010003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "SunDisc"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000201030039"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002010003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "MorningStar"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000201030040"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002010003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "BloodMoonFang"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000201030041"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002010003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "ThousandCutsDagger"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000201030042"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002010003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "SacrificialAltar"
                                 },
                                 new
                                 {
@@ -30244,7 +31156,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0025000000000000001,
+                                    Probability = 0.0002380952380952381,
                                     Rarity = 5,
                                     SubType = "ArmageddonBlade"
                                 },
@@ -30256,9 +31168,237 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0025000000000000001,
+                                    Probability = 0.0002380952380952381,
                                     Rarity = 5,
                                     SubType = "GlacialRelic"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000202030024"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002020003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "PhoenixStaff"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000202030025"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002020003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "VolcanoHeart"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000202030026"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002020003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "WinterShard"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000202030027"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002020003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "GlacierShackles"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000202030028"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002020003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "ThunderHammer"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000202030029"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002020003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "StormCoil"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000202030030"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002020003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "ThunderHorn"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000202030031"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002020003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "LifeTreeSeed"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000202030032"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002020003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "WyvernSting"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000202030033"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002020003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "ElderGroveStaff"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000202030034"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002020003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "AbyssalSigil"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000202030035"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002020003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "CurseDoll"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000202030036"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002020003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "ReaperScythe"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000202030037"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002020003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "PrismLens"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000202030038"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002020003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "SunDisc"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000202030039"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002020003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "MorningStar"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000202030040"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002020003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "BloodMoonFang"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000202030041"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002020003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "ThousandCutsDagger"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000202030042"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002020003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "SacrificialAltar"
                                 },
                                 new
                                 {
@@ -31156,7 +32296,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0025000000000000001,
+                                    Probability = 0.0002380952380952381,
                                     Rarity = 5,
                                     SubType = "ArmageddonBlade"
                                 },
@@ -31168,9 +32308,237 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0025000000000000001,
+                                    Probability = 0.0002380952380952381,
                                     Rarity = 5,
                                     SubType = "GlacialRelic"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000204030024"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002040003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "PhoenixStaff"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000204030025"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002040003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "VolcanoHeart"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000204030026"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002040003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "WinterShard"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000204030027"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002040003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "GlacierShackles"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000204030028"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002040003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "ThunderHammer"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000204030029"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002040003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "StormCoil"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000204030030"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002040003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "ThunderHorn"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000204030031"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002040003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "LifeTreeSeed"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000204030032"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002040003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "WyvernSting"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000204030033"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002040003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "ElderGroveStaff"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000204030034"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002040003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "AbyssalSigil"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000204030035"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002040003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "CurseDoll"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000204030036"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002040003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "ReaperScythe"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000204030037"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002040003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "PrismLens"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000204030038"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002040003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "SunDisc"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000204030039"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002040003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "MorningStar"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000204030040"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002040003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "BloodMoonFang"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000204030041"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002040003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "ThousandCutsDagger"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000204030042"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002040003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "SacrificialAltar"
                                 },
                                 new
                                 {
@@ -32068,7 +33436,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0025000000000000001,
+                                    Probability = 0.0002380952380952381,
                                     Rarity = 5,
                                     SubType = "ArmageddonBlade"
                                 },
@@ -32080,9 +33448,237 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0025000000000000001,
+                                    Probability = 0.0002380952380952381,
                                     Rarity = 5,
                                     SubType = "GlacialRelic"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000203030024"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002030003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "PhoenixStaff"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000203030025"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002030003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "VolcanoHeart"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000203030026"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002030003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "WinterShard"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000203030027"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002030003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "GlacierShackles"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000203030028"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002030003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "ThunderHammer"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000203030029"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002030003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "StormCoil"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000203030030"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002030003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "ThunderHorn"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000203030031"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002030003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "LifeTreeSeed"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000203030032"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002030003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "WyvernSting"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000203030033"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002030003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "ElderGroveStaff"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000203030034"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002030003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "AbyssalSigil"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000203030035"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002030003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "CurseDoll"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000203030036"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002030003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "ReaperScythe"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000203030037"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002030003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "PrismLens"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000203030038"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002030003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "SunDisc"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000203030039"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002030003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "MorningStar"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000203030040"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002030003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "BloodMoonFang"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000203030041"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002030003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "ThousandCutsDagger"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000203030042"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002030003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "SacrificialAltar"
                                 },
                                 new
                                 {
@@ -32980,7 +34576,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0025000000000000001,
+                                    Probability = 0.0002380952380952381,
                                     Rarity = 5,
                                     SubType = "ArmageddonBlade"
                                 },
@@ -32992,9 +34588,237 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0025000000000000001,
+                                    Probability = 0.0002380952380952381,
                                     Rarity = 5,
                                     SubType = "GlacialRelic"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000205030024"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002050003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "PhoenixStaff"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000205030025"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002050003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "VolcanoHeart"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000205030026"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002050003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "WinterShard"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000205030027"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002050003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "GlacierShackles"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000205030028"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002050003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "ThunderHammer"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000205030029"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002050003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "StormCoil"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000205030030"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002050003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "ThunderHorn"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000205030031"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002050003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "LifeTreeSeed"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000205030032"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002050003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "WyvernSting"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000205030033"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002050003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "ElderGroveStaff"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000205030034"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002050003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "AbyssalSigil"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000205030035"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002050003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "CurseDoll"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000205030036"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002050003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "ReaperScythe"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000205030037"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002050003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "PrismLens"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000205030038"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002050003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "SunDisc"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000205030039"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002050003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "MorningStar"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000205030040"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002050003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "BloodMoonFang"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000205030041"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002050003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "ThousandCutsDagger"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000205030042"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002050003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "SacrificialAltar"
                                 },
                                 new
                                 {
@@ -33892,7 +35716,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0025000000000000001,
+                                    Probability = 0.0002380952380952381,
                                     Rarity = 5,
                                     SubType = "ArmageddonBlade"
                                 },
@@ -33904,9 +35728,237 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0025000000000000001,
+                                    Probability = 0.0002380952380952381,
                                     Rarity = 5,
                                     SubType = "GlacialRelic"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000206030024"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002060003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "PhoenixStaff"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000206030025"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002060003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "VolcanoHeart"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000206030026"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002060003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "WinterShard"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000206030027"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002060003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "GlacierShackles"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000206030028"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002060003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "ThunderHammer"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000206030029"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002060003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "StormCoil"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000206030030"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002060003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "ThunderHorn"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000206030031"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002060003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "LifeTreeSeed"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000206030032"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002060003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "WyvernSting"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000206030033"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002060003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "ElderGroveStaff"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000206030034"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002060003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "AbyssalSigil"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000206030035"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002060003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "CurseDoll"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000206030036"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002060003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "ReaperScythe"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000206030037"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002060003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "PrismLens"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000206030038"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002060003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "SunDisc"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000206030039"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002060003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "MorningStar"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000206030040"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002060003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "BloodMoonFang"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000206030041"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002060003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "ThousandCutsDagger"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000206030042"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002060003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "SacrificialAltar"
                                 },
                                 new
                                 {
@@ -34804,7 +36856,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0025000000000000001,
+                                    Probability = 0.0002380952380952381,
                                     Rarity = 5,
                                     SubType = "ArmageddonBlade"
                                 },
@@ -34816,9 +36868,237 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0025000000000000001,
+                                    Probability = 0.0002380952380952381,
                                     Rarity = 5,
                                     SubType = "GlacialRelic"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000207030024"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002070003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "PhoenixStaff"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000207030025"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002070003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "VolcanoHeart"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000207030026"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002070003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "WinterShard"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000207030027"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002070003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "GlacierShackles"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000207030028"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002070003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "ThunderHammer"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000207030029"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002070003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "StormCoil"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000207030030"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002070003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "ThunderHorn"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000207030031"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002070003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "LifeTreeSeed"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000207030032"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002070003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "WyvernSting"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000207030033"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002070003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "ElderGroveStaff"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000207030034"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002070003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "AbyssalSigil"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000207030035"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002070003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "CurseDoll"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000207030036"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002070003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "ReaperScythe"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000207030037"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002070003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "PrismLens"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000207030038"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002070003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "SunDisc"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000207030039"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002070003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "MorningStar"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000207030040"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002070003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "BloodMoonFang"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000207030041"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002070003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "ThousandCutsDagger"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000207030042"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002070003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0002380952380952381,
+                                    Rarity = 5,
+                                    SubType = "SacrificialAltar"
                                 });
                         });
 
