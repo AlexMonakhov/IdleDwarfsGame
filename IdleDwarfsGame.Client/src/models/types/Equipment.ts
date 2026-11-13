@@ -37,6 +37,8 @@ export interface ItemEffectInfo {
     spell?: string | null;
     procSpell?: string | null;
     procLevel?: number | null;
+    // Шанс срабатывания SpellProc на цель, %; 100 или пусто — всегда
+    chance?: number | null;
     passive?: HeroPassive | null;
     aura?: string | null;
     auraTarget?: AuraTarget | null;

@@ -69,8 +69,12 @@ public abstract class BaseSpell : ISpell
     {
         foreach (var proc in modifier.Procs)
         {
+            // Шанс бросается на каждую живую цель; срабатывание — один каст по всем, кому повезло
             var alive = targets.Where(world.IsAlive).ToList();
             if (alive.Count == 0) return;
+            if (proc.Chance < 100)
+                alive = alive.Where(_ => context.Random.Next(100) < proc.Chance).ToList();
+            if (alive.Count == 0) continue;
 
             if (SpellRegistry.All.GetValueOrDefault(proc.SpellId) is BaseSpell spell)
                 spell.CastTriggered(world, casterId, context, alive, proc.DamagePercent);

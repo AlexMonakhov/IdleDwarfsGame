@@ -228,7 +228,7 @@ public static class CombatPower
         int extra = perTarget > 0 ? Math.Min(modifier.ExtraTargets, Math.Max(0, ReferenceTargets - targets)) : 0;
 
         double damage = (estimate.Damage + extra * perTarget) * (100 + modifier.DamagePercent) / 100;
-        damage += (targets + extra) * modifier.Procs.Sum(p => attack * p.DamagePercent / 100.0);
+        damage += (targets + extra) * modifier.Procs.Sum(p => attack * p.DamagePercent / 100.0 * p.Chance / 100.0);
         return estimate with { Damage = damage };
     }
 

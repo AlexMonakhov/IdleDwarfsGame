@@ -28072,9 +28072,21 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.01,
+                                    Probability = 0.0050000000000000001,
                                     Rarity = 5,
                                     SubType = "ArmageddonBlade"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000300030023"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000003000003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0050000000000000001,
+                                    Rarity = 5,
+                                    SubType = "GlacialRelic"
                                 },
                                 new
                                 {
@@ -28276,9 +28288,21 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.050000000000000003,
+                                    Probability = 0.025000000000000001,
                                     Rarity = 5,
                                     SubType = "ArmageddonBlade"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000300040017"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000003000004",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.025000000000000001,
+                                    Rarity = 5,
+                                    SubType = "GlacialRelic"
                                 },
                                 new
                                 {
@@ -28396,9 +28420,21 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.14999999999999999,
+                                    Probability = 0.074999999999999997,
                                     Rarity = 5,
                                     SubType = "ArmageddonBlade"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000300050010"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000003000005",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.074999999999999997,
+                                    Rarity = 5,
+                                    SubType = "GlacialRelic"
                                 },
                                 new
                                 {
@@ -29296,9 +29332,21 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0050000000000000001,
+                                    Probability = 0.0025000000000000001,
                                     Rarity = 5,
                                     SubType = "ArmageddonBlade"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000201030023"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002010003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0025000000000000001,
+                                    Rarity = 5,
+                                    SubType = "GlacialRelic"
                                 },
                                 new
                                 {
@@ -30196,9 +30244,21 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0050000000000000001,
+                                    Probability = 0.0025000000000000001,
                                     Rarity = 5,
                                     SubType = "ArmageddonBlade"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000202030023"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002020003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0025000000000000001,
+                                    Rarity = 5,
+                                    SubType = "GlacialRelic"
                                 },
                                 new
                                 {
@@ -31096,9 +31156,21 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0050000000000000001,
+                                    Probability = 0.0025000000000000001,
                                     Rarity = 5,
                                     SubType = "ArmageddonBlade"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000204030023"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002040003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0025000000000000001,
+                                    Rarity = 5,
+                                    SubType = "GlacialRelic"
                                 },
                                 new
                                 {
@@ -31996,9 +32068,21 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0050000000000000001,
+                                    Probability = 0.0025000000000000001,
                                     Rarity = 5,
                                     SubType = "ArmageddonBlade"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000203030023"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002030003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0025000000000000001,
+                                    Rarity = 5,
+                                    SubType = "GlacialRelic"
                                 },
                                 new
                                 {
@@ -32896,9 +32980,21 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0050000000000000001,
+                                    Probability = 0.0025000000000000001,
                                     Rarity = 5,
                                     SubType = "ArmageddonBlade"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000205030023"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002050003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0025000000000000001,
+                                    Rarity = 5,
+                                    SubType = "GlacialRelic"
                                 },
                                 new
                                 {
@@ -33796,9 +33892,21 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0050000000000000001,
+                                    Probability = 0.0025000000000000001,
                                     Rarity = 5,
                                     SubType = "ArmageddonBlade"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000206030023"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002060003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0025000000000000001,
+                                    Rarity = 5,
+                                    SubType = "GlacialRelic"
                                 },
                                 new
                                 {
@@ -34696,9 +34804,21 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0050000000000000001,
+                                    Probability = 0.0025000000000000001,
                                     Rarity = 5,
                                     SubType = "ArmageddonBlade"
+                                },
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000207030023"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000002070003",
+                                    ItemLevel = 1,
+                                    ItemType = 0,
+                                    MaxAmount = 1,
+                                    MinAmount = 1,
+                                    Probability = 0.0025000000000000001,
+                                    Rarity = 5,
+                                    SubType = "GlacialRelic"
                                 });
                         });
 

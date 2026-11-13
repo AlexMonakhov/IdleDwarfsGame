@@ -106,6 +106,69 @@ public class EquipmentTests : IDisposable
         Assert.NotEqual(wave[0].ActionId, cast.ActionId);
     }
 
+    // Random.Next(max) всегда возвращает одно число: так проверяем шанс без случайности
+    private sealed class FixedRandom(int roll) : Random
+    {
+        public override int Next(int maxValue) => Math.Min(roll, maxValue - 1);
+        public override int Next(int minValue, int maxValue) => Math.Clamp(roll, minValue, maxValue - 1);
+    }
+
+    [Theory]
+    [InlineData(49, true)]
+    [InlineData(50, false)]
+    public void GlacialRelic_TriggersFrostBoltOnBlizzardTargetsWithChance(int roll, bool triggers)
+    {
+        const int blizzard1 = 19, frostBolt1 = 16;
+        var hero = MakeHero(element: HeroElement.Frost, spells: [blizzard1], items: "GlacialRelic");
+        var (world, heroId, enemies) = Arena(hero);
+        int attack = world.Attack[heroId].Damage;
+        var context = new CombatContext { Random = new FixedRandom(roll) };
+
+        SpellRegistry.All[blizzard1].Execute(world, heroId, context);
+
+        var bolts = context.Logs.Where(l => l.EventType == CombatEventType.Damage && l.SkillName == "Frost Bolt").ToList();
+        if (!triggers)
+        {
+            Assert.Empty(bolts);
+            Assert.DoesNotContain(context.Logs, l => l.SkillName == "Frost Bolt");
+            return;
+        }
+
+        // Один каст Frost Bolt 1 уровня по всем целям Blizzard, 100% атаки
+        var cast = Assert.Single(context.Logs, l => l.EventType == CombatEventType.SkillCast && l.SkillName == "Frost Bolt");
+        Assert.Equal(frostBolt1, cast.SkillId);
+        Assert.Equal(enemies, bolts.Select(l => l.TargetId).OrderBy(id => id).ToList());
+        Assert.All(bolts, l => Assert.Equal(attack, l.Damage));
+    }
+
+    [Fact]
+    public void HeroInfo_SpellDetailListsItemProcs()
+    {
+        const int blizzard1 = 19;
+        var hero = MakeHero(element: HeroElement.Frost, attack: 100, spells: [blizzard1], items: "GlacialRelic");
+
+        var info = HeroInfo.From(Factory, hero);
+
+        var detail = Assert.Single(info.SpellDetails);
+        var proc = Assert.Single(detail.Procs);
+        Assert.Equal("Frost Bolt 1", proc.Spell);
+        Assert.Equal(info.Attack, proc.Damage);
+        Assert.Equal(50, proc.Chance);
+
+        // Без предмета срабатываний нет
+        Assert.Empty(Assert.Single(HeroInfo.From(Factory, MakeHero(element: HeroElement.Frost, spells: [blizzard1])).SpellDetails).Procs);
+    }
+
+    [Fact]
+    public void GlacialRelic_InfoShowsChance()
+    {
+        var effect = Assert.Single(EquipmentCatalog.Find("GlacialRelic")!.Effects).Info;
+        Assert.Equal("SpellProc", effect.Kind);
+        Assert.Equal("Frost Bolt", effect.ProcSpell);
+        Assert.Equal(100, effect.Value);
+        Assert.Equal(50, effect.Chance);
+    }
+
     [Fact]
     public void SpellModifier_DoesNothingForOtherSpells()
     {

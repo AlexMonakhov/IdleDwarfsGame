@@ -18,8 +18,9 @@ public class SpellModifier
     public List<SpellProc> Procs { get; } = new();
 }
 
-// После каста по всем его живым целям срабатывает другой спелл: урон — DamagePercent от атаки кастера
-public record SpellProc(int SpellId, int DamagePercent);
+// После каста по его живым целям срабатывает другой спелл: урон — DamagePercent от атаки кастера.
+// Chance — шанс в процентах, бросается отдельно для каждой цели (100 — по всем)
+public record SpellProc(int SpellId, int DamagePercent, int Chance = 100);
 
 // Аура, которую даёт предмет герою без своей ауры. Power — процент, как у AuraBook
 public record AuraGrant(string Effect, AuraTarget Target, int Power, int Duration = 1, int Interval = 1);
@@ -58,6 +59,8 @@ public class ItemEffectInfo
     public string? Spell { get; set; }
     public string? ProcSpell { get; set; }
     public int? ProcLevel { get; set; }
+    // Шанс срабатывания на цель, у SpellProc; 100 — всегда
+    public int? Chance { get; set; }
     public HeroPassive? Passive { get; set; }
     public string? Aura { get; set; }
     public AuraTarget? AuraTarget { get; set; }
@@ -85,17 +88,17 @@ public record SpellDamageEffect(string Spell, int Percent) : ItemEffect
     public override ItemEffectInfo Info => new() { Kind = "SpellDamage", Spell = Spell, Value = Percent };
 }
 
-// После каста спелла по каждой его живой цели срабатывает другой спелл
-public record SpellProcEffect(string Spell, int ProcSpellId, int DamagePercent) : ItemEffect
+// После каста спелла по каждой его живой цели с шансом Chance срабатывает другой спелл
+public record SpellProcEffect(string Spell, int ProcSpellId, int DamagePercent, int Chance = 100) : ItemEffect
 {
-    public override void Apply(GearComponent gear) => gear.Spell(Spell).Procs.Add(new SpellProc(ProcSpellId, DamagePercent));
+    public override void Apply(GearComponent gear) => gear.Spell(Spell).Procs.Add(new SpellProc(ProcSpellId, DamagePercent, Chance));
 
     public override ItemEffectInfo Info
     {
         get
         {
             var proc = SpellRegistry.All[ProcSpellId];
-            return new ItemEffectInfo { Kind = "SpellProc", Spell = Spell, ProcSpell = proc.Name, ProcLevel = proc.Level, Value = DamagePercent };
+            return new ItemEffectInfo { Kind = "SpellProc", Spell = Spell, ProcSpell = proc.Name, ProcLevel = proc.Level, Value = DamagePercent, Chance = Chance };
         }
     }
 }

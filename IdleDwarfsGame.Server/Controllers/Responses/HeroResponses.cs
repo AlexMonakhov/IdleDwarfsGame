@@ -94,6 +94,8 @@ public class SpellDetail
     // Сколько врагов задевает каст, если их 5 (полный отряд)
     public int Targets { get; set; }
     public int Healing { get; set; }
+    // Спеллы, которые предметы вызывают после этого каста (SpellProcEffect): берутся из снаряжения, без списка вручную
+    public List<SpellProcDetail> Procs { get; set; } = new();
 
     private const int FullSquad = 5;
 
@@ -112,15 +114,37 @@ public class SpellDetail
         }
         perTarget = perTarget * (100 + sorcererPercent) / 100;
 
+        // Как в BaseSpell.CastTriggered: урон срабатывания — процент от атаки, без «Чародея» и бонусов предметов
+        var procs = (modifier?.Procs ?? [])
+            .Where(p => SpellRegistry.All.ContainsKey(p.SpellId))
+            .Select(p => new SpellProcDetail
+            {
+                Spell = SpellRegistry.Describe(p.SpellId),
+                Damage = attack * p.DamagePercent / 100,
+                Chance = p.Chance
+            })
+            .ToList();
+
         return new SpellDetail
         {
             Spell = SpellRegistry.Describe(spell.Id),
             EnergyCost = spell.EnergyCost,
             Damage = (int)Math.Round(perTarget),
             Targets = targets,
-            Healing = (int)Math.Round(single.Healing)
+            Healing = (int)Math.Round(single.Healing),
+            Procs = procs
         };
     }
+}
+
+// Срабатывание с предмета: какой спелл, сколько урона по каждой цели и с каким шансом на цель
+public class SpellProcDetail
+{
+    // «Frost Bolt 1», как SpellDetail.Spell
+    public string Spell { get; set; } = string.Empty;
+    public int Damage { get; set; }
+    // %, 100 — по каждой цели всегда
+    public int Chance { get; set; }
 }
 
 // Прокачка героя (HeroUpgradeService): текущий уровень, цена следующего и что он даст

@@ -6,8 +6,13 @@ import { EquipmentInfo, ItemEffectInfo, ItemStats, PassiveInfo } from '@/models/
 export const itemName = (item: EquipmentInfo): string =>
     i18n.global.te(`equipment.items.${item.key}`) ? t(`equipment.items.${item.key}`) : item.key;
 
-export const effectText = (effect: ItemEffectInfo): string => t(`equipment.effects.${effect.kind}`, {
+// Срабатывание с шансом меньше 100% описывается своим текстом: equipment.effects.<kind>Chance
+const effectKey = (effect: ItemEffectInfo): string =>
+    effect.chance != null && effect.chance < 100 ? `${effect.kind}Chance` : effect.kind;
+
+export const effectText = (effect: ItemEffectInfo): string => t(`equipment.effects.${effectKey(effect)}`, {
     value: effect.value,
+    chance: effect.chance ?? 100,
     spell: effect.spell ?? '',
     proc: effect.procSpell ?? '',
     level: effect.procLevel ?? '',

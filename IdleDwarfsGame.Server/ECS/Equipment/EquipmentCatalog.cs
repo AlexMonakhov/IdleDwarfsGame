@@ -17,6 +17,7 @@ public record EquipmentDefinition(
 public static class EquipmentCatalog
 {
     private const int MeteorLevel1 = 13;
+    private const int FrostBoltLevel1 = 16;
 
     private static readonly HeroElement[] AnyElement = [];
 
@@ -73,7 +74,11 @@ public static class EquipmentCatalog
         new("RingOfCleaving", EquipmentType.Ring, Rarity.Mythic, new(Attack: 30), AnyElement,
             [new PassiveTargetsEffect(HeroPassive.DoubleStrike, 1)]),
         new("RingOfWildfire", EquipmentType.Ring, Rarity.Legendary, new(Attack: 40), AnyElement,
-            [new PassiveTargetsEffect(HeroPassive.SharpTongue, 1), new PassivePercentEffect(HeroPassive.SharpTongue, 10)])
+            [new PassiveTargetsEffect(HeroPassive.SharpTongue, 1), new PassivePercentEffect(HeroPassive.SharpTongue, 10)]),
+
+        // ===== Добавлено позже: дописываем в конец, чтобы не сдвигать таблицы дропа =====
+        new("GlacialRelic", EquipmentType.Weapon, Rarity.Artifact, new(Attack: 160), [HeroElement.Frost],
+            [new SpellProcEffect("Blizzard", FrostBoltLevel1, 100, Chance: 50)])
     ];
 
     private static readonly Dictionary<string, EquipmentDefinition> ByKey = All.ToDictionary(i => i.Key);

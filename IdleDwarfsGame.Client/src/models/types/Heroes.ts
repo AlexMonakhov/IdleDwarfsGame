@@ -51,6 +51,15 @@ export interface SpellDetail {
     // Сколько врагов задевает каст при полном вражеском отряде
     targets: number;
     healing: number;
+    // Спеллы, которые предметы вызывают после каста; старый сервер их не присылал
+    procs?: SpellProcDetail[];
+}
+
+// Срабатывание с предмета (SpellProcEffect): спелл «Frost Bolt 1», урон по каждой цели, шанс на цель в %
+export interface SpellProcDetail {
+    spell: string;
+    damage: number;
+    chance: number;
 }
 
 // Прокачка героя за золото и опыт аккаунта (IdleDwarfsGame.Server/Services/HeroUpgradeService.cs).
