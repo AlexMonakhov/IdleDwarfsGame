@@ -167,8 +167,9 @@ export interface ArenaBetReplay {
 /* ===== Глубинный спуск ===== */
 
 export type DelveNodeType = 'Fight' | 'Elite' | 'Camp' | 'Treasure' | 'Boss';
-export type DelveRunStatus = 'Active' | 'Dead' | 'Completed' | 'Retreated';
-export type DelvePending = 'None' | 'Relic' | 'Camp';
+export type DelveRunStatus = 'Active' | 'Dead' | 'Retreated';
+export type DelvePending = 'None' | 'Relic' | 'Camp' | 'Reward';
+export type DelveRewardKind = 'Element' | 'Spell' | 'Item' | 'Passive' | 'Aura' | 'LevelUp';
 
 export interface DelveNodeInfo {
     floor: number;
@@ -176,12 +177,44 @@ export interface DelveNodeInfo {
     type: DelveNodeType;
 }
 
-export interface DelveFallenInfo {
+export interface DelvePassiveValues {
+    percent: number;
+    turns: number;
+    targets: number;
+}
+
+export interface DelveDwarfInfo {
     heroId: string;
     name: string;
-    unitType: string;
     element: HeroElement;
     level: number;
+    position: number;
+    // Доля HP 0..1; 0 — пал
+    hp: number;
+    unit: CombatUnitInfo;
+    spellId: number | null;
+    spellName: string | null;
+    spellLevel: number;
+    itemKey: string | null;
+    passive: string | null;
+    passiveLevel: number;
+    passiveValues: DelvePassiveValues | null;
+    auraEffect: string | null;
+    auraLevel: number;
+}
+
+export interface DelveRewardInfo {
+    kind: DelveRewardKind;
+    key: string | null;
+    level: number;
+    spellId: number | null;
+    spellName: string | null;
+    element: HeroElement | null;
+    rarity: string | null;
+    passiveValues: DelvePassiveValues | null;
+    // Награду надевают на выбранного дворфа — только из fits
+    needsTarget: boolean;
+    fits: string[];
 }
 
 export interface DelveRunInfo {
@@ -191,20 +224,26 @@ export interface DelveRunInfo {
     column: number;
     pending: DelvePending;
     offer: string[];
+    rewards: DelveRewardInfo[];
     relics: string[];
-    units: CombatUnitInfo[];
-    fallen: DelveFallenInfo[];
+    dwarves: DelveDwarfInfo[];
+    // Весь следующий этаж и узел через этаж под текущим столбцом
+    next: DelveNodeInfo[];
+    peek: DelveNodeInfo | null;
     goldEarned: number;
-    isToday: boolean;
+    experienceEarned: number;
+    rainbowCoinsEarned: number;
+    revived: boolean;
+    canRevive: boolean;
 }
 
 export interface DelveOverview {
     serverTime: string;
-    weekStart: string;
-    nextDayAt: string;
-    floors: number;
+    periodStart: string;
+    nextRunAt: string;
     columns: number;
-    map: DelveNodeInfo[];
+    bossEvery: number;
+    reviveCost: number;
     run: DelveRunInfo | null;
     canStart: boolean;
     bestFloor: number;
@@ -218,5 +257,13 @@ export interface DelveMoveResult {
     background: string | null;
     won: boolean | null;
     gold: number;
+    experience: number;
+    rainbowCoins: number;
+    overview: DelveOverview;
+}
+
+export interface DelveDeclineResult {
+    gold: number;
+    experience: number;
     overview: DelveOverview;
 }
