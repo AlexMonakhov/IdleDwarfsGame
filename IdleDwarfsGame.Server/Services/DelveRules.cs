@@ -2,22 +2,26 @@ public enum DelveNodeType { Fight, Elite, Camp, Treasure, Boss }
 
 public record DelveNode(int Floor, int Column, DelveNodeType Type);
 
-// Реликвия забега: усиливает весь отряд до конца забега (DelveService.BuildSquadWorld)
-public record DelveRelic(string Key, bool Rare = false);
+// Реликвия забега: усиливает весь отряд до конца забега. Одну и ту же можно брать сколько угодно раз —
+// действие складывается (DelveService.BuildSquadWorld, RewardOffer); у Max — потолок числа копий
+public record DelveRelic(string Key, bool Rare = false, int Max = int.MaxValue);
 
-// Награда после узла. Element и Spell сами находят дворфа, остальные — на выбранного игроком (NeedsTarget):
-//   Element  — дворф 1-го ранга становится дворфом 2-го ранга стихии Element
-//   Spell    — спелл SpellId (Level 1..3) первому дворфу стихии Element без спелла
-//   Item     — предмет Key из EquipmentCatalog (у дворфа один предмет, новый заменяет старый)
-//   Passive  — пассивка Key уровня Level (заменяет прежнюю)
-//   Aura     — аура Key (эффект из AuraBook) уровня Level (заменяет прежнюю)
-//   LevelUp  — ранг дворфа +1 (у дворфа 1-го ранга ещё и случайная стихия Element)
-public enum DelveRewardKind { Element, Spell, Item, Passive, Aura, LevelUp }
+// Награда после узла. Element и Spell этажей 6–10 сами находят дворфа, остальные надеваются на выбранного (NeedsTarget):
+//   Element   — дворф 1-го ранга становится дворфом 2-го ранга стихии Element
+//   Spell     — спелл SpellId (Level 1..3) стихии Element: на этажах 6–10 — первому дворфу этой стихии без спелла,
+//               дальше (Targeted) — выбранному дворфу этой стихии, прежний спелл заменяется
+//   Item      — предмет Key из EquipmentCatalog (у дворфа один предмет, новый заменяет старый; стихия — по предмету)
+//   Passive   — пассивка Key уровня Level (заменяет прежнюю)
+//   Aura      — аура стихии Element (эффект Key) уровня Level — только дворфу этой стихии, заменяет прежнюю
+//   SpellUp / PassiveUp / AuraUp — уровень спелла, пассивки или ауры дворфа +1 (до 3)
+//   LevelUp   — ранг дворфа +1 (у дворфа 1-го ранга ещё и стихия Element)
+public enum DelveRewardKind { Element, Spell, Item, Passive, Aura, LevelUp, SpellUp, PassiveUp, AuraUp }
 
-public record DelveReward(DelveRewardKind Kind, string? Key = null, int Level = 0, int? SpellId = null, HeroElement? Element = null)
+public record DelveReward(DelveRewardKind Kind, string? Key = null, int Level = 0, int? SpellId = null, HeroElement? Element = null,
+    bool Targeted = false)
 {
     [System.Text.Json.Serialization.JsonIgnore]
-    public bool NeedsTarget => Kind is DelveRewardKind.Item or DelveRewardKind.Passive or DelveRewardKind.Aura or DelveRewardKind.LevelUp;
+    public bool NeedsTarget => Kind is not (DelveRewardKind.Element or DelveRewardKind.Spell) || Targeted;
 }
 
 // «Глубинный спуск» — бесконечный забег-рогалик.
@@ -26,7 +30,8 @@ public record DelveReward(DelveRewardKind Kind, string? Key = null, int Level = 
 // Отряд свой, а не игрока: StartSize секироносцев 1-го ранга. Его растят награды после каждого узла (RewardPhase):
 //   этажи 1–5  — стихия: дворф 1-го ранга становится дворфом 2-го ранга выбранной стихии (1 из 3);
 //   этажи 6–10 — спелл: 1 из 3, только стихий, у которых есть дворф без спелла, уровень спелла случайный;
-//   дальше     — что угодно: предмет, пассивка, аура, повышение ранга.
+//   дальше     — что угодно: предмет, пассивка, аура, спелл, улучшение спелла, пассивки или ауры, изредка ранг.
+// Стихийное (предметы стихий, ауры, спеллы) выпадает, только если в отряде есть дворф этой стихии, и надевается только на него.
 // От любой награды можно отказаться и взять золото с опытом на аккаунт.
 //
 // Карта у каждого забега своя (сид забега), бесконечна и считается по (сид, этаж, столбец) — в базе её нет.
@@ -54,11 +59,11 @@ public static class DelveRules
     public const int EliteStageBonus = 2;
     public const int BossStageBonus = 3;
     public const double EliteHp = 1.25;
-    public const double BossHp = 1.5;
+    public const double BossHp = 1.3;
     // Уровни кампании рассчитаны на дворфов, прокачанных за золото, а у отряда спуска прокачки нет: враги слабее
-    public const double EnemyStrength = 0.35;
+    public const double EnemyStrength = 0.25;
     // И с каждым этажом сильнее на столько (сложный процент): отряд рангов 3–4 с предметами не уходит в бесконечность
-    public const double DepthGrowth = 0.04;
+    public const double DepthGrowth = 0.045;
     // За последним уровнем кампании враги растут на столько за каждый «лишний» уровень
     public const double OverflowPerStage = 0.05;
 
@@ -82,26 +87,38 @@ public static class DelveRules
     public const int LeaderboardSize = 10;
     public const int OfferSize = 3;
 
+    // Реликвии складываются: каждая копия даёт своё значение ещё раз
     public static readonly DelveRelic[] Relics =
     [
-        new("rage"),          // +15% атаки
-        new("stoneskin"),     // +20% HP
-        new("swiftboots"),    // +1 скорость
-        new("bloodthirst"),   // после победы живые лечатся на 10%
-        new("ale"),           // привал лечит ещё на 25%
-        new("spark"),         // +40% энергии на старте боя
-        new("giantslayer"),   // +30% атаки в боях с элитой и боссом
-        new("phoenix", true)  // сразу воскрешает всех павших с 30% HP
+        new("rage"),                 // +RageAttack атаки
+        new("stoneskin"),            // +StoneskinHp HP
+        new("swiftboots", true),     // +1 скорость
+        new("bloodthirst"),          // после победы живые лечатся на BloodthirstHeal
+        new("ale"),                  // привал лечит ещё на AleHeal
+        new("spark"),                // +SparkEnergy энергии на старте боя
+        new("giantslayer"),          // +GiantslayerAttack атаки в боях с элитой и боссом
+        new("phoenix", true),        // сразу воскрешает всех павших с PhoenixHp HP
+        new("luck"),                 // предметы лучшей редкости выпадают чаще
+        new("wisdom"),               // спеллы, пассивки и ауры высокого уровня выпадают чаще
+        new("greed"),                // +GreedReward золота и опыта в спуске
+        new("insight", true, 2)      // +1 награда на выбор
     ];
 
-    public const double RageAttack = 0.15;
-    public const double StoneskinHp = 0.2;
+    public const double RageAttack = 0.05;
+    public const double StoneskinHp = 0.06;
     public const int SwiftSpeed = 1;
-    public const double BloodthirstHeal = 0.1;
-    public const double AleHeal = 0.25;
-    public const double SparkEnergy = 0.4;
-    public const double GiantslayerAttack = 0.3;
+    public const double BloodthirstHeal = 0.04;
+    public const double AleHeal = 0.1;
+    public const double SparkEnergy = 0.1;
+    public const double GiantslayerAttack = 0.1;
     public const double PhoenixHp = 0.3;
+    // Удача: вес редкости с номером r (Common = 0) умножается на 1 + LuckPerRarity × r за каждую копию
+    public const double LuckPerRarity = 0.3;
+    // Мудрость: вес уровня L умножается на 1 + WisdomPerLevel × (L - 1) за каждую копию
+    public const double WisdomPerLevel = 0.5;
+    public const double GreedReward = 0.1;
+
+    public static int Count(IEnumerable<string> relics, string key) => relics.Count(r => r == key);
 
     /* ===== Период ===== */
 
@@ -245,17 +262,16 @@ public static class DelveRules
         (Rarity.Common, 30), (Rarity.Uncommon, 25), (Rarity.Rare, 20), (Rarity.Mythic, 12), (Rarity.Legendary, 8), (Rarity.Artifact, 5)
     ];
 
+    // Повышение ранга — редкость: ранг 3 и 4 умножают статы в разы
     private static readonly (DelveRewardKind Kind, int Weight)[] RandomKinds =
     [
-        (DelveRewardKind.Item, 40), (DelveRewardKind.Passive, 25), (DelveRewardKind.Aura, 20), (DelveRewardKind.LevelUp, 15)
+        (DelveRewardKind.Item, 34), (DelveRewardKind.Passive, 16), (DelveRewardKind.Aura, 12), (DelveRewardKind.Spell, 10),
+        (DelveRewardKind.SpellUp, 8), (DelveRewardKind.PassiveUp, 8), (DelveRewardKind.AuraUp, 8), (DelveRewardKind.LevelUp, 3)
     ];
 
-    private static readonly string[] AuraEffects = ElementSpellBook.Elements
-        .Select(AuraBook.EffectFor).OfType<string>().Distinct().ToArray();
-
-    private static T Pick<T>(Random random, IReadOnlyList<(T Value, int Weight)> table)
+    private static T Pick<T>(Random random, IReadOnlyList<(T Value, double Weight)> table)
     {
-        int roll = random.Next(table.Sum(x => x.Weight));
+        double roll = random.NextDouble() * table.Sum(x => x.Weight);
         foreach (var (value, weight) in table)
         {
             if (roll < weight) return value;
@@ -264,8 +280,13 @@ public static class DelveRules
         return table[^1].Value;
     }
 
+    private static T Pick<T>(Random random, IReadOnlyList<(T Value, int Weight)> table) =>
+        Pick(random, table.Select(x => (x.Value, (double)x.Weight)).ToList());
+
+    public static int OfferSizeFor(IReadOnlyCollection<string> relics) => OfferSize + Count(relics, "insight");
+
     // Награды на выбор после узла этажа floor — по сиду забега и этажу. Пустой список — нечего предложить
-    public static List<DelveReward> RewardOffer(int seed, int floor, IReadOnlyList<Hero> squad)
+    public static List<DelveReward> RewardOffer(int seed, int floor, IReadOnlyList<Hero> squad, IReadOnlyCollection<string> relics)
     {
         var random = new Random(Mix(seed, floor, 1000));
         var phase = RewardPhase(floor);
@@ -274,14 +295,21 @@ public static class DelveRules
         if (phase == Phase.Spell && SpellElements(squad).Count == 0)
             phase = Phase.Random;
 
+        // Мудрость сдвигает уровни вверх, удача — редкость предметов
+        int wisdom = Count(relics, "wisdom");
+        var levels = LevelWeights.Select(x => (x.Level, x.Weight * (1 + WisdomPerLevel * wisdom * (x.Level - 1)))).ToList();
+        int luck = Count(relics, "luck");
+        var rarities = RarityWeights.Select(x => (x.Rarity, x.Weight * (1 + LuckPerRarity * luck * (int)x.Rarity))).ToList();
+
+        int size = OfferSizeFor(relics);
         var offer = new List<DelveReward>();
-        for (int tries = 0; offer.Count < OfferSize && tries < 50; tries++)
+        for (int tries = 0; offer.Count < size && tries < 80; tries++)
         {
             var reward = phase switch
             {
                 Phase.Element => new DelveReward(DelveRewardKind.Element, Element: Pick(random, ElementWeights)),
-                Phase.Spell => RandomSpell(random, squad),
-                _ => RandomReward(random, squad)
+                Phase.Spell => RandomSpell(random, SpellElements(squad), levels, targeted: false),
+                _ => RandomReward(random, squad, levels, rarities)
             };
             if (reward != null && !offer.Contains(reward))
                 offer.Add(reward);
@@ -293,70 +321,101 @@ public static class DelveRules
     public static List<HeroElement> SpellElements(IReadOnlyList<Hero> squad) =>
         squad.Where(h => h.Element != HeroElement.Basic && h.SpellIds.Count == 0).Select(h => h.Element).Distinct().ToList();
 
-    private static DelveReward? RandomSpell(Random random, IReadOnlyList<Hero> squad)
+    // Стихии отряда (без Basic) — для стихийных наград
+    private static List<HeroElement> SquadElements(IReadOnlyList<Hero> squad) =>
+        squad.Select(h => h.Element).Where(e => e != HeroElement.Basic).Distinct().ToList();
+
+    private static DelveReward? RandomSpell(Random random, List<HeroElement> elements, List<(int Level, double Weight)> levels, bool targeted)
     {
-        var elements = SpellElements(squad);
         if (elements.Count == 0) return null;
         var element = elements[random.Next(elements.Count)];
         var families = ElementSpellBook.FamiliesOf(element);
         if (families.Count == 0) return null;
-        int level = Pick(random, LevelWeights);
+        int level = Pick(random, levels);
         return new DelveReward(DelveRewardKind.Spell, Level: level,
-            SpellId: SpellRegistry.IdOf(families[random.Next(families.Count)], level), Element: element);
+            SpellId: SpellRegistry.IdOf(families[random.Next(families.Count)], level), Element: element, Targeted: targeted);
     }
 
-    private static DelveReward? RandomReward(Random random, IReadOnlyList<Hero> squad)
+    private static DelveReward? RandomReward(Random random, IReadOnlyList<Hero> squad,
+        List<(int Level, double Weight)> levels, List<(Rarity Rarity, double Weight)> rarities)
     {
-        switch (Pick(random, RandomKinds))
+        var elements = SquadElements(squad);
+        DelveReward? reward = Pick(random, RandomKinds) switch
         {
-            case DelveRewardKind.Item:
-                var rarity = Pick(random, RarityWeights);
-                var items = EquipmentCatalog.All.Where(i => i.Rarity == rarity && squad.Any(h => i.Fits(h.Element))).ToList();
-                return items.Count == 0 ? null : new DelveReward(DelveRewardKind.Item, items[random.Next(items.Count)].Key);
-            case DelveRewardKind.Passive:
-                var passives = Enum.GetValues<HeroPassive>();
-                return new DelveReward(DelveRewardKind.Passive, passives[random.Next(passives.Length)].ToString(), Pick(random, LevelWeights));
-            case DelveRewardKind.Aura:
-                return new DelveReward(DelveRewardKind.Aura, AuraEffects[random.Next(AuraEffects.Length)], Pick(random, LevelWeights));
-            default:
-                return squad.Any(h => h.Level < HeroLevels.Available)
-                    ? new DelveReward(DelveRewardKind.LevelUp, Element: Pick(random, ElementWeights))
-                    : null;
-        }
+            DelveRewardKind.Item => RandomItem(random, squad, Pick(random, rarities)),
+            DelveRewardKind.Passive => new DelveReward(DelveRewardKind.Passive,
+                Enum.GetValues<HeroPassive>()[random.Next(Enum.GetValues<HeroPassive>().Length)].ToString(), Pick(random, levels)),
+            DelveRewardKind.Aura => RandomAura(random, elements, levels),
+            DelveRewardKind.Spell => RandomSpell(random, elements, levels, targeted: true),
+            DelveRewardKind.SpellUp => new DelveReward(DelveRewardKind.SpellUp),
+            DelveRewardKind.PassiveUp => new DelveReward(DelveRewardKind.PassiveUp),
+            DelveRewardKind.AuraUp => new DelveReward(DelveRewardKind.AuraUp),
+            _ => new DelveReward(DelveRewardKind.LevelUp, Element: Pick(random, ElementWeights))
+        };
+        // Награда, которую некому надеть, не предлагается
+        return reward != null && squad.Any(h => CannotApply(reward, h) == null) ? reward : null;
     }
+
+    // Аура стихии, которая есть в отряде
+    private static DelveReward? RandomAura(Random random, List<HeroElement> elements, List<(int Level, double Weight)> levels)
+    {
+        if (elements.Count == 0) return null;
+        var element = elements[random.Next(elements.Count)];
+        return AuraBook.EffectFor(element) is { } effect
+            ? new DelveReward(DelveRewardKind.Aura, effect, Pick(random, levels), Element: element)
+            : null;
+    }
+
+    private static DelveReward? RandomItem(Random random, IReadOnlyList<Hero> squad, Rarity rarity)
+    {
+        var items = EquipmentCatalog.All.Where(i => i.Rarity == rarity && squad.Any(h => i.Fits(h.Element))).ToList();
+        return items.Count == 0 ? null : new DelveReward(DelveRewardKind.Item, items[random.Next(items.Count)].Key);
+    }
+
+    private static int SpellLevelOf(Hero hero) =>
+        hero.SpellIds.Count > 0 && SpellRegistry.All.TryGetValue(hero.SpellIds[0], out var spell) ? spell.Level : 0;
 
     // Можно ли надеть награду на этого дворфа; null — можно, иначе — почему нельзя
     public static string? CannotApply(DelveReward reward, Hero hero)
     {
-        if (reward.Kind == DelveRewardKind.Item)
+        switch (reward.Kind)
         {
-            var item = EquipmentCatalog.Find(reward.Key ?? string.Empty);
-            if (item == null) return "Unknown item";
-            if (!item.Fits(hero.Element)) return "This item does not fit the dwarf's element";
+            case DelveRewardKind.Item:
+                var item = EquipmentCatalog.Find(reward.Key ?? string.Empty);
+                if (item == null) return "Unknown item";
+                return item.Fits(hero.Element) ? null : "This item does not fit the dwarf's element";
+            case DelveRewardKind.Spell:
+            case DelveRewardKind.Aura:
+                return hero.Element == reward.Element && hero.Element != HeroElement.Basic ? null : "Only a dwarf of this element can take it";
+            case DelveRewardKind.SpellUp:
+                int spellLevel = SpellLevelOf(hero);
+                return spellLevel is > 0 and < ElementSpellBook.MaxLevel ? null : "The dwarf has no spell to improve";
+            case DelveRewardKind.PassiveUp:
+                return hero.Passives.Count > 0 && hero.PassiveLevel < PassiveBook.MaxLevel ? null : "The dwarf has no passive to improve";
+            case DelveRewardKind.AuraUp:
+                return hero.AuraEffect != null && hero.AuraLevel < AuraBook.MaxLevel ? null : "The dwarf has no aura to improve";
+            case DelveRewardKind.LevelUp:
+                return hero.Level < HeroLevels.Available ? null : "The dwarf already has the highest rank";
+            default:
+                return null;
         }
-        if (reward.Kind == DelveRewardKind.LevelUp && hero.Level >= HeroLevels.Available)
-            return "The dwarf already has the highest rank";
-        return null;
     }
 
     // Награда в отряд. target — выбранный игроком дворф (для NeedsTarget), иначе дворф находится сам.
     // Возвращает дворфа, которому досталась награда; null — некому
     public static Hero? Apply(DelveReward reward, List<Hero> squad, Hero? target)
     {
-        switch (reward.Kind)
+        if (!reward.NeedsTarget)
         {
-            case DelveRewardKind.Element:
-            {
-                var hero = squad.OrderBy(h => h.PlaceInSquad).FirstOrDefault(h => h.Level == HeroLevels.Min);
-                if (hero != null) Promote(hero, reward.Element ?? HeroElement.Fire);
-                return hero;
-            }
-            case DelveRewardKind.Spell:
-            {
-                var hero = squad.OrderBy(h => h.PlaceInSquad).FirstOrDefault(h => h.Element == reward.Element && h.SpellIds.Count == 0);
-                if (hero != null && reward.SpellId is { } spell) hero.SpellIds = [spell];
-                return hero;
-            }
+            var hero = reward.Kind == DelveRewardKind.Element
+                ? squad.OrderBy(h => h.PlaceInSquad).FirstOrDefault(h => h.Level == HeroLevels.Min)
+                : squad.OrderBy(h => h.PlaceInSquad).FirstOrDefault(h => h.Element == reward.Element && h.SpellIds.Count == 0);
+            if (hero == null) return null;
+            if (reward.Kind == DelveRewardKind.Element)
+                Promote(hero, reward.Element ?? HeroElement.Fire);
+            else if (reward.SpellId is { } id)
+                hero.SpellIds = [id];
+            return hero;
         }
 
         if (target == null || CannotApply(reward, target) != null)
@@ -374,6 +433,10 @@ public static class DelveRules
                     }
                 ];
                 break;
+            case DelveRewardKind.Spell:
+                if (reward.SpellId is not { } spellId) return null;
+                target.SpellIds = [spellId];
+                break;
             case DelveRewardKind.Passive:
                 if (!Enum.TryParse<HeroPassive>(reward.Key, out var passive)) return null;
                 target.Passives = [passive];
@@ -382,6 +445,16 @@ public static class DelveRules
             case DelveRewardKind.Aura:
                 if (AuraBook.Find(reward.Key) is not { } aura) return null;
                 AuraBook.Apply(target, aura, reward.Level);
+                break;
+            case DelveRewardKind.SpellUp:
+                // Уровни семейства идут подряд (SpellRegistry.IdOf)
+                target.SpellIds = [target.SpellIds[0] + 1];
+                break;
+            case DelveRewardKind.PassiveUp:
+                target.PassiveLevel++;
+                break;
+            case DelveRewardKind.AuraUp:
+                AuraBook.Apply(target, AuraBook.Find(target.AuraEffect)!, target.AuraLevel + 1);
                 break;
             case DelveRewardKind.LevelUp:
                 Promote(target, reward.Element ?? HeroElement.Fire);
@@ -392,14 +465,18 @@ public static class DelveRules
 
     /* ===== Реликвии ===== */
 
-    // Три реликвии на выбор: без уже взятых, по сиду забега и этажа
+    // Реликвии на выбор: разные, повторять уже взятые можно (кроме упёршихся в Max); редкие выпадают реже
     public static List<string> RelicOffer(int seed, int floor, IReadOnlyCollection<string> owned)
     {
         var random = new Random(Mix(seed, floor, 2000));
-        return Relics.Where(r => !owned.Contains(r.Key))
-            .OrderBy(_ => random.Next())
-            .Take(OfferSize)
-            .Select(r => r.Key)
-            .ToList();
+        var pool = Relics.Where(r => Count(owned, r.Key) < r.Max).Select(r => (r.Key, Weight: r.Rare ? 1 : 3)).ToList();
+        var offer = new List<string>();
+        while (offer.Count < OfferSize && pool.Count > 0)
+        {
+            var key = Pick(random, pool);
+            offer.Add(key);
+            pool.RemoveAll(x => x.Key == key);
+        }
+        return offer;
     }
 }

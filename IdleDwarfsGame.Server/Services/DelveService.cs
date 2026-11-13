@@ -154,7 +154,7 @@ public class DelveService(
         var hp = run.Hp();
         if (action == "rest")
         {
-            double heal = DelveRules.CampHeal + (run.Relics().Contains("ale") ? DelveRules.AleHeal : 0);
+            double heal = DelveRules.CampHeal + DelveRules.AleHeal * DelveRules.Count(run.Relics(), "ale");
             hp = hp.ToDictionary(x => x.Key, x => x.Value > 0 ? Math.Min(1, x.Value + heal) : 0);
         }
         else if (action == "revive")
@@ -213,7 +213,7 @@ public class DelveService(
             throw new DelveException(DelveError.NothingPending, "There is nothing to choose");
 
         var progress = await players.GetProgressAsync(run.PlayerId);
-        double stages = DelveRules.DeclineStagesFor(run.Floor);
+        double stages = DelveRules.DeclineStagesFor(run.Floor) * GreedOf(run);
         var result = new DelveDeclineResult
         {
             Gold = DailyQuests.GoldFor(stages, progress),
@@ -337,11 +337,12 @@ public class DelveService(
 
         if (result.Won == true)
         {
-            if (run.Relics().Contains("bloodthirst"))
-                hp = hp.ToDictionary(x => x.Key, x => x.Value > 0 ? Math.Min(1, x.Value + DelveRules.BloodthirstHeal) : 0);
+            double heal = DelveRules.BloodthirstHeal * DelveRules.Count(run.Relics(), "bloodthirst");
+            if (heal > 0)
+                hp = hp.ToDictionary(x => x.Key, x => x.Value > 0 ? Math.Min(1, x.Value + heal) : 0);
 
             var progress = await players.GetProgressAsync(run.PlayerId);
-            double stages = DelveRules.FightStagesFor(node);
+            double stages = DelveRules.FightStagesFor(node) * GreedOf(run);
             result.Gold = DailyQuests.GoldFor(stages, progress);
             result.Experience = DailyQuests.ExperienceFor(stages, progress);
             result.RainbowCoins = node.Type == DelveNodeType.Boss ? DelveRules.BossRainbowCoins : 0;
@@ -366,6 +367,8 @@ public class DelveService(
         }
     }
 
+    private static double GreedOf(DelveRun run) => 1 + DelveRules.GreedReward * DelveRules.Count(run.Relics(), "greed");
+
     // false — все реликвии уже взяты
     private static bool OfferRelics(DelveRun run)
     {
@@ -379,7 +382,7 @@ public class DelveService(
 
     private static void OfferRewards(DelveRun run)
     {
-        var offer = DelveRules.RewardOffer(run.Seed, run.Floor, run.Squad());
+        var offer = DelveRules.RewardOffer(run.Seed, run.Floor, run.Squad(), run.Relics());
         if (offer.Count == 0)
             return;
         run.SetRewards(offer);
@@ -403,8 +406,11 @@ public class DelveService(
         entityFactory.CreateSquad(world, heroes, teamId: 1);
 
         var relics = run.Relics();
-        double attack = 1 + (relics.Contains("rage") ? DelveRules.RageAttack : 0) + (strongFoe && relics.Contains("giantslayer") ? DelveRules.GiantslayerAttack : 0);
-        double maxHp = 1 + (relics.Contains("stoneskin") ? DelveRules.StoneskinHp : 0);
+        int Count(string key) => DelveRules.Count(relics, key);
+        double attack = 1 + DelveRules.RageAttack * Count("rage") + (strongFoe ? DelveRules.GiantslayerAttack * Count("giantslayer") : 0);
+        double maxHp = 1 + DelveRules.StoneskinHp * Count("stoneskin");
+        int speed = DelveRules.SwiftSpeed * Count("swiftboots");
+        double spark = DelveRules.SparkEnergy * Count("spark");
         foreach (var entity in world.Entities)
         {
             var info = world.Info[entity.Id];
@@ -417,12 +423,11 @@ public class DelveService(
             atk.Damage = (int)Math.Round(atk.Damage * attack);
             atk.Base = atk.Damage;
 
-            if (relics.Contains("swiftboots"))
-                world.Speed[entity.Id].Value += DelveRules.SwiftSpeed;
-            if (relics.Contains("spark"))
+            world.Speed[entity.Id].Value += speed;
+            if (spark > 0)
             {
                 var energy = world.Energy[entity.Id];
-                energy.Current = Math.Min(energy.Max, energy.Current + (int)Math.Round(energy.Max * DelveRules.SparkEnergy));
+                energy.Current = Math.Min(energy.Max, energy.Current + (int)Math.Round(energy.Max * spark));
             }
         }
         return world;
@@ -467,7 +472,7 @@ public class DelveService(
                 Floor = b.Floor,
                 IsMe = b.UserId == userId
             }).ToList(),
-            Relics = DelveRules.Relics.Select(r => new DelveRelicInfo { Key = r.Key, Rare = r.Rare }).ToList()
+            Relics = DelveRules.Relics.Select(r => new DelveRelicInfo { Key = r.Key, Rare = r.Rare, Max = r.Max == int.MaxValue ? null : r.Max }).ToList()
         };
     }
 
@@ -491,6 +496,7 @@ public class DelveService(
                 Position = h.PlaceInSquad ?? i + 1,
                 Hp = Math.Clamp(hp.GetValueOrDefault(h.Id, 1), 0, 1),
                 Unit = units.GetValueOrDefault(h.Id) ?? new CombatUnitInfo(),
+                Hero = HeroInfo.From(entityFactory, h),
                 SpellId = spellId,
                 SpellName = spell?.Name,
                 SpellLevel = spell?.Level ?? 0,
@@ -520,6 +526,15 @@ public class DelveService(
                     PassiveValues = r.Kind == DelveRewardKind.Passive && Enum.TryParse<HeroPassive>(r.Key, out var passive)
                         ? PassiveBook.Values(passive, r.Level)
                         : null,
+                    Item = item == null ? null : EquipmentInfo.From(new PlayerEquipment { Id = Guid.Empty, ItemKey = item.Key }),
+                    Ability = r.Kind switch
+                    {
+                        DelveRewardKind.Spell when r.SpellId is { } sid && ElementSpellBook.FamilyOf(sid) is { } family =>
+                            AbilityInfo.Describe(AbilityKind.Spell, family.ToString(), r.Level),
+                        DelveRewardKind.Passive => AbilityInfo.Describe(AbilityKind.Passive, r.Key ?? string.Empty, r.Level),
+                        DelveRewardKind.Aura => AbilityInfo.Describe(AbilityKind.Aura, r.Key ?? string.Empty, r.Level),
+                        _ => null
+                    },
                     NeedsTarget = r.NeedsTarget,
                     Fits = r.NeedsTarget ? squad.Where(h => DelveRules.CannotApply(r, h) == null).Select(h => h.Id).ToList() : []
                 };

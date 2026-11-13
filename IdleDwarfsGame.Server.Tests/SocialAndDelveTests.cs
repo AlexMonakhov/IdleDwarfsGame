@@ -269,7 +269,7 @@ public class SocialAndDelveTests : IDisposable
         var squad = DelveRules.StartSquad(Guid.NewGuid(), new Random(1));
         Assert.All(squad, h => Assert.Equal((HeroProfession.Axeman, 1, HeroElement.Basic), (h.Profession!.Value, h.Level, h.Element)));
 
-        var offer = DelveRules.RewardOffer(7, 1, squad);
+        var offer = DelveRules.RewardOffer(7, 1, squad, []);
         Assert.Equal(DelveRules.OfferSize, offer.Count);
         Assert.All(offer, r => Assert.Equal(DelveRewardKind.Element, r.Kind));
 
@@ -282,18 +282,51 @@ public class SocialAndDelveTests : IDisposable
             DelveRules.Promote(hero, HeroElement.Fire);
 
         // Спеллы — только стихий, у которых есть дворф без спелла; ледяной один — после его спелла ледяных нет
-        Assert.All(DelveRules.RewardOffer(7, 6, squad), r => Assert.Contains(r.Element!.Value, new[] { HeroElement.Frost, HeroElement.Fire }));
+        Assert.All(DelveRules.RewardOffer(7, 6, squad, []), r => Assert.Contains(r.Element!.Value, new[] { HeroElement.Frost, HeroElement.Fire }));
         DelveRules.Apply(new DelveReward(DelveRewardKind.Spell, Level: 3, SpellId: SpellRegistry.IdOf(16, 3), Element: HeroElement.Frost), squad, null);
         Assert.Equal([18], squad[0].SpellIds);
         for (int seed = 0; seed < 20; seed++)
-            Assert.All(DelveRules.RewardOffer(seed, 7, squad), r => Assert.Equal(HeroElement.Fire, r.Element));
+            Assert.All(DelveRules.RewardOffer(seed, 7, squad, []), r => Assert.Equal(HeroElement.Fire, r.Element));
 
-        // После 10-го этажа — предметы, пассивки, ауры, ранги
-        var later = Enumerable.Range(0, 30).SelectMany(seed => DelveRules.RewardOffer(seed, 11, squad)).ToList();
-        Assert.DoesNotContain(later, r => r.Kind is DelveRewardKind.Element or DelveRewardKind.Spell);
-        Assert.Contains(later, r => r.Kind == DelveRewardKind.Item);
-        Assert.Contains(later, r => r.Kind == DelveRewardKind.Passive);
-        Assert.Contains(later, r => r.Kind == DelveRewardKind.Aura);
+        // После 10-го этажа — что угодно, но стихийное — только стихий отряда (лёд и огонь)
+        var later = Enumerable.Range(0, 60).SelectMany(seed => DelveRules.RewardOffer(seed, 11, squad, [])).ToList();
+        Assert.DoesNotContain(later, r => r.Kind == DelveRewardKind.Element);
+        Assert.All(later.Where(r => r.Kind == DelveRewardKind.Spell), r => Assert.True(r.Targeted));
+        foreach (var kind in new[] { DelveRewardKind.Item, DelveRewardKind.Passive, DelveRewardKind.Aura, DelveRewardKind.Spell })
+            Assert.Contains(later, r => r.Kind == kind);
+        Assert.All(later.Where(r => r.Kind is DelveRewardKind.Aura or DelveRewardKind.Spell),
+            r => Assert.Contains(r.Element!.Value, new[] { HeroElement.Frost, HeroElement.Fire }));
+        Assert.All(later.Where(r => r.Kind == DelveRewardKind.Item),
+            r => Assert.True(EquipmentCatalog.Find(r.Key!)!.Fits(HeroElement.Frost) || EquipmentCatalog.Find(r.Key!)!.Fits(HeroElement.Fire)));
+        // Улучшать пока нечего: единственный спелл уже 3-го уровня, пассивок и аур нет
+        Assert.DoesNotContain(later, r => r.Kind is DelveRewardKind.SpellUp or DelveRewardKind.PassiveUp or DelveRewardKind.AuraUp);
+        // Повышение ранга — редкость
+        Assert.True(later.Count(r => r.Kind == DelveRewardKind.LevelUp) * 10 < later.Count);
+    }
+
+    [Fact]
+    public void DelveRelics_StackAndShiftTheOdds()
+    {
+        // Одну реликвию можно брать снова; «Прозрение» — не больше двух копий и даёт награду на выбор сверху
+        var owned = new List<string> { "rage", "rage", "insight", "insight" };
+        for (int floor = 1; floor < 40; floor++)
+            Assert.DoesNotContain("insight", DelveRules.RelicOffer(1, floor, owned));
+        Assert.Contains(Enumerable.Range(1, 40), f => DelveRules.RelicOffer(1, f, owned).Contains("rage"));
+        Assert.Equal(DelveRules.OfferSize + 2, DelveRules.OfferSizeFor(owned));
+
+        var squad = DelveRules.StartSquad(Guid.NewGuid(), new Random(1));
+        foreach (var hero in squad)
+            DelveRules.Promote(hero, HeroElement.Fire);
+        int Rarity(IReadOnlyCollection<string> relics) => Enumerable.Range(0, 200)
+            .SelectMany(seed => DelveRules.RewardOffer(seed, 20, squad, relics))
+            .Where(r => r.Kind == DelveRewardKind.Item)
+            .Sum(r => (int)EquipmentCatalog.Find(r.Key!)!.Rarity);
+        int Levels(IReadOnlyCollection<string> relics) => Enumerable.Range(0, 200)
+            .SelectMany(seed => DelveRules.RewardOffer(seed, 20, squad, relics))
+            .Where(r => r.Kind is DelveRewardKind.Passive or DelveRewardKind.Aura)
+            .Sum(r => r.Level - 1);
+        Assert.True(Rarity(Enumerable.Repeat("luck", 5).ToList()) > Rarity([]));
+        Assert.True(Levels(Enumerable.Repeat("wisdom", 5).ToList()) > Levels([]));
     }
 
     [Fact]
@@ -312,8 +345,20 @@ public class SocialAndDelveTests : IDisposable
         DelveRules.Apply(new DelveReward(DelveRewardKind.Passive, nameof(HeroPassive.Thorns), 3), squad, hero);
         Assert.Equal((HeroPassive.Thorns, 3), (Assert.Single(hero.Passives), hero.PassiveLevel));
 
-        DelveRules.Apply(new DelveReward(DelveRewardKind.Aura, "Burn", 2), squad, hero);
-        Assert.Equal(("Burn", 2), (hero.AuraEffect, hero.AuraLevel));
+        // Аура и спелл — только своей стихии
+        Assert.NotNull(DelveRules.CannotApply(new DelveReward(DelveRewardKind.Aura, "Burn", 2, Element: HeroElement.Fire), hero));
+        DelveRules.Apply(new DelveReward(DelveRewardKind.Aura, "Frost", 2, Element: HeroElement.Frost), squad, hero);
+        Assert.Equal(("Frost", 2), (hero.AuraEffect, hero.AuraLevel));
+        DelveRules.Apply(new DelveReward(DelveRewardKind.Spell, Level: 1, SpellId: 16, Element: HeroElement.Frost, Targeted: true), squad, hero);
+        Assert.Equal([16], hero.SpellIds);
+
+        // Улучшения: +1 уровень до 3
+        DelveRules.Apply(new DelveReward(DelveRewardKind.SpellUp), squad, hero);
+        DelveRules.Apply(new DelveReward(DelveRewardKind.AuraUp), squad, hero);
+        Assert.Equal([17], hero.SpellIds);
+        Assert.Equal(3, hero.AuraLevel);
+        Assert.NotNull(DelveRules.CannotApply(new DelveReward(DelveRewardKind.AuraUp), hero));
+        Assert.NotNull(DelveRules.CannotApply(new DelveReward(DelveRewardKind.PassiveUp), hero));
 
         DelveRules.Apply(new DelveReward(DelveRewardKind.LevelUp, Element: HeroElement.Fire), squad, hero);
         Assert.Equal((3, HeroElement.Frost), (hero.Level, hero.Element));
