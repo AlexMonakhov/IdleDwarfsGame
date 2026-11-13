@@ -68,6 +68,7 @@ public class GameDbContext : DbContext
     public DbSet<ArenaBetMatch> ArenaBetMatches => Set<ArenaBetMatch>();
     public DbSet<ArenaBet> ArenaBets => Set<ArenaBet>();
     public DbSet<DelveRun> DelveRuns => Set<DelveRun>();
+    public DbSet<AppSetting> AppSettings => Set<AppSetting>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -1390,6 +1391,13 @@ public class GameDbContext : DbContext
             e.HasIndex(x => new { x.UserId, x.Day }).IsUnique();
             e.HasIndex(x => x.WeekStart);
             e.HasOne<User>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<AppSetting>(e =>
+        {
+            e.HasKey(x => x.Key);
+            e.Property(x => x.Key).HasMaxLength(64);
+            e.Property(x => x.Value).HasMaxLength(256);
         });
     }
 }
