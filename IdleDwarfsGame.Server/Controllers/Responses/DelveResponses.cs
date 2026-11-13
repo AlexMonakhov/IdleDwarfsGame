@@ -57,6 +57,8 @@ public class DelveDwarfInfo
     public double Hp { get; set; }
     // Как дворф выйдет в бой (статы с предметами и реликвиями) — для портрета и подсказки
     public CombatUnitInfo Unit { get; set; } = new();
+    // Дворф в формате алтаря — для карточки героя, предмета и способностей
+    public HeroInfo Hero { get; set; } = new();
     public int? SpellId { get; set; }
     public string? SpellName { get; set; }
     public int SpellLevel { get; set; }
@@ -79,6 +81,9 @@ public class DelveRewardInfo
     public Rarity? Rarity { get; set; }
     // У пассивки — её числа на этом уровне (для описания)
     public PassiveValues? PassiveValues { get; set; }
+    // Предмет и способность — в формате склада и алтаря, для их карточек
+    public EquipmentInfo? Item { get; set; }
+    public AbilityInfo? Ability { get; set; }
     // Награду надевают на выбранного дворфа; у предмета — только на подходящего по стихии (Fits)
     public bool NeedsTarget { get; set; }
     public List<Guid> Fits { get; set; } = new();
@@ -97,6 +102,8 @@ public class DelveRelicInfo
 {
     public string Key { get; set; } = string.Empty;
     public bool Rare { get; set; }
+    // Потолок копий; null — без потолка
+    public int? Max { get; set; }
 }
 
 public class DelveMoveResult

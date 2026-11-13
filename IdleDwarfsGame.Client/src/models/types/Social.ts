@@ -3,6 +3,9 @@
 import type { CombatResult, CombatUnitInfo, HeroElement } from '@/battle/types';
 import type { PlayerResources } from '@/models/types/Expeditions';
 import type { CampaignFightResult } from '@/models/types/Campaign';
+import type { HeroInfo } from '@/models/types/Heroes';
+import type { EquipmentInfo } from '@/models/types/Equipment';
+import type { AbilityInfo } from '@/models/types/Abilities';
 
 /* ===== Гонка глубины ===== */
 
@@ -169,7 +172,7 @@ export interface ArenaBetReplay {
 export type DelveNodeType = 'Fight' | 'Elite' | 'Camp' | 'Treasure' | 'Boss';
 export type DelveRunStatus = 'Active' | 'Dead' | 'Retreated';
 export type DelvePending = 'None' | 'Relic' | 'Camp' | 'Reward';
-export type DelveRewardKind = 'Element' | 'Spell' | 'Item' | 'Passive' | 'Aura' | 'LevelUp';
+export type DelveRewardKind = 'Element' | 'Spell' | 'Item' | 'Passive' | 'Aura' | 'LevelUp' | 'SpellUp' | 'PassiveUp' | 'AuraUp';
 
 export interface DelveNodeInfo {
     floor: number;
@@ -192,6 +195,8 @@ export interface DelveDwarfInfo {
     // Доля HP 0..1; 0 — пал
     hp: number;
     unit: CombatUnitInfo;
+    // Дворф в формате алтаря: карточка героя, его предмет и способности
+    hero: HeroInfo;
     spellId: number | null;
     spellName: string | null;
     spellLevel: number;
@@ -212,6 +217,9 @@ export interface DelveRewardInfo {
     element: HeroElement | null;
     rarity: string | null;
     passiveValues: DelvePassiveValues | null;
+    // Предмет и способность — в формате склада и алтаря
+    item: EquipmentInfo | null;
+    ability: AbilityInfo | null;
     // Награду надевают на выбранного дворфа — только из fits
     needsTarget: boolean;
     fits: string[];
@@ -248,7 +256,7 @@ export interface DelveOverview {
     canStart: boolean;
     bestFloor: number;
     leaderboard: { place: number; userId: string; username: string; floor: number; isMe: boolean }[];
-    relics: { key: string; rare: boolean }[];
+    relics: { key: string; rare: boolean; max: number | null }[];
 }
 
 export interface DelveMoveResult {
