@@ -3,7 +3,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-// «Глубинный спуск» — забег-рогалик по карте недели (концепт)
+// «Глубинный спуск» — бесконечный забег-рогалик своим отрядом (DelveRules)
 [Authorize]
 [ApiController]
 [Route("delve")]
@@ -26,6 +26,20 @@ public class DelveController(DelveService delve) : ControllerBase
     [HttpPost("camp")]
     public Task<ActionResult<DelveOverview>> Camp([FromBody] DelveCampRequest request) =>
         Run(userId => delve.CampAsync(userId, request.Action, request.HeroId));
+
+    [HttpPost("reward")]
+    public Task<ActionResult<DelveOverview>> Reward([FromBody] DelveRewardRequest request) =>
+        Run(userId => delve.ChooseRewardAsync(userId, request.Index, request.HeroId));
+
+    [HttpPost("reward/decline")]
+    public Task<ActionResult<DelveDeclineResult>> DeclineReward() => Run(userId => delve.DeclineRewardAsync(userId));
+
+    [HttpPost("order")]
+    public Task<ActionResult<DelveOverview>> Order([FromBody] DelveOrderRequest request) =>
+        Run(userId => delve.ReorderAsync(userId, request.HeroIds));
+
+    [HttpPost("revive")]
+    public Task<ActionResult<DelveOverview>> Revive() => Run(userId => delve.ReviveAsync(userId));
 
     [HttpPost("retreat")]
     public Task<ActionResult<DelveOverview>> Retreat() => Run(userId => delve.RetreatAsync(userId));

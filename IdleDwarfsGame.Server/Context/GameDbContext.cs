@@ -1388,8 +1388,8 @@ public class GameDbContext : DbContext
             e.Property(x => x.Status).HasConversion<string>().HasMaxLength(16);
             e.Property(x => x.Pending).HasConversion<string>().HasMaxLength(16);
             e.Property(x => x.Version).IsConcurrencyToken();
-            e.HasIndex(x => new { x.UserId, x.Day }).IsUnique();
-            e.HasIndex(x => x.WeekStart);
+            e.HasIndex(x => new { x.UserId, x.PeriodStart }).IsUnique();
+            e.HasIndex(x => x.PeriodStart);
             e.HasOne<User>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
         });
 

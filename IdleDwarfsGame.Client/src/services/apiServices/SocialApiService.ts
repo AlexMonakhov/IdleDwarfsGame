@@ -4,6 +4,7 @@ import { useAuth } from '@/composables/UseAuth';
 import type {
     ArenaBetOverview,
     ArenaBetReplay,
+    DelveDeclineResult,
     DelveMoveResult,
     DelveOverview,
     FriendHelpResult,
@@ -65,6 +66,10 @@ class SocialApiService {
     async moveDelve(column: number) { return (await apiClient.post<DelveMoveResult>('/delve/move', { column }, { timeout: FIGHT_TIMEOUT })).data; }
     async chooseRelic(key: string) { return (await apiClient.post<DelveOverview>('/delve/relic', { key })).data; }
     async camp(action: 'rest' | 'revive', heroId?: string) { return (await apiClient.post<DelveOverview>('/delve/camp', { action, heroId })).data; }
+    async chooseDelveReward(index: number, heroId?: string) { return (await apiClient.post<DelveOverview>('/delve/reward', { index, heroId })).data; }
+    async declineDelveReward() { return (await apiClient.post<DelveDeclineResult>('/delve/reward/decline')).data; }
+    async orderDelve(heroIds: string[]) { return (await apiClient.post<DelveOverview>('/delve/order', { heroIds })).data; }
+    async reviveDelve() { return (await apiClient.post<DelveOverview>('/delve/revive')).data; }
     async retreatDelve() { return (await apiClient.post<DelveOverview>('/delve/retreat')).data; }
 }
 

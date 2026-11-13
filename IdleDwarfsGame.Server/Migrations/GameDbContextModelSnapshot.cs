@@ -23197,11 +23197,11 @@ namespace IdleDwarfsGame.Server.Migrations
                     b.Property<int>("Column")
                         .HasColumnType("int");
 
-                    b.Property<DateTime>("Day")
-                        .HasColumnType("datetime2");
-
                     b.Property<DateTime?>("EndedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<long>("ExperienceEarned")
+                        .HasColumnType("bigint");
 
                     b.Property<int>("Floor")
                         .HasColumnType("int");
@@ -23222,13 +23222,29 @@ namespace IdleDwarfsGame.Server.Migrations
                         .HasMaxLength(16)
                         .HasColumnType("nvarchar(16)");
 
+                    b.Property<DateTime>("PeriodStart")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("PlayerId")
                         .IsRequired()
                         .HasColumnType("nvarchar(36)");
 
+                    b.Property<int>("RainbowCoinsEarned")
+                        .HasColumnType("int");
+
                     b.Property<string>("RelicsJson")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("Revived")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("RewardsJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Seed")
+                        .HasColumnType("int");
 
                     b.Property<string>("SquadJson")
                         .IsRequired()
@@ -23250,14 +23266,11 @@ namespace IdleDwarfsGame.Server.Migrations
                         .IsConcurrencyToken()
                         .HasColumnType("int");
 
-                    b.Property<DateTime>("WeekStart")
-                        .HasColumnType("datetime2");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("WeekStart");
+                    b.HasIndex("PeriodStart");
 
-                    b.HasIndex("UserId", "Day")
+                    b.HasIndex("UserId", "PeriodStart")
                         .IsUnique();
 
                     b.ToTable("DelveRuns");
