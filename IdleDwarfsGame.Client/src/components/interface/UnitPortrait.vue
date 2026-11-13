@@ -27,11 +27,16 @@ const props = withDefaults(defineProps<Props>(), {
     showLevel: true
 });
 
-const stats = computed(() => [
-    { key: 'hp', value: props.unit.maxHp },
-    { key: 'attack', value: props.unit.attack },
-    { key: 'speed', value: props.unit.speed },
-]);
+const stats = computed(() => {
+    const rows = [
+        { key: 'hp', value: props.unit.maxHp },
+        { key: 'attack', value: props.unit.attack },
+        { key: 'speed', value: props.unit.speed },
+    ];
+    // Старый сервер не присылал энергию за удар — тогда строка без неё
+    if (props.unit.energyPerAttack != null) rows.push({ key: 'energyPerAttack', value: props.unit.energyPerAttack });
+    return rows;
+});
 
 // "статы 520 · умения 140 · пассивки 60" — откуда взялась мощь
 const powerDetails = computed(() => powerParts(props.unit.power)
@@ -45,13 +50,15 @@ const powerDetails = computed(() => powerParts(props.unit.power)
 
         <template #title>{{ unit.name }}<template v-if="unit.isBoss"> · {{ t('unit.boss') }}</template></template>
         <template #description>
-            <div class="portrait-stats">
-                <!-- У дворфа — специализация, у монстров (гоблин, голем…) — их вид -->
+            <!-- У дворфа — специализация, у монстров (гоблин, голем…) — их вид -->
+            <div class="portrait-kind">
                 <span v-if="unit.profession" class="portrait-stat">
                     <component :is="PROFESSION_ICONS[unit.profession]" v-if="PROFESSION_ICONS[unit.profession]" size="14px" />
                     {{ t(`professions.${unit.profession}`) }}
                 </span>
                 <span v-else>{{ unit.unitType }}</span>
+            </div>
+            <div class="portrait-stats">
                 <span v-for="stat in stats" :key="stat.key" class="portrait-stat" :title="t(`heroUpgrade.statNames.${stat.key}`)">
                     <StatIcon :stat="stat.key" size="14px" />{{ stat.value }}
                 </span>
@@ -87,7 +94,12 @@ const powerDetails = computed(() => powerParts(props.unit.power)
 </template>
 
 <style scoped>
-/* Вид или специализация и статы — всегда одной строкой: подсказка расширяется под неё (min-width в TooltipPanel) */
+/* Вид или специализация — своей строкой, под ней статы */
+.portrait-kind {
+    margin-bottom: 2px;
+}
+
+/* Статы — всегда одной строкой: подсказка расширяется под неё (min-width в TooltipPanel) */
 .portrait-stats {
     display: flex;
     align-items: center;

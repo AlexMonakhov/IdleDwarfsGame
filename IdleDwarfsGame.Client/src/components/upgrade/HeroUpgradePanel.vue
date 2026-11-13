@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed, onBeforeUnmount, ref } from 'vue';
+import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue';
 import { AxiosError } from 'axios';
 import { useI18n } from 'vue-i18n';
 import CharacterSkeleton from '@/components/character-skeleton.vue';
@@ -12,7 +12,7 @@ import EquipmentSlots from '@/components/equipment/EquipmentSlots.vue';
 import { passiveName, passiveText } from '@/components/equipment/equipmentText';
 import HeroesApiService from '@/services/apiServices/HeroesApiService';
 import { useResources } from '@/composables/UseResources';
-import { HeroInfo, HeroUpgradeError, HeroUpgradeResult } from '@/models/types/Heroes';
+import { HERO_NAME_MAX, HeroInfo, HeroRenameError, HeroUpgradeError, HeroUpgradeResult, SpellDetail } from '@/models/types/Heroes';
 import { EquipmentInfo, EquipmentSlot, EquipmentType } from '@/models/types/Equipment';
 import { HeroModel } from '@/models/hero';
 import { elementColor, spriteColor } from '@/battle/sprites';
@@ -27,6 +27,7 @@ import { IconCoin, IconExperience } from '@/components/icons/ui';
 const props = defineProps<{ hero: HeroInfo }>();
 const emit = defineEmits<{
     (e: 'upgraded', result: HeroUpgradeResult): void;
+    (e: 'renamed', hero: HeroInfo): void;
     // Данные устарели (героя прокачали в другой вкладке, ресурсы потратили) — окну стоит перечитать их
     (e: 'stale'): void;
     (e: 'equip', item: EquipmentInfo, slot: EquipmentSlot): void;
@@ -86,8 +87,96 @@ const stats = computed<StatRow[]>(() => {
         { key: 'attack', value: hero.attack, next: next?.attack },
         { key: 'speed', value: hero.speed },
         { key: 'energy', value: hero.maxEnergy },
+        // Старый сервер энергию за удар не присылал
+        ...(hero.energyPerAttack != null ? [{ key: 'energyPerAttack', value: hero.energyPerAttack }] : []),
     ];
 });
+
+/* ===== Заклинания: цена и сила каста ===== */
+interface SpellRow {
+    spell: string;
+    detail: SpellDetail | null;
+}
+
+const spells = computed<SpellRow[]>(() => props.hero.spells.map(spell => ({
+    spell,
+    detail: props.hero.spellDetails?.find(d => d.spell === spell) ?? null,
+})));
+
+const spellEffect = (detail: SpellDetail) => {
+    const parts: string[] = [];
+    if (detail.damage > 0) {
+        parts.push(detail.targets > 1
+            ? t('heroUpgrade.spellDamageTargets', { damage: format(detail.damage), targets: detail.targets })
+            : t('heroUpgrade.spellDamage', { damage: format(detail.damage) }));
+    }
+    if (detail.healing > 0) parts.push(t('heroUpgrade.spellHealing', { healing: format(detail.healing) }));
+    return parts.join(' · ');
+};
+
+/* ===== Имя ===== */
+const editingName = ref(false);
+const nameDraft = ref('');
+const renaming = ref(false);
+const nameError = ref<string | null>(null);
+const nameInput = ref<HTMLInputElement | null>(null);
+
+const startRename = async () => {
+    nameDraft.value = props.hero.name;
+    nameError.value = null;
+    editingName.value = true;
+    await nextTick();
+    nameInput.value?.focus();
+    nameInput.value?.select();
+};
+
+const cancelRename = () => {
+    editingName.value = false;
+    nameError.value = null;
+};
+
+// Другой герой — правка имени прошлого не переносится
+watch(() => props.hero.id, cancelRename);
+
+// Пока правится имя, Esc отменяет правку, а не закрывает окно алтаря (ModalComponent смотрит на defaultPrevented).
+// Слушаем на захвате — раньше окна и независимо от того, где сейчас фокус
+const onRenameEscape = (event: KeyboardEvent) => {
+    if (event.key !== 'Escape' || !editingName.value) return;
+    event.preventDefault();
+    cancelRename();
+};
+window.addEventListener('keydown', onRenameEscape, true);
+onBeforeUnmount(() => window.removeEventListener('keydown', onRenameEscape, true));
+
+const renameErrorText = (error: unknown) => {
+    const code = (error as AxiosError<{ code?: HeroRenameError }>).response?.data?.code;
+    return code && te(`heroUpgrade.renameErrors.${code}`)
+        ? t(`heroUpgrade.renameErrors.${code}`, { max: HERO_NAME_MAX })
+        : t('heroUpgrade.renameErrors.failed');
+};
+
+const saveName = async () => {
+    if (renaming.value) return;
+    const name = nameDraft.value.trim().replace(/\s+/g, ' ');
+    if (name === props.hero.name) {
+        cancelRename();
+        return;
+    }
+    if (!name || name.length > HERO_NAME_MAX) {
+        nameError.value = t('heroUpgrade.renameErrors.InvalidName', { max: HERO_NAME_MAX });
+        return;
+    }
+    renaming.value = true;
+    nameError.value = null;
+    try {
+        emit('renamed', await HeroesApiService.rename(props.hero.id, name));
+        editingName.value = false;
+    } catch (error) {
+        nameError.value = renameErrorText(error);
+    } finally {
+        renaming.value = false;
+    }
+};
 
 /* ===== Прокачка ===== */
 type Skeleton = InstanceType<typeof CharacterSkeleton>;
@@ -151,7 +240,26 @@ const hint = computed(() => {
         <!-- ===== Сцена ===== -->
         <div class="upgrade-stage" :style="{ backgroundImage: `url(${background})` }">
             <div class="upgrade-stage-title">
-                <div class="upgrade-stage-name">{{ hero.name }}</div>
+                <form v-if="editingName" class="upgrade-rename" @submit.prevent="saveName">
+                    <input
+                        ref="nameInput"
+                        v-model="nameDraft"
+                        class="upgrade-rename-input"
+                        :maxlength="HERO_NAME_MAX"
+                        :disabled="renaming"
+                    />
+                    <button type="submit" class="upgrade-name-button" :disabled="renaming" v-tooltip="t('heroUpgrade.renameSave')">✔</button>
+                    <button type="button" class="upgrade-name-button" :disabled="renaming" v-tooltip="t('heroUpgrade.renameCancel')" @click="cancelRename">✕</button>
+                </form>
+                <div v-else class="upgrade-stage-name-row">
+                    <div class="upgrade-stage-name">{{ hero.name }}</div>
+                    <button type="button" class="upgrade-name-button" v-tooltip="t('heroUpgrade.rename')" @click="startRename">
+                        <svg viewBox="0 0 24 24" width="12" height="12" aria-hidden="true">
+                            <path fill="currentColor" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zm17.71-10.21a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
+                        </svg>
+                    </button>
+                </div>
+                <div v-if="nameError" class="upgrade-rename-error">{{ nameError }}</div>
                 <div class="upgrade-stage-tags">
                     <span class="upgrade-tag">{{ t('heroUpgrade.rank', { rank: hero.level }) }}</span>
                     <span v-if="hero.profession" class="upgrade-tag"><component :is="PROFESSION_ICONS[hero.profession]" v-if="PROFESSION_ICONS[hero.profession]" /> {{ t(`professions.${hero.profession}`) }}</span>
@@ -203,10 +311,16 @@ const hint = computed(() => {
 
             <div class="stat-group">
                 <span class="stat-label">{{ t('heroUpgrade.statNames.spells') }}</span>
-                <span v-if="hero.spells.length" class="stat-text stat-spells">
-                    <SpellName v-for="spell in hero.spells" :key="spell" :spell="spell" />
-                </span>
-                <span v-else class="stat-text">{{ t('heroUpgrade.none') }}</span>
+                <div v-for="row in spells" :key="row.spell" class="stat-spell">
+                    <span class="stat-text stat-spell-head">
+                        <SpellName :spell="row.spell" />
+                        <span v-if="row.detail" class="stat-spell-cost" v-tooltip="t('heroUpgrade.statNames.energy')">
+                            <StatIcon stat="energy" size="13px" />{{ t('heroUpgrade.spellCost', { cost: row.detail.energyCost }) }}
+                        </span>
+                    </span>
+                    <span v-if="row.detail && spellEffect(row.detail)" class="stat-passive-text">{{ spellEffect(row.detail) }}</span>
+                </div>
+                <span v-if="!hero.spells.length" class="stat-text">{{ t('heroUpgrade.none') }}</span>
             </div>
             <div class="stat-group">
                 <span class="stat-label">{{ t('heroUpgrade.statNames.immunities') }}</span>
@@ -320,6 +434,67 @@ const hint = computed(() => {
     letter-spacing: 1px;
     text-transform: uppercase;
     text-shadow: 0 2px 4px #000;
+}
+
+.upgrade-stage-name-row {
+    display: flex;
+    align-items: center;
+    column-gap: 6px;
+}
+
+/* Маленькая кнопка у имени: карандаш, а в режиме правки — сохранить и отменить */
+.upgrade-name-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.55);
+    color: #e2e8f0;
+    font-size: 11px;
+    line-height: 1;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.upgrade-name-button:hover:not(:disabled) {
+    background: rgba(0, 0, 0, 0.8);
+    color: #ffd166;
+}
+
+.upgrade-name-button:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+.upgrade-rename {
+    display: flex;
+    align-items: center;
+    column-gap: 4px;
+}
+
+.upgrade-rename-input {
+    width: 180px;
+    padding: 2px 6px;
+    border: 1px solid rgba(255, 209, 102, 0.6);
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.7);
+    color: #f8fafc;
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: bold;
+    outline: none;
+}
+
+.upgrade-rename-error {
+    padding: 2px 6px;
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.65);
+    color: #ffb4b4;
+    font-size: 12px;
 }
 
 .upgrade-stage-tags {
@@ -482,10 +657,25 @@ const hint = computed(() => {
     font-size: 13px;
 }
 
-.stat-spells {
+.stat-spell {
+    display: flex;
+    flex-direction: column;
+}
+
+.stat-spell-head {
     display: flex;
     flex-wrap: wrap;
-    gap: 4px 10px;
+    align-items: center;
+    column-gap: 8px;
+}
+
+.stat-spell-cost {
+    display: inline-flex;
+    align-items: center;
+    column-gap: 2px;
+    color: #7dd3fc;
+    font-size: 12px;
+    font-weight: bold;
 }
 
 .stat-icons {

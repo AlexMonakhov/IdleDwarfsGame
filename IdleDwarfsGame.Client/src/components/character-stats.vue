@@ -8,6 +8,8 @@ const props = defineProps<{
   armor?: number;
   energy?: number;
   maxEnergy?: number;
+  // Цены заклинаний: на полоске энергии — метка, с какой энергии юнит кастует
+  spellCosts?: number[];
 }>();
 
 
@@ -19,6 +21,25 @@ const hpFillStyle = computed(() => ({
 const energyFillStyle = computed(() => ({
     width: `${props.maxEnergy ? Math.min(props.energy ?? 0, props.maxEnergy) / props.maxEnergy * 100 : 0}%`
 }) )
+
+// Метки каста: первая (самое дешёвое заклинание) — главная, на ней юнит начнёт кастовать.
+// Цена выше запаса энергии недостижима — такую метку не ставим
+const castMarks = computed(() => {
+    const max = props.maxEnergy ?? 0;
+    if (!max) return [];
+    return [...new Set(props.spellCosts ?? [])]
+        .filter(cost => cost > 0 && cost <= max)
+        .sort((a, b) => a - b)
+        .map((cost, index) => ({
+            cost,
+            main: index === 0,
+            ready: (props.energy ?? 0) >= cost,
+            left: `${cost / max * 100}%`,
+        }));
+});
+
+// Энергии хватает на каст — на следующем ходу юнит применит заклинание
+const castReady = computed(() => castMarks.value.some(mark => mark.ready));
 
 
 
@@ -81,6 +102,49 @@ const energyFillStyle = computed(() => ({
     }
 }
 
+.energy-wrap{
+    position: relative;
+}
+
+/* Метка каста: черта поперёк полоски энергии, чуть выступает за её края */
+.energy-mark{
+    position: absolute;
+    top: -2px;
+    bottom: -2px;
+    width: 2px;
+    border-radius: 1px;
+    transform: translateX(-50%);
+    background: rgba(226, 232, 240, 0.55);
+    box-shadow: 0 0 2px #000;
+    pointer-events: none;
+    transition: background 0.3s, box-shadow 0.3s;
+    &-main{
+        background: #ffd166;
+        box-shadow: 0 0 2px #000, 0 0 3px rgba(255, 209, 102, 0.8);
+    }
+    &-ready{
+        background: #fff;
+        box-shadow: 0 0 2px #000, 0 0 6px 1px #ffd166;
+    }
+}
+
+/* Энергии хватает на каст — полоска разгорается */
+.energy-ready .energy-fill{
+    background: linear-gradient(90deg, #60a5fa, #e0f2fe);
+    animation: energy-ready-pulse 0.9s ease-in-out infinite alternate;
+}
+
+@keyframes energy-ready-pulse{
+    from { filter: brightness(1); }
+    to { filter: brightness(1.5); }
+}
+
+@media (prefers-reduced-motion: reduce){
+    .energy-ready .energy-fill{
+        animation: none;
+    }
+}
+
 .energy{
     background: rgba(15, 24, 48, 0.9);
     height: 5px;
@@ -113,8 +177,17 @@ const energyFillStyle = computed(() => ({
                     <div class="hp-fill" :style="hpFillStyle"></div>
                     <div class="hp-numbers">{{ currentHp }}</div>
                 </div>
-                <div v-if="maxEnergy" class="energy">
-                    <div class="energy-fill" :style="energyFillStyle"></div>
+                <div v-if="maxEnergy" class="energy-wrap" :class="{ 'energy-ready': castReady }">
+                    <div class="energy">
+                        <div class="energy-fill" :style="energyFillStyle"></div>
+                    </div>
+                    <span
+                        v-for="mark in castMarks"
+                        :key="mark.cost"
+                        class="energy-mark"
+                        :class="{ 'energy-mark-main': mark.main, 'energy-mark-ready': mark.ready }"
+                        :style="{ left: mark.left }"
+                    ></span>
                 </div>
             </div>
         </div>

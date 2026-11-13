@@ -18,6 +18,8 @@ import EquipmentApiService from '@/services/apiServices/EquipmentApiService';
 import AbilitiesApiService from '@/services/apiServices/AbilitiesApiService';
 import { AbilityActionResult, AbilityInfo } from '@/models/types/Abilities';
 import { useResources } from '@/composables/UseResources';
+import { useHeroes } from '@/composables/UseHeroes';
+import { useInterface } from '@/composables/UseInterface';
 import { useItemDrag } from '@/composables/UseItemDrag';
 import { HeroInfo, HeroUpgradeResult } from '@/models/types/Heroes';
 import { EquipmentChangeResult, EquipmentError, EquipmentInfo, EquipmentSlot, EquipmentType, canWear } from '@/models/types/Equipment';
@@ -33,6 +35,8 @@ const emit = defineEmits<{ (e: 'update:modelValue', value: boolean): void }>();
 
 const { t, te } = useI18n();
 const { refresh: refreshResources } = useResources();
+const { refresh: refreshSharedHeroes } = useHeroes();
+const { upgradeHeroId } = useInterface();
 const { dragged, fromSlot, end: endDrag } = useItemDrag();
 
 const open = computed({
@@ -93,8 +97,10 @@ const load = async () => {
 
 watch(open, isOpen => {
     if (!isOpen) return;
-    selectedId.value = null;
-    tab.value = 'squad';
+    // Открыли кликом по герою на складе — сразу вкладка героев с его панелью
+    selectedId.value = upgradeHeroId.value;
+    tab.value = upgradeHeroId.value ? 'heroes' : 'squad';
+    upgradeHeroId.value = null;
     itemFilter.value = null;
     itemMessage.value = null;
     load();
@@ -115,6 +121,12 @@ const select = (hero: HeroInfo) => {
 
 const onUpgraded = (result: HeroUpgradeResult) => {
     heroes.value = heroes.value.map(h => (h.id === result.hero.id ? result.hero : h));
+};
+
+// Новое имя: меняем в списке окна и в общем списке героев (склад, отряд)
+const onRenamed = (hero: HeroInfo) => {
+    heroes.value = heroes.value.map(h => (h.id === hero.id ? hero : h));
+    refreshSharedHeroes();
 };
 
 // Сервер отказал — значит, у нас устаревшие уровень или ресурсы
@@ -248,6 +260,7 @@ watch([tab, sorted], () => {
                     :key="selected.id"
                     :hero="selected"
                     @upgraded="onUpgraded"
+                    @renamed="onRenamed"
                     @stale="onStale"
                     @equip="equip"
                     @unequip="unequip"

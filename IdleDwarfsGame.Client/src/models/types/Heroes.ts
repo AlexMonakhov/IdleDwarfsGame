@@ -25,7 +25,11 @@ export interface HeroInfo {
     attack: number;
     speed: number;
     maxEnergy: number;
+    // Энергия за один удар (база, предметы, «Резонанс рун»)
+    energyPerAttack?: number;
     spells: string[];
+    // Те же заклинания с ценой и силой каста; нет у ответа старого сервера
+    spellDetails?: SpellDetail[];
     immunities: string[];
     aura?: string | null;
     passives: PassiveInfo[];
@@ -35,6 +39,18 @@ export interface HeroInfo {
     equipment: EquipmentInfo[];
     power: CombatPowerBreakdown;
     upgrade: HeroUpgradeInfo;
+}
+
+// Заклинание героя с ценой в энергии и силой каста (HeroResponses.cs, SpellDetail)
+export interface SpellDetail {
+    // Как в HeroInfo.spells: «Fireball 2»
+    spell: string;
+    energyCost: number;
+    // Урон по одной цели вместе с эффектами
+    damage: number;
+    // Сколько врагов задевает каст при полном вражеском отряде
+    targets: number;
+    healing: number;
 }
 
 // Прокачка героя за золото и опыт аккаунта (IdleDwarfsGame.Server/Services/HeroUpgradeService.cs).
@@ -67,6 +83,9 @@ export interface HeroUpgradeResult {
 }
 
 // Коды отказа сервера: по ним показываем текст heroUpgrade.errors.<code>
+export type HeroRenameError = 'InvalidName' | 'HeroNotFound';
+export const HERO_NAME_MAX = 20;
+
 export type HeroUpgradeError = 'HeroNotFound' | 'MaxLevel' | 'NotEnoughGold' | 'NotEnoughExperience' | 'LevelChanged';
 
 export const SQUAD_SIZE = 5;

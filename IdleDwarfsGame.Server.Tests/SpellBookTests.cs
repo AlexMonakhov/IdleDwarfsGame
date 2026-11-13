@@ -295,4 +295,26 @@ public class SpellBookTests
             Assert.Equal(definition.VariantOn(day), definition.VariantOn(day.AddHours(23)));
         }
     }
+
+    [Fact]
+    public void HeroInfo_DescribesSpellCostDamageAndEnergyGain()
+    {
+        var hero = MakeHero("Caster", attack: 100);
+        hero.SpellIds = [2, 7]; // Fireball 2, Healing Rune 1
+        hero.EnergyPerAttack = 20;
+
+        var info = HeroInfo.From(Factory, hero);
+
+        Assert.Equal(20, info.EnergyPerAttack);
+        var fireball = info.SpellDetails[0];
+        Assert.Equal("Fireball 2", fireball.Spell);
+        Assert.Equal(20, fireball.EnergyCost);
+        // 85% атаки + горение 2 хода по 10%
+        Assert.Equal(105, fireball.Damage);
+        Assert.Equal(3, fireball.Targets);
+
+        var rune = info.SpellDetails[1];
+        Assert.Equal(0, rune.Damage);
+        Assert.True(rune.Healing > 0);
+    }
 }

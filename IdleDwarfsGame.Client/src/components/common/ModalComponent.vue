@@ -87,7 +87,19 @@ const selectTab = (key: string): void => {
 
 
 
-const { zIndex, push, pop } = useModalStack()
+const { zIndex, push, pop, isTop } = useModalStack()
+
+// Esc закрывает верхнее окно. Кто обработал Esc сам (правка имени, выпадающий список), вызывает
+// preventDefault — тогда окно остаётся открытым
+const onKeydown = (event: KeyboardEvent): void => {
+  if (event.key !== 'Escape' || event.defaultPrevented || !props.modelValue || !isTop()) return
+  event.preventDefault()
+  close()
+}
+
+onMounted(() => window.addEventListener('keydown', onKeydown))
+
+onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
 
 
 

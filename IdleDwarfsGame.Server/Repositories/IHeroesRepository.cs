@@ -34,4 +34,8 @@ public interface IHeroesRepository
     /// On success the passed hero is reloaded with the new level; otherwise nothing changes.
     /// </summary>
     Task<HeroUpgradeOutcome> UpgradeAsync(Hero hero, HeroUpgradeCost cost);
+    /// <summary>
+    /// Renames the player's hero. Returns false when the hero is not found or belongs to someone else.
+    /// </summary>
+    Task<bool> RenameAsync(Guid playerId, Guid heroId, string name);
 }

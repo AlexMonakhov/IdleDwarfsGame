@@ -8,6 +8,8 @@ const interfaceHidden = ref(false)
 const expeditionsOpen = ref(false)
 const inventoryOpen = ref(false)
 const upgradeOpen = ref(false)
+// Герой, которого окно алтаря покажет при открытии на вкладке героев (клик по карточке на складе)
+const upgradeHeroId = ref<string | null>(null)
 const miningOpen = ref(false)
 const shopOpen = ref(false)
 const forgeOpen = ref(false)
@@ -21,6 +23,7 @@ export function useInterface() {
     expeditionsOpen,
     inventoryOpen,
     upgradeOpen,
+    upgradeHeroId,
     miningOpen,
     shopOpen,
     forgeOpen,

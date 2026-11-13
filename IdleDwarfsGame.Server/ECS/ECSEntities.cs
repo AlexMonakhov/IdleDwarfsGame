@@ -128,6 +128,10 @@ public class CombatUnitInfo
     public int Speed { get; set; }
     public int MaxEnergy { get; set; }
     public int Energy { get; set; }
+    // Энергия за удар (с «Резонансом рун») — для подсказки
+    public int EnergyPerAttack { get; set; }
+    // Цены заклинаний: на полоске энергии отмечается, с какой энергии юнит кастует
+    public List<int> SpellCosts { get; set; } = new();
     public List<string> Spells { get; set; } = new();
     public List<string> Immunities { get; set; } = new();
     public string? Aura { get; set; }

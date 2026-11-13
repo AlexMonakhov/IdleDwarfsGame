@@ -5,6 +5,8 @@ import HeroCard from '@/components/inventory/HeroCard.vue';
 import HeroFilters from '@/components/inventory/HeroFilters.vue';
 import { useHeroFilters } from '@/composables/UseHeroFilters';
 import { useHeroes } from '@/composables/UseHeroes';
+import { useInterface } from '@/composables/UseInterface';
+import { HeroInfo } from '@/models/types/Heroes';
 import { useProgressiveList } from '@/composables/UseProgressiveList';
 import { vPauseOffscreen } from '@/directives/pauseOffscreen';
 
@@ -26,6 +28,14 @@ const sorted = computed(() => [...filtered.value]
 // Сотни карточек не создаются разом: порция сразу, остальные — по кадрам
 const visible = useProgressiveList(sorted);
 
+// Клик по карточке — закрываем склад и открываем этого героя в алтаре, на вкладке героев
+const { inventoryOpen, upgradeOpen, upgradeHeroId } = useInterface();
+const openInAltar = (hero: HeroInfo) => {
+    upgradeHeroId.value = hero.id;
+    inventoryOpen.value = false;
+    upgradeOpen.value = true;
+};
+
 onMounted(refresh);
 watch(() => props.refreshToken, refresh);
 </script>
@@ -38,9 +48,9 @@ watch(() => props.refreshToken, refresh);
             <div class="inventory-hint">{{ t('inventory.heroesCount', { count: heroes.length }) }}</div>
             <HeroFilters v-model:element="element" v-model:rank="rank" :heroes="heroes" />
             <div v-if="sorted.length" class="inventory-grid">
-                <!-- selectable — чтобы карточку не тащили: здесь только просмотр.
+                <!-- selectable — чтобы карточку не тащили: клик открывает героя в алтаре.
                      v-pause-offscreen — анимации престижа и ауры стоят, пока карточка за краем списка -->
-                <HeroCard v-for="hero in visible" :key="hero.id" v-pause-offscreen :hero="hero" selectable />
+                <HeroCard v-for="hero in visible" :key="hero.id" v-pause-offscreen :hero="hero" selectable @click="openInAltar(hero)" />
             </div>
             <div v-else class="inventory-hint">{{ heroes.length ? t('heroFilters.nothing') : t('inventory.noHeroes') }}</div>
         </template>
