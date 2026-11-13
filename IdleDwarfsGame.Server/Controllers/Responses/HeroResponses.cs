@@ -17,7 +17,11 @@ public class HeroInfo
     public int Attack { get; set; }
     public int Speed { get; set; }
     public int MaxEnergy { get; set; }
+    // Сколько энергии даёт один удар: база, предметы и «Резонанс рун»
+    public int EnergyPerAttack { get; set; }
     public List<string> Spells { get; set; } = new();
+    // Те же заклинания с ценой в энергии и силой каста (порядок как у Spells)
+    public List<SpellDetail> SpellDetails { get; set; } = new();
     public List<string> Immunities { get; set; } = new();
     public string? Aura { get; set; }
     public List<PassiveInfo> Passives { get; set; } = new();
@@ -33,6 +37,9 @@ public class HeroInfo
         int upgradeLevel = HeroUpgradeService.ClampLevel(hero.Level, hero.UpgradeLevel);
         int attack = HeroUpgradeService.ScaleStat(hero.Attack, upgradeLevel) + gear.Stats.Attack;
         var aura = EntityFactory.ResolveAura(hero, gear, attack);
+        var passives = EntityFactory.CreatePassives(hero, gear).Active;
+        int resonance = passives.GetValueOrDefault(HeroPassive.RuneResonance).Percent;
+        int sorcerer = passives.GetValueOrDefault(HeroPassive.Sorcerer).Percent;
 
         return new HeroInfo
         {
@@ -49,10 +56,16 @@ public class HeroInfo
             Attack = attack,
             Speed = hero.Speed + gear.Stats.Speed,
             MaxEnergy = hero.MaxEnergy + gear.Stats.MaxEnergy,
+            EnergyPerAttack = hero.EnergyPerAttack + gear.Stats.EnergyPerAttack + resonance,
             Spells = hero.SpellIds.Select(SpellRegistry.Describe).ToList(),
+            SpellDetails = hero.SpellIds
+                .Select(id => SpellRegistry.All.GetValueOrDefault(id))
+                .OfType<ISpell>()
+                .Select(spell => SpellDetail.Of(spell, attack, gear, sorcerer))
+                .ToList(),
             Immunities = hero.Immunities.ToList(),
             Aura = aura == null ? null : $"{aura.EffectName} {aura.Power} → {aura.TargetType}",
-            Passives = EntityFactory.CreatePassives(hero, gear).Active
+            Passives = passives
                 .Select(p => new PassiveInfo
                 {
                     Passive = p.Key,
@@ -66,6 +79,46 @@ public class HeroInfo
             Equipment = hero.Equipment.Select(EquipmentInfo.From).OfType<EquipmentInfo>().ToList(),
             Power = CombatPower.OfHero(factory, hero),
             Upgrade = HeroUpgradeService.Describe(factory, hero)
+        };
+    }
+}
+
+// Заклинание героя для подробной карточки: цена каста и что он даёт при текущей атаке
+public class SpellDetail
+{
+    // Как в HeroInfo.Spells: «Fireball 2»
+    public string Spell { get; set; } = string.Empty;
+    public int EnergyCost { get; set; }
+    // Урон по одной цели вместе с эффектами (горение, яд…), с учётом предметов и «Чародея»
+    public int Damage { get; set; }
+    // Сколько врагов задевает каст, если их 5 (полный отряд)
+    public int Targets { get; set; }
+    public int Healing { get; set; }
+
+    private const int FullSquad = 5;
+
+    public static SpellDetail Of(ISpell spell, int attack, GearComponent gear, int sorcererPercent)
+    {
+        var single = spell.Estimate(attack, 1);
+        var full = spell.Estimate(attack, FullSquad);
+        double perTarget = single.Damage;
+        int targets = perTarget > 0 ? (int)Math.Round(full.Damage / perTarget) : 0;
+
+        if (gear.Spells.TryGetValue(spell.Name, out var modifier))
+        {
+            perTarget = perTarget * (100 + modifier.DamagePercent) / 100;
+            if (targets > 0)
+                targets = Math.Min(FullSquad, targets + modifier.ExtraTargets);
+        }
+        perTarget = perTarget * (100 + sorcererPercent) / 100;
+
+        return new SpellDetail
+        {
+            Spell = SpellRegistry.Describe(spell.Id),
+            EnergyCost = spell.EnergyCost,
+            Damage = (int)Math.Round(perTarget),
+            Targets = targets,
+            Healing = (int)Math.Round(single.Healing)
         };
     }
 }

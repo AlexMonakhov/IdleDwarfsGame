@@ -201,4 +201,12 @@ public class HeroesRepository : IHeroesRepository
         await _context.Entry(hero).ReloadAsync();
         return HeroUpgradeOutcome.Upgraded;
     }
+
+    public async Task<bool> RenameAsync(Guid playerId, Guid heroId, string name)
+    {
+        int renamed = await _context.Heroes
+            .Where(h => h.Id == heroId && h.PlayerId == playerId)
+            .ExecuteUpdateAsync(s => s.SetProperty(h => h.Name, name));
+        return renamed > 0;
+    }
 }

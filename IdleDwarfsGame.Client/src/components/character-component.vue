@@ -252,7 +252,8 @@ defineExpose(view);
             :currentHp="unit.hp"
             :maxHp="unit.maxHp"
             :energy="unit.energy"
-            :maxEnergy="unit.maxEnergy"></CharacterStats>
+            :maxEnergy="unit.maxEnergy"
+            :spellCosts="unit.spellCosts"></CharacterStats>
         </div>
 
         <div class="floating-layer">

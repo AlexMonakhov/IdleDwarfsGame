@@ -93,6 +93,9 @@ export interface CombatUnitInfo {
   speed: number;
   maxEnergy: number;
   energy: number;
+  // Энергия за удар и цены заклинаний (метки на полоске энергии); нет у ответа старого сервера
+  energyPerAttack?: number;
+  spellCosts?: number[];
   spells: string[];
   immunities: string[];
   aura?: string | null;
@@ -118,7 +121,7 @@ export type HeroElement = 'Basic' | 'Fire' | 'Frost' | 'Lightning' | 'Nature' | 
 
 // То, что нужно портрету: подходит и юнит боя, и герой из инвентаря
 export type PortraitUnit = Pick<CombatUnitInfo,
-  'name' | 'unitType' | 'element' | 'profession' | 'level' | 'maxHp' | 'attack' | 'speed' | 'spells' | 'immunities' | 'aura' | 'isBoss' | 'power'>;
+  'name' | 'unitType' | 'element' | 'profession' | 'level' | 'maxHp' | 'attack' | 'speed' | 'energyPerAttack' | 'spells' | 'immunities' | 'aura' | 'isBoss' | 'power'>;
 
 export interface CombatRewards {
   gold: number;

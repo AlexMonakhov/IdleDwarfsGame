@@ -70,6 +70,28 @@ public class HeroesController(
         }
     }
 
+    public const int MaxNameLength = 20;
+
+    // Переименовать своего героя. Возвращает обновлённого героя
+    [Authorize]
+    [HttpPut("me/{heroId:guid}/name")]
+    public async Task<ActionResult<HeroInfo>> RenameMyHero(Guid heroId, [FromBody] RenameHeroRequest request)
+    {
+        if (CurrentPlayerId() is not { } playerId)
+            return Unauthorized();
+
+        // Пробелы внутри схлопываем, управляющие символы не пускаем
+        var name = string.Join(' ', (request.Name ?? string.Empty).Split(' ', StringSplitOptions.RemoveEmptyEntries));
+        if (name.Length == 0 || name.Length > MaxNameLength || name.Any(char.IsControl))
+            return BadRequest(new { code = "InvalidName", message = $"Имя — от 1 до {MaxNameLength} символов" });
+
+        if (!await heroesRepository.RenameAsync(playerId, heroId, name)
+            || await heroesRepository.GetByIdAsync(heroId) is not { } hero)
+            return NotFound(new { code = "HeroNotFound", message = "Герой не найден" });
+
+        return Ok((await ToInfoAsync(playerId, [hero]))[0]);
+    }
+
     [HttpGet("{playerId:guid}")]
     public async Task<IActionResult> GetHeroes(Guid playerId)
     {

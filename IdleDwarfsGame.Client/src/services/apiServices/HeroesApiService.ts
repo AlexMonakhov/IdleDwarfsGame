@@ -43,6 +43,17 @@ class HeroesApiService {
         }
     }
 
+    // Новое имя героя. Возвращает обновлённого героя
+    async rename(heroId: string, name: string): Promise<HeroInfo> {
+        try {
+            const response = await apiClient.put<HeroInfo>(`/heroes/me/${heroId}/name`, { name });
+            return response.data;
+        } catch (error) {
+            console.error('Ошибка при переименовании героя:', error);
+            throw error;
+        }
+    }
+
     // +1 уровень прокачки героя. Возвращает обновлённого героя и остаток ресурсов
     async upgrade(heroId: string): Promise<HeroUpgradeResult> {
         try {

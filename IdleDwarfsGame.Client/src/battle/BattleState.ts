@@ -56,6 +56,8 @@ export interface BattleUnit {
   hp: number;
   maxEnergy: number;
   energy: number;
+  // Цены заклинаний по возрастанию: с первой юнит кастует
+  spellCosts: number[];
   alive: boolean;
   spells: string[];
   immunities: string[];
@@ -98,6 +100,7 @@ export function toBattleUnit(info: CombatUnitInfo): BattleUnit {
     hp: info.hp,
     maxEnergy: info.maxEnergy,
     energy: info.energy,
+    spellCosts: info.spellCosts ?? [],
     alive: info.hp > 0,
     spells: info.spells,
     immunities: info.immunities,

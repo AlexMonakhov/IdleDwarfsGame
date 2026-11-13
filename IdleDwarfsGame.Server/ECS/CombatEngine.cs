@@ -84,6 +84,10 @@ public static class CombatSnapshot
                 Speed = world.Speed[e.Id].Value,
                 MaxEnergy = energy?.Max ?? 0,
                 Energy = energy?.Current ?? 0,
+                EnergyPerAttack = energy == null ? 0 : energy.GainPerAttack + (world.GetPassive(e.Id, HeroPassive.RuneResonance)?.Percent ?? 0),
+                SpellCosts = world.Spells.GetValueOrDefault(e.Id)?.SpellIds
+                    .Select(id => SpellRegistry.All.GetValueOrDefault(id)?.EnergyCost)
+                    .OfType<int>().Distinct().Order().ToList() ?? new(),
                 Spells = world.Spells.GetValueOrDefault(e.Id)?.SpellIds.Select(SpellRegistry.Describe).ToList() ?? new(),
                 Immunities = world.Immunities.GetValueOrDefault(e.Id)?.ImmuneTo.ToList() ?? new(),
                 Aura = aura == null ? null : $"{aura.EffectName} {aura.Power} → {aura.TargetType}",
