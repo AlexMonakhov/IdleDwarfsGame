@@ -106,7 +106,7 @@ public static class CampaignGenerator
         new(211, HeroElement.Nature, "Poison", "Moss Golem", "Bog Goblin", "Thorn Skeleton", "Swamp Drake",
             "Mirefang the Rotting", Draconid, CasterSpell: 31, EliteSpell: 34, BossSpell: 32, BossAura: "Poison"),
         new(221, HeroElement.Dark, "Curse", "Grave Golem", "Shade Goblin", "Hex Skeleton", "Night Drake",
-            "Morvath the Hollow", Skeleton, CasterSpell: 43, EliteSpell: 37, BossSpell: 55, BossAura: "Curse"),
+            "Morvath the Hollow", Skeleton, CasterSpell: 43, EliteSpell: 37, BossSpell: 55, BossAura: EnergyBurnEffect.Name),
         new(231, HeroElement.Radiance, "Stun", "Crystal Golem", "Prism Goblin", "Dawn Skeleton", "Radiant Drake",
             "Aurelion the Shining", Golem, CasterSpell: 52, EliteSpell: 49, BossSpell: 47, BossAura: "Regen"),
         new(241, HeroElement.Blood, "Bleed", "Flesh Golem", "Leech Goblin", "Bone Reaver", "Blood Drake",

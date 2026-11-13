@@ -8,6 +8,7 @@ import IconPoison from './IconPoison.vue';
 import IconCurse from './IconCurse.vue';
 import IconShock from './IconShock.vue';
 import IconFreeze from './IconFreeze.vue';
+import IconEnergyBurn from './IconEnergyBurn.vue';
 
 // Имя статуса с сервера (StatusEffectBase.EffectName) -> иконка
 export const STATUS_ICONS: Record<string, Component> = {
@@ -20,6 +21,8 @@ export const STATUS_ICONS: Record<string, Component> = {
   Curse: IconCurse,
   Shock: IconShock,
   Freeze: IconFreeze,
+  // Не статус, а мгновенное выжигание энергии аурой тьмы — в логе боя оно тоже StatusApplied
+  EnergyBurn: IconEnergyBurn,
 };
 
-export { IconBurn, IconFrost, IconStun, IconBleed, IconHeal, IconPoison, IconCurse, IconShock, IconFreeze };
+export { IconBurn, IconFrost, IconStun, IconBleed, IconHeal, IconPoison, IconCurse, IconShock, IconFreeze, IconEnergyBurn };

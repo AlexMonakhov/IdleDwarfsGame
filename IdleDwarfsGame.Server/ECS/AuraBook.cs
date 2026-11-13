@@ -10,20 +10,23 @@ public static class AuraBook
 
     public record Definition(string Effect, AuraTarget Target, int[] PowerByLevel, int Duration = 1);
 
-    // Сила в процентах: урон или лечение за ход — доля атаки носителя (EntityFactory), мороз — процент замедления энергии
+    // Сила в процентах: урон или лечение за ход — доля атаки носителя (EntityFactory), мороз — процент замедления энергии,
+    // у выжигания энергии — сколько единиц энергии сгорает за срабатывание
     private static readonly Dictionary<string, Definition> Definitions = new Definition[]
     {
         new("Burn", AuraTarget.Enemies, [8, 12, 16]),
         new("Frost", AuraTarget.Enemies, [5, 8, 12]),
         new("Shock", AuraTarget.Enemies, [8, 12, 16]),
         new("Poison", AuraTarget.Enemies, [8, 12, 16]),
-        new("Curse", AuraTarget.Enemies, [8, 12, 16]),
-        new("Bleed", AuraTarget.Enemies, [8, 12, 16]),
+        // Тьма не проклинает, а сразу выжигает врагам энергию: сила — сколько единиц энергии
+        new(EnergyBurnEffect.Name, AuraTarget.Enemies, [3, 4, 5]),
+        // Кровотечение копится с аурами других носителей до 5,5× (BleedEffect) — сила ниже, чем у огня (docs/effect-rules.md)
+        new("Bleed", AuraTarget.Enemies, [6, 9, 12]),
         new("Regen", AuraTarget.Allies, [10, 15, 20])
     }.ToDictionary(d => d.Effect);
 
-    // Мороз не наносит урона: его сила — сам процент замедления, а не доля атаки
-    public static bool PowerIsPercentOfAttack(string effect) => effect != "Frost";
+    // Мороз и выжигание энергии не наносят урона: у мороза сила — сам процент замедления, у выжигания — единицы энергии
+    public static bool PowerIsPercentOfAttack(string effect) => effect is not ("Frost" or EnergyBurnEffect.Name);
 
     // Сила статуса ауры за ход для носителя с такой атакой
     public static int Resolve(string effect, int percent, int attack) =>
@@ -37,7 +40,7 @@ public static class AuraBook
         [HeroElement.Frost] = "Frost",
         [HeroElement.Lightning] = "Shock",
         [HeroElement.Nature] = "Poison",
-        [HeroElement.Dark] = "Curse",
+        [HeroElement.Dark] = EnergyBurnEffect.Name,
         [HeroElement.Blood] = "Bleed",
         [HeroElement.Radiance] = "Regen"
     };

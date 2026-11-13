@@ -291,7 +291,7 @@ const en = {
       Poison: 'Damage every turn. Stacks like Burn: each application lasts its own turns, damage adds up.',
       Shock: 'Lightning damage every turn. Applications stack like Burn.',
       Frost: 'Deals no damage: slows energy gained per hit. Percentages of all applications add up, each one wears off on its own.',
-      Bleed: 'Damage every turn. Each application adds a stack and one more turn, but hits half as hard as the first while the bleed lasts.',
+      Bleed: 'Damage every turn. Each application adds a stack and one more turn; the more stacks, the less of its damage is added: 50% at 5 stacks, 10% at 9. Up to 10 stacks; each turn the newest stack falls off along with its damage.',
       Curse: 'Dark damage and energy loss every turn. The first curse sets the duration; later ones do not extend it, but their damage is added in full.',
       Stun: 'The unit skips its turn. A repeated stun extends it to the longer duration.',
       Freeze: 'The unit is frozen in ice and skips its turn. A repeated freeze extends it to the longer duration.',
@@ -854,6 +854,7 @@ const en = {
     spellText: '{element} spell',
     auraText: '{effect} {power}% of attack per turn for {turns} turn(s), affects: {target}',
     auraTextFrost: '{effect}: energy builds {power}% slower for {turns} turn(s), affects: {target}',
+    auraTextEnergyBurn: '{effect}: burns {power} energy every round, affects: {target}',
     loadError: 'Failed to load abilities. Is the server running?',
     actionError: 'Something went wrong, try again',
     busy: 'On an expedition or in a mine',
@@ -1343,6 +1344,7 @@ const en = {
     Poison: 'Poison',
     Curse: 'Curse',
     Shock: 'Shock',
+    EnergyBurn: 'Energy Burn',
   },
   // Tooltip of a status icon above a unit
   statusInfo: {
@@ -1421,6 +1423,7 @@ const en = {
       stunned: 'Stunned',
       immune: 'Immune',
       fury: 'Fury +{bonus}%',
+      energyBurn: '-{value} energy',
     },
     feed: {
       death: 'Defeated',

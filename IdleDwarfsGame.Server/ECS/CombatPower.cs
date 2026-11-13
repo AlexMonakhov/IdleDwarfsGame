@@ -244,15 +244,23 @@ public static class CombatPower
         return Math.Min(1, regular + opening);
     }
 
-    // Аура срабатывает раз в Interval раундов, а каждый наложенный эффект тикает Duration ходов (не больше StackLimit) —
-    // в среднем это Power × Duration / Interval на цель за раунд
+    // Аура срабатывает раз в Interval раундов. Слоистый статус тикает каждым наложением Duration ходов —
+    // в среднем Power × Duration / Interval на цель за раунд. Проклятие живёт столько, сколько задало первое наложение:
+    // за цикл из Duration раундов набирает 1, 2, … Duration наложений — в среднем Power × (Duration + 1) / 2.
+    // Кровотечение у наложения длительности не имеет — один тик на раунд от одного носителя
     private static SpellEstimate AuraPerRound(AuraComponent aura)
     {
         // Аура на всех задевает и своих — в среднем бою это ноль пользы
         double rate = 1.0 / Math.Max(1, aura.Interval);
         double hostile = (aura.TargetType == AuraTarget.Enemies ? ReferenceTargets : 0) * rate;
         double friendly = (aura.TargetType == AuraTarget.Allies ? ReferenceTargets : 0) * rate;
-        int ticks = aura.Power * Math.Min(aura.Duration, AuraComponent.StackLimit);
+        double ticks = aura.Power * aura.EffectName switch
+        {
+            "Curse" => (aura.Duration + 1) / 2.0,
+            // У наложения кровотечения длительности нет: одна аура — тик за раунд (с другими аурами крови копится до 5,5×)
+            "Bleed" => 1,
+            _ => aura.Duration
+        };
 
         return aura.EffectName switch
         {

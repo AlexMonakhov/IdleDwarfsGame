@@ -249,7 +249,7 @@ export const AURA_SAMPLES: AuraSample[] = [
     { key: 'arcane', effect: 'Arcane', target: 'Enemies', element: 'Dark' },
     { key: 'poison', effect: 'Poison', target: 'Enemies', element: 'Nature' },
     { key: 'blood', effect: 'Bleed', target: 'Enemies', element: 'Fire' },
-    { key: 'shadow', effect: 'Curse', target: 'Enemies', element: 'Dark' },
+    { key: 'shadow', effect: 'EnergyBurn', target: 'Enemies', element: 'Dark' },
     { key: 'buff', effect: 'Might', target: 'Allies', element: 'Radiance' },
 ];
 

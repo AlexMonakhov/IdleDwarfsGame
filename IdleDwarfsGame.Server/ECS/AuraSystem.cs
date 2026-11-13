@@ -28,8 +28,8 @@ public class AuraSystem : ICombatSystem
             {
                 foreach (var targetId in targets)
                 {
-                    // Новый экземпляр эффекта на каждую цель; копится не больше StackLimit
-                    aura.CreateEffect().ApplyEffect(world, targetId, context, bearer.Id, AuraComponent.StackLimit);
+                    // Новый экземпляр эффекта на каждую цель — одно наложение за срабатывание (docs/effect-rules.md)
+                    aura.CreateEffect().ApplyEffect(world, targetId, context, bearer.Id);
                 }
             }
             finally

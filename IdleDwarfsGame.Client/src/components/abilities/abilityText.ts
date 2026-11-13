@@ -8,6 +8,12 @@ export const abilityErrorText = (error: unknown): string => {
     return code && i18n.global.te(`abilities.errors.${code}`) ? t(`abilities.errors.${code}`) : t('abilities.actionError');
 };
 
+// Ауры без урона описываются своим текстом: у мороза сила — процент замедления, у выжигания — единицы энергии
+const AURA_TEXT_KEYS: Record<string, string> = {
+    Frost: 'abilities.auraTextFrost',
+    EnergyBurn: 'abilities.auraTextEnergyBurn',
+};
+
 // Название способности: заклинание приходит с сервера по-английски, как и в hero.spells
 export const abilityName = (ability: AbilityInfo): string => {
     switch (ability.kind) {
@@ -32,7 +38,7 @@ export const abilityText = (ability: AbilityInfo): string => {
                 targets: ability.targets,
             });
         default:
-            return t(ability.key === 'Frost' ? 'abilities.auraTextFrost' : 'abilities.auraText', {
+            return t(AURA_TEXT_KEYS[ability.key] ?? 'abilities.auraText', {
                 effect: statusLabel(ability.key),
                 power: ability.power,
                 turns: ability.duration,

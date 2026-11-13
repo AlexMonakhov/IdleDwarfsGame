@@ -66,7 +66,7 @@ public class StatusStackingTests
     }
 
     [Fact]
-    public void Bleed_EachStackAddsTurn_AndFollowingStacksHitHalf()
+    public void Bleed_EachStackAddsTurn_AndFollowingStacksHitLessTheMoreStacks()
     {
         var (world, id) = Target();
         var context = new CombatContext();
@@ -74,12 +74,39 @@ public class StatusStackingTests
         new BleedEffect(10).ApplyEffect(world, id, context);
         new BleedEffect(5).ApplyEffect(world, id, context);
 
-        // 15 + 5 + 3 (2.5 вверх) на три хода
-        Assert.Equal(new[] { 23, 23 }, DamageByTurn(world, id, 2));
+        // Стаки [15, 9 (90% от 10), 4 (80% от 5)]: каждый тик уходит самый новый вместе со своей прибавкой
+        Assert.Equal(new[] { 28, 24 }, DamageByTurn(world, id, 2));
 
-        // Остался один стак: новое наложение на 15 даёт ещё стак и +8
+        // Остался стак 15: новое наложение на 15 даёт ещё стак и +13 (90%, вниз)
         new BleedEffect(15).ApplyEffect(world, id, context);
-        Assert.Equal(new[] { 31, 31, 0 }, DamageByTurn(world, id, 3));
+        Assert.Equal(new[] { 28, 15, 0 }, DamageByTurn(world, id, 3));
+    }
+
+    [Fact]
+    public void Bleed_AddedDamage_ShrinksByTenPercentPerStack_UpToTenStacks()
+    {
+        var (world, id) = Target();
+        var context = new CombatContext();
+        new BleedEffect(10).ApplyEffect(world, id, context);
+        var bleed = world.StatusEffects[id].ActiveEffects.OfType<BleedEffect>().Single();
+
+        // Прибавка от наложения на 10 урона при стольких стаках до него
+        var added = new List<(int StacksBefore, int Extra)>();
+        for (int i = 0; i < 12; i++)
+        {
+            int stacks = bleed.Stacks, power = bleed.Power;
+            new BleedEffect(10).ApplyEffect(world, id, context);
+            added.Add((stacks, bleed.Power - power));
+        }
+
+        Assert.Equal((5, 5), added[4]);
+        Assert.Equal((7, 3), added[6]);
+        Assert.Equal((9, 1), added[8]);
+        // На 10-м стаке — ни урона, ни стака
+        Assert.Equal((10, 0), added[9]);
+        Assert.Equal(BleedEffect.MaxStacks, bleed.Stacks);
+        Assert.Equal(BleedEffect.MaxStacks, bleed.RemainingTurns);
+        Assert.Equal(10 + 9 + 8 + 7 + 6 + 5 + 4 + 3 + 2 + 1, bleed.Power);
     }
 
     [Fact]
@@ -171,14 +198,158 @@ public class StatusStackingTests
         }
 
         var effects = world.StatusEffects[id].ActiveEffects.Cast<StatusEffectBase>().ToDictionary(e => e.EffectName);
-        // Кровотечение: 3 стака и 3 хода, 10 + 5 + 5
+        // Кровотечение: 3 стака и 3 хода, 10 + 9 + 8
         Assert.Equal(3, effects["Bleed"].Stacks);
         Assert.Equal(3, effects["Bleed"].RemainingTurns);
-        Assert.Equal(20, effects["Bleed"].Power);
+        Assert.Equal(27, effects["Bleed"].Power);
         // Горение: 3 слоя, каждый срезан до 3 ходов
         Assert.Equal(3, effects["Burn"].Stacks);
         Assert.Equal(3, effects["Burn"].RemainingTurns);
         Assert.Equal(12, effects["Burn"].Power);
+    }
+
+    // Бой: target против носителей аур (атака 100, сила ауры — процент атаки), урон статуса aura по target за раунд
+    private static List<int> AuraTicksByRound(string aura, int duration, int[] powers, int rounds)
+    {
+        var world = new World();
+        for (int i = 0; i < powers.Length; i++)
+        {
+            var bearer = MakeHero($"Bearer {i}", hp: 100_000);
+            bearer.Attack = 100;
+            bearer.EnergyPerAttack = 0;
+            bearer.AuraEffect = aura;
+            bearer.AuraTarget = AuraTarget.Enemies;
+            bearer.AuraTrigger = TriggerPhase.OnRoundStart;
+            bearer.AuraPower = powers[i];
+            bearer.AuraDuration = duration;
+            Factory.CreateUnit(world, bearer, 1, i + 1);
+        }
+        var target = MakeHero("Target", hp: 1_000_000);
+        target.Attack = 1;
+        target.EnergyPerAttack = 0;
+        int targetId = Factory.CreateUnit(world, target, 2, 1);
+
+        var context = new CombatEngine(new Random(1)).Run(world, maxRounds: rounds);
+        return context.Logs
+            .Where(l => l.EventType == CombatEventType.StatusTick && l.TargetId == targetId && l.ActionType == aura)
+            .Select(l => l.Damage)
+            .ToList();
+    }
+
+    private static (int Turns, int Power, int Stacks) CurseOn(World world, int id)
+    {
+        var curse = world.StatusEffects[id].ActiveEffects.OfType<CurseEffect>().Single();
+        return (curse.RemainingTurns, curse.Power, curse.Stacks);
+    }
+
+    [Fact]
+    public void Curse_FirstApplicationFixesTurns_LaterOnesAddFullDamage()
+    {
+        var (world, id) = Target();
+        var context = new CombatContext();
+
+        // 1-й скилл: 5 урона на 3 хода
+        new CurseEffect(3, 5).ApplyEffect(world, id, context);
+        Assert.Equal((3, 5, 1), CurseOn(world, id));
+        // 2-й: 10 на 4 хода — ходы остаются от первого, урон прибавляется целиком
+        new CurseEffect(4, 10).ApplyEffect(world, id, context);
+        Assert.Equal((3, 15, 2), CurseOn(world, id));
+        // 3-й: 15 на 3 хода
+        new CurseEffect(3, 15).ApplyEffect(world, id, context);
+        Assert.Equal((3, 30, 3), CurseOn(world, id));
+        Assert.Equal(new[] { 30, 30, 30, 0 }, DamageByTurn(world, id, 4));
+    }
+
+    [Fact]
+    public void Curse_AddedAfterTick_KeepsRemainingTurns()
+    {
+        var (world, id) = Target();
+        var context = new CombatContext();
+        new CurseEffect(3, 5).ApplyEffect(world, id, context);
+        new CurseEffect(4, 10).ApplyEffect(world, id, context);
+
+        // Один раз сработало: осталось 2 хода по 15
+        Assert.Equal(new[] { 15 }, DamageByTurn(world, id, 1));
+        Assert.Equal((2, 15, 2), CurseOn(world, id));
+
+        // 3-й скилл на 3 хода по 15 — 2 хода по 30
+        new CurseEffect(3, 15).ApplyEffect(world, id, context);
+        Assert.Equal((2, 30, 3), CurseOn(world, id));
+        Assert.Equal(new[] { 30, 30, 0 }, DamageByTurn(world, id, 3));
+    }
+
+    [Fact]
+    public void DarkAura_BurnsEnergy_InsteadOfCursing()
+    {
+        Assert.Equal(EnergyBurnEffect.Name, AuraBook.EffectFor(HeroElement.Dark));
+        var definition = AuraBook.Find(EnergyBurnEffect.Name)!;
+        Assert.Equal(new[] { 3, 4, 5 }, new[] { 1, 2, 3 }.Select(level => AuraBook.Power(definition, level)));
+
+        var world = new World();
+        var bearer = MakeHero("Dark");
+        AuraBook.Apply(bearer, definition, 3);
+        int bearerId = Factory.CreateUnit(world, bearer, 1, 1);
+        var target = MakeHero("Target");
+        target.StartEnergy = 12;
+        int targetId = Factory.CreateUnit(world, target, 2, 1);
+
+        var context = new CombatContext { CurrentActor = bearerId, IsNewRound = true };
+        new AuraSystem().Execute(world, context);
+
+        // Сила — единицы энергии, а не процент атаки: 12 - 5
+        Assert.Equal(7, world.Energy[targetId].Current);
+        Assert.False(world.StatusEffects.TryGetValue(targetId, out var statuses) && statuses.ActiveEffects.Count > 0);
+        var log = Assert.Single(context.Logs, l => l.TargetId == targetId);
+        Assert.Equal(CombatEventType.StatusApplied, log.EventType);
+        Assert.Equal(EnergyBurnEffect.Name, log.AppliedEffects[0].Name);
+        Assert.Equal(5, log.AppliedEffects[0].Power);
+        Assert.Equal(7, log.TargetEnergy);
+
+        // Энергии меньше силы — сгорает сколько есть, ниже нуля не уходит
+        world.Energy[targetId].Current = 2;
+        context = new CombatContext { CurrentActor = bearerId, IsNewRound = true };
+        new AuraSystem().Execute(world, context);
+        Assert.Equal(0, world.Energy[targetId].Current);
+        Assert.Equal(2, context.Logs.Single(l => l.TargetId == targetId).AppliedEffects[0].Power);
+    }
+
+    [Fact]
+    public void Auras_HaveNoStackLimit()
+    {
+        // Пять аур горения на 1 ход — все пять слоёв
+        Assert.Equal(new[] { 25, 25 }, AuraTicksByRound("Burn", 1, [5, 5, 5, 5, 5], 2));
+    }
+
+    [Fact]
+    public void BleedAura_StacksUpToTen_AndDamageStopsAtCeiling()
+    {
+        // Две ауры по 10: за раунд +2 стака, тик снимает самый новый — стаки растут до 10,
+        // урон упирается в 10 + 9 + … + 1 = 55 и дальше не растёт
+        Assert.Equal(new[] { 19, 27, 34, 40, 45, 49, 52, 54, 55, 55, 55, 55 }, AuraTicksByRound("Bleed", 1, [10, 10], 12));
+        // Одна аура: стак накладывается и тут же сходит — ровно её сила каждый раунд
+        Assert.Equal(new[] { 10, 10, 10, 10 }, AuraTicksByRound("Bleed", 1, [10], 4));
+    }
+
+    // Правило docs/effect-rules.md: источник кровотечения кладёт ровно один стак за наложение —
+    // даже с «Мастером стихии», который другим эффектам добавляет ход
+    [Fact]
+    public void Bleed_EveryApplicationAddsExactlyOneStack()
+    {
+        var world = new World();
+        var caster = MakeHero("Master");
+        caster.Passives = [HeroPassive.ElementMastery];
+        caster.PassiveLevel = PassiveBook.MaxLevel;
+        int casterId = Factory.CreateUnit(world, caster, 1, 1);
+        int targetId = Factory.CreateUnit(world, MakeHero("Target"), 2, 1);
+        var context = new CombatContext();
+
+        for (int i = 1; i <= 5; i++)
+        {
+            new BleedEffect(10).ApplyEffect(world, targetId, context, casterId);
+            var bleed = world.StatusEffects[targetId].ActiveEffects.OfType<BleedEffect>().Single();
+            Assert.Equal(i, bleed.Stacks);
+            Assert.Equal(i, bleed.RemainingTurns);
+        }
     }
 
     [Fact]

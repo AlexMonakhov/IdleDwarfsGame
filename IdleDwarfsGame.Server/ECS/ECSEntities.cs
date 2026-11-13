@@ -82,6 +82,8 @@ public class CombatLogEntry
     public int Heal { get; set; }
     public int TargetRemainingHp { get; set; }
     public int? TargetRemainingHpAfter { get; set; }
+    // Энергия цели после записи — у выжигания энергии (EnergyBurnEffect): фронт обновляет полоску энергии цели
+    public int? TargetEnergy { get; set; }
 
     // Энергия актёра после действия (для полоски энергии на фронте).
     public int? AttackerEnergy { get; set; }
@@ -290,7 +292,9 @@ public class AuraComponent
     public int Interval { get; set; } = 1;
     private int _triggers;
 
-    // Статус от ауры не копится на цели дольше этого: не больше StackLimit стаков и ходов (StatusEffectBase.ApplyEffect)
+    // Потолок для эффектов арены (ArenaStatusEffect): не больше StackLimit стаков и ходов (StatusEffectBase.ApplyEffect).
+    // Ауры копятся без него (docs/effect-rules.md): слои горения, яда, шока, мороза, регена истекают сами,
+    // проклятие живёт столько, сколько задало первое наложение, у кровотечения свой потолок — BleedEffect.MaxStacks
     public const int StackLimit = 3;
 
     public IStatusEffect CreateEffect() => StatusEffectFactory.Create(EffectName, Power, Duration);
