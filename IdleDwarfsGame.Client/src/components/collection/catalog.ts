@@ -269,4 +269,4 @@ export const SKIP_TURN_STATUSES = new Set(['Stun', 'Freeze']);
 export const HEAL_STATUSES = new Set(['Regen']);
 
 // Порядок вкладки «Эффекты» — как в STATUS_VISUALS
-export const EFFECT_SAMPLES = ['Burn', 'Frost', 'Freeze', 'Stun', 'Shock', 'Poison', 'Bleed', 'Curse', 'Regen'];
+export const EFFECT_SAMPLES = ['Burn', 'Frost', 'Freeze', 'Stun', 'Shock', 'Poison', 'Bleed', 'Curse', 'Mark', 'Regen'];

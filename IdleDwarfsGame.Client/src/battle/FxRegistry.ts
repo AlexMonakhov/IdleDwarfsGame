@@ -847,6 +847,12 @@ export const STATUS_VISUALS: Record<string, StatusVisual> = {
     tickFlash: '#a855f7',
     priority: 2,
   },
+  // Метка: над головой мерцают пурпурные звёзды прицела, силуэт слегка подсвечен
+  Mark: {
+    aura: [{ type: 'sparkles', duration: 0, anchor: 'head', args: { color: '#e879f9', rate: 0.18, width: 34, height: 18, shape: 'star' } }],
+    tint: { color: '#c026d3', alpha: 0.16, pulse: 3 },
+    priority: 1,
+  },
   // Электрошок: по юниту пробегают искры, силуэт мерцает жёлтым
   Shock: {
     aura: [{ type: 'sparkles', duration: 0, args: { color: '#fde68a', rate: 0.35, width: 50, height: 80, shape: 'star', rise: 0.2 } }],

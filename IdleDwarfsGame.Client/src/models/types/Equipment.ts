@@ -39,6 +39,15 @@ export interface ItemEffectInfo {
     procLevel?: number | null;
     // Шанс срабатывания SpellProc на цель, %; 100 или пусто — всегда
     chance?: number | null;
+    // Статус, от которого зависит эффект, и во что он превращается (UpgradeStatus)
+    status?: string | null;
+    toStatus?: string | null;
+    // Второе число эффекта: повторы, цели, стаки, «каждый N-й каст»
+    count?: number | null;
+    // Порог HP, %
+    threshold?: number | null;
+    // Спеллы, из которых срабатывание выбирает случайный
+    procSpells?: string[] | null;
     passive?: HeroPassive | null;
     aura?: string | null;
     auraTarget?: AuraTarget | null;
