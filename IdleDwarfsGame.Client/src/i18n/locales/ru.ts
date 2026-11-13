@@ -18,6 +18,7 @@ const ru: LocaleMessages = {
     login: 'Вход',
     register: 'Регистрация',
     logout: 'Выйти',
+    logoutConfirm: 'Вы точно хотите выйти из аккаунта?',
     quests: 'Задания',
     event: 'Ивент',
   },
@@ -57,6 +58,8 @@ const ru: LocaleMessages = {
     loading: 'Загрузка...',
     somethingWrong: 'Что-то пошло не так',
     close: 'Закрыть',
+    yes: 'Да',
+    no: 'Нет',
   },
   auth: {
     loginHeader: 'вход',
