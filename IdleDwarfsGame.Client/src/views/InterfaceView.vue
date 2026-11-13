@@ -108,7 +108,7 @@ watchEffect(() => {
         <div  class="nav-menu">
             <GemButton @click="router.push('/')" :color="'blue'">{{ t('nav.home') }}</GemButton>
             <GemButton @click="router.push('about')" :color="'blue'">{{ t('nav.about') }}</GemButton>
-            <!-- На арене меню урезано: только «Главная», «Об игре» и «Выйти» -->
+            <!-- На арене верхнее меню урезано до «Главная» и «Об игре»; кнопки результата боя — в самой арене (ArenaView) -->
             <template v-if="!onArena">
                 <GemButton @click="router.push('arena')" :color="'blue'">{{ t('nav.arena') }}</GemButton>
                 <GemButton @click="router.push('town')" :color="'blue'">{{ t('nav.town') }}</GemButton>
@@ -117,12 +117,12 @@ watchEffect(() => {
                 <GemButton v-if="isAuthenticated" @click="questsOpen = true" :color="'yellow'" :badge-count="questsClaimable">{{ t('nav.quests') }}</GemButton>
                 <GemButton v-if="isAuthenticated" @click="eventOpen = true" :color="'red'">{{ t('nav.event') }}</GemButton>
                 <GemButton v-if="isAuthenticated" @click="delveOpen = true" :color="'pink'">{{ t('social.delve.nav') }}</GemButton>
+                <template v-if="!isAuthenticated">
+                    <GemButton v-if="route.name != 'login'" @click="router.push('/login')" :color="'green'">{{ t('nav.login') }}</GemButton>
+                    <GemButton v-if="route.name != 'register'" @click="router.push('/register')" :color="'yellow'">{{ t('nav.register') }}</GemButton>
+                </template>
+                <GemButton v-else @click="onLogout" :color="'red'">{{ t('nav.logout') }}</GemButton>
             </template>
-            <template v-if="!isAuthenticated">
-                <GemButton v-if="route.name != 'login'" @click="router.push('/login')" :color="'green'">{{ t('nav.login') }}</GemButton>
-                <GemButton v-if="route.name != 'register'" @click="router.push('/register')" :color="'yellow'">{{ t('nav.register') }}</GemButton>
-            </template>
-            <GemButton v-else @click="onLogout" :color="'red'">{{ t('nav.logout') }}</GemButton>
         </div>
         <div class="settings">
             <div v-if="isAuthenticated && resources" class="resources">
