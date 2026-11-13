@@ -30,6 +30,7 @@ public class BloodPrice : BaseSpell
         if (price <= 0) return;
 
         int hpLeft = world.ApplyDamage(casterId, price);
+        RecordInCast(context, cast => cast.HpPaid += price);
         context.AddLog(new CombatLogEntry
         {
             EventType = CombatEventType.Damage,

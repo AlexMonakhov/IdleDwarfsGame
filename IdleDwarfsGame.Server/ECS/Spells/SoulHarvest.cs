@@ -31,6 +31,7 @@ public class SoulHarvest : BaseSpell
     {
         if (FindCurse(world, targetId) is not { } curse) return;
 
+        RecordInCast(context, cast => cast.CurseConsumed += curse.Power * curse.RemainingTurns);
         world.StatusEffects[targetId].ActiveEffects.Remove(curse);
         context.AddLog(new CombatLogEntry
         {
@@ -48,6 +49,13 @@ public class SoulHarvest : BaseSpell
 
         if (RefundsEnergy && world.Energy.TryGetValue(casterId, out var energy))
             energy.Current = Math.Min(energy.Max, energy.Current + EnergyPerCurse);
+    }
+
+    // Добитая цель: проклятие уже ушло в удар целиком, хотя снять его не успели — оно снимется вместе со смертью
+    protected override void AfterHit(World world, int casterId, int targetId, int damage, CombatContext context)
+    {
+        if (!world.IsAlive(targetId) && FindCurse(world, targetId) is { } curse)
+            RecordInCast(context, cast => cast.CurseConsumed += curse.Power * curse.RemainingTurns);
     }
 
     private static CurseEffect? FindCurse(World world, int targetId) =>

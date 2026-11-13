@@ -1,5 +1,5 @@
 import { CombatPowerBreakdown, HeroElement } from '@/battle/types';
-import { EquipmentInfo, PassiveInfo } from '@/models/types/Equipment';
+import { EquipmentInfo, ItemEffectInfo, PassiveInfo } from '@/models/types/Equipment';
 import { PlayerResources } from '@/models/types/Expeditions';
 import type { AbilityInfo } from '@/models/types/Abilities';
 
@@ -51,6 +51,17 @@ export interface SpellDetail {
     // Сколько врагов задевает каст при полном вражеском отряде
     targets: number;
     healing: number;
+    // Спеллы, которые предметы вызывают после каста; старый сервер их не присылал
+    procs?: SpellProcDetail[];
+    // Другие эффекты предметов на это заклинание — текст как у эффекта предмета (equipment.effects.<kind>)
+    effects?: ItemEffectInfo[];
+}
+
+// Срабатывание с предмета (SpellProcEffect): спелл «Frost Bolt 1», урон по каждой цели, шанс на цель в %
+export interface SpellProcDetail {
+    spell: string;
+    damage: number;
+    chance: number;
 }
 
 // Прокачка героя за золото и опыт аккаунта (IdleDwarfsGame.Server/Services/HeroUpgradeService.cs).

@@ -228,8 +228,16 @@ public static class CombatPower
         int extra = perTarget > 0 ? Math.Min(modifier.ExtraTargets, Math.Max(0, ReferenceTargets - targets)) : 0;
 
         double damage = (estimate.Damage + extra * perTarget) * (100 + modifier.DamagePercent) / 100;
-        damage += (targets + extra) * modifier.Procs.Sum(p => attack * p.DamagePercent / 100.0);
-        return estimate with { Damage = damage };
+        var result = estimate with { Damage = damage };
+
+        // Срабатывания, повторы, реакции: каждый эффект сам оценивает, что добавляет к среднему касту
+        var cast = new CastEstimate(spell, attack, estimate, perTarget * (100 + modifier.DamagePercent) / 100, targets + extra);
+        foreach (var effect in modifier.Effects)
+        {
+            var bonus = effect.Estimate(cast);
+            result = new SpellEstimate(result.Damage + bonus.Damage, result.Healing + bonus.Healing, result.StunnedTurns + bonus.StunnedTurns);
+        }
+        return result;
     }
 
     private static double Damage(SpellEstimate estimate, double attack) =>

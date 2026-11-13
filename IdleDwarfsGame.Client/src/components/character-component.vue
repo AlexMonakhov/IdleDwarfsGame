@@ -59,9 +59,9 @@ const statusVisual = computed(() => combineStatusVisuals(statusNames.value));
 
 // Что значит сила статуса на иконке: урон за ход (по умолчанию), лечение или процент замедления энергии.
 // У оглушения силы нет — на иконке только ходы
-const STATUS_POWER_KIND: Record<string, 'damage' | 'heal' | 'slow'> = { Regen: 'heal', Frost: 'slow' };
+const STATUS_POWER_KIND: Record<string, 'damage' | 'heal' | 'slow' | 'vulnerable'> = { Regen: 'heal', Frost: 'slow', Mark: 'vulnerable' };
 const powerKind = (name: string) => STATUS_POWER_KIND[name] ?? 'damage';
-const powerText = (name: string, status: UnitStatus) => (powerKind(name) === 'slow' ? `${status.power}%` : String(status.power));
+const powerText = (name: string, status: UnitStatus) => (['slow', 'vulnerable'].includes(powerKind(name)) ? `${status.power}%` : String(status.power));
 
 const statusTitle = (name: string, status: UnitStatus) =>
   [

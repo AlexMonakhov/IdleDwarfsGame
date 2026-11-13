@@ -6,34 +6,44 @@ public class HealthSystem : ICombatSystem
     {
         ResolveLastStands(world, context);
 
-        // Фиксируем смерти (один раз на юнита)
-        foreach (var entity in world.Entities)
+        // Фиксируем смерти (один раз на юнита). Реакция предмета на смерть (раскол, перенос яда) может добить
+        // кого-то ещё — повторяем, пока смерти не кончатся
+        bool died;
+        do
         {
-            var hp = world.Health[entity.Id];
-            if (hp.Current < 0) hp.Current = 0;
-
-            if (!world.Info.TryGetValue(entity.Id, out var info))
-                world.Info[entity.Id] = info = new UnitInfoComponent();
-
-            if (hp.Current == 0 && !info.IsDead)
+            died = false;
+            foreach (var entity in world.Entities)
             {
-                info.IsDead = true;
-                if (world.StatusEffects.TryGetValue(entity.Id, out var statuses))
-                    statuses.ActiveEffects.Clear();
+                var hp = world.Health[entity.Id];
+                if (hp.Current < 0) hp.Current = 0;
 
-                context.AddLog(new CombatLogEntry
+                if (!world.Info.TryGetValue(entity.Id, out var info))
+                    world.Info[entity.Id] = info = new UnitInfoComponent();
+
+                if (hp.Current == 0 && !info.IsDead)
                 {
-                    EventType = CombatEventType.Death,
-                    Phase = "Death",
-                    TargetId = entity.Id,
-                    TargetTeam = world.Team[entity.Id].TeamId,
-                    ActionType = "Death",
-                    TargetRemainingHp = 0
-                });
+                    info.IsDead = true;
+                    died = true;
+                    var lastStatuses = world.StatusEffects.TryGetValue(entity.Id, out var statuses)
+                        ? statuses.ActiveEffects.ToList()
+                        : [];
+                    statuses?.ActiveEffects.Clear();
 
-                Avenge(world, entity.Id);
+                    context.AddLog(new CombatLogEntry
+                    {
+                        EventType = CombatEventType.Death,
+                        Phase = "Death",
+                        TargetId = entity.Id,
+                        TargetTeam = world.Team[entity.Id].TeamId,
+                        ActionType = "Death",
+                        TargetRemainingHp = 0
+                    });
+
+                    Avenge(world, entity.Id);
+                    ItemReactions.Died(world, context, entity.Id, lastStatuses);
+                }
             }
-        }
+        } while (died);
 
         bool team1Alive = world.Entities.Any(e => world.Team[e.Id].TeamId == 1 && world.IsAlive(e.Id));
         bool team2Alive = world.Entities.Any(e => world.Team[e.Id].TeamId == 2 && world.IsAlive(e.Id));

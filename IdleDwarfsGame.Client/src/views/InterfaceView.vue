@@ -17,7 +17,7 @@ import DelveModal from '@/components/delve/DelveModal.vue';
 import { useSocial } from '@/composables/UseSocial';
 import AccountButton from '@/components/account/AccountButton.vue';
 import AccountModal from '@/components/account/AccountModal.vue';
-import { ref, watch, watchEffect } from 'vue';
+import { computed, ref, watch, watchEffect } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import backgroundMusic from "@/assets/sounds/Beneath_The_Marble_Dome.mp3";
 import { useAuth } from '@/composables/UseAuth';
@@ -36,6 +36,7 @@ import { IconCoin, IconExperience, IconRainbowCoin } from '@/components/icons/ui
 const { t, locale } = useI18n();
 const router = useRouter();
 const route = useRoute();
+const onArena = computed(() => route.name === 'arena');
 const { isAuthenticated, logout } = useAuth();
 const { resources, refresh: refreshResources, clear: clearResources } = useResources();
 const { clear: clearHeroes } = useHeroes();
@@ -107,13 +108,16 @@ watchEffect(() => {
         <div  class="nav-menu">
             <GemButton @click="router.push('/')" :color="'blue'">{{ t('nav.home') }}</GemButton>
             <GemButton @click="router.push('about')" :color="'blue'">{{ t('nav.about') }}</GemButton>
-            <GemButton v-if="route.name != 'arena'" @click="router.push('arena')" :color="'blue'">{{ t('nav.arena') }}</GemButton>
-            <GemButton @click="router.push('town')" :color="'blue'">{{ t('nav.town') }}</GemButton>
-            <GemButton v-if="isAuthenticated" @click="collectionOpen = true" :color="'yellow'">{{ t('nav.collection') }}</GemButton>
-            <GemButton v-if="isAuthenticated" @click="friendsOpen = true" :color="'green'" :badge-count="incomingFriendRequests">{{ t('nav.friends') }}</GemButton>
-            <GemButton v-if="isAuthenticated" @click="questsOpen = true" :color="'yellow'" :badge-count="questsClaimable">{{ t('nav.quests') }}</GemButton>
-            <GemButton v-if="isAuthenticated" @click="eventOpen = true" :color="'red'">{{ t('nav.event') }}</GemButton>
-            <GemButton v-if="isAuthenticated" @click="delveOpen = true" :color="'pink'">{{ t('social.delve.nav') }}</GemButton>
+            <!-- На арене меню урезано: только «Главная», «Об игре» и «Выйти» -->
+            <template v-if="!onArena">
+                <GemButton @click="router.push('arena')" :color="'blue'">{{ t('nav.arena') }}</GemButton>
+                <GemButton @click="router.push('town')" :color="'blue'">{{ t('nav.town') }}</GemButton>
+                <GemButton v-if="isAuthenticated" @click="collectionOpen = true" :color="'yellow'">{{ t('nav.collection') }}</GemButton>
+                <GemButton v-if="isAuthenticated" @click="friendsOpen = true" :color="'green'" :badge-count="incomingFriendRequests">{{ t('nav.friends') }}</GemButton>
+                <GemButton v-if="isAuthenticated" @click="questsOpen = true" :color="'yellow'" :badge-count="questsClaimable">{{ t('nav.quests') }}</GemButton>
+                <GemButton v-if="isAuthenticated" @click="eventOpen = true" :color="'red'">{{ t('nav.event') }}</GemButton>
+                <GemButton v-if="isAuthenticated" @click="delveOpen = true" :color="'pink'">{{ t('social.delve.nav') }}</GemButton>
+            </template>
             <template v-if="!isAuthenticated">
                 <GemButton v-if="route.name != 'login'" @click="router.push('/login')" :color="'green'">{{ t('nav.login') }}</GemButton>
                 <GemButton v-if="route.name != 'register'" @click="router.push('/register')" :color="'yellow'">{{ t('nav.register') }}</GemButton>

@@ -16,9 +16,10 @@ public class RadiantNova : BaseSpell
         _ => 0.5
     };
 
-    public override void Execute(World world, int casterId, CombatContext context)
+    protected override void Perform(CastScope scope)
     {
-        base.Execute(world, casterId, context);
+        var (world, casterId, context) = (scope.World, scope.CasterId, scope.Context);
+        base.Perform(scope);
         if (HealMultiplier <= 0) return;
 
         int heal = ScaledDamage(world, casterId, HealMultiplier);

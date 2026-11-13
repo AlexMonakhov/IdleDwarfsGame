@@ -6,14 +6,26 @@ import { EquipmentInfo, ItemEffectInfo, ItemStats, PassiveInfo } from '@/models/
 export const itemName = (item: EquipmentInfo): string =>
     i18n.global.te(`equipment.items.${item.key}`) ? t(`equipment.items.${item.key}`) : item.key;
 
-export const effectText = (effect: ItemEffectInfo): string => t(`equipment.effects.${effect.kind}`, {
+// Срабатывание с шансом меньше 100% описывается своим текстом, если он есть: equipment.effects.<kind>Chance
+const effectKey = (effect: ItemEffectInfo): string =>
+    effect.chance != null && effect.chance < 100 && i18n.global.te(`equipment.effects.${effect.kind}Chance`)
+        ? `${effect.kind}Chance`
+        : effect.kind;
+
+export const effectText = (effect: ItemEffectInfo): string => t(`equipment.effects.${effectKey(effect)}`, {
     value: effect.value,
+    chance: effect.chance ?? 100,
     spell: effect.spell ?? '',
     proc: effect.procSpell ?? '',
     level: effect.procLevel ?? '',
     passive: effect.passive ? t(`passives.names.${effect.passive}`) : '',
     aura: effect.aura ? statusLabel(effect.aura) : '',
     target: effect.auraTarget ? t(`equipment.auraTargets.${effect.auraTarget}`) : '',
+    status: effect.status ? statusLabel(effect.status) : '',
+    toStatus: effect.toStatus ? statusLabel(effect.toStatus) : '',
+    count: effect.count ?? '',
+    threshold: effect.threshold ?? '',
+    procs: (effect.procSpells ?? []).join(', '),
 });
 
 // Есть ли у героя то, что эффект усиливает. Без этого предмет надеть можно, но эффект не сработает.

@@ -9,7 +9,7 @@ import StatIcon from '@/components/icons/stats/StatIcon.vue';
 import SpellName from '@/components/icons/spells/SpellName.vue';
 import AuraName from '@/components/icons/status/AuraName.vue';
 import EquipmentSlots from '@/components/equipment/EquipmentSlots.vue';
-import { passiveName, passiveText } from '@/components/equipment/equipmentText';
+import { effectText, passiveName, passiveText } from '@/components/equipment/equipmentText';
 import HeroesApiService from '@/services/apiServices/HeroesApiService';
 import { useResources } from '@/composables/UseResources';
 import { HERO_NAME_MAX, HeroInfo, HeroRenameError, HeroUpgradeError, HeroUpgradeResult, SpellDetail } from '@/models/types/Heroes';
@@ -319,6 +319,24 @@ const hint = computed(() => {
                         </span>
                     </span>
                     <span v-if="row.detail && spellEffect(row.detail)" class="stat-passive-text">{{ spellEffect(row.detail) }}</span>
+                    <!-- Срабатывания с предметов: один шаблон на все, новый артефакт с SpellProcEffect показывается сам -->
+                    <i18n-t
+                        v-for="(proc, index) in row.detail?.procs ?? []"
+                        :key="`${proc.spell}-${index}`"
+                        :keypath="proc.chance < 100 ? 'heroUpgrade.spellProcChance' : 'heroUpgrade.spellProc'"
+                        tag="span"
+                        class="stat-passive-text stat-spell-proc"
+                    >
+                        <template #spell><SpellName :spell="proc.spell" /></template>
+                        <template #damage>{{ format(proc.damage) }}</template>
+                        <template #chance>{{ proc.chance }}</template>
+                    </i18n-t>
+                    <!-- Остальные эффекты предметов (повторы, взрывы, метки…) — тем же текстом, что в описании предмета -->
+                    <span
+                        v-for="(effect, index) in row.detail?.effects ?? []"
+                        :key="`${effect.kind}-${index}`"
+                        class="stat-passive-text stat-spell-proc"
+                    >{{ t('heroUpgrade.spellItemEffect', { effect: effectText(effect) }) }}</span>
                 </div>
                 <span v-if="!hero.spells.length" class="stat-text">{{ t('heroUpgrade.none') }}</span>
             </div>
@@ -690,6 +708,10 @@ const hint = computed(() => {
 
 .stat-passive-name {
     font-weight: bold;
+}
+
+.stat-spell-proc :deep(.spell-name) {
+    vertical-align: middle;
 }
 
 .stat-passive-text {

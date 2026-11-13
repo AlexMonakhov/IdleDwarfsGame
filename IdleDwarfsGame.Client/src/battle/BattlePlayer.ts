@@ -10,6 +10,8 @@ import { getUnitView } from './UnitRegistry';
 
 // Аура тьмы (EnergyBurnEffect на сервере)
 const ENERGY_BURN = 'EnergyBurn';
+// Артефакт вернул энергию кастеру (ItemEffectActions.GainEnergy на сервере)
+const ENERGY_GAIN = 'EnergyGain';
 
 interface DamageOptions {
   // Визуал попадания уже проигран (взрыв заклинания)
@@ -430,6 +432,11 @@ export class BattlePlayer {
     if (data?.name === ENERGY_BURN) {
       if (log.targetEnergy != null) target.energy = log.targetEnergy;
       if ((data.power ?? 0) > 0) this.float(target.id, t('arena.float.energyBurn', { value: data.power }), 'status');
+      return;
+    }
+    if (data?.name === ENERGY_GAIN) {
+      if (log.targetEnergy != null) target.energy = log.targetEnergy;
+      if ((data.power ?? 0) > 0) this.float(target.id, t('arena.float.energyGain', { value: data.power }), 'status');
       return;
     }
     this.setStatus(target, data, log.actionType);

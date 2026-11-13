@@ -28,6 +28,10 @@ public class StatusEffectSystem : ICombatSystem
                 // Эффекты конца хода (Poison, кровотечение и т.д.)
                 effect.OnTurnEnd(world, actorId, context);
             }
+
+            // Предметы, которые реагируют на тик своих статусов (Кукла проклятий)
+            if (world.IsAlive(actorId))
+                ItemReactions.StatusTicked(world, context, actorId, effect);
         }
 
         var expired = effects.Where(e => e.RemainingTurns <= 0).ToList();
@@ -50,6 +54,9 @@ public class StatusEffectSystem : ICombatSystem
                 TargetRemainingHp = world.Health[actorId].Current,
                 ActiveEffects = { effect.ToLogData() }
             });
+
+            // Предметы, которые реагируют на окончание своих статусов (раскол заморозки)
+            ItemReactions.StatusExpired(world, context, actorId, effect);
         }
     }
 }
