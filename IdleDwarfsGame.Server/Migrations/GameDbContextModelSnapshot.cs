@@ -23236,8 +23236,11 @@ namespace IdleDwarfsGame.Server.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<bool>("Revived")
-                        .HasColumnType("bit");
+                    b.Property<int>("RerollFloor")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Revives")
+                        .HasColumnType("int");
 
                     b.Property<string>("RewardsJson")
                         .IsRequired()

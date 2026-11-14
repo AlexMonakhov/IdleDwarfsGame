@@ -1,7 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-// Dead — пал весь отряд: забег окончен, но его можно один раз воскресить (DelveRules.ReviveCost)
+// Dead — пал весь отряд: забег окончен, но его можно воскресить (DelveRules.FreeRevives, PaidRevives)
 public enum DelveRunStatus { Active, Dead, Retreated }
 
 // Что ждёт решения игрока, прежде чем идти дальше: реликвия из трёх, привал, награда узла
@@ -24,8 +24,10 @@ public class DelveRun
     public int Column { get; set; }
     public DelveRunStatus Status { get; set; }
     public DelvePending Pending { get; set; }
-    // Воскрешение всего отряда уже использовано
-    public bool Revived { get; set; }
+    // Сколько раз воскрешали весь отряд: первые DelveRules.FreeRevives — бесплатно
+    public int Revives { get; set; }
+    // Этаж, на котором награды уже перебрасывали (раз за этаж); 0 — ещё ни разу
+    public int RerollFloor { get; set; }
 
     public string SquadJson { get; set; } = "[]";
     // HeroId → доля HP 0..1

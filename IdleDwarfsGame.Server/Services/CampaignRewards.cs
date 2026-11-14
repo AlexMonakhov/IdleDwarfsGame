@@ -42,10 +42,17 @@ public static class CampaignRewards
     public static int ChestLevelFor(int stageId) =>
         Math.Clamp(ChestLevelFrom.Count(from => stageId >= from), 1, LootSeedData.MaxChestLevel);
 
-    public static RewardEntity FixedFor(CampaignStage stage)
+    public static RewardEntity FixedFor(CampaignStage stage) =>
+        Scaled(stage, stage.Type == StageType.Boss ? BossMultiplier : 1);
+
+    // То же без надбавки босса: мерило «одного уровня кампании» для наград вне кампании (DailyQuests.GoldFor, спуск).
+    // Иначе игрок, застрявший перед боссом, получал бы везде ×BossMultiplier
+    public static RewardEntity BaseFor(CampaignStage stage) => Scaled(stage, 1);
+
+    private static RewardEntity Scaled(CampaignStage stage, double multiplier)
     {
         double enemyFactor = BalanceCalculator.Factor(stage.EnemyLevel);
-        double scale = Math.Pow(enemyFactor, RewardExponent) * (stage.Type == StageType.Boss ? BossMultiplier : 1);
+        double scale = Math.Pow(enemyFactor, RewardExponent) * multiplier;
         return new RewardEntity
         {
             Gold = (int)Math.Round(BaseGold * scale, MidpointRounding.AwayFromZero),
