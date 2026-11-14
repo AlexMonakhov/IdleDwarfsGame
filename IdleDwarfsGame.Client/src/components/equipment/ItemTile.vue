@@ -238,7 +238,7 @@ const onDragStart = (event: DragEvent) => {
     width: 64px;
     height: 64px;
     object-fit: contain;
-    filter: drop-shadow(0 0 5px var(--rarity-color));
+    filter: drop-shadow(4px 5px 1px #000);
 }
 
 .item-tile-name {

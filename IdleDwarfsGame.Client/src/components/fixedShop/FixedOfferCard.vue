@@ -48,7 +48,7 @@ const caption = computed(() => {
             <HeroCard v-if="offer.hero" :hero="offer.hero" />
             <ItemTile v-else-if="offer.item" :item="offer.item" />
             <div v-else class="fixed-offer-goods">
-                <component :is="CHEST_ICONS[offer.chest.type]" v-if="offer.chest" size="64px" />
+                <component :is="CHEST_ICONS[offer.chest.type]" v-if="offer.chest" class="fixed-offer-chest" size="64px" />
                 <IconCoin v-else-if="offer.kind === 'Gold'" size="64px" />
                 <IconRainbowCoin v-else size="64px" />
                 <span class="fixed-offer-caption">{{ caption }}</span>
@@ -114,6 +114,11 @@ const caption = computed(() => {
     min-width: 120px;
     padding: 10px;
     filter: drop-shadow(2px 3px 2px rgba(0, 0, 0, 0.8));
+}
+
+/* Сундук — с тенью как у карточек склада */
+.fixed-offer-chest {
+    filter: drop-shadow(2px 2px 1px #000);
 }
 
 .fixed-offer-caption {
