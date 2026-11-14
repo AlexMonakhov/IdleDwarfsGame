@@ -10,6 +10,9 @@ interface Props {
   round?: boolean
   badgeCount?: number
   showBadgeDotOnly?: boolean
+  // Подсветка при наведении без filter: brightness. Фильтр рисуется в отдельный буфер — внутри обрезанных
+  // скруглённых блоков с анимацией (стекло карточки сундука с бликом) это лишний проход видеокарты на каждый кадр
+  noFilter?: boolean
 }
 
 
@@ -19,7 +22,8 @@ const props = withDefaults(defineProps<Props>(), {
   color: 'pink',
   round: false,
   badgeCount: 0,
-  showBadgeDotOnly: false
+  showBadgeDotOnly: false,
+  noFilter: false
 })
 
 const buttonClasses = computed<string[]>(() => {
@@ -29,6 +33,9 @@ const buttonClasses = computed<string[]>(() => {
     }
     else{
         classes.push('gem-button-bevel')
+    }
+    if(props.noFilter){
+        classes.push('gem-button-no-filter')
     }
     return classes;
 })
@@ -103,6 +110,19 @@ const buttonClasses = computed<string[]>(() => {
 .gem-button:hover {
   filter: brightness(1.1);
   z-index: 10;
+}
+
+/* Без фильтра: камень светлеет внутренней подсветкой, она рисуется вместе с ним, без отдельного буфера */
+.gem-button-no-filter {
+  transition: transform 0.1s ease;
+}
+
+.gem-button-no-filter:hover:not(:disabled) {
+  filter: none;
+}
+
+.gem-button-no-filter:hover:not(:disabled) .gem-inner-top {
+  box-shadow: 0 0 2px rgba(255, 255, 255, 1), inset 0 0 0 100px rgba(255, 255, 255, 0.1);
 }
 
 /* 2. Сам кристалл (внутренний контейнер) */

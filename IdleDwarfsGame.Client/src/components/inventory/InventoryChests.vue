@@ -118,11 +118,11 @@ onMounted(load);
                             {{ t(`elementNames.${group.element}`) }}
                         </span>
                         <span class="loot-tile-rarity">{{ t('chests.level', { level: group.level }) }}</span>
+                        <GemButton class="chest-card-open" :color="'yellow'" no-filter :disabled="opening" @click="open(group.ids[0])">
+                            {{ opening ? t('chests.opening') : t('chests.open') }}
+                        </GemButton>
                     </GlassButton>
                     <span v-if="group.ids.length > 1" class="loot-tile-count">×{{ group.ids.length }}</span>
-                    <GemButton class="chest-card-open" :color="'yellow'" :disabled="opening" @click="open(group.ids[0])">
-                        {{ opening ? t('chests.opening') : t('chests.open') }}
-                    </GemButton>
                 </div>
             </div>
         </template>
@@ -183,10 +183,16 @@ onMounted(load);
     font-weight: 700;
 }
 
-/* Кнопка под стеклом, на оправе */
+/* Кнопка внутри стекла, внизу; поверх блика, чтобы ловить клики */
 .chest-card .chest-card-open {
+    position: relative;
+    z-index: 2;
     align-self: center;
-    margin-top: 8px;
+    margin-top: auto;
+}
+
+.chest-card .loot-tile-rarity {
+    margin-bottom: 6px;
 }
 
 .chest-card-open :deep(.gem-text) {

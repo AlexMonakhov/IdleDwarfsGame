@@ -205,6 +205,7 @@ const startDrag = (e: MouseEvent) => {
 
 const stopDrag = () => {
   isDown.value = false;
+  startEdgeScroll();
 };
 
 const onMouseLeave = () => {
@@ -218,6 +219,7 @@ const onMouseMove = (e: MouseEvent) => {
   const rect = slider.value.getBoundingClientRect();
   mouseX.value = e.clientX - rect.left;
   containerWidth.value = rect.width;
+  startEdgeScroll();
 
   if (isDown.value) {
     e.preventDefault();
@@ -228,28 +230,31 @@ const onMouseMove = (e: MouseEvent) => {
 };
 
 // --- EDGE SCROLL LOOP ---
+// Скорость прокрутки, пока курсор у края; 0 — курсор не у края
+const edgeSpeed = () => {
+  if (!slider.value || mouseX.value === -1 || isDown.value) return 0;
+  const width = containerWidth.value;
+  const x = mouseX.value;
+  const leftBoundary = width * EDGE_THRESHOLD;
+  const rightBoundary = width * (1 - EDGE_THRESHOLD);
+  if (x < leftBoundary) return -MAX_SPEED * (1 - x / leftBoundary);
+  if (x > rightBoundary) return MAX_SPEED * ((x - rightBoundary) / (width * EDGE_THRESHOLD));
+  return 0;
+};
+
+// Цикл крутится, только пока курсор у края, и сам останавливается.
+// Вечный requestAnimationFrame заставлял браузер каждый кадр пересчитывать стили всех CSS-анимаций на странице —
+// с окном склада поверх города (десятки аур и колец престижа) это роняло FPS
 const edgeScrollLoop = () => {
-  if (slider.value && mouseX.value !== -1 && !isDown.value) {
-    const width = containerWidth.value;
-    const x = mouseX.value;
-    let speed = 0;
-
-    const leftBoundary = width * EDGE_THRESHOLD;
-    const rightBoundary = width * (1 - EDGE_THRESHOLD);
-
-    if (x < leftBoundary) {
-      const intensity = 1 - (x / leftBoundary);
-      speed = -MAX_SPEED * intensity;
-    } else if (x > rightBoundary) {
-      const intensity = (x - rightBoundary) / (width * EDGE_THRESHOLD);
-      speed = MAX_SPEED * intensity;
-    }
-
-    if (speed !== 0) {
-      slider.value.scrollLeft += speed;
-    }
-  }
+  animationFrameId = 0;
+  const speed = edgeSpeed();
+  if (!speed || !slider.value) return;
+  slider.value.scrollLeft += speed;
   animationFrameId = requestAnimationFrame(edgeScrollLoop);
+};
+
+const startEdgeScroll = () => {
+  if (!animationFrameId && edgeSpeed()) animationFrameId = requestAnimationFrame(edgeScrollLoop);
 };
 
 // --- ИНИЦИАЛИЗАЦИЯ ---
@@ -265,7 +270,6 @@ const scrollToCenter = async () => {
 };
 
 onMounted(() => {
-  edgeScrollLoop();
   skyIntervalId = window.setInterval(() => {
     isNight.value = isNightNow();
   }, SKY_CHECK_INTERVAL_MS);

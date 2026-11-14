@@ -182,7 +182,7 @@ const statusIcon = computed(() => (props.ability.kind === 'Aura' ? STATUS_ICONS[
     height: 40px;
     color: var(--ability-accent);
     font-size: 28px;
-    filter: drop-shadow(0 0 5px var(--ability-accent));
+    filter: drop-shadow(2px 2px 1px #000);
 }
 
 .ability-tile-icon img {
