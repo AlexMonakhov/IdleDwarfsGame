@@ -3,8 +3,6 @@
 const en = {
   nav: {
     home: 'Home',
-    about: 'About',
-    arena: 'Arena',
     town: 'Town',
     squad: 'Squad',
     inventory: 'Inventory',
@@ -60,6 +58,7 @@ const en = {
     close: 'Close',
     yes: 'Yes',
     no: 'No',
+    cancel: 'Cancel',
   },
   auth: {
     loginHeader: 'login',
@@ -184,6 +183,7 @@ const en = {
     reset: 'Reset',
     saved: 'Squad saved',
     unsaved: 'Unsaved changes',
+    leaveConfirm: 'Your squad changes are not saved. Save them?',
     needOneHero: 'The squad needs at least one hero',
     loadError: 'Failed to load heroes. Is the server running?',
     saveError: 'Failed to save the squad',
@@ -1423,6 +1423,16 @@ const en = {
     floor: 'Floor',
     startFight: 'Start fight',
     loadingSprites: 'Loading…',
+    // Tips on the arena loading screen (cycled)
+    loadingTips: [
+      'Element gems power up gear at the forge — stockpile them in your storage.',
+      'Squad order matters: front-line dwarves take the first hits.',
+      'The arena hints at what awaits: fire on lava, frost on ice.',
+      'The tower resets every week — higher floors give richer rewards.',
+      'The guild boss is shared: every ally hit brings the reward closer for everyone.',
+      'Delve relics stack — the same one can drop more than once.',
+      'The mine keeps digging while you are away. Remember to collect the ore.',
+    ],
     boss: 'Boss',
     skip: 'Skip',
     mute: 'Mute',

@@ -117,13 +117,13 @@ import crystalLarge from '@/assets/card-backs/crystal-large.webp';
 `.svg` — редактируемый вектор (открывается в Figma / Illustrator / Inkscape, каждая грань — отдельный полигон),
 `.webp` — то, что использует игра. После доработки SVG экспортируй его в webp/png того же размера.
 
-Запечь любую другую рубашку: под каждой тестовой картой в TownView есть ссылки **«скачать: svg / webp»** —
+Запечь любую другую рубашку: под каждой тестовой картой в TestPageView есть ссылки **«скачать: svg / webp»** —
 файл скачается ровно с теми настройками и цветом, что у карты. Из кода — `downloadCardBack(color, back, fileName, 'svg' | 'webp')`
 или `getCardBackSvg(color, back)` (строка SVG).
 
-## Тестовые карты в TownView
+## Тестовые карты в TestPageView
 
-В [TownView.vue](../../views/TownView.vue) внизу страницы (прокрутить) — сетка из 12 карт.
+В [TestPageView.vue](../../views/TestPageView.vue) внизу страницы (прокрутить) — сетка из 12 карт.
 Стиль у всех `large`, кроме №12. Не указанные параметры — по умолчанию.
 
 | № | Название | Цвет | `back` | Что видно |

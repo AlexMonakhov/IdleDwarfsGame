@@ -491,7 +491,6 @@ const footerText = computed(() => errorMessage.value ?? notice.value ?? '');
 
     <ConfirmModal
         v-model="retreatConfirmOpen"
-        :header="t('social.delve.retreat')"
         :message="t('social.delve.retreatConfirm')"
         @confirm="retreat"
     />

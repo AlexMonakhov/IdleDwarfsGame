@@ -71,6 +71,8 @@ export class BattlePlayer {
   // Юнит, чей сейчас ход: подсвечен с первого события хода до конца его действия
   private currentActor: number | null = null;
   speed = 1;
+  // Чего дождаться перед первым ходом, когда сцена уже готова (на арене — пока уйдет экран загрузки)
+  beforeStart: (() => Promise<void>) | null = null;
 
   readonly fx: BattleFx;
 
@@ -106,14 +108,21 @@ export class BattlePlayer {
     // Дать Vue отрисовать юнитов, чтобы у эффектов были координаты
     await nextFrame();
 
+    const units = Object.values(this.state.units);
+    let readyCount = 0;
     await Promise.race([
-      Promise.all(Object.values(this.state.units).map(u => getUnitView(u.id)?.ready?.())),
+      Promise.all(units.map(async u => {
+        await getUnitView(u.id)?.ready?.();
+        if (runId === this.runId) this.state.prepareProgress = ++readyCount / units.length;
+      })),
       new Promise(resolve => setTimeout(resolve, SPRITE_WAIT_MS)),
     ]);
     // Первые кадры с готовыми листами рисуются ещё под экраном загрузки
     await nextFrame();
     await nextFrame();
     this.state.preparing = false;
+    if (runId !== this.runId) return;
+    await this.beforeStart?.();
     if (runId !== this.runId) return;
     if (options.instant) this.skipping = true;
 

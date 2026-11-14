@@ -1,7 +1,6 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import ArenaView from '@/views/ArenaView.vue'
-import TownView from '@/views/TownView.vue'
 import LoginView from '@/views/LoginView.vue'
 import RegisterView from '@/views/RegisterView.vue'
 import NotFoundView from '@/views/NotFoundView.vue'
@@ -14,12 +13,10 @@ const routes: Array<RouteRecordRaw> = [
     component: HomeView
   },
   {
-    path: '/about',
-    name: 'about',
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "about" */ '../views/AboutView.vue')
+    path: '/town',
+    name: 'town',
+    // Ленивый чанк: город грузится при первом заходе
+    component: () => import(/* webpackChunkName: "town" */ '@/views/TownView.vue')
   },
   {
     path: '/arena',
@@ -32,10 +29,11 @@ const routes: Array<RouteRecordRaw> = [
     name: 'arena-stress',
     component: () => import(/* webpackChunkName: "arena-stress" */ '@/views/ArenaStressView.vue')
   },
+  // Тестовая страница компонентов (в меню её нет)
   {
-    path: '/town',
-    name: 'town',
-    component: TownView
+    path: '/testpage',
+    name: 'testpage',
+    component: () => import(/* webpackChunkName: "testpage" */ '@/views/TestPageView.vue')
   },
   {
     path: '/login',

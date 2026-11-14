@@ -116,11 +116,14 @@
     <BattleStatsModal v-model="statsOpen" :result="result" />
 
     <!-- Экран загрузки: запрос боя, фон арены, спрайт-листы юнитов. Сцена под ним уже собирается и открывается готовой -->
-    <Transition name="arena-loading">
-      <div v-if="loading || state.preparing" class="arena-loading-screen">
-        <div class="arena-loading">{{ t('arena.loadingSprites') }}</div>
-      </div>
-    </Transition>
+    <ArenaLoadingScreen
+      :active="loading || state.preparing"
+      :progress="loadProgress"
+      :background="bgImage"
+      :failed="error !== null"
+      @open="loadingScreenOpen = true"
+      @closed="onLoadingScreenClosed"
+    />
   </div>
 </template>
 
@@ -153,6 +156,7 @@ import ResultBanner from '@/components/interface/ResultBanner.vue';
 import ResultParticles from '@/components/interface/ResultParticles.vue';
 import BattleStatsModal from '@/components/interface/BattleStatsModal.vue';
 import GemButton from '@/components/common/GemButton.vue';
+import ArenaLoadingScreen from '@/components/loading/ArenaLoadingScreen.vue';
 import { IconPower } from '@/components/icons/stats';
 import { createBattleState, teamUnits } from '@/battle/BattleState';
 import { BattlePlayer } from '@/battle/BattlePlayer';
@@ -223,6 +227,20 @@ const { pendingFight } = useExternalFight();
 const state = createBattleState();
 const fx = new BattleFx(() => layerRef.value?.particleService ?? null, () => speed.value);
 const player = new BattlePlayer(state, fx);
+
+// Бой начинается, только когда экран загрузки полностью ушел: иначе первые ходы проходят под ним
+const loadingScreenOpen = ref(false);
+let loadingScreenWaiters: (() => void)[] = [];
+const onLoadingScreenClosed = () => {
+  loadingScreenOpen.value = false;
+  loadingScreenWaiters.splice(0).forEach(resolve => resolve());
+};
+// Страховка: если событие затухания не придет (вкладка в фоне и т.п.), бой все равно начнется
+const LOADING_SCREEN_MAX_WAIT_MS = 3000;
+player.beforeStart = () => !loadingScreenOpen.value ? Promise.resolve() : new Promise<void>(resolve => {
+  loadingScreenWaiters.push(resolve);
+  setTimeout(resolve, LOADING_SCREEN_MAX_WAIT_MS);
+});
 provide(BATTLE_FX_KEY, fx);
 
 const teamA = computed(() => teamUnits(state, 1));
@@ -313,8 +331,17 @@ const preloadImage = (url: string) => {
   return image.decode().catch(() => undefined);
 };
 
+// Этап загрузки для полосы: запрос боя → фон арены → спрайт-листы юнитов (их доля — state.prepareProgress)
+const loadPhase = ref<'request' | 'background'>('request');
+const loadProgress = computed(() => {
+  if (state.preparing) return 0.6 + 0.38 * state.prepareProgress;
+  if (!loading.value) return 1;
+  return loadPhase.value === 'request' ? 0.35 : 0.55;
+});
+
 const playFight = async (load: () => Promise<CombatResult>) => {
   if (state.playing || loading.value) return;
+  loadPhase.value = 'request';
   loading.value = true;
   error.value = null;
   // Итог прошлого боя PvP не должен остаться на экране после боя другого режима
@@ -326,6 +353,7 @@ const playFight = async (load: () => Promise<CombatResult>) => {
   try {
     result.value = await load();
     saveFight(result.value);
+    loadPhase.value = 'background';
     // Фон арены (у каждого режима свой) — тоже под экраном загрузки, а не проявляется на глазах
     await preloadImage(arenaBackground(bgImage.value));
   } catch (e) {
@@ -426,7 +454,7 @@ watch(() => route.query.attack, (attack, previous) => {
 
 // Из арены — всегда сначала в город (домашний экран), и уже там открывается окно режима
 const leaveToTown = async (open: () => void) => {
-  await router.push({ name: 'about' });
+  await router.push({ name: 'town' });
   open();
 };
 const goToGuild = () => leaveToTown(() => {
@@ -454,9 +482,9 @@ const goToNextFloor = async () => {
   startArenaFight();
 };
 // Список кампании (и получение наград) — в городе: окно кампании откроется сразу
-const goToCampaign = () => router.push({ name: 'about', query: { campaign: '1' } });
+const goToCampaign = () => router.push({ name: 'town', query: { campaign: '1' } });
 // Там же башня: окно башни откроется сразу
-const goToTower = () => router.push({ name: 'about', query: { tower: '1' } });
+const goToTower = () => router.push({ name: 'town', query: { tower: '1' } });
 const skipFight = () => player.skip();
 
 /* ===== Перезагрузка страницы на арене =====
@@ -534,6 +562,7 @@ const showSavedFight = async (saved: SavedFight) => {
   worldBossResult.value = saved.worldBoss;
   pvpResult.value = saved.pvp;
   result.value = saved.result;
+  loadPhase.value = 'background';
   loading.value = true;
   await preloadImage(arenaBackground(bgImage.value));
   loading.value = false;
@@ -545,7 +574,7 @@ const leaveToMode = () => {
   if (pvpOpponentId.value) return goToPvp();
   if (guildBossTier.value) return goToGuild();
   if (worldBossMode.value) return goToEvent();
-  if (externalMode.value) return router.push({ name: 'about' });
+  if (externalMode.value) return router.push({ name: 'town' });
   if (stageId.value) return goToCampaign();
   if (towerFloor.value) return goToTower();
 };
@@ -765,36 +794,6 @@ onBeforeUnmount(() => {
 }
 
 /* Поверх всего, включая канвас эффектов (z-index 9999 в CanvasLayer) */
-.arena-loading-screen {
-  position: absolute;
-  inset: 0;
-  z-index: 10000;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background: radial-gradient(ellipse at center, #1a2232 0%, #0a0f18 75%);
-}
-
-.arena-loading-leave-active {
-  transition: opacity 0.3s ease;
-}
-
-.arena-loading-leave-to {
-  opacity: 0;
-}
-
-.arena-loading {
-  color: white;
-  font-size: 20px;
-  font-weight: 700;
-  letter-spacing: 1px;
-  animation: arena-loading-pulse 1s ease-in-out infinite alternate;
-}
-
-@keyframes arena-loading-pulse {
-  from { opacity: 0.55; }
-  to { opacity: 1; }
-}
 
 .arena-message.error .result-next {
   display: block;
