@@ -14,7 +14,7 @@ import { useResources } from '@/composables/UseResources';
 import type { ModalTab, TabIcon } from '@/models/types/Modal';
 import type { DelveDwarfInfo, DelveNodeInfo, DelveOverview, DelveRewardInfo } from '@/models/types/Social';
 import { formatLeft, formatNumber, openExternalFight, socialErrorText } from '@/components/social/socialShared';
-import { IconCoin, IconExperience, IconPickaxe, IconRainbowCoin, IconTrophy } from '@/components/icons/ui';
+import { IconCoin, IconExperience, IconPickaxe, IconRainbowCoin, IconRefresh, IconTrophy } from '@/components/icons/ui';
 import DelveMap from './DelveMap.vue';
 import DelveSlotCard from './DelveSlotCard.vue';
 import DelveRewardCard from './DelveRewardCard.vue';
@@ -169,6 +169,13 @@ const reviveAll = async () => {
     refreshResources();
 };
 
+// Перебросить награды узла: раз за этаж, бесплатно
+const reroll = () => {
+    pickedReward.value = null;
+    swapFrom.value = null;
+    act(() => SocialApiService.rerollDelveRewards());
+};
+
 const chooseReward = (index: number) => {
     const reward = run.value?.rewards[index];
     if (!reward || busy.value) return;
@@ -264,7 +271,8 @@ const move = async (node: DelveNodeInfo) => {
         if (result.gold || result.experience || result.rainbowCoins) {
             refreshResources();
             notice.value = t('social.delve.fightReward', { gold: formatNumber(result.gold), experience: formatNumber(result.experience) })
-                + (result.rainbowCoins ? t('social.delve.fightRainbow', { coins: result.rainbowCoins }) : '');
+                + (result.rainbowCoins ? t('social.delve.fightRainbow', { coins: result.rainbowCoins }) : '')
+                + (result.heroChestLevel ? t('social.delve.fightChest', { level: result.heroChestLevel }) : '');
         }
         if (result.combat) {
             const combat = result.combat;
@@ -342,6 +350,13 @@ const footerText = computed(() => errorMessage.value ?? notice.value ?? '');
                         </div>
                         <div class="delve-buttons delve-buttons-bottom">
                             <GemButton v-if="picked" :color="'blue'" :disabled="busy" @click="pickedReward = null">{{ t('social.delve.cancel') }}</GemButton>
+                            <GemButton
+                                :color="'blue'"
+                                :disabled="busy || !run.canReroll"
+                                v-tooltip="run.canReroll ? t('social.delve.reroll') : t('social.delve.rerollUsed')"
+                                :aria-label="t('social.delve.reroll')"
+                                @click="reroll"
+                            ><IconRefresh /></GemButton>
                             <GemButton :color="'yellow'" :disabled="busy" @click="decline">{{ t('social.delve.decline') }}</GemButton>
                         </div>
                     </div>
@@ -455,12 +470,13 @@ const footerText = computed(() => errorMessage.value ?? notice.value ?? '');
                             <span><IconRainbowCoin /> {{ run.rainbowCoinsEarned }}</span>
                         </div>
 
-                        <!-- Пал весь отряд: раз за забег можно воскресить всех -->
+                        <!-- Пал весь отряд: первое воскрешение бесплатно, второе — за радужные монеты -->
                         <div v-if="dead" class="delve-dead">
-                            <template v-if="!run.revived">
+                            <template v-if="run.revivesLeft > 0">
                                 <p class="delve-hint">{{ t('social.delve.reviveHint') }}</p>
-                                <GemButton :color="'yellow'" :disabled="busy || !run.canRevive" @click="reviveAll">
-                                    {{ t('social.delve.reviveAll', { cost: overview.reviveCost }) }} <IconRainbowCoin />
+                                <GemButton :color="run.reviveCost ? 'yellow' : 'green'" :disabled="busy || !run.canRevive" @click="reviveAll">
+                                    <template v-if="run.reviveCost">{{ t('social.delve.reviveAll', { cost: run.reviveCost }) }} <IconRainbowCoin /></template>
+                                    <template v-else>{{ t('social.delve.reviveFree') }}</template>
                                 </GemButton>
                             </template>
                             <p v-else class="delve-hint">{{ t('social.delve.reviveUsed') }}</p>

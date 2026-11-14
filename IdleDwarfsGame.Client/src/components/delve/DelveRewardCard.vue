@@ -6,6 +6,7 @@ import ItemTile from '@/components/equipment/ItemTile.vue';
 import AbilityTile from '@/components/abilities/AbilityTile.vue';
 import { ELEMENT_COLORS, ELEMENT_ICONS } from '@/components/inventory/lootStyles';
 import type { DelveRewardInfo } from '@/models/types/Social';
+import { spellDescription } from './delveText';
 
 // Награда узла спуска. Предмет — плиткой склада, спелл / пассивка / аура — плиткой способности алтаря
 // (те же компоненты), стихия, ранг и улучшения — своей карточкой в том же стиле
@@ -43,7 +44,13 @@ const plainText = computed(() => {
     }
 });
 
-// Куда пойдёт награда: спелл этажей 6–10 — сам первому дворфу стихии, остальное — на выбранного
+// Что делает спелл — подсказкой на плитке, как описание у предметов
+const spellTooltip = computed(() => {
+    const ability = props.reward.ability;
+    return ability?.kind === 'Spell' ? spellDescription(ability.spellName) : '';
+});
+
+// Куда пойдёт награда: первый спелл (фаза спеллов) — сам первому дворфу стихии, остальное — на выбранного
 const hint = computed(() => {
     const r = props.reward;
     if (r.kind === 'Spell' && !r.needsTarget) return t('social.delve.rewardSpell', { element: elementName.value });
@@ -62,7 +69,7 @@ const hint = computed(() => {
         <div v-if="reward.item" class="delve-reward-tile">
             <ItemTile :item="reward.item" />
         </div>
-        <div v-else-if="reward.ability" class="delve-reward-tile">
+        <div v-else-if="reward.ability" class="delve-reward-tile" v-tooltip="spellTooltip || null">
             <AbilityTile :ability="reward.ability" :selected="selected" />
         </div>
 
