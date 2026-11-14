@@ -12,6 +12,12 @@ public class AbilityInfo
     public int? SpellId { get; set; }
     public string? SpellName { get; set; }
     public HeroElement? Element { get; set; }
+    // Сила заклинания без привязки к дворфу — для подсказки: урон и лечение по цели в % атаки заклинателя,
+    // сколько врагов задевает (из полного отряда) и цена каста. Точный урон у дворфа — HeroInfo.SpellDetails
+    public int SpellDamagePercent { get; set; }
+    public int SpellHealingPercent { get; set; }
+    public int SpellTargets { get; set; }
+    public int SpellEnergyCost { get; set; }
 
     // Пассивка: значения на этом уровне, без колец
     public int Percent { get; set; }
@@ -40,6 +46,13 @@ public class AbilityInfo
                 info.SpellId = spell.Id;
                 info.SpellName = spell.Name;
                 info.Element = ElementSpellBook.ElementOf(family);
+                // При атаке 100 урон по цели — сразу в процентах атаки
+                var single = spell.Estimate(100, 1);
+                var full = spell.Estimate(100, SpellDetail.FullSquad);
+                info.SpellDamagePercent = (int)Math.Round(single.Damage);
+                info.SpellHealingPercent = (int)Math.Round(single.Healing);
+                info.SpellTargets = single.Damage > 0 ? (int)Math.Round(full.Damage / single.Damage) : 0;
+                info.SpellEnergyCost = spell.EnergyCost;
                 return info;
 
             case AbilityKind.Passive:

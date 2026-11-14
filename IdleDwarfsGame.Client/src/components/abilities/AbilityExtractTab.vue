@@ -11,6 +11,7 @@ import { HeroInfo, isBusy } from '@/models/types/Heroes';
 import { statusLabel } from '@/i18n';
 import { vDragScroll } from '@/directives/dragScroll';
 import AbilityTile from './AbilityTile.vue';
+import AbilityTooltip from './AbilityTooltip.vue';
 import { abilityErrorText, abilityName } from './abilityText';
 
 // Извлечение: выбранный дворф распыляется, одна его способность остаётся у игрока
@@ -94,13 +95,17 @@ const buttonText = computed(() => {
             <template v-if="hero">
                 <h4 class="forge-title">{{ t('abilities.extract.title', { name: hero.name }) }}</h4>
                 <div v-if="abilities.length" class="forge-tiles">
-                    <AbilityTile
+                    <AbilityTooltip
                         v-for="ability in abilities"
                         :key="`${ability.kind}-${ability.key}`"
                         :ability="ability"
-                        :selected="picked?.kind === ability.kind && picked.key === ability.key"
-                        @click="picked = ability"
-                    />
+                    >
+                        <AbilityTile
+                            :ability="ability"
+                            :selected="picked?.kind === ability.kind && picked.key === ability.key"
+                            @click="picked = ability"
+                        />
+                    </AbilityTooltip>
                 </div>
                 <div v-else class="forge-note">{{ t('abilities.extract.nothing') }}</div>
 

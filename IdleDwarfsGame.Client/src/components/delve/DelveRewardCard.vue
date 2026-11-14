@@ -4,9 +4,9 @@ import { useI18n } from 'vue-i18n';
 import GlassButton from '@/components/common/GlassButton.vue';
 import ItemTile from '@/components/equipment/ItemTile.vue';
 import AbilityTile from '@/components/abilities/AbilityTile.vue';
+import AbilityTooltip from '@/components/abilities/AbilityTooltip.vue';
 import { ELEMENT_COLORS, ELEMENT_ICONS } from '@/components/inventory/lootStyles';
 import type { DelveRewardInfo } from '@/models/types/Social';
-import { spellDescription } from './delveText';
 
 // Награда узла спуска. Предмет — плиткой склада, спелл / пассивка / аура — плиткой способности алтаря
 // (те же компоненты), стихия, ранг и улучшения — своей карточкой в том же стиле
@@ -44,12 +44,6 @@ const plainText = computed(() => {
     }
 });
 
-// Что делает спелл — подсказкой на плитке, как описание у предметов
-const spellTooltip = computed(() => {
-    const ability = props.reward.ability;
-    return ability?.kind === 'Spell' ? spellDescription(ability.spellName) : '';
-});
-
 // Куда пойдёт награда: первый спелл (фаза спеллов) — сам первому дворфу стихии, остальное — на выбранного
 const hint = computed(() => {
     const r = props.reward;
@@ -69,8 +63,10 @@ const hint = computed(() => {
         <div v-if="reward.item" class="delve-reward-tile">
             <ItemTile :item="reward.item" />
         </div>
-        <div v-else-if="reward.ability" class="delve-reward-tile" v-tooltip="spellTooltip || null">
-            <AbilityTile :ability="reward.ability" :selected="selected" />
+        <div v-else-if="reward.ability" class="delve-reward-tile">
+            <AbilityTooltip class="delve-reward-trigger" :ability="reward.ability">
+                <AbilityTile :ability="reward.ability" :selected="selected" />
+            </AbilityTooltip>
         </div>
 
         <!-- Стихия, ранг, улучшения -->
@@ -90,6 +86,11 @@ const hint = computed(() => {
 </template>
 
 <style scoped>
+/* Обёртка подсказки не мешает: плитка тянется на всю карточку */
+.delve-reward-trigger {
+    flex: 1;
+}
+
 /* Обёртка без своей рамки: карточка выглядит как на складе, выбор — свечением вокруг плитки */
 .delve-reward {
     width: 148px;
