@@ -241,8 +241,12 @@ export interface DelveRunInfo {
     goldEarned: number;
     experienceEarned: number;
     rainbowCoinsEarned: number;
-    revived: boolean;
+    // Сколько ещё раз можно воскресить отряд и во сколько радужных монет обойдётся следующее (0 — бесплатно)
+    revivesLeft: number;
+    reviveCost: number;
     canRevive: boolean;
+    // Награды узла можно перебросить: раз за этаж
+    canReroll: boolean;
 }
 
 export interface DelveOverview {
@@ -267,6 +271,8 @@ export interface DelveMoveResult {
     gold: number;
     experience: number;
     rainbowCoins: number;
+    // Уровень сундука героев за босса (уже в инвентаре); null — сундука нет
+    heroChestLevel: number | null;
     overview: DelveOverview;
 }
 

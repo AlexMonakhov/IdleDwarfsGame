@@ -42,8 +42,12 @@ public class DelveRunInfo
     public long GoldEarned { get; set; }
     public long ExperienceEarned { get; set; }
     public int RainbowCoinsEarned { get; set; }
-    public bool Revived { get; set; }
+    // Сколько ещё раз можно воскресить отряд и во сколько радужных монет обойдётся следующее (0 — бесплатно)
+    public int RevivesLeft { get; set; }
+    public int ReviveCost { get; set; }
     public bool CanRevive { get; set; }
+    // Награды узла можно перебросить: раз за этаж
+    public bool CanReroll { get; set; }
 }
 
 public class DelveDwarfInfo
@@ -116,6 +120,8 @@ public class DelveMoveResult
     public long Gold { get; set; }
     public long Experience { get; set; }
     public int RainbowCoins { get; set; }
+    // Уровень сундука героев за босса (сразу в инвентаре); null — сундука нет
+    public int? HeroChestLevel { get; set; }
     public DelveOverview Overview { get; set; } = new();
 }
 

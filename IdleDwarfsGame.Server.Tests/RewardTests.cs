@@ -50,6 +50,17 @@ public class RewardTests : IDisposable
     }
 
     [Fact]
+    public void RewardsInCampaignStages_IgnoreTheBossBonus_OfTheCurrentStage()
+    {
+        // Игрок, застрявший перед боссом, получает за задания, магазин и т. п. как за обычный уровень, а не ×3
+        var beforeBoss = new PlayerProgress(99, Stage(100, StageType.Boss), false);
+        var beforeMobs = new PlayerProgress(99, Stage(100), false);
+        Assert.Equal(DailyQuests.GoldFor(1, beforeMobs), DailyQuests.GoldFor(1, beforeBoss));
+        Assert.Equal(DailyQuests.ExperienceFor(1, beforeMobs), DailyQuests.ExperienceFor(1, beforeBoss));
+        Assert.Equal(CampaignRewards.FixedFor(Stage(100)).Gold, CampaignRewards.BaseFor(Stage(100, StageType.Boss)).Gold);
+    }
+
+    [Fact]
     public void Roll_AddsRandomBonus_AndBossAlwaysDropsChest()
     {
         var random = new Random(3);

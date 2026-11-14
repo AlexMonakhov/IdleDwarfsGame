@@ -147,7 +147,7 @@ const restartTutorial = () => {
                     ><IconMute v-if="sound.musicMuted" /><IconSound v-else /></button>
                     <input
                         class="sound-range"
-                        type="range" min="0" max="1" step="0.05"
+                        type="range" min="0" max="1" step="0.01"
                         :value="sound.musicMuted ? 0 : sound.musicVolume"
                         @input="soundService.setMusicVolume(rangeValue($event))"
                     />
@@ -163,7 +163,7 @@ const restartTutorial = () => {
                     ><IconMute v-if="sound.muted" /><IconSound v-else /></button>
                     <input
                         class="sound-range"
-                        type="range" min="0" max="1" step="0.05"
+                        type="range" min="0" max="1" step="0.01"
                         :value="sound.muted ? 0 : sound.volume"
                         @input="soundService.setVolume(rangeValue($event))"
                     />

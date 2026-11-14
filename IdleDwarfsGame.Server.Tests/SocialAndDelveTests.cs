@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using IdleDwarfsGame.Server.Enums;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
@@ -55,7 +56,7 @@ public class SocialAndDelveTests : IDisposable
             new Random(1), _clock, NoActivity.Instance);
         _friendHelp = new FriendHelpService(_context, new MiningRepository(_context), heroes, players, factory, engine, scenarios, campaign, _clock);
         _bets = new ArenaBetService(_context, new PvpRepository(_context), factory, players, _clock);
-        _delve = new DelveService(_context, campaignRepository, players, factory, engine, scenarios, _clock);
+        _delve = new DelveService(_context, campaignRepository, factory, engine, scenarios, _clock);
     }
 
     public void Dispose()
@@ -281,14 +282,22 @@ public class SocialAndDelveTests : IDisposable
         foreach (var hero in squad.Skip(1))
             DelveRules.Promote(hero, HeroElement.Fire);
 
-        // Спеллы — только стихий, у которых есть дворф без спелла; ледяной один — после его спелла ледяных нет
+        // Спеллы — только стихий, у которых есть дворф без спелла; ледяной один — после его спелла ледяных нет.
+        // На этажах 6–10 спеллы — всегда 1-го уровня, даже с мудростью
         Assert.All(DelveRules.RewardOffer(7, 6, squad, []), r => Assert.Contains(r.Element!.Value, new[] { HeroElement.Frost, HeroElement.Fire }));
+        for (int seed = 0; seed < 50; seed++)
+            Assert.All(DelveRules.RewardOffer(seed, 8, squad, Enumerable.Repeat("wisdom", 5).ToList()), r => Assert.Equal(1, r.Level));
         DelveRules.Apply(new DelveReward(DelveRewardKind.Spell, Level: 3, SpellId: SpellRegistry.IdOf(16, 3), Element: HeroElement.Frost), squad, null);
         Assert.Equal([18], squad[0].SpellIds);
         for (int seed = 0; seed < 20; seed++)
             Assert.All(DelveRules.RewardOffer(seed, 7, squad, []), r => Assert.Equal(HeroElement.Fire, r.Element));
 
-        // После 10-го этажа — что угодно, но стихийное — только стихий отряда (лёд и огонь)
+        // Фаза — по отряду, а не по этажу: пока у кого-то нет спелла, и на 30-м этаже предлагаются спеллы 1-го уровня
+        Assert.All(DelveRules.RewardOffer(3, 30, squad, []), r => Assert.Equal((DelveRewardKind.Spell, 1), (r.Kind, r.Level)));
+        foreach (var hero in squad.Skip(1))
+            hero.SpellIds = [SpellRegistry.IdOf(ElementSpellBook.FamiliesOf(HeroElement.Fire)[0], 3)];
+
+        // Когда у всех есть стихия и спелл — что угодно, но стихийное — только стихий отряда (лёд и огонь)
         var later = Enumerable.Range(0, 60).SelectMany(seed => DelveRules.RewardOffer(seed, 11, squad, [])).ToList();
         Assert.DoesNotContain(later, r => r.Kind == DelveRewardKind.Element);
         Assert.All(later.Where(r => r.Kind == DelveRewardKind.Spell), r => Assert.True(r.Targeted));
@@ -298,10 +307,31 @@ public class SocialAndDelveTests : IDisposable
             r => Assert.Contains(r.Element!.Value, new[] { HeroElement.Frost, HeroElement.Fire }));
         Assert.All(later.Where(r => r.Kind == DelveRewardKind.Item),
             r => Assert.True(EquipmentCatalog.Find(r.Key!)!.Fits(HeroElement.Frost) || EquipmentCatalog.Find(r.Key!)!.Fits(HeroElement.Fire)));
-        // Улучшать пока нечего: единственный спелл уже 3-го уровня, пассивок и аур нет
+        // Улучшать пока нечего: все спеллы уже 3-го уровня, пассивок и аур нет
         Assert.DoesNotContain(later, r => r.Kind is DelveRewardKind.SpellUp or DelveRewardKind.PassiveUp or DelveRewardKind.AuraUp);
         // Повышение ранга — редкость
         Assert.True(later.Count(r => r.Kind == DelveRewardKind.LevelUp) * 10 < later.Count);
+    }
+
+    [Fact]
+    public void DelveRewards_EveryDwarfGetsAnElementThenASpell_EvenAfterADecline()
+    {
+        for (int seed = 0; seed < 30; seed++)
+        {
+            var squad = DelveRules.StartSquad(Guid.NewGuid(), new Random(seed));
+            int floor = 0;
+            // На 3-м узле — отказ: фаза не сдвигается, стихию всё равно получат все пятеро
+            for (int taken = 0; taken < 2 * DelveRules.StartSize; floor++)
+            {
+                var offer = DelveRules.RewardOffer(seed, floor + 1, squad, []);
+                if (floor == 2) continue;
+                Assert.NotNull(DelveRules.Apply(offer[0], squad, null));
+                taken++;
+            }
+            Assert.All(squad, h => Assert.Equal(2, h.Level));
+            Assert.All(squad, h => Assert.Equal(1, SpellRegistry.All[Assert.Single(h.SpellIds)].Level));
+            Assert.Equal(DelveRules.Phase.Random, DelveRules.RewardPhase(squad));
+        }
     }
 
     [Fact]
@@ -316,7 +346,10 @@ public class SocialAndDelveTests : IDisposable
 
         var squad = DelveRules.StartSquad(Guid.NewGuid(), new Random(1));
         foreach (var hero in squad)
+        {
             DelveRules.Promote(hero, HeroElement.Fire);
+            hero.SpellIds = [ElementSpellBook.FamiliesOf(HeroElement.Fire)[0]];
+        }
         int Rarity(IReadOnlyCollection<string> relics) => Enumerable.Range(0, 200)
             .SelectMany(seed => DelveRules.RewardOffer(seed, 20, squad, relics))
             .Where(r => r.Kind == DelveRewardKind.Item)
@@ -327,6 +360,14 @@ public class SocialAndDelveTests : IDisposable
             .Sum(r => r.Level - 1);
         Assert.True(Rarity(Enumerable.Repeat("luck", 5).ToList()) > Rarity([]));
         Assert.True(Levels(Enumerable.Repeat("wisdom", 5).ToList()) > Levels([]));
+
+        // Легендарки и артефакты — редкость: на 11-м этаже без удачи — меньше 6% предметов
+        var items = Enumerable.Range(0, 1000)
+            .SelectMany(seed => DelveRules.RewardOffer(seed, 11, squad, []))
+            .Where(r => r.Kind == DelveRewardKind.Item)
+            .Select(r => EquipmentCatalog.Find(r.Key!)!.Rarity)
+            .ToList();
+        Assert.True(items.Count(r => r >= global::Rarity.Legendary) * 100 < items.Count * 6);
     }
 
     [Fact]
@@ -418,31 +459,105 @@ public class SocialAndDelveTests : IDisposable
         Assert.Equal(DelvePending.None, declined.Overview.Run!.Pending);
         Assert.All(declined.Overview.Run.Dwarves, d => Assert.Equal(1, d.Level));
         Assert.Equal(DelveError.NothingPending, (await Assert.ThrowsAsync<DelveException>(() => _delve.DeclineRewardAsync(_alice.Id))).Code);
+
+        // Золото и опыт — от уровня кампании этажа спуска, а не игрока
+        var stage = (await _context.CampaignStages.AsNoTracking().SingleAsync(s => s.Id == 1));
+        var fixedReward = CampaignRewards.BaseFor(stage);
+        Assert.Equal((int)Math.Round(fixedReward.Gold * DelveRules.DeclineReward), declined.Gold);
+        Assert.Equal((int)Math.Round(fixedReward.Experience * DelveRules.DeclineReward), declined.Experience);
+        Assert.Equal((int)Math.Round(fixedReward.Gold * DelveRules.FightReward), move.Gold);
     }
 
     [Fact]
-    public async Task Delve_RevivesTheWholeSquadOncePerRun_ForRainbowCoins()
+    public async Task DelveBoss_GivesAHeroChest_ByDepth()
     {
+        Assert.Equal((1, 1, 2, 2, 3), (DelveRules.BossChestLevel(10), DelveRules.BossChestLevel(50), DelveRules.BossChestLevel(60),
+            DelveRules.BossChestLevel(100), DelveRules.BossChestLevel(110)));
+
         var overview = await _delve.StartAsync(_alice.Id);
         var run = await _context.DelveRuns.SingleAsync(r => r.Id == overview.Run!.Id);
-        run.Status = DelveRunStatus.Dead;
-        run.Floor = 4;
-        run.SetHp(run.Hp().ToDictionary(x => x.Key, _ => 0.0));
+        var squad = run.Squad();
+        foreach (var hero in squad)
+        {
+            hero.MaxHp = 1_000_000;
+            hero.Attack = 1_000_000;
+        }
+        run.SetSquad(squad);
+        run.Floor = 9;
         await _context.SaveChangesAsync();
         _context.ChangeTracker.Clear();
 
-        Assert.Equal(DelveError.NotEnoughRainbowCoins, (await Assert.ThrowsAsync<DelveException>(() => _delve.ReviveAsync(_alice.Id))).Code);
-        await _context.Players.Where(p => p.Id == _alice.PlayerId).ExecuteUpdateAsync(s => s.SetProperty(p => p.RainbowCoins, 50));
-        Assert.True((await _delve.GetAsync(_alice.Id)).Run!.CanRevive);
+        var move = await _delve.MoveAsync(_alice.Id, run.Column);
+        Assert.Equal(DelveNodeType.Boss, move.Node);
+        Assert.True(move.Won);
+        Assert.Equal(1, move.HeroChestLevel);
+        Assert.Equal(DelveRules.BossRainbowCoins, move.RainbowCoins);
+        var chests = await _context.PlayerChests.Where(c => c.PlayerId == _alice.PlayerId).Include(c => c.ChestDropTable).ToListAsync();
+        var chest = Assert.Single(chests);
+        Assert.Equal((ChestType.Hero, 1), (chest.ChestDropTable.ChestType, chest.ChestDropTable.ChestLevel));
+    }
 
+    [Fact]
+    public async Task Delve_RewardsCanBeRerolledOncePerFloor()
+    {
+        await _delve.StartAsync(_alice.Id);
+        Assert.Equal(DelveError.NothingPending, (await Assert.ThrowsAsync<DelveException>(() => _delve.RerollRewardsAsync(_alice.Id))).Code);
+        var move = await _delve.MoveAsync(_alice.Id, 1);
+        Assert.True(move.Overview.Run!.CanReroll);
+
+        var rerolled = (await _delve.RerollRewardsAsync(_alice.Id)).Run!;
+        Assert.Equal(DelvePending.Reward, rerolled.Pending);
+        Assert.False(rerolled.CanReroll);
+        Assert.All(rerolled.Rewards, r => Assert.Equal(DelveRewardKind.Element, r.Kind));
+        Assert.Equal(DelveError.AlreadyRerolled, (await Assert.ThrowsAsync<DelveException>(() => _delve.RerollRewardsAsync(_alice.Id))).Code);
+
+        // На следующем этаже — снова можно
+        await _delve.DeclineRewardAsync(_alice.Id);
+        move = await _delve.MoveAsync(_alice.Id, 1);
+        if (move.Overview.Run!.Pending == DelvePending.Reward)
+            Assert.True(move.Overview.Run.CanReroll);
+    }
+
+    [Fact]
+    public async Task Delve_FirstReviveIsFree_SecondCostsRainbowCoins()
+    {
+        var overview = await _delve.StartAsync(_alice.Id);
+        var runId = overview.Run!.Id;
+        async Task Die()
+        {
+            var run = await _context.DelveRuns.SingleAsync(r => r.Id == runId);
+            run.Status = DelveRunStatus.Dead;
+            run.Floor = 4;
+            run.SetHp(run.Hp().ToDictionary(x => x.Key, _ => 0.0));
+            await _context.SaveChangesAsync();
+            _context.ChangeTracker.Clear();
+        }
+
+        // Первое — бесплатно, монет не нужно
+        await Die();
+        var info = (await _delve.GetAsync(_alice.Id)).Run!;
+        Assert.True(info.CanRevive);
+        Assert.Equal((0, 2), (info.ReviveCost, info.RevivesLeft));
         overview = await _delve.ReviveAsync(_alice.Id);
         Assert.Equal(DelveRunStatus.Active, overview.Run!.Status);
         Assert.Equal(4, overview.Run.Floor);
         Assert.All(overview.Run.Dwarves, d => Assert.Equal(1.0, d.Hp));
+        Assert.Equal(0, await _context.Players.Where(p => p.Id == _alice.PlayerId).Select(p => p.RainbowCoins).SingleAsync());
+
+        // Второе — за радужные монеты
+        await Die();
+        info = (await _delve.GetAsync(_alice.Id)).Run!;
+        Assert.Equal((DelveRules.ReviveCost, 1), (info.ReviveCost, info.RevivesLeft));
+        Assert.False(info.CanRevive);
+        Assert.Equal(DelveError.NotEnoughRainbowCoins, (await Assert.ThrowsAsync<DelveException>(() => _delve.ReviveAsync(_alice.Id))).Code);
+        await _context.Players.Where(p => p.Id == _alice.PlayerId).ExecuteUpdateAsync(s => s.SetProperty(p => p.RainbowCoins, 50));
+        Assert.True((await _delve.GetAsync(_alice.Id)).Run!.CanRevive);
+        overview = await _delve.ReviveAsync(_alice.Id);
+        Assert.Equal(DelveRunStatus.Active, overview.Run!.Status);
         Assert.Equal(50 - DelveRules.ReviveCost, await _context.Players.Where(p => p.Id == _alice.PlayerId).Select(p => p.RainbowCoins).SingleAsync());
 
-        // Второй раз — нельзя
-        await _context.DelveRuns.Where(r => r.Id == overview.Run.Id).ExecuteUpdateAsync(s => s.SetProperty(r => r.Status, DelveRunStatus.Dead));
+        // Третье — нельзя
+        await Die();
         Assert.False((await _delve.GetAsync(_alice.Id)).Run!.CanRevive);
         Assert.Equal(DelveError.CannotRevive, (await Assert.ThrowsAsync<DelveException>(() => _delve.ReviveAsync(_alice.Id))).Code);
     }

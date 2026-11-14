@@ -1,3 +1,5 @@
+using IdleDwarfsGame.Server.Entities.GameEntities;
+using IdleDwarfsGame.Server.Enums;
 using Microsoft.EntityFrameworkCore;
 
 // Причина отказа — фронт показывает по коду переведённый текст (delve.errors.<code>)
@@ -17,6 +19,7 @@ public enum DelveError
     InvalidOrder,
     CannotRevive,
     NotEnoughRainbowCoins,
+    AlreadyRerolled,
     Changed
 }
 
@@ -30,7 +33,6 @@ public class DelveException(DelveError code, string message) : InvalidOperationE
 public class DelveService(
     GameDbContext db,
     ICampaignRepository campaign,
-    IPlayerRepository players,
     IEntityFactory entityFactory,
     ICombatEngine engine,
     IEnumerable<ICombatScenario> scenarios,
@@ -205,20 +207,35 @@ public class DelveService(
         return await DescribeAsync(userId, Now);
     }
 
-    // Отказаться от награды узла: золото и опыт на аккаунт по уровню кампании и глубине
+    // Перебросить награды узла: раз за этаж, бесплатно
+    public async Task<DelveOverview> RerollRewardsAsync(Guid userId)
+    {
+        var run = await RequireActiveAsync(userId);
+        if (run.Pending != DelvePending.Reward)
+            throw new DelveException(DelveError.NothingPending, "There is nothing to choose");
+        if (run.RerollFloor == run.Floor)
+            throw new DelveException(DelveError.AlreadyRerolled, "Rewards were already rerolled on this floor");
+
+        var offer = DelveRules.RewardOffer(run.Seed, run.Floor, run.Squad(), run.Relics(), reroll: 1);
+        if (offer.Count == 0)
+            throw new DelveException(DelveError.NothingPending, "There is nothing to choose");
+        run.SetRewards(offer);
+        run.RerollFloor = run.Floor;
+        run.Version++;
+        await SaveAsync();
+        return await DescribeAsync(userId, Now);
+    }
+
+    // Отказаться от награды узла: золото и опыт на аккаунт по уровню кампании этажа (не игрока)
     public async Task<DelveDeclineResult> DeclineRewardAsync(Guid userId)
     {
         var run = await RequireActiveAsync(userId);
         if (run.Pending != DelvePending.Reward)
             throw new DelveException(DelveError.NothingPending, "There is nothing to choose");
 
-        var progress = await players.GetProgressAsync(run.PlayerId);
-        double stages = DelveRules.DeclineStagesFor(run.Floor) * GreedOf(run);
-        var result = new DelveDeclineResult
-        {
-            Gold = DailyQuests.GoldFor(stages, progress),
-            Experience = DailyQuests.ExperienceFor(stages, progress)
-        };
+        var stage = await StageForAsync(DelveRules.DeclineNodeFor(run.Floor));
+        var (gold, experience) = Payout(stage, DelveRules.DeclineReward * GreedOf(run));
+        var result = new DelveDeclineResult { Gold = gold, Experience = experience };
         run.GoldEarned += result.Gold;
         run.ExperienceEarned += result.Experience;
         ClearRewards(run);
@@ -244,25 +261,30 @@ public class DelveService(
         return await DescribeAsync(userId, Now);
     }
 
-    // Воскресить весь павший отряд за радужные монеты: раз за забег, только забег этого периода
+    // Воскресить весь павший отряд: первые FreeRevives раз бесплатно, потом PaidRevives раз за радужные монеты;
+    // только забег этого периода
     public async Task<DelveOverview> ReviveAsync(Guid userId)
     {
         var now = Now;
         var period = DelveRules.PeriodOf(now);
         var run = await db.DelveRuns.FirstOrDefaultAsync(r => r.UserId == userId && r.PeriodStart == period);
-        if (run is not { Status: DelveRunStatus.Dead, Revived: false })
+        if (run is not { Status: DelveRunStatus.Dead } || RevivesLeft(run) <= 0)
             throw new DelveException(DelveError.CannotRevive, "There is nothing to revive");
 
-        int paid = await db.Players
-            .Where(p => p.Id == run.PlayerId && p.RainbowCoins >= DelveRules.ReviveCost)
-            .ExecuteUpdateAsync(s => s.SetProperty(p => p.RainbowCoins, p => p.RainbowCoins - DelveRules.ReviveCost));
-        if (paid == 0)
-            throw new DelveException(DelveError.NotEnoughRainbowCoins, $"Reviving costs {DelveRules.ReviveCost} rainbow coins");
+        int cost = ReviveCostOf(run);
+        if (cost > 0)
+        {
+            int paid = await db.Players
+                .Where(p => p.Id == run.PlayerId && p.RainbowCoins >= cost)
+                .ExecuteUpdateAsync(s => s.SetProperty(p => p.RainbowCoins, p => p.RainbowCoins - cost));
+            if (paid == 0)
+                throw new DelveException(DelveError.NotEnoughRainbowCoins, $"Reviving costs {cost} rainbow coins");
+        }
 
         run.SetHp(run.Hp().ToDictionary(x => x.Key, _ => 1.0));
         run.Status = DelveRunStatus.Active;
         run.Pending = DelvePending.None;
-        run.Revived = true;
+        run.Revives++;
         run.EndedAt = null;
         run.Version++;
         try
@@ -272,7 +294,8 @@ public class DelveService(
         catch (DelveException)
         {
             // Забег успел измениться — монеты возвращаются
-            await PayAsync(run.PlayerId, 0, 0, DelveRules.ReviveCost);
+            if (cost > 0)
+                await PayAsync(run.PlayerId, 0, 0, cost);
             throw;
         }
         return await DescribeAsync(userId, now);
@@ -295,10 +318,8 @@ public class DelveService(
 
     private async Task FightAsync(DelveRun run, DelveNode node, int fromColumn, DateTime now, DelveMoveResult result)
     {
-        int maxStage = (await campaign.GetStageIdsAsync()).DefaultIfEmpty(1).Max();
-        int stageId = DelveRules.StageFor(node, maxStage);
-        var stage = await campaign.GetStageAsync(stageId)
-            ?? throw new InvalidOperationException($"Campaign stage {stageId} not found");
+        int maxStage = await MaxStageAsync();
+        var stage = await StageForAsync(node, maxStage);
 
         var world = BuildSquadWorld(run, node.Type is DelveNodeType.Elite or DelveNodeType.Boss, aliveOnly: true);
         var scenario = scenarios.OfType<CampaignScenario>().First();
@@ -341,11 +362,10 @@ public class DelveService(
             if (heal > 0)
                 hp = hp.ToDictionary(x => x.Key, x => x.Value > 0 ? Math.Min(1, x.Value + heal) : 0);
 
-            var progress = await players.GetProgressAsync(run.PlayerId);
-            double stages = DelveRules.FightStagesFor(node) * GreedOf(run);
-            result.Gold = DailyQuests.GoldFor(stages, progress);
-            result.Experience = DailyQuests.ExperienceFor(stages, progress);
+            (result.Gold, result.Experience) = Payout(stage, DelveRules.FightRewardFor(node) * GreedOf(run));
             result.RainbowCoins = node.Type == DelveNodeType.Boss ? DelveRules.BossRainbowCoins : 0;
+            if (node.Type == DelveNodeType.Boss)
+                result.HeroChestLevel = await AddHeroChestAsync(run.PlayerId, DelveRules.BossChestLevel(node.Floor));
             run.GoldEarned += result.Gold;
             run.ExperienceEarned += result.Experience;
             run.RainbowCoinsEarned += result.RainbowCoins;
@@ -368,6 +388,39 @@ public class DelveService(
     }
 
     private static double GreedOf(DelveRun run) => 1 + DelveRules.GreedReward * DelveRules.Count(run.Relics(), "greed");
+
+    private async Task<int> MaxStageAsync() => (await campaign.GetStageIdsAsync()).DefaultIfEmpty(1).Max();
+
+    // Уровень кампании узла: по нему враги и золото с опытом
+    private async Task<CampaignStage> StageForAsync(DelveNode node, int? maxStage = null)
+    {
+        int stageId = DelveRules.StageFor(node, maxStage ?? await MaxStageAsync());
+        return await campaign.GetStageAsync(stageId)
+            ?? throw new InvalidOperationException($"Campaign stage {stageId} not found");
+    }
+
+    // Золото и опыт — доля награды уровня кампании узла (без надбавки босса кампании): прогресс игрока не важен
+    private static (int Gold, int Experience) Payout(CampaignStage stage, double share)
+    {
+        var reward = CampaignRewards.BaseFor(stage);
+        return ((int)Math.Round(reward.Gold * share), (int)Math.Round(reward.Experience * share));
+    }
+
+    // Сундук героев сразу в инвентарь; сохраняется вместе с забегом (SaveAsync в MoveAsync)
+    private async Task<int> AddHeroChestAsync(Guid playerId, int level)
+    {
+        var tableId = await db.ChestDropTables
+            .Where(t => t.ChestType == ChestType.Hero && t.ChestLevel == level && t.Element == HeroElement.Basic)
+            .Select(t => (Guid?)t.Id)
+            .FirstOrDefaultAsync()
+            ?? throw new InvalidOperationException($"Chest drop table for Hero level {level} not found");
+        db.PlayerChests.Add(new PlayerChest { Id = Guid.NewGuid(), PlayerId = playerId, ChestDropTableId = tableId, IsOpened = false });
+        return level;
+    }
+
+    private static int RevivesLeft(DelveRun run) => DelveRules.FreeRevives + DelveRules.PaidRevives - run.Revives;
+
+    private static int ReviveCostOf(DelveRun run) => run.Revives < DelveRules.FreeRevives ? 0 : DelveRules.ReviveCost;
 
     // false — все реликвии уже взяты
     private static bool OfferRelics(DelveRun run)
@@ -542,7 +595,8 @@ public class DelveService(
             : [];
 
         // Карта видна, пока по ней можно идти: у павшего отряда — на случай воскрешения
-        bool onMap = run.Status == DelveRunStatus.Active || run.Status == DelveRunStatus.Dead && !run.Revived;
+        bool canBeRevived = run.Status == DelveRunStatus.Dead && RevivesLeft(run) > 0;
+        bool onMap = run.Status == DelveRunStatus.Active || canBeRevived;
         return new DelveRunInfo
         {
             Id = run.Id,
@@ -559,8 +613,10 @@ public class DelveService(
             GoldEarned = run.GoldEarned,
             ExperienceEarned = run.ExperienceEarned,
             RainbowCoinsEarned = run.RainbowCoinsEarned,
-            Revived = run.Revived,
-            CanRevive = run.Status == DelveRunStatus.Dead && !run.Revived && rainbowCoins >= DelveRules.ReviveCost
+            RevivesLeft = Math.Max(0, RevivesLeft(run)),
+            ReviveCost = RevivesLeft(run) > 0 ? ReviveCostOf(run) : 0,
+            CanRevive = canBeRevived && rainbowCoins >= ReviveCostOf(run),
+            CanReroll = run.Pending == DelvePending.Reward && run.RerollFloor != run.Floor
         };
     }
 

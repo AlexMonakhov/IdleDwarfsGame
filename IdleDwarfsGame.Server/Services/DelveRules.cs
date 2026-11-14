@@ -6,9 +6,9 @@ public record DelveNode(int Floor, int Column, DelveNodeType Type);
 // действие складывается (DelveService.BuildSquadWorld, RewardOffer); у Max — потолок числа копий
 public record DelveRelic(string Key, bool Rare = false, int Max = int.MaxValue);
 
-// Награда после узла. Element и Spell этажей 6–10 сами находят дворфа, остальные надеваются на выбранного (NeedsTarget):
+// Награда после узла. Element и первый Spell (фаза спеллов) сами находят дворфа, остальные надеваются на выбранного (NeedsTarget):
 //   Element   — дворф 1-го ранга становится дворфом 2-го ранга стихии Element
-//   Spell     — спелл SpellId (Level 1..3) стихии Element: на этажах 6–10 — первому дворфу этой стихии без спелла,
+//   Spell     — спелл SpellId (Level 1..3) стихии Element: в фазе спеллов — первому дворфу этой стихии без спелла,
 //               дальше (Targeted) — выбранному дворфу этой стихии, прежний спелл заменяется
 //   Item      — предмет Key из EquipmentCatalog (у дворфа один предмет, новый заменяет старый; стихия — по предмету)
 //   Passive   — пассивка Key уровня Level (заменяет прежнюю)
@@ -27,21 +27,23 @@ public record DelveReward(DelveRewardKind Kind, string? Key = null, int Level = 
 // «Глубинный спуск» — бесконечный забег-рогалик.
 //
 // Забег — раз в PeriodDays суток (периоды отсчитываются от 00:00 UTC); в рейтинге периода — самый глубокий этаж.
-// Отряд свой, а не игрока: StartSize секироносцев 1-го ранга. Его растят награды после каждого узла (RewardPhase):
-//   этажи 1–5  — стихия: дворф 1-го ранга становится дворфом 2-го ранга выбранной стихии (1 из 3);
-//   этажи 6–10 — спелл: 1 из 3, только стихий, у которых есть дворф без спелла, уровень спелла случайный;
-//   дальше     — что угодно: предмет, пассивка, аура, спелл, улучшение спелла, пассивки или ауры, изредка ранг.
+// Отряд свой, а не игрока: StartSize секироносцев 1-го ранга. Его растят награды после каждого узла (RewardPhase).
+// Фаза зависит от отряда, а не от этажа: от награды можно отказаться, а каждый дворф всё равно должен получить и стихию, и спелл:
+//   пока есть дворф 1-го ранга — стихия: он становится дворфом 2-го ранга выбранной стихии (1 из 3);
+//   пока есть дворф без спелла — спелл 1-го уровня: 1 из 3, только стихий, у которых есть дворф без спелла;
+//   дальше — что угодно: предмет, пассивка, аура, спелл, улучшение спелла, пассивки или ауры, изредка ранг.
 // Стихийное (предметы стихий, ауры, спеллы) выпадает, только если в отряде есть дворф этой стихии, и надевается только на него.
-// От любой награды можно отказаться и взять золото с опытом на аккаунт.
+// От любой награды можно отказаться и взять золото с опытом на аккаунт. Раз за этаж награды можно перебросить (RerollOffer).
 //
 // Карта у каждого забега своя (сид забега), бесконечна и считается по (сид, этаж, столбец) — в базе её нет.
 // Columns столбцов, из столбца c можно спуститься в c-1, c, c+1. Каждый BossEvery-й этаж — босс во всех столбцах,
 // на каждом CampEvery-м (кроме боссов) хотя бы один привал. Видно только следующий этаж целиком и узел через этаж
 // прямо под текущим — чтобы решить, сдвигаться или нет.
 //
-// Враги — монстры уровня кампании по глубине (StageFor), сила игрока не важна. Награды — от уровня кампании игрока
-// и глубины. За каждого побеждённого босса — радужная монета. Пал весь отряд — забег окончен; раз за забег можно
-// воскресить всех за ReviveCost радужных монет.
+// Враги — монстры уровня кампании по глубине (StageFor), сила игрока не важна. Золото и опыт — тоже от этого уровня
+// кампании (фиксированная награда уровня × множитель узла), прогресс игрока в кампании на них не влияет.
+// За каждого побеждённого босса — радужная монета и сундук героев (BossChestLevel). Пал весь отряд — забег окончен; воскресить всех можно
+// FreeRevives раз бесплатно и ещё PaidRevives раз за ReviveCost радужных монет.
 public static class DelveRules
 {
     public const int Columns = 5;
@@ -51,8 +53,8 @@ public static class DelveRules
     public const int PeriodDays = 3;
 
     public const int StartSize = 5;
-    public const int ElementFloors = 5;
-    public const int SpellFloors = 10;
+    // С этого этажа глубина начинает сдвигать редкость и уровни наград (RarityPerFloor, LevelPerFloor)
+    public const int DepthFrom = 10;
 
     // Этаж → уровень кампании врагов: 1 + (этаж - 1) × StagePerFloor; элита и босс — сильнее
     public const double StagePerFloor = 0.5;
@@ -71,18 +73,23 @@ public static class DelveRules
     public const double CampHeal = 0.35;
     public const double CampRevive = 0.4;
 
-    // Воскрешение всего отряда после гибели: раз за забег
+    // Воскрешение всего отряда после гибели: первое бесплатно, следующее — за радужные монеты
+    public const int FreeRevives = 1;
+    public const int PaidRevives = 1;
     public const int ReviveCost = 20;
     public const int BossRainbowCoins = 1;
 
-    // Золото и опыт за победу: (база + за этаж) уровней кампании игрока; элита и босс — больше
-    public const double FightStagesBase = 0.3;
-    public const double FightStagesPerFloor = 0.02;
-    public const double EliteReward = 2;
-    public const double BossReward = 4;
-    // Отказ от награды узла
-    public const double DeclineStagesBase = 0.5;
-    public const double DeclineStagesPerFloor = 0.03;
+    // Сундук героев за босса: до 50-го этажа — 1-го уровня, до 100-го — 2-го, дальше — 3-го
+    public static int BossChestLevel(int floor) => floor <= 50 ? 1 : floor <= 100 ? 2 : 3;
+
+    // Золото и опыт за победу — в долях награды уровня кампании узла (StageFor, без надбавки босса кампании), не игрока:
+    // глубже уровень кампании выше, награда растёт сама; элита и босс — больше.
+    // Спуск — не заработок, а соревнование, кто глубже: 40 этажей с отказом от всех наград — ~5 тыс. золота
+    public const double FightReward = 0.5;
+    public const double EliteReward = 0.75;
+    public const double BossReward = 1.5;
+    // Отказ от награды узла — от уровня кампании обычного боя этого этажа
+    public const double DeclineReward = 0.75;
 
     public const int LeaderboardSize = 10;
     public const int OfferSize = 3;
@@ -113,9 +120,12 @@ public static class DelveRules
     public const double GiantslayerAttack = 0.1;
     public const double PhoenixHp = 0.3;
     // Удача: вес редкости с номером r (Common = 0) умножается на 1 + LuckPerRarity × r за каждую копию
-    public const double LuckPerRarity = 0.3;
+    public const double LuckPerRarity = 0.25;
     // Мудрость: вес уровня L умножается на 1 + WisdomPerLevel × (L - 1) за каждую копию
     public const double WisdomPerLevel = 0.5;
+    // Глубина тоже сдвигает шансы: за каждый этаж после DepthFrom — как доля копии удачи и мудрости
+    public const double RarityPerFloor = 0.015;
+    public const double LevelPerFloor = 0.02;
     public const double GreedReward = 0.1;
 
     public static int Count(IEnumerable<string> relics, string key) => relics.Count(r => r == key);
@@ -196,15 +206,16 @@ public static class DelveRules
     public static double EnemyFactor(DelveNode node, int maxStage) =>
         EnemyStrength * Math.Pow(1 + DepthGrowth, node.Floor - 1) * Math.Pow(1 + OverflowPerStage, Math.Max(0, RawStageFor(node) - Math.Max(1, maxStage)));
 
-    public static double FightStagesFor(DelveNode node) =>
-        (FightStagesBase + FightStagesPerFloor * node.Floor) * node.Type switch
-        {
-            DelveNodeType.Elite => EliteReward,
-            DelveNodeType.Boss => BossReward,
-            _ => 1
-        };
+    // Доля фиксированной награды уровня кампании узла (StageFor) за победу
+    public static double FightRewardFor(DelveNode node) => node.Type switch
+    {
+        DelveNodeType.Elite => EliteReward,
+        DelveNodeType.Boss => BossReward,
+        _ => FightReward
+    };
 
-    public static double DeclineStagesFor(int floor) => DeclineStagesBase + DeclineStagesPerFloor * floor;
+    // Узел, по уровню кампании которого считается отказ от награды: обычный бой этого этажа
+    public static DelveNode DeclineNodeFor(int floor) => new(Math.Max(1, floor), 0, DelveNodeType.Fight);
 
     /* ===== Отряд ===== */
 
@@ -244,8 +255,11 @@ public static class DelveRules
 
     public enum Phase { Element, Spell, Random }
 
-    public static Phase RewardPhase(int floor) =>
-        floor <= ElementFloors ? Phase.Element : floor <= SpellFloors ? Phase.Spell : Phase.Random;
+    // Сначала все дворфы получают стихию, потом все — спелл, дальше — что угодно
+    public static Phase RewardPhase(IReadOnlyList<Hero> squad) =>
+        squad.Any(h => h.Level == HeroLevels.Min) ? Phase.Element
+        : SpellElements(squad).Count > 0 ? Phase.Spell
+        : Phase.Random;
 
     // Аметист, гранат и бриллиант реже остальных — как у сундуков (HeroGenerator)
     private static readonly (HeroElement Element, int Weight)[] ElementWeights =
@@ -254,12 +268,14 @@ public static class DelveRules
         (HeroElement.Dark, 1), (HeroElement.Blood, 1), (HeroElement.Radiance, 1)
     ];
 
-    // Уровень спелла, пассивки и ауры: чаще низкий
-    private static readonly (int Level, int Weight)[] LevelWeights = [(1, 50), (2, 35), (3, 15)];
+    // Уровень спелла, пассивки и ауры: чаще низкий (глубина и мудрость сдвигают вверх)
+    private static readonly (int Level, double Weight)[] LevelWeights = [(1, 70), (2, 25), (3, 5)];
 
-    private static readonly (Rarity Rarity, int Weight)[] RarityWeights =
+    // Редкость предмета (глубина и удача сдвигают вверх). На 11-м этаже без удачи легендарка — ~2.4%, артефакт — ~0.6%;
+    // на 30-м — ~4% и ~1.2%
+    private static readonly (Rarity Rarity, double Weight)[] RarityWeights =
     [
-        (Rarity.Common, 30), (Rarity.Uncommon, 25), (Rarity.Rare, 20), (Rarity.Mythic, 12), (Rarity.Legendary, 8), (Rarity.Artifact, 5)
+        (Rarity.Common, 45), (Rarity.Uncommon, 30), (Rarity.Rare, 16), (Rarity.Mythic, 6), (Rarity.Legendary, 2.4), (Rarity.Artifact, 0.6)
     ];
 
     // Повышение ранга — редкость: ранг 3 и 4 умножают статы в разы
@@ -285,21 +301,22 @@ public static class DelveRules
 
     public static int OfferSizeFor(IReadOnlyCollection<string> relics) => OfferSize + Count(relics, "insight");
 
-    // Награды на выбор после узла этажа floor — по сиду забега и этажу. Пустой список — нечего предложить
-    public static List<DelveReward> RewardOffer(int seed, int floor, IReadOnlyList<Hero> squad, IReadOnlyCollection<string> relics)
+    // Награды на выбор после узла этажа floor — по сиду забега, этажу и номеру переброса (reroll: 0 — первые).
+    // Пустой список — нечего предложить
+    public static List<DelveReward> RewardOffer(int seed, int floor, IReadOnlyList<Hero> squad, IReadOnlyCollection<string> relics,
+        int reroll = 0)
     {
-        var random = new Random(Mix(seed, floor, 1000));
-        var phase = RewardPhase(floor);
-        if (phase == Phase.Element && !squad.Any(h => h.Level == HeroLevels.Min))
-            phase = Phase.Spell;
-        if (phase == Phase.Spell && SpellElements(squad).Count == 0)
-            phase = Phase.Random;
+        var random = new Random(Mix(seed, floor, 1000 + reroll));
+        var phase = RewardPhase(squad);
 
-        // Мудрость сдвигает уровни вверх, удача — редкость предметов
-        int wisdom = Count(relics, "wisdom");
-        var levels = LevelWeights.Select(x => (x.Level, x.Weight * (1 + WisdomPerLevel * wisdom * (x.Level - 1)))).ToList();
-        int luck = Count(relics, "luck");
-        var rarities = RarityWeights.Select(x => (x.Rarity, x.Weight * (1 + LuckPerRarity * luck * (int)x.Rarity))).ToList();
+        // Мудрость и глубина сдвигают уровни вверх, удача и глубина — редкость предметов
+        int depth = Math.Max(0, floor - DepthFrom);
+        double levelShift = WisdomPerLevel * Count(relics, "wisdom") + LevelPerFloor * depth;
+        var levels = LevelWeights.Select(x => (x.Level, x.Weight * (1 + levelShift * (x.Level - 1)))).ToList();
+        double rarityShift = LuckPerRarity * Count(relics, "luck") + RarityPerFloor * depth;
+        var rarities = RarityWeights.Select(x => (x.Rarity, x.Weight * (1 + rarityShift * (int)x.Rarity))).ToList();
+        // Первый спелл каждого дворфа — всегда 1-го уровня: выше — только заменой спелла позже
+        List<(int Level, double Weight)> firstLevel = [(1, 1)];
 
         int size = OfferSizeFor(relics);
         var offer = new List<DelveReward>();
@@ -308,7 +325,7 @@ public static class DelveRules
             var reward = phase switch
             {
                 Phase.Element => new DelveReward(DelveRewardKind.Element, Element: Pick(random, ElementWeights)),
-                Phase.Spell => RandomSpell(random, SpellElements(squad), levels, targeted: false),
+                Phase.Spell => RandomSpell(random, SpellElements(squad), firstLevel, targeted: false),
                 _ => RandomReward(random, squad, levels, rarities)
             };
             if (reward != null && !offer.Contains(reward))

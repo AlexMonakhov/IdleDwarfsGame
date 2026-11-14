@@ -67,6 +67,7 @@ class SocialApiService {
     async chooseRelic(key: string) { return (await apiClient.post<DelveOverview>('/delve/relic', { key })).data; }
     async camp(action: 'rest' | 'revive', heroId?: string) { return (await apiClient.post<DelveOverview>('/delve/camp', { action, heroId })).data; }
     async chooseDelveReward(index: number, heroId?: string) { return (await apiClient.post<DelveOverview>('/delve/reward', { index, heroId })).data; }
+    async rerollDelveRewards() { return (await apiClient.post<DelveOverview>('/delve/reward/reroll')).data; }
     async declineDelveReward() { return (await apiClient.post<DelveDeclineResult>('/delve/reward/decline')).data; }
     async orderDelve(heroIds: string[]) { return (await apiClient.post<DelveOverview>('/delve/order', { heroIds })).data; }
     async reviveDelve() { return (await apiClient.post<DelveOverview>('/delve/revive')).data; }

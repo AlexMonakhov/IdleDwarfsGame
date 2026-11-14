@@ -31,6 +31,9 @@ public class DelveController(DelveService delve) : ControllerBase
     public Task<ActionResult<DelveOverview>> Reward([FromBody] DelveRewardRequest request) =>
         Run(userId => delve.ChooseRewardAsync(userId, request.Index, request.HeroId));
 
+    [HttpPost("reward/reroll")]
+    public Task<ActionResult<DelveOverview>> RerollRewards() => Run(userId => delve.RerollRewardsAsync(userId));
+
     [HttpPost("reward/decline")]
     public Task<ActionResult<DelveDeclineResult>> DeclineReward() => Run(userId => delve.DeclineRewardAsync(userId));
 

@@ -148,11 +148,12 @@ public static class DailyQuests
         return pool[random.Next(pool.Count)];
     }
 
+    // «Уровень кампании» — награда текущего уровня без надбавки босса (CampaignRewards.BaseFor): перед боссом не ×3
     public static int GoldFor(double stages, PlayerProgress player) =>
-        player.CurrentStage == null ? 0 : (int)Math.Round(CampaignRewards.FixedFor(player.CurrentStage).Gold * stages);
+        player.CurrentStage == null ? 0 : (int)Math.Round(CampaignRewards.BaseFor(player.CurrentStage).Gold * stages);
 
     public static int ExperienceFor(double stages, PlayerProgress player) =>
-        player.CurrentStage == null ? 0 : (int)Math.Round(CampaignRewards.FixedFor(player.CurrentStage).Experience * stages);
+        player.CurrentStage == null ? 0 : (int)Math.Round(CampaignRewards.BaseFor(player.CurrentStage).Experience * stages);
 
     // Сундуки шкалы — уровня главы, в которой сейчас игрок
     public static int ChestLevelFor(PlayerProgress player) => CampaignRewards.ChestLevelFor(Math.Max(1, player.CurrentStage?.Id ?? 1));
