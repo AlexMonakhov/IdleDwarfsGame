@@ -4,14 +4,11 @@ import { useI18n } from 'vue-i18n';
 import GlassButton from '@/components/common/GlassButton.vue';
 import ItemTile from '@/components/equipment/ItemTile.vue';
 import AbilityTile from '@/components/abilities/AbilityTile.vue';
-import StatIcon from '@/components/icons/stats/StatIcon.vue';
-import { effectText, itemStatLines } from '@/components/equipment/equipmentText';
 import { ELEMENT_COLORS, ELEMENT_ICONS } from '@/components/inventory/lootStyles';
 import type { DelveRewardInfo } from '@/models/types/Social';
-import { spellDescription } from './delveText';
 
-// Награда узла спуска. Предмет — плиткой склада с полным описанием под ней, спелл / пассивка / аура — плиткой
-// способности алтаря, стихия, ранг и улучшения — своей карточкой
+// Награда узла спуска. Предмет — плиткой склада, спелл / пассивка / аура — плиткой способности алтаря
+// (те же компоненты), стихия, ранг и улучшения — своей карточкой в том же стиле
 const props = defineProps<{
     reward: DelveRewardInfo;
     selected?: boolean;
@@ -61,30 +58,13 @@ const hint = computed(() => {
         :class="{ 'delve-reward-selected': selected, 'delve-reward-disabled': disabled }"
         @click="!disabled && emit('pick')"
     >
-        <!-- Предмет: плитка склада и всё, что он даёт -->
-        <template v-if="reward.item">
+        <!-- Предмет — плитка склада (описание в её подсказке), спелл / пассивка / аура — плитка алтаря -->
+        <div v-if="reward.item" class="delve-reward-tile">
             <ItemTile :item="reward.item" />
-            <div class="delve-reward-details">
-                <div v-for="stat in itemStatLines(reward.item.stats)" :key="stat.key" class="delve-reward-stat">
-                    <StatIcon :stat="stat.key" size="14px" /> {{ t(`equipment.stats.${stat.key}`) }} <b>+{{ stat.value }}</b>
-                </div>
-                <div v-for="(effect, index) in reward.item.effects" :key="index" class="delve-reward-effect">{{ effectText(effect) }}</div>
-                <div v-if="reward.item.elements.length" class="delve-reward-hint">
-                    {{ t('equipment.onlyFor') }}
-                    <span v-for="element in reward.item.elements" :key="element" class="delve-reward-element">
-                        <img v-if="ELEMENT_ICONS[element]" :src="ELEMENT_ICONS[element]" alt="" />{{ t(`elementNames.${element}`) }}
-                    </span>
-                </div>
-            </div>
-        </template>
-
-        <!-- Спелл, пассивка, аура: плитка способности алтаря -->
-        <template v-else-if="reward.ability">
+        </div>
+        <div v-else-if="reward.ability" class="delve-reward-tile">
             <AbilityTile :ability="reward.ability" :selected="selected" />
-            <div v-if="reward.kind === 'Spell' && spellDescription(reward.ability.spellName)" class="delve-reward-details">
-                <div class="delve-reward-effect">{{ spellDescription(reward.ability.spellName) }}</div>
-            </div>
-        </template>
+        </div>
 
         <!-- Стихия, ранг, улучшения -->
         <div v-else class="delve-reward-plain" :style="{ '--reward-accent': accent }">
@@ -97,36 +77,40 @@ const hint = computed(() => {
             </GlassButton>
         </div>
 
-        <span v-if="hint" class="delve-reward-hint">{{ hint }}</span>
+        <!-- Место под подсказку есть всегда: плитки в ряду остаются одной высоты -->
+        <span class="delve-reward-hint">{{ hint }}</span>
     </div>
 </template>
 
 <style scoped>
+/* Обёртка без своей рамки: карточка выглядит как на складе, выбор — свечением вокруг плитки */
 .delve-reward {
-    box-sizing: border-box;
-    width: 168px;
+    width: 148px;
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: stretch;
     gap: 6px;
-    padding: 8px;
-    border-radius: 14px;
-    border: 2px solid transparent;
-    background: rgba(8, 12, 20, 0.45);
     cursor: pointer;
     font-family: 'Arial', sans-serif;
-    transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
 }
 
-.delve-reward:hover {
-    border-color: rgba(253, 224, 71, 0.55);
+/* Одинаковый размер: плитка занимает всю ширину и высоту карточки */
+.delve-reward-tile,
+.delve-reward-plain {
+    flex: 1;
+    display: flex;
+    border-radius: 14px;
+    transition: box-shadow 0.15s ease, transform 0.15s ease;
 }
 
-.delve-reward-selected,
-.delve-reward-selected:hover {
-    border-color: #ffd166;
-    background: rgba(66, 45, 16, 0.7);
-    box-shadow: 0 0 16px 3px rgba(255, 209, 102, 0.55);
+.delve-reward:hover .delve-reward-tile,
+.delve-reward:hover .delve-reward-plain {
+    transform: translateY(-2px);
+}
+
+.delve-reward-selected .delve-reward-tile,
+.delve-reward-selected .delve-reward-plain {
+    box-shadow: 0 0 0 2px #ffd166, 0 0 18px 4px rgba(255, 209, 102, 0.6);
 }
 
 .delve-reward-disabled {
@@ -134,42 +118,25 @@ const hint = computed(() => {
     opacity: 0.6;
 }
 
-.delve-reward-details {
-    width: 100%;
+.delve-reward-disabled:hover .delve-reward-tile,
+.delve-reward-disabled:hover .delve-reward-plain {
+    transform: none;
+}
+
+.delve-reward-tile > :deep(*),
+.delve-reward-tile :deep(.item-tile),
+.delve-reward-tile :deep(.ability-tile) {
+    flex: 1;
     display: flex;
-    flex-direction: column;
-    gap: 3px;
-    color: #e2e8f0;
-    font-size: 11px;
-    line-height: 1.3;
-    text-align: left;
-    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.7);
-}
-
-.delve-reward-stat b {
-    color: #86efac;
-}
-
-.delve-reward-effect {
-    color: #fde68a;
+    width: 100%;
 }
 
 .delve-reward-hint {
+    min-height: 28px;
     color: #cbd5e1;
     font-size: 11px;
     text-align: center;
-}
-
-.delve-reward-element {
-    display: inline-flex;
-    align-items: center;
-    gap: 2px;
-    margin-left: 4px;
-}
-
-.delve-reward-element img {
-    width: 12px;
-    height: 12px;
+    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.7);
 }
 
 /* Своя карточка — оправа и стекло как у плитки способности */
@@ -178,7 +145,7 @@ const hint = computed(() => {
     --glass-mid: color-mix(in srgb, var(--reward-accent) 18%, transparent);
     --glass-bottom: color-mix(in srgb, var(--reward-accent) 10%, rgba(10, 14, 24, 0.6));
     box-sizing: border-box;
-    width: 136px;
+    width: 100%;
     display: flex;
     padding: 8px;
     border-radius: 14px;
