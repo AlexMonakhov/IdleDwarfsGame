@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import ModalComponent from '@/components/common/ModalComponent.vue';
 import SquadPanel from '@/components/inventory/SquadPanel.vue';
@@ -11,9 +11,15 @@ const emit = defineEmits<{ (e: 'update:modelValue', value: boolean): void }>();
 
 const { t } = useI18n();
 
+const panel = ref<InstanceType<typeof SquadPanel> | null>(null);
+
+// Закрытие (крестик, мимо окна, Esc) — только после ответа про несохранённый состав
 const open = computed({
     get: () => props.modelValue,
-    set: value => emit('update:modelValue', value),
+    set: async value => {
+        if (!value && panel.value && !(await panel.value.confirmLeave())) return;
+        emit('update:modelValue', value);
+    },
 });
 </script>
 
@@ -26,6 +32,6 @@ const open = computed({
         height="min(800px, calc(90 * var(--vh)))"
     >
         <!-- Тело модалки монтируется при открытии — панель каждый раз загружает свежий состав -->
-        <SquadPanel />
+        <SquadPanel ref="panel" />
     </ModalComponent>
 </template>

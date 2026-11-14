@@ -81,6 +81,8 @@ export interface BattleState {
   playing: boolean;
   // Бой загружен, но ждёт, пока прогрузятся спрайт-листы юнитов
   preparing: boolean;
+  // Доля юнитов с готовыми спрайт-листами 0..1 — для полосы экрана загрузки
+  prepareProgress: number;
   finished: boolean;
   shownLogs: CombatLogEntry[];
 }
@@ -122,6 +124,7 @@ export function createBattleState(): BattleState {
     winningTeam: null,
     playing: false,
     preparing: false,
+    prepareProgress: 0,
     finished: false,
     shownLogs: [],
   });
@@ -134,6 +137,7 @@ export function resetBattleState(state: BattleState, result: CombatResult) {
   state.winningTeam = null;
   state.playing = false;
   state.preparing = false;
+  state.prepareProgress = 0;
   state.finished = false;
   state.shownLogs = [];
 }

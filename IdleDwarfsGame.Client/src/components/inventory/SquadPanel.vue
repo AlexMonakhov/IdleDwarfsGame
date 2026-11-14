@@ -1,11 +1,12 @@
 <script lang="ts" setup>
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import HeroFilters from '@/components/inventory/HeroFilters.vue';
 import InfoComponent from '@/components/common/InfoComponent.vue';
 import { useHeroFilters } from '@/composables/UseHeroFilters';
 import { AxiosError } from 'axios';
 import { useI18n } from 'vue-i18n';
 import GemButton from '@/components/common/GemButton.vue';
+import ConfirmModal from '@/components/common/ConfirmModal.vue';
 import HeroCard from '@/components/inventory/HeroCard.vue';
 import SquadRow from '@/components/inventory/SquadRow.vue';
 import HeroesApiService from '@/services/apiServices/HeroesApiService';
@@ -155,8 +156,10 @@ const reset = () => {
     notice.value = null;
 };
 
-const save = async () => {
-    if (!dirty.value || !hasHero.value || saving.value) return;
+// true — состав сохранён (или сохранять было нечего)
+const save = async (): Promise<boolean> => {
+    if (!dirty.value) return true;
+    if (!hasHero.value || saving.value) return false;
 
     saving.value = true;
     errorMessage.value = null;
@@ -166,13 +169,52 @@ const save = async () => {
         applyHeroes(saved);
         notice.value = t('squad.saved');
         emit('saved', saved);
+        return true;
     } catch (error) {
         const message = (error as AxiosError<{ message?: string }>).response?.data?.message;
         errorMessage.value = message ?? t('squad.saveError');
+        return false;
     } finally {
         saving.value = false;
     }
 };
+
+/* ===== Уход с несохранённым составом ===== */
+// Окно отряда и окно алтаря спрашивают перед закрытием и сменой вкладки: true — можно уходить.
+// «Да» — сохраняем и уходим, если сохранилось; «Нет» — откатываем и уходим; «Отмена» или клик мимо диалога — остаёмся
+const leaveConfirmOpen = ref(false);
+let resolveLeave: ((leave: boolean) => void) | null = null;
+
+const finishLeave = (leave: boolean) => {
+    const resolve = resolveLeave;
+    resolveLeave = null;
+    resolve?.(leave);
+};
+
+const confirmLeave = (): Promise<boolean> => {
+    if (!dirty.value) return Promise.resolve(true);
+    finishLeave(false);
+    leaveConfirmOpen.value = true;
+    return new Promise(resolve => { resolveLeave = resolve; });
+};
+
+const onLeaveSave = async () => {
+    const resolve = resolveLeave;
+    resolveLeave = null;
+    resolve?.(await save());
+};
+
+const onLeaveDiscard = () => {
+    reset();
+    finishLeave(true);
+};
+
+// Диалог закрыли без выбора (мимо окна, Esc) — остаёмся с правками. Кнопки успевают забрать ожидание раньше
+watch(leaveConfirmOpen, isOpen => {
+    if (!isOpen) finishLeave(false);
+});
+
+defineExpose({ confirmLeave });
 
 const statusText = computed(() => {
     if (errorMessage.value) return errorMessage.value;
@@ -244,6 +286,16 @@ const statusText = computed(() => {
                 {{ saving ? t('squad.saving') : t('squad.save') }}
             </GemButton>
         </div>
+
+        <ConfirmModal
+            v-model="leaveConfirmOpen"
+            :message="t('squad.leaveConfirm')"
+            confirm-color="green"
+            cancel-color="red"
+            dismissible
+            @confirm="onLeaveSave"
+            @cancel="onLeaveDiscard"
+        />
     </div>
 </template>
 

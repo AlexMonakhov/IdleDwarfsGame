@@ -254,6 +254,13 @@ const modalStyle = computed<CSSProperties>(() => ({
 
 
 
+/* Без шапки отступ под неё не нужен, а маленькие окна (подтверждения) не растягиваются до минимального размера */
+.modal-window-headless {
+  --content-top: 0px;
+  min-width: 0;
+  min-height: 0;
+}
+
 /* .modal-window::after {
 
     position: absolute;
@@ -614,7 +621,7 @@ const modalStyle = computed<CSSProperties>(() => ({
         <div
           ref="windowEl"
           class="modal-window"
-          :class="{ 'modal-window-tabs': tabs?.length }"
+          :class="{ 'modal-window-tabs': tabs?.length, 'modal-window-headless': !props.headerMessage }"
           @click.stop
           :style="modalStyle"
         >
@@ -626,7 +633,7 @@ const modalStyle = computed<CSSProperties>(() => ({
             <GemButton v-if="showClose" round @click="close" :color="'red'">X</GemButton>
           </div>
 
-          <div class="modal-header"><div class="modal-header-text">{{ props.headerMessage }}</div></div>
+          <div v-if="props.headerMessage" class="modal-header"><div class="modal-header-text">{{ props.headerMessage }}</div></div>
 
           <div v-if="tabs?.length" class="modal-tabs" role="tablist">
             <button

@@ -110,11 +110,9 @@ watchEffect(() => {
     <div v-show="!interfaceHidden" class="interface-view" >
         <div  class="nav-menu">
             <GemButton @click="router.push('/')" :color="'blue'">{{ t('nav.home') }}</GemButton>
-            <GemButton @click="router.push('about')" :color="'blue'">{{ t('nav.about') }}</GemButton>
-            <!-- На арене верхнее меню урезано до «Главная» и «Об игре»; кнопки результата боя — в самой арене (ArenaView) -->
+            <GemButton @click="router.push({ name: 'town' })" :color="'blue'">{{ t('nav.town') }}</GemButton>
+            <!-- На арене верхнее меню урезано до «Главная» и «Город»; кнопки результата боя — в самой арене (ArenaView) -->
             <template v-if="!onArena">
-                <GemButton @click="router.push('arena')" :color="'blue'">{{ t('nav.arena') }}</GemButton>
-                <GemButton @click="router.push('town')" :color="'blue'">{{ t('nav.town') }}</GemButton>
                 <GemButton v-if="isAuthenticated" @click="collectionOpen = true" :color="'yellow'">{{ t('nav.collection') }}</GemButton>
                 <GemButton v-if="isAuthenticated" @click="friendsOpen = true" :color="'green'" :badge-count="incomingFriendRequests">{{ t('nav.friends') }}</GemButton>
                 <GemButton v-if="isAuthenticated" @click="questsOpen = true" :color="'yellow'" :badge-count="questsClaimable">{{ t('nav.quests') }}</GemButton>
@@ -133,10 +131,10 @@ watchEffect(() => {
                 <span class="resource resource-experience" v-tooltip="t('resources.experience')"><IconExperience /> {{ resources.experience.toLocaleString(locale) }}</span>
                 <span v-if="resources.rainbowCoins !== undefined" class="resource resource-rainbow" v-tooltip="t('shop.currency.rainbowCoins')"><IconRainbowCoin /> {{ resources.rainbowCoins.toLocaleString(locale) }}</span>
             </div>
-            <AccountButton @click="accountOpen = true" />
+            <AccountButton v-if="isAuthenticated" @click="accountOpen = true" />
         </div>
     </div>
-    <AccountModal v-model="accountOpen" />
+    <AccountModal v-if="isAuthenticated" v-model="accountOpen" />
     <ExpeditionsModal v-if="isAuthenticated" v-model="expeditionsOpen" />
     <MiningModal v-if="isAuthenticated" v-model="miningOpen" />
     <FriendsModal v-if="isAuthenticated" v-model="friendsOpen" />
@@ -154,7 +152,6 @@ watchEffect(() => {
     <ConfirmModal
         v-if="isAuthenticated"
         v-model="logoutConfirmOpen"
-        :header="t('nav.logout')"
         :message="t('nav.logoutConfirm')"
         @confirm="onLogout"
     />

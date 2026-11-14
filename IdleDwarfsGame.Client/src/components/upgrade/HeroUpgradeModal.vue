@@ -39,9 +39,17 @@ const { refresh: refreshSharedHeroes } = useHeroes();
 const { upgradeHeroId } = useInterface();
 const { dragged, fromSlot, end: endDrag } = useItemDrag();
 
+const squadPanel = ref<InstanceType<typeof SquadPanel> | null>(null);
+
+// С вкладки отряда не уходим (закрытие окна, другая вкладка), пока игрок не решил судьбу несохранённого состава
+const canLeaveSquad = async () => !squadPanel.value || await squadPanel.value.confirmLeave();
+
 const open = computed({
     get: () => props.modelValue,
-    set: value => emit('update:modelValue', value),
+    set: async value => {
+        if (!value && !(await canLeaveSquad())) return;
+        emit('update:modelValue', value);
+    },
 });
 
 const heroes = ref<HeroInfo[]>([]);
@@ -69,7 +77,10 @@ const tabs = computed<ModalTab[]>(() => (Object.keys(TAB_ICONS) as UpgradeTab[])
 })));
 const activeTab = computed({
     get: () => tab.value,
-    set: value => { tab.value = value as UpgradeTab; },
+    set: async value => {
+        if (value === tab.value || !(await canLeaveSquad())) return;
+        tab.value = value as UpgradeTab;
+    },
 });
 
 const items = ref<EquipmentInfo[]>([]);
@@ -239,7 +250,7 @@ watch([tab, sorted], () => {
         height="min(780px, calc(90 * var(--vh)))"
     >
         <!-- Панель монтируется при каждом переходе на вкладку и сама загружает свежий состав -->
-        <SquadPanel v-if="tab === 'squad'" @saved="onSquadSaved" />
+        <SquadPanel v-if="tab === 'squad'" ref="squadPanel" @saved="onSquadSaved" />
         <div v-else-if="isForgeTab" class="hero-upgrade">
             <div v-if="loading && !heroes.length" class="hero-upgrade-hint hero-upgrade-hint-wide">{{ t('common.loading') }}</div>
             <div v-else-if="errorMessage" class="hero-upgrade-hint hero-upgrade-hint-wide hero-upgrade-hint-error">{{ errorMessage }}</div>
