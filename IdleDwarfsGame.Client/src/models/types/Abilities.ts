@@ -27,6 +27,11 @@ export interface AbilityInfo {
     spellId: number | null;
     spellName: string | null;
     element: HeroElement | null;
+    // Сила заклинания без привязки к дворфу: урон и лечение по цели в % атаки, сколько врагов задевает, цена каста
+    spellDamagePercent: number;
+    spellHealingPercent: number;
+    spellTargets: number;
+    spellEnergyCost: number;
     // Пассивка
     percent: number;
     turns: number;

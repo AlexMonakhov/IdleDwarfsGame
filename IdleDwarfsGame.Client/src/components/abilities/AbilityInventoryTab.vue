@@ -10,6 +10,7 @@ import { ABILITY_KINDS, AbilityActionResult, AbilityInfo, AbilityKind, canCombin
 import { HeroInfo } from '@/models/types/Heroes';
 import { vDragScroll } from '@/directives/dragScroll';
 import AbilityTile from './AbilityTile.vue';
+import AbilityTooltip from './AbilityTooltip.vue';
 import { abilityErrorText, abilityName, sameAbility } from './abilityText';
 
 // Извлечённые способности: выбранную вставляют дворфу или сливают с такой же в одну уровнем выше
@@ -150,7 +151,9 @@ const insert = async () => {
             <template v-if="selected">
                 <h4 class="forge-title">{{ t('abilities.inventory.selected', { ability: abilityName(selected) }) }}</h4>
                 <div class="forge-tiles">
-                    <AbilityTile :ability="selected" selected />
+                    <AbilityTooltip :ability="selected">
+                        <AbilityTile :ability="selected" selected />
+                    </AbilityTooltip>
                 </div>
 
                 <div class="forge-filters">
@@ -230,14 +233,14 @@ const insert = async () => {
                     >{{ t(`abilities.kinds.${kind}`) }}</button>
                 </div>
                 <div class="forge-grid">
-                    <AbilityTile
-                        v-for="ability in visible"
-                        :key="ability.id ?? ability.key"
-                        :ability="ability"
-                        :selected="ability.id === selectedId || ability.id === partnerId"
-                        :highlighted="mode === 'combine' && isCandidate(ability)"
-                        @click="pickAbility(ability)"
-                    />
+                    <AbilityTooltip v-for="ability in visible" :key="ability.id ?? ability.key" :ability="ability">
+                        <AbilityTile
+                            :ability="ability"
+                            :selected="ability.id === selectedId || ability.id === partnerId"
+                            :highlighted="mode === 'combine' && isCandidate(ability)"
+                            @click="pickAbility(ability)"
+                        />
+                    </AbilityTooltip>
                 </div>
             </template>
         </section>

@@ -99,7 +99,7 @@ public class SpellDetail
     // Другие эффекты предметов на этот спелл (повторы, взрывы, метки…) — фронт пишет их текстом эффекта предмета
     public List<ItemEffectInfo> Effects { get; set; } = new();
 
-    private const int FullSquad = 5;
+    public const int FullSquad = 5;
 
     public static SpellDetail Of(ISpell spell, int attack, GearComponent gear, int sorcererPercent)
     {

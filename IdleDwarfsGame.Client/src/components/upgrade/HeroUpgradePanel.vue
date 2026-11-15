@@ -7,6 +7,8 @@ import GemButton from '@/components/common/GemButton.vue';
 import { STATUS_ICONS } from '@/components/icons/status';
 import StatIcon from '@/components/icons/stats/StatIcon.vue';
 import SpellName from '@/components/icons/spells/SpellName.vue';
+import AbilityTooltip from '@/components/abilities/AbilityTooltip.vue';
+import type { AbilityInfo } from '@/models/types/Abilities';
 import AuraName from '@/components/icons/status/AuraName.vue';
 import EquipmentSlots from '@/components/equipment/EquipmentSlots.vue';
 import { effectText, passiveName, passiveText } from '@/components/equipment/equipmentText';
@@ -96,11 +98,14 @@ const stats = computed<StatRow[]>(() => {
 interface SpellRow {
     spell: string;
     detail: SpellDetail | null;
+    // Для подсказки при наведении — как у способностей; урон в ней — уже у этого дворфа (detail)
+    ability: AbilityInfo | null;
 }
 
 const spells = computed<SpellRow[]>(() => props.hero.spells.map(spell => ({
     spell,
     detail: props.hero.spellDetails?.find(d => d.spell === spell) ?? null,
+    ability: props.hero.abilities.find(a => a.kind === 'Spell' && `${a.spellName} ${a.level}` === spell) ?? null,
 })));
 
 const spellEffect = (detail: SpellDetail) => {
@@ -313,7 +318,10 @@ const hint = computed(() => {
                 <span class="stat-label">{{ t('heroUpgrade.statNames.spells') }}</span>
                 <div v-for="row in spells" :key="row.spell" class="stat-spell">
                     <span class="stat-text stat-spell-head">
-                        <SpellName :spell="row.spell" />
+                        <AbilityTooltip v-if="row.ability" :ability="row.ability" :spell-detail="row.detail">
+                            <SpellName :spell="row.spell" />
+                        </AbilityTooltip>
+                        <SpellName v-else :spell="row.spell" />
                         <span v-if="row.detail" class="stat-spell-cost" v-tooltip="t('heroUpgrade.statNames.energy')">
                             <StatIcon stat="energy" size="13px" />{{ t('heroUpgrade.spellCost', { cost: row.detail.energyCost }) }}
                         </span>
