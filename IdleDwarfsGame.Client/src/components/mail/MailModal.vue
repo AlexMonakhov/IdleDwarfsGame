@@ -131,7 +131,11 @@ const dateText = (iso: string) => new Date(iso).toLocaleString(locale.value, { d
 </template>
 
 <style scoped>
+/* Тело модалки (.modal-body) — flex-строка: без flex: 1 список сжимается до ширины самого длинного письма */
 .mail {
+    flex: 1;
+    min-width: 0;
+    align-self: flex-start;
     display: flex;
     flex-direction: column;
     gap: 8px;
