@@ -35,6 +35,12 @@ const routes: Array<RouteRecordRaw> = [
     name: 'testpage',
     component: () => import(/* webpackChunkName: "testpage" */ '@/views/TestPageView.vue')
   },
+  // Админ-панель: письма игрокам с вложениями (пока без прав доступа)
+  {
+    path: '/admin',
+    name: 'admin',
+    component: () => import(/* webpackChunkName: "admin" */ '@/views/AdminView.vue')
+  },
   {
     path: '/login',
     name: 'login',

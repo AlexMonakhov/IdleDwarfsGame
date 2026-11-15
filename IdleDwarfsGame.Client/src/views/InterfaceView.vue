@@ -14,6 +14,8 @@ import BlacksmithModal from '@/components/forge/BlacksmithModal.vue';
 import QuestsModal from '@/components/quests/QuestsModal.vue';
 import EventModal from '@/components/events/EventModal.vue';
 import DelveModal from '@/components/delve/DelveModal.vue';
+import MailModal from '@/components/mail/MailModal.vue';
+import { useMail } from '@/composables/UseMail';
 import { useSocial } from '@/composables/UseSocial';
 import AccountButton from '@/components/account/AccountButton.vue';
 import AccountModal from '@/components/account/AccountModal.vue';
@@ -55,6 +57,9 @@ const { squadOpen } = useSquadModal();
 const { interfaceHidden, expeditionsOpen, inventoryOpen, upgradeOpen, miningOpen, shopOpen, forgeOpen, questsOpen, eventOpen } = useInterface();
 const { claimable: questsClaimable, start: startQuests, clear: clearQuests } = useQuests();
 const accountOpen = ref(false);
+// Почта: значок — непрочитанные письма и незабранные вложения
+const mailOpen = ref(false);
+const { badge: mailBadge, refresh: refreshMail, clear: clearMail } = useMail();
 
 // Ресурсы аккаунта подтягиваем при входе и сбрасываем при выходе; там же открываем и закрываем сессию вкладки
 // и следим за доской заданий (значок готовых наград на кнопке)
@@ -63,11 +68,13 @@ watch(isAuthenticated, authenticated => {
         refreshResources();
         startPresence();
         startQuests();
+        refreshMail();
     } else {
         clearResources();
         clearHeroes();
         stopPresence();
         clearQuests();
+        clearMail();
     }
 }, { immediate: true });
 
@@ -87,6 +94,7 @@ const onLogout = () => {
     delveOpen.value = false;
     squadOpen.value = false;
     accountOpen.value = false;
+    mailOpen.value = false;
     // Пока токен ещё есть — им закрывается сессия
     stopPresence();
     logout();
@@ -116,6 +124,7 @@ watchEffect(() => {
                 <GemButton v-if="isAuthenticated" @click="collectionOpen = true" :color="'yellow'">{{ t('nav.collection') }}</GemButton>
                 <GemButton v-if="isAuthenticated" @click="friendsOpen = true" :color="'green'" :badge-count="incomingFriendRequests">{{ t('nav.friends') }}</GemButton>
                 <GemButton v-if="isAuthenticated" @click="questsOpen = true" :color="'yellow'" :badge-count="questsClaimable">{{ t('nav.quests') }}</GemButton>
+                <GemButton v-if="isAuthenticated" @click="mailOpen = true" :color="'blue'" :badge-count="mailBadge">{{ t('nav.mail') }}</GemButton>
                 <GemButton v-if="isAuthenticated" @click="eventOpen = true" :color="'red'">{{ t('nav.event') }}</GemButton>
                 <GemButton v-if="isAuthenticated" @click="delveOpen = true" :color="'pink'">{{ t('social.delve.nav') }}</GemButton>
                 <template v-if="!isAuthenticated">
@@ -147,6 +156,7 @@ watchEffect(() => {
     <ShopModal v-if="isAuthenticated" v-model="shopOpen" />
     <BlacksmithModal v-if="isAuthenticated" v-model="forgeOpen" />
     <QuestsModal v-if="isAuthenticated" v-model="questsOpen" />
+    <MailModal v-if="isAuthenticated" v-model="mailOpen" />
     <EventModal v-if="isAuthenticated" v-model="eventOpen" />
     <DelveModal v-if="isAuthenticated" v-model="delveOpen" />
     <ConfirmModal
