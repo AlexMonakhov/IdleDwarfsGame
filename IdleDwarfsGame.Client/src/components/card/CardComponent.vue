@@ -2,6 +2,7 @@
   <div
     ref="cardRef"
     class="tilt-card"
+    :class="[`frame-${frame}`, { 'is-closed': clickPhase < 3 }]"
     @mousemove="handleMouseMove"
     @mouseleave="handleMouseLeave"
     :style="cardStyle"
@@ -10,13 +11,17 @@
     <div class="hover-glow"></div>
 
     <span class="tilt-card-inner" >
-        <info-component></info-component>
+        <!-- Фон окна карты (слот backdrop): обрезан по рамке, внутренняя тень делает окно вдавленным -->
+        <span v-if="$slots.backdrop" class="tilt-card-backdrop"><slot name="backdrop"></slot></span>
+        <info-component v-if="!hideInfo"></info-component>
         <div class="tilt-card-content">
 
         <slot>
           <icon-helm></icon-helm>
         </slot>
       </div>
+        <!-- Выпуклое стекло поверх окна: блик-купол ползёт за наклоном, светлый преломлённый край -->
+        <span v-if="glass" class="tilt-card-glass"></span>
     </span>
 
     <!-- Волна цвета редкости из точки последнего удара -->
@@ -64,19 +69,38 @@ import { ART_LAYOUT, CardBackOptions, getCardBack, getCardGlowMask, getCardSilho
 import IconHelm from '../icons/IconHelm.vue';
 import InfoComponent from '../common/InfoComponent.vue';
 
-type CardColor = 'pink' | 'green' | 'blue' | 'yellow' | 'red' | 'grey' | 'dark' | 'light';
+type CardColor = 'pink' | 'purple' | 'green' | 'blue' | 'yellow' | 'red' | 'grey' | 'dark' | 'light';
 
 interface Props {
   color?: CardColor
   // Все настройки рубашки одним объектом: { variant, seed, frame: {...} } (см. card/README.md)
   back?: CardBackOptions
+  // Без кружка «i» в углу лицевой стороны
+  hideInfo?: boolean
+  // Клики по рубашке игнорируются (карта ещё летит из сундука); hit()/reveal() работают
+  locked?: boolean
+  // Рамка окна: default — широкая кристальная кайма, thin — тонкая, none — окно до металлического края
+  frame?: 'default' | 'thin' | 'none'
+  // Окно под чуть выпуклым стеклом
+  glass?: boolean
 }
 
 
 const props = withDefaults(defineProps<Props>(), {
   color: 'grey',
   back: () => ({}),
+  hideInfo: false,
+  locked: false,
+  frame: 'default',
+  glass: false,
 })
+
+const emit = defineEmits<{
+  // Удар по рубашке: phase 1 — трещины, 2 — разломы, 3 — разлёт
+  (e: 'hit', phase: number): void
+  // Рубашка разбита — видно лицевую сторону
+  (e: 'revealed'): void
+}>()
 
 // Фолбэки на случай, если в App.vue нет переменной --{color}-gem-color (например, для grey)
 const COLOR_FALLBACK: Record<CardColor, string> = {
@@ -86,6 +110,7 @@ const COLOR_FALLBACK: Record<CardColor, string> = {
   green: '#00c853',
   blue: '#2196f3',
   pink: '#e91e63',
+  purple: '#9b30ff',
   red: '#d40808',
   yellow: '#ffb300',
 };
@@ -202,6 +227,9 @@ const cardStyle = computed(() => (
     '--art-inset-y': ART_LAYOUT.insetY,
     '--art-card-width': ART_LAYOUT.cardWidth,
     '--art-card-height': ART_LAYOUT.cardHeight,
+    // Наклон от -1 до 1 — для параллакса содержимого: «утопленные» слои сдвигают на -tilt × глубина
+    '--tilt-x': (rotateY.value / maxTilt).toFixed(3),
+    '--tilt-y': (-rotateX.value / maxTilt).toFixed(3),
     '--hit-x': `${hitX.value}%`,
     '--hit-y': `${hitY.value}%`,
       // Переменные для управления бликами
@@ -287,18 +315,23 @@ function generateShards(cols: number, rows: number): Shard[] {
 }
 
 const handleRockClick = (event: MouseEvent) => {
-  if (clickPhase.value >= 3) return; // Если уже разбито - игнорируем
-
+  if (props.locked) return;
   const target = event.currentTarget as HTMLElement;
   const rect = target.getBoundingClientRect();
 
   // Координаты клика в процентах относительно карточки
-  const clickX = ((event.clientX - rect.left) / rect.width) * 100;
-  const clickY = ((event.clientY - rect.top) / rect.height) * 100;
+  hit(((event.clientX - rect.left) / rect.width) * 100, ((event.clientY - rect.top) / rect.height) * 100);
+};
+
+// Один удар по рубашке (клик, пробел в окне сундука). Без координат — в случайную точку около центра
+const hit = (clickX = 35 + Math.random() * 30, clickY = 35 + Math.random() * 30) => {
+  if (clickPhase.value >= 3) return; // Если уже разбито - игнорируем
   hitX.value = clickX;
   hitY.value = clickY;
 
   clickPhase.value++;
+  emit('hit', clickPhase.value);
+  if (clickPhase.value === 3) emit('revealed');
 
   shards.value.forEach(shard => {
     if (clickPhase.value === 1) {
@@ -340,6 +373,21 @@ const handleRockClick = (event: MouseEvent) => {
     }
   });
 };
+
+// Раскрыть сразу, без трёх ударов (кнопка «Пропустить»): осколки сразу исчезают
+const reveal = () => {
+  if (clickPhase.value >= 3) return;
+  clickPhase.value = 3;
+  layerOpacity.value = 0;
+  shards.value.forEach(shard => {
+    shard.animation = 'none';
+    shard.opacity = 0;
+    shard.transitionDuration = '0s';
+  });
+  emit('revealed');
+};
+
+defineExpose({ hit, reveal, phase: clickPhase });
 </script>
 
 <style scoped>
@@ -435,6 +483,89 @@ const handleRockClick = (event: MouseEvent) => {
   text-transform: uppercase;
   letter-spacing: 2px;
   text-shadow: 2px 2px 0px rgba(0,0,0,0.6);
+}
+
+.tilt-card-backdrop {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: 8px;
+  pointer-events: none;
+}
+
+/* Тень по краю окна: содержимое будто лежит глубже рамки */
+.tilt-card-backdrop::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 16px 4px rgba(0, 0, 0, 0.75), inset 0 6px 10px rgba(0, 0, 0, 0.5);
+}
+
+/* Рамка окна */
+.frame-thin .tilt-card-inner {
+  width: 94%;
+  height: 95%;
+  border-width: 1px;
+  border-color: rgba(255, 255, 255, 0.35);
+  border-radius: 11px;
+}
+
+.frame-none .tilt-card-inner {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  border-radius: 12px;
+}
+
+.frame-thin .tilt-card-backdrop,
+.frame-none .tilt-card-backdrop {
+  border-radius: inherit;
+}
+
+/* Выпуклое стекло. Свет сверху-слева: блик-купол смещается против наклона (отражение на выпуклой поверхности),
+   по краю — светлое кольцо преломления, снизу — тень толщи стекла */
+.tilt-card-glass {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 3;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 85% 80% at 50% 48%, transparent 62%, rgba(255, 255, 255, 0.07) 82%, rgba(255, 255, 255, 0.22) 100%),
+    linear-gradient(155deg, transparent 58%, rgba(255, 255, 255, 0.07) 70%, transparent 82%);
+  box-shadow:
+    inset 0 2px 2px rgba(255, 255, 255, 0.55),
+    inset 0 -8px 14px rgba(0, 0, 0, 0.35),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.22);
+}
+
+/* Купол-блик: плавно (transform) смещается против наклона */
+.tilt-card-glass::before {
+  content: '';
+  position: absolute;
+  left: 2%;
+  top: -12%;
+  width: 75%;
+  height: 50%;
+  background: radial-gradient(ellipse closest-side, rgba(255, 255, 255, 0.42) 0%, rgba(255, 255, 255, 0.12) 55%, transparent 100%);
+  transform: translate(calc(var(--tilt-x, 0) * -14%), calc(var(--tilt-y, 0) * -14%));
+  transition: transform 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+/* Яркая точка отражения источника света — смещается сильнее купола */
+.tilt-card-glass::after {
+  content: '';
+  position: absolute;
+  width: 18%;
+  height: 7%;
+  left: 24%;
+  top: 7%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0) 70%);
+  transform: translate(calc(var(--tilt-x, 0) * -90%), calc(var(--tilt-y, 0) * -90%)) rotate(-20deg);
+  transition: transform 0.3s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 .tilt-card-inner{
@@ -581,6 +712,15 @@ const handleRockClick = (event: MouseEvent) => {
 
 .tilt-card:hover .hover-glow {
   opacity: 1;
+}
+
+/* Пока жила целая, прямоугольная подсветка карты не видна — светится сам камень по своему контуру */
+.tilt-card.is-closed:hover .hover-glow {
+  opacity: 0;
+}
+
+.tilt-card.is-closed:hover .rock-layer {
+  filter: drop-shadow(0 0 8px var(--bg-color)) drop-shadow(0 0 22px color-mix(in srgb, var(--bg-color) 60%, transparent));
 }
 
 /* Пока курсор на карте — свечение мягко "дышит" */

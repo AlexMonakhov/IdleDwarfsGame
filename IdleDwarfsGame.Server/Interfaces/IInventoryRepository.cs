@@ -7,7 +7,11 @@ public interface IInventoryRepository
     Task<PlayerChest?> GetClosedChestAsync(Guid playerId, Guid chestId);
     Task<List<PlayerItem>> GetItemsAsync(Guid playerId);
 
-    // Открывает сундук и кладёт выпавшее в инвентарь одной транзакцией.
+    // Открывает сундук и кладёт выпавшее в инвентарь одной транзакцией вместе с доп. наградами (золото, опыт, валюта).
     // false — сундук уже открыли параллельным запросом, ничего не выдано
-    Task<bool> OpenChestAsync(PlayerChest chest, IReadOnlyList<LootDrop> items, IReadOnlyList<Hero> heroes, IReadOnlyList<PlayerEquipment>? equipment = null);
+    Task<bool> OpenChestAsync(PlayerChest chest, IReadOnlyList<LootDrop> items, IReadOnlyList<Hero> heroes,
+        IReadOnlyList<PlayerEquipment>? equipment = null, ChestCurrencyGrant? currency = null);
 }
+
+// Валюты из доп. наград сундука. EventStart — ключ кошелька текущего ивента (null — ивента нет, валюту не начислять)
+public record ChestCurrencyGrant(long Gold, long Experience, long RainbowCoins, long EventCurrency, DateTime? EventStart);

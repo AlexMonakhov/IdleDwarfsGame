@@ -22951,7 +22951,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             ChestLevel = 1,
                             ChestType = 2,
                             Element = "Fire",
-                            Rolls = 2
+                            Rolls = 1
                         },
                         new
                         {
@@ -22959,7 +22959,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             ChestLevel = 2,
                             ChestType = 2,
                             Element = "Fire",
-                            Rolls = 3
+                            Rolls = 1
                         },
                         new
                         {
@@ -22967,7 +22967,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             ChestLevel = 3,
                             ChestType = 2,
                             Element = "Fire",
-                            Rolls = 3
+                            Rolls = 1
                         },
                         new
                         {
@@ -22975,7 +22975,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             ChestLevel = 1,
                             ChestType = 2,
                             Element = "Frost",
-                            Rolls = 2
+                            Rolls = 1
                         },
                         new
                         {
@@ -22983,7 +22983,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             ChestLevel = 2,
                             ChestType = 2,
                             Element = "Frost",
-                            Rolls = 3
+                            Rolls = 1
                         },
                         new
                         {
@@ -22991,7 +22991,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             ChestLevel = 3,
                             ChestType = 2,
                             Element = "Frost",
-                            Rolls = 3
+                            Rolls = 1
                         },
                         new
                         {
@@ -22999,7 +22999,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             ChestLevel = 1,
                             ChestType = 2,
                             Element = "Nature",
-                            Rolls = 2
+                            Rolls = 1
                         },
                         new
                         {
@@ -23007,7 +23007,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             ChestLevel = 2,
                             ChestType = 2,
                             Element = "Nature",
-                            Rolls = 3
+                            Rolls = 1
                         },
                         new
                         {
@@ -23015,7 +23015,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             ChestLevel = 3,
                             ChestType = 2,
                             Element = "Nature",
-                            Rolls = 3
+                            Rolls = 1
                         },
                         new
                         {
@@ -23023,7 +23023,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             ChestLevel = 1,
                             ChestType = 2,
                             Element = "Lightning",
-                            Rolls = 2
+                            Rolls = 1
                         },
                         new
                         {
@@ -23031,7 +23031,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             ChestLevel = 2,
                             ChestType = 2,
                             Element = "Lightning",
-                            Rolls = 3
+                            Rolls = 1
                         },
                         new
                         {
@@ -23039,7 +23039,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             ChestLevel = 3,
                             ChestType = 2,
                             Element = "Lightning",
-                            Rolls = 3
+                            Rolls = 1
                         },
                         new
                         {
@@ -23047,7 +23047,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             ChestLevel = 1,
                             ChestType = 2,
                             Element = "Dark",
-                            Rolls = 2
+                            Rolls = 1
                         },
                         new
                         {
@@ -23055,7 +23055,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             ChestLevel = 2,
                             ChestType = 2,
                             Element = "Dark",
-                            Rolls = 3
+                            Rolls = 1
                         },
                         new
                         {
@@ -23063,7 +23063,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             ChestLevel = 3,
                             ChestType = 2,
                             Element = "Dark",
-                            Rolls = 3
+                            Rolls = 1
                         },
                         new
                         {
@@ -23071,7 +23071,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             ChestLevel = 1,
                             ChestType = 2,
                             Element = "Radiance",
-                            Rolls = 2
+                            Rolls = 1
                         },
                         new
                         {
@@ -23079,7 +23079,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             ChestLevel = 2,
                             ChestType = 2,
                             Element = "Radiance",
-                            Rolls = 3
+                            Rolls = 1
                         },
                         new
                         {
@@ -23087,7 +23087,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             ChestLevel = 3,
                             ChestType = 2,
                             Element = "Radiance",
-                            Rolls = 3
+                            Rolls = 1
                         },
                         new
                         {
@@ -23095,7 +23095,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             ChestLevel = 1,
                             ChestType = 2,
                             Element = "Blood",
-                            Rolls = 2
+                            Rolls = 1
                         },
                         new
                         {
@@ -23103,7 +23103,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             ChestLevel = 2,
                             ChestType = 2,
                             Element = "Blood",
-                            Rolls = 3
+                            Rolls = 1
                         },
                         new
                         {
@@ -23111,7 +23111,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             ChestLevel = 3,
                             ChestType = 2,
                             Element = "Blood",
-                            Rolls = 3
+                            Rolls = 1
                         });
                 });
 
@@ -26720,7 +26720,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 2,
                                     MaxAmount = 4,
                                     MinAmount = 2,
-                                    Probability = 0.22,
+                                    Probability = 0.23499999999999999,
                                     Rarity = 0,
                                     SubType = "Ruby"
                                 },
@@ -26732,7 +26732,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 2,
                                     MaxAmount = 4,
                                     MinAmount = 2,
-                                    Probability = 0.22,
+                                    Probability = 0.23499999999999999,
                                     Rarity = 0,
                                     SubType = "Sapphire"
                                 },
@@ -26744,7 +26744,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 2,
                                     MaxAmount = 4,
                                     MinAmount = 2,
-                                    Probability = 0.22,
+                                    Probability = 0.23499999999999999,
                                     Rarity = 0,
                                     SubType = "Topaz"
                                 },
@@ -26756,7 +26756,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 2,
                                     MaxAmount = 4,
                                     MinAmount = 2,
-                                    Probability = 0.22,
+                                    Probability = 0.23499999999999999,
                                     Rarity = 0,
                                     SubType = "Emerald"
                                 },
@@ -26768,7 +26768,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 2,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.050000000000000003,
+                                    Probability = 0.059999999999999998,
                                     Rarity = 2,
                                     SubType = "Diamond"
                                 },
@@ -26876,7 +26876,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 2,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.059999999999999998,
+                                    Probability = 0.080000000000000002,
                                     Rarity = 2,
                                     SubType = "Diamond"
                                 },
@@ -29144,7 +29144,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 3,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.14999999999999999,
+                                    Probability = 0.28999999999999998,
                                     Rarity = 1,
                                     SubType = "Fire"
                                 },
@@ -29156,7 +29156,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 3,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.029999999999999999,
+                                    Probability = 0.059999999999999998,
                                     Rarity = 2,
                                     SubType = "Fire"
                                 },
@@ -29166,9 +29166,9 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ChestDropTableId = "c4e50000-0000-4000-8000-000002010001",
                                     ItemLevel = 1,
                                     ItemType = 2,
-                                    MaxAmount = 6,
-                                    MinAmount = 3,
-                                    Probability = 0.55000000000000004,
+                                    MaxAmount = 11,
+                                    MinAmount = 6,
+                                    Probability = 0.59999999999999998,
                                     Rarity = 0,
                                     SubType = "Ruby"
                                 },
@@ -29178,9 +29178,9 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ChestDropTableId = "c4e50000-0000-4000-8000-000002010001",
                                     ItemLevel = 1,
                                     ItemType = 2,
-                                    MaxAmount = 2,
-                                    MinAmount = 1,
-                                    Probability = 0.29999999999999999,
+                                    MaxAmount = 4,
+                                    MinAmount = 2,
+                                    Probability = 0.33000000000000002,
                                     Rarity = 1,
                                     SubType = "Ruby"
                                 },
@@ -29190,9 +29190,9 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ChestDropTableId = "c4e50000-0000-4000-8000-000002010001",
                                     ItemLevel = 1,
                                     ItemType = 2,
-                                    MaxAmount = 1,
+                                    MaxAmount = 2,
                                     MinAmount = 1,
-                                    Probability = 0.050000000000000003,
+                                    Probability = 0.070000000000000007,
                                     Rarity = 2,
                                     SubType = "Ruby"
                                 },
@@ -29204,7 +29204,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.024999999999999998,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "DwarvenHammer"
                                 },
@@ -29216,7 +29216,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.024999999999999998,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "MinerHelm"
                                 },
@@ -29228,7 +29228,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.024999999999999998,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "MoonstonePendant"
                                 },
@@ -29240,7 +29240,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.024999999999999998,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "RingOfTheUnderdog"
                                 },
@@ -29252,7 +29252,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.024999999999999998,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "SpitefulRing"
                                 },
@@ -29264,7 +29264,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.024999999999999998,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "TwinBand"
                                 },
@@ -29276,7 +29276,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0071428571428571435,
+                                    Probability = 0.014285714285714287,
                                     Rarity = 2,
                                     SubType = "EmberMace"
                                 },
@@ -29288,7 +29288,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0071428571428571435,
+                                    Probability = 0.014285714285714287,
                                     Rarity = 2,
                                     SubType = "StormSpear"
                                 },
@@ -29300,7 +29300,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0071428571428571435,
+                                    Probability = 0.014285714285714287,
                                     Rarity = 2,
                                     SubType = "EmberCrown"
                                 },
@@ -29312,7 +29312,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0071428571428571435,
+                                    Probability = 0.014285714285714287,
                                     Rarity = 2,
                                     SubType = "FrostCrown"
                                 },
@@ -29324,7 +29324,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0071428571428571435,
+                                    Probability = 0.014285714285714287,
                                     Rarity = 2,
                                     SubType = "RunicAmulet"
                                 },
@@ -29336,7 +29336,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0071428571428571435,
+                                    Probability = 0.014285714285714287,
                                     Rarity = 2,
                                     SubType = "RingOfLingeringWords"
                                 },
@@ -29348,7 +29348,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0071428571428571435,
+                                    Probability = 0.014285714285714287,
                                     Rarity = 2,
                                     SubType = "RingOfTheStoneSkin"
                                 },
@@ -29360,7 +29360,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.002,
+                                    Probability = 0.0040000000000000001,
                                     Rarity = 3,
                                     SubType = "BlackIceSword"
                                 },
@@ -29372,7 +29372,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.002,
+                                    Probability = 0.0040000000000000001,
                                     Rarity = 3,
                                     SubType = "ThornStaff"
                                 },
@@ -29384,7 +29384,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.002,
+                                    Probability = 0.0040000000000000001,
                                     Rarity = 3,
                                     SubType = "GroveCirclet"
                                 },
@@ -29396,7 +29396,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.002,
+                                    Probability = 0.0040000000000000001,
                                     Rarity = 3,
                                     SubType = "StormAmulet"
                                 },
@@ -29408,7 +29408,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.002,
+                                    Probability = 0.0040000000000000001,
                                     Rarity = 3,
                                     SubType = "RingOfCleaving"
                                 },
@@ -29420,7 +29420,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 3,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.12,
+                                    Probability = 0.35999999999999999,
                                     Rarity = 1,
                                     SubType = "Fire"
                                 },
@@ -29432,7 +29432,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 3,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.10000000000000001,
+                                    Probability = 0.29999999999999999,
                                     Rarity = 2,
                                     SubType = "Fire"
                                 },
@@ -29444,7 +29444,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 3,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.02,
+                                    Probability = 0.059999999999999998,
                                     Rarity = 3,
                                     SubType = "Fire"
                                 },
@@ -29454,9 +29454,9 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ChestDropTableId = "c4e50000-0000-4000-8000-000002010002",
                                     ItemLevel = 1,
                                     ItemType = 2,
-                                    MaxAmount = 8,
-                                    MinAmount = 4,
-                                    Probability = 0.34999999999999998,
+                                    MaxAmount = 24,
+                                    MinAmount = 12,
+                                    Probability = 0.40000000000000002,
                                     Rarity = 0,
                                     SubType = "Ruby"
                                 },
@@ -29466,9 +29466,9 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ChestDropTableId = "c4e50000-0000-4000-8000-000002010002",
                                     ItemLevel = 1,
                                     ItemType = 2,
-                                    MaxAmount = 3,
-                                    MinAmount = 2,
-                                    Probability = 0.34999999999999998,
+                                    MaxAmount = 9,
+                                    MinAmount = 6,
+                                    Probability = 0.40000000000000002,
                                     Rarity = 1,
                                     SubType = "Ruby"
                                 },
@@ -29478,9 +29478,9 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ChestDropTableId = "c4e50000-0000-4000-8000-000002010002",
                                     ItemLevel = 1,
                                     ItemType = 2,
-                                    MaxAmount = 2,
-                                    MinAmount = 1,
-                                    Probability = 0.12,
+                                    MaxAmount = 5,
+                                    MinAmount = 3,
+                                    Probability = 0.17000000000000001,
                                     Rarity = 2,
                                     SubType = "Ruby"
                                 },
@@ -29490,9 +29490,9 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ChestDropTableId = "c4e50000-0000-4000-8000-000002010002",
                                     ItemLevel = 1,
                                     ItemType = 2,
-                                    MaxAmount = 1,
+                                    MaxAmount = 3,
                                     MinAmount = 1,
-                                    Probability = 0.02,
+                                    Probability = 0.029999999999999999,
                                     Rarity = 3,
                                     SubType = "Ruby"
                                 },
@@ -29504,7 +29504,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.016666666666666666,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "DwarvenHammer"
                                 },
@@ -29516,7 +29516,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.016666666666666666,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "MinerHelm"
                                 },
@@ -29528,7 +29528,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.016666666666666666,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "MoonstonePendant"
                                 },
@@ -29540,7 +29540,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.016666666666666666,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "RingOfTheUnderdog"
                                 },
@@ -29552,7 +29552,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.016666666666666666,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "SpitefulRing"
                                 },
@@ -29564,7 +29564,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.016666666666666666,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "TwinBand"
                                 },
@@ -29576,7 +29576,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.014285714285714287,
+                                    Probability = 0.042857142857142858,
                                     Rarity = 2,
                                     SubType = "EmberMace"
                                 },
@@ -29588,7 +29588,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.014285714285714287,
+                                    Probability = 0.042857142857142858,
                                     Rarity = 2,
                                     SubType = "StormSpear"
                                 },
@@ -29600,7 +29600,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.014285714285714287,
+                                    Probability = 0.042857142857142858,
                                     Rarity = 2,
                                     SubType = "EmberCrown"
                                 },
@@ -29612,7 +29612,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.014285714285714287,
+                                    Probability = 0.042857142857142858,
                                     Rarity = 2,
                                     SubType = "FrostCrown"
                                 },
@@ -29624,7 +29624,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.014285714285714287,
+                                    Probability = 0.042857142857142858,
                                     Rarity = 2,
                                     SubType = "RunicAmulet"
                                 },
@@ -29636,7 +29636,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.014285714285714287,
+                                    Probability = 0.042857142857142858,
                                     Rarity = 2,
                                     SubType = "RingOfLingeringWords"
                                 },
@@ -29648,7 +29648,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.014285714285714287,
+                                    Probability = 0.042857142857142858,
                                     Rarity = 2,
                                     SubType = "RingOfTheStoneSkin"
                                 },
@@ -29660,7 +29660,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0080000000000000002,
+                                    Probability = 0.024,
                                     Rarity = 3,
                                     SubType = "BlackIceSword"
                                 },
@@ -29672,7 +29672,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0080000000000000002,
+                                    Probability = 0.024,
                                     Rarity = 3,
                                     SubType = "ThornStaff"
                                 },
@@ -29684,7 +29684,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0080000000000000002,
+                                    Probability = 0.024,
                                     Rarity = 3,
                                     SubType = "GroveCirclet"
                                 },
@@ -29696,7 +29696,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0080000000000000002,
+                                    Probability = 0.024,
                                     Rarity = 3,
                                     SubType = "StormAmulet"
                                 },
@@ -29708,7 +29708,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0080000000000000002,
+                                    Probability = 0.024,
                                     Rarity = 3,
                                     SubType = "RingOfCleaving"
                                 },
@@ -29720,7 +29720,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0025000000000000001,
+                                    Probability = 0.0074999999999999997,
                                     Rarity = 4,
                                     SubType = "DawnBlade"
                                 },
@@ -29732,7 +29732,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0025000000000000001,
+                                    Probability = 0.0074999999999999997,
                                     Rarity = 4,
                                     SubType = "WarlordHelm"
                                 },
@@ -29744,7 +29744,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0025000000000000001,
+                                    Probability = 0.0074999999999999997,
                                     Rarity = 4,
                                     SubType = "HeartOfTheMountain"
                                 },
@@ -29756,7 +29756,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0025000000000000001,
+                                    Probability = 0.0074999999999999997,
                                     Rarity = 4,
                                     SubType = "RingOfWildfire"
                                 },
@@ -29768,7 +29768,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 3,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.14999999999999999,
+                                    Probability = 0.45000000000000001,
                                     Rarity = 2,
                                     SubType = "Fire"
                                 },
@@ -29780,7 +29780,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 3,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.059999999999999998,
+                                    Probability = 0.17999999999999999,
                                     Rarity = 3,
                                     SubType = "Fire"
                                 },
@@ -29790,9 +29790,9 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ChestDropTableId = "c4e50000-0000-4000-8000-000002010003",
                                     ItemLevel = 1,
                                     ItemType = 2,
-                                    MaxAmount = 10,
-                                    MinAmount = 6,
-                                    Probability = 0.25,
+                                    MaxAmount = 30,
+                                    MinAmount = 18,
+                                    Probability = 0.28999999999999998,
                                     Rarity = 0,
                                     SubType = "Ruby"
                                 },
@@ -29802,9 +29802,9 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ChestDropTableId = "c4e50000-0000-4000-8000-000002010003",
                                     ItemLevel = 1,
                                     ItemType = 2,
-                                    MaxAmount = 4,
-                                    MinAmount = 3,
-                                    Probability = 0.34999999999999998,
+                                    MaxAmount = 12,
+                                    MinAmount = 9,
+                                    Probability = 0.40000000000000002,
                                     Rarity = 1,
                                     SubType = "Ruby"
                                 },
@@ -29814,9 +29814,9 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ChestDropTableId = "c4e50000-0000-4000-8000-000002010003",
                                     ItemLevel = 1,
                                     ItemType = 2,
-                                    MaxAmount = 2,
-                                    MinAmount = 1,
-                                    Probability = 0.20000000000000001,
+                                    MaxAmount = 6,
+                                    MinAmount = 3,
+                                    Probability = 0.23999999999999999,
                                     Rarity = 2,
                                     SubType = "Ruby"
                                 },
@@ -29826,9 +29826,9 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ChestDropTableId = "c4e50000-0000-4000-8000-000002010003",
                                     ItemLevel = 1,
                                     ItemType = 2,
-                                    MaxAmount = 1,
-                                    MinAmount = 1,
-                                    Probability = 0.059999999999999998,
+                                    MaxAmount = 3,
+                                    MinAmount = 2,
+                                    Probability = 0.070000000000000007,
                                     Rarity = 3,
                                     SubType = "Ruby"
                                 },
@@ -29840,7 +29840,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.021428571428571429,
+                                    Probability = 0.064285714285714293,
                                     Rarity = 2,
                                     SubType = "EmberMace"
                                 },
@@ -29852,7 +29852,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.021428571428571429,
+                                    Probability = 0.064285714285714293,
                                     Rarity = 2,
                                     SubType = "StormSpear"
                                 },
@@ -29864,7 +29864,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.021428571428571429,
+                                    Probability = 0.064285714285714293,
                                     Rarity = 2,
                                     SubType = "EmberCrown"
                                 },
@@ -29876,7 +29876,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.021428571428571429,
+                                    Probability = 0.064285714285714293,
                                     Rarity = 2,
                                     SubType = "FrostCrown"
                                 },
@@ -29888,7 +29888,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.021428571428571429,
+                                    Probability = 0.064285714285714293,
                                     Rarity = 2,
                                     SubType = "RunicAmulet"
                                 },
@@ -29900,7 +29900,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.021428571428571429,
+                                    Probability = 0.064285714285714293,
                                     Rarity = 2,
                                     SubType = "RingOfLingeringWords"
                                 },
@@ -29912,7 +29912,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.021428571428571429,
+                                    Probability = 0.064285714285714293,
                                     Rarity = 2,
                                     SubType = "RingOfTheStoneSkin"
                                 },
@@ -29924,7 +29924,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.016,
+                                    Probability = 0.048000000000000001,
                                     Rarity = 3,
                                     SubType = "BlackIceSword"
                                 },
@@ -29936,7 +29936,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.016,
+                                    Probability = 0.048000000000000001,
                                     Rarity = 3,
                                     SubType = "ThornStaff"
                                 },
@@ -29948,7 +29948,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.016,
+                                    Probability = 0.048000000000000001,
                                     Rarity = 3,
                                     SubType = "GroveCirclet"
                                 },
@@ -29960,7 +29960,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.016,
+                                    Probability = 0.048000000000000001,
                                     Rarity = 3,
                                     SubType = "StormAmulet"
                                 },
@@ -29972,7 +29972,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.016,
+                                    Probability = 0.048000000000000001,
                                     Rarity = 3,
                                     SubType = "RingOfCleaving"
                                 },
@@ -29984,7 +29984,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0074999999999999997,
+                                    Probability = 0.022499999999999999,
                                     Rarity = 4,
                                     SubType = "DawnBlade"
                                 },
@@ -29996,7 +29996,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0074999999999999997,
+                                    Probability = 0.022499999999999999,
                                     Rarity = 4,
                                     SubType = "WarlordHelm"
                                 },
@@ -30008,7 +30008,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0074999999999999997,
+                                    Probability = 0.022499999999999999,
                                     Rarity = 4,
                                     SubType = "HeartOfTheMountain"
                                 },
@@ -30020,7 +30020,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0074999999999999997,
+                                    Probability = 0.022499999999999999,
                                     Rarity = 4,
                                     SubType = "RingOfWildfire"
                                 },
@@ -30032,7 +30032,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "ArmageddonBlade"
                                 },
@@ -30044,7 +30044,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "GlacialRelic"
                                 },
@@ -30056,7 +30056,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "PhoenixStaff"
                                 },
@@ -30068,7 +30068,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "VolcanoHeart"
                                 },
@@ -30080,7 +30080,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "WinterShard"
                                 },
@@ -30092,7 +30092,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "GlacierShackles"
                                 },
@@ -30104,7 +30104,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "ThunderHammer"
                                 },
@@ -30116,7 +30116,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "StormCoil"
                                 },
@@ -30128,7 +30128,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "ThunderHorn"
                                 },
@@ -30140,7 +30140,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "LifeTreeSeed"
                                 },
@@ -30152,7 +30152,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "WyvernSting"
                                 },
@@ -30164,7 +30164,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "ElderGroveStaff"
                                 },
@@ -30176,7 +30176,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "AbyssalSigil"
                                 },
@@ -30188,7 +30188,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "CurseDoll"
                                 },
@@ -30200,7 +30200,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "ReaperScythe"
                                 },
@@ -30212,7 +30212,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "PrismLens"
                                 },
@@ -30224,7 +30224,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "SunDisc"
                                 },
@@ -30236,7 +30236,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "MorningStar"
                                 },
@@ -30248,7 +30248,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "BloodMoonFang"
                                 },
@@ -30260,7 +30260,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "ThousandCutsDagger"
                                 },
@@ -30272,7 +30272,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "SacrificialAltar"
                                 },
@@ -30284,7 +30284,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 3,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.14999999999999999,
+                                    Probability = 0.28999999999999998,
                                     Rarity = 1,
                                     SubType = "Frost"
                                 },
@@ -30296,7 +30296,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 3,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.029999999999999999,
+                                    Probability = 0.059999999999999998,
                                     Rarity = 2,
                                     SubType = "Frost"
                                 },
@@ -30306,9 +30306,9 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ChestDropTableId = "c4e50000-0000-4000-8000-000002020001",
                                     ItemLevel = 1,
                                     ItemType = 2,
-                                    MaxAmount = 6,
-                                    MinAmount = 3,
-                                    Probability = 0.55000000000000004,
+                                    MaxAmount = 11,
+                                    MinAmount = 6,
+                                    Probability = 0.59999999999999998,
                                     Rarity = 0,
                                     SubType = "Sapphire"
                                 },
@@ -30318,9 +30318,9 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ChestDropTableId = "c4e50000-0000-4000-8000-000002020001",
                                     ItemLevel = 1,
                                     ItemType = 2,
-                                    MaxAmount = 2,
-                                    MinAmount = 1,
-                                    Probability = 0.29999999999999999,
+                                    MaxAmount = 4,
+                                    MinAmount = 2,
+                                    Probability = 0.33000000000000002,
                                     Rarity = 1,
                                     SubType = "Sapphire"
                                 },
@@ -30330,9 +30330,9 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ChestDropTableId = "c4e50000-0000-4000-8000-000002020001",
                                     ItemLevel = 1,
                                     ItemType = 2,
-                                    MaxAmount = 1,
+                                    MaxAmount = 2,
                                     MinAmount = 1,
-                                    Probability = 0.050000000000000003,
+                                    Probability = 0.070000000000000007,
                                     Rarity = 2,
                                     SubType = "Sapphire"
                                 },
@@ -30344,7 +30344,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.024999999999999998,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "DwarvenHammer"
                                 },
@@ -30356,7 +30356,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.024999999999999998,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "MinerHelm"
                                 },
@@ -30368,7 +30368,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.024999999999999998,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "MoonstonePendant"
                                 },
@@ -30380,7 +30380,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.024999999999999998,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "RingOfTheUnderdog"
                                 },
@@ -30392,7 +30392,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.024999999999999998,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "SpitefulRing"
                                 },
@@ -30404,7 +30404,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.024999999999999998,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "TwinBand"
                                 },
@@ -30416,7 +30416,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0071428571428571435,
+                                    Probability = 0.014285714285714287,
                                     Rarity = 2,
                                     SubType = "EmberMace"
                                 },
@@ -30428,7 +30428,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0071428571428571435,
+                                    Probability = 0.014285714285714287,
                                     Rarity = 2,
                                     SubType = "StormSpear"
                                 },
@@ -30440,7 +30440,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0071428571428571435,
+                                    Probability = 0.014285714285714287,
                                     Rarity = 2,
                                     SubType = "EmberCrown"
                                 },
@@ -30452,7 +30452,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0071428571428571435,
+                                    Probability = 0.014285714285714287,
                                     Rarity = 2,
                                     SubType = "FrostCrown"
                                 },
@@ -30464,7 +30464,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0071428571428571435,
+                                    Probability = 0.014285714285714287,
                                     Rarity = 2,
                                     SubType = "RunicAmulet"
                                 },
@@ -30476,7 +30476,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0071428571428571435,
+                                    Probability = 0.014285714285714287,
                                     Rarity = 2,
                                     SubType = "RingOfLingeringWords"
                                 },
@@ -30488,7 +30488,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0071428571428571435,
+                                    Probability = 0.014285714285714287,
                                     Rarity = 2,
                                     SubType = "RingOfTheStoneSkin"
                                 },
@@ -30500,7 +30500,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.002,
+                                    Probability = 0.0040000000000000001,
                                     Rarity = 3,
                                     SubType = "BlackIceSword"
                                 },
@@ -30512,7 +30512,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.002,
+                                    Probability = 0.0040000000000000001,
                                     Rarity = 3,
                                     SubType = "ThornStaff"
                                 },
@@ -30524,7 +30524,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.002,
+                                    Probability = 0.0040000000000000001,
                                     Rarity = 3,
                                     SubType = "GroveCirclet"
                                 },
@@ -30536,7 +30536,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.002,
+                                    Probability = 0.0040000000000000001,
                                     Rarity = 3,
                                     SubType = "StormAmulet"
                                 },
@@ -30548,7 +30548,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.002,
+                                    Probability = 0.0040000000000000001,
                                     Rarity = 3,
                                     SubType = "RingOfCleaving"
                                 },
@@ -30560,7 +30560,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 3,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.12,
+                                    Probability = 0.35999999999999999,
                                     Rarity = 1,
                                     SubType = "Frost"
                                 },
@@ -30572,7 +30572,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 3,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.10000000000000001,
+                                    Probability = 0.29999999999999999,
                                     Rarity = 2,
                                     SubType = "Frost"
                                 },
@@ -30584,7 +30584,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 3,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.02,
+                                    Probability = 0.059999999999999998,
                                     Rarity = 3,
                                     SubType = "Frost"
                                 },
@@ -30594,9 +30594,9 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ChestDropTableId = "c4e50000-0000-4000-8000-000002020002",
                                     ItemLevel = 1,
                                     ItemType = 2,
-                                    MaxAmount = 8,
-                                    MinAmount = 4,
-                                    Probability = 0.34999999999999998,
+                                    MaxAmount = 24,
+                                    MinAmount = 12,
+                                    Probability = 0.40000000000000002,
                                     Rarity = 0,
                                     SubType = "Sapphire"
                                 },
@@ -30606,9 +30606,9 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ChestDropTableId = "c4e50000-0000-4000-8000-000002020002",
                                     ItemLevel = 1,
                                     ItemType = 2,
-                                    MaxAmount = 3,
-                                    MinAmount = 2,
-                                    Probability = 0.34999999999999998,
+                                    MaxAmount = 9,
+                                    MinAmount = 6,
+                                    Probability = 0.40000000000000002,
                                     Rarity = 1,
                                     SubType = "Sapphire"
                                 },
@@ -30618,9 +30618,9 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ChestDropTableId = "c4e50000-0000-4000-8000-000002020002",
                                     ItemLevel = 1,
                                     ItemType = 2,
-                                    MaxAmount = 2,
-                                    MinAmount = 1,
-                                    Probability = 0.12,
+                                    MaxAmount = 5,
+                                    MinAmount = 3,
+                                    Probability = 0.17000000000000001,
                                     Rarity = 2,
                                     SubType = "Sapphire"
                                 },
@@ -30630,9 +30630,9 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ChestDropTableId = "c4e50000-0000-4000-8000-000002020002",
                                     ItemLevel = 1,
                                     ItemType = 2,
-                                    MaxAmount = 1,
+                                    MaxAmount = 3,
                                     MinAmount = 1,
-                                    Probability = 0.02,
+                                    Probability = 0.029999999999999999,
                                     Rarity = 3,
                                     SubType = "Sapphire"
                                 },
@@ -30644,7 +30644,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.016666666666666666,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "DwarvenHammer"
                                 },
@@ -30656,7 +30656,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.016666666666666666,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "MinerHelm"
                                 },
@@ -30668,7 +30668,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.016666666666666666,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "MoonstonePendant"
                                 },
@@ -30680,7 +30680,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.016666666666666666,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "RingOfTheUnderdog"
                                 },
@@ -30692,7 +30692,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.016666666666666666,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "SpitefulRing"
                                 },
@@ -30704,7 +30704,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.016666666666666666,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "TwinBand"
                                 },
@@ -30716,7 +30716,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.014285714285714287,
+                                    Probability = 0.042857142857142858,
                                     Rarity = 2,
                                     SubType = "EmberMace"
                                 },
@@ -30728,7 +30728,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.014285714285714287,
+                                    Probability = 0.042857142857142858,
                                     Rarity = 2,
                                     SubType = "StormSpear"
                                 },
@@ -30740,7 +30740,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.014285714285714287,
+                                    Probability = 0.042857142857142858,
                                     Rarity = 2,
                                     SubType = "EmberCrown"
                                 },
@@ -30752,7 +30752,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.014285714285714287,
+                                    Probability = 0.042857142857142858,
                                     Rarity = 2,
                                     SubType = "FrostCrown"
                                 },
@@ -30764,7 +30764,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.014285714285714287,
+                                    Probability = 0.042857142857142858,
                                     Rarity = 2,
                                     SubType = "RunicAmulet"
                                 },
@@ -30776,7 +30776,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.014285714285714287,
+                                    Probability = 0.042857142857142858,
                                     Rarity = 2,
                                     SubType = "RingOfLingeringWords"
                                 },
@@ -30788,7 +30788,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.014285714285714287,
+                                    Probability = 0.042857142857142858,
                                     Rarity = 2,
                                     SubType = "RingOfTheStoneSkin"
                                 },
@@ -30800,7 +30800,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0080000000000000002,
+                                    Probability = 0.024,
                                     Rarity = 3,
                                     SubType = "BlackIceSword"
                                 },
@@ -30812,7 +30812,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0080000000000000002,
+                                    Probability = 0.024,
                                     Rarity = 3,
                                     SubType = "ThornStaff"
                                 },
@@ -30824,7 +30824,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0080000000000000002,
+                                    Probability = 0.024,
                                     Rarity = 3,
                                     SubType = "GroveCirclet"
                                 },
@@ -30836,7 +30836,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0080000000000000002,
+                                    Probability = 0.024,
                                     Rarity = 3,
                                     SubType = "StormAmulet"
                                 },
@@ -30848,7 +30848,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0080000000000000002,
+                                    Probability = 0.024,
                                     Rarity = 3,
                                     SubType = "RingOfCleaving"
                                 },
@@ -30860,7 +30860,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0025000000000000001,
+                                    Probability = 0.0074999999999999997,
                                     Rarity = 4,
                                     SubType = "DawnBlade"
                                 },
@@ -30872,7 +30872,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0025000000000000001,
+                                    Probability = 0.0074999999999999997,
                                     Rarity = 4,
                                     SubType = "WarlordHelm"
                                 },
@@ -30884,7 +30884,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0025000000000000001,
+                                    Probability = 0.0074999999999999997,
                                     Rarity = 4,
                                     SubType = "HeartOfTheMountain"
                                 },
@@ -30896,7 +30896,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0025000000000000001,
+                                    Probability = 0.0074999999999999997,
                                     Rarity = 4,
                                     SubType = "RingOfWildfire"
                                 },
@@ -30908,7 +30908,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 3,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.14999999999999999,
+                                    Probability = 0.45000000000000001,
                                     Rarity = 2,
                                     SubType = "Frost"
                                 },
@@ -30920,7 +30920,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 3,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.059999999999999998,
+                                    Probability = 0.17999999999999999,
                                     Rarity = 3,
                                     SubType = "Frost"
                                 },
@@ -30930,9 +30930,9 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ChestDropTableId = "c4e50000-0000-4000-8000-000002020003",
                                     ItemLevel = 1,
                                     ItemType = 2,
-                                    MaxAmount = 10,
-                                    MinAmount = 6,
-                                    Probability = 0.25,
+                                    MaxAmount = 30,
+                                    MinAmount = 18,
+                                    Probability = 0.28999999999999998,
                                     Rarity = 0,
                                     SubType = "Sapphire"
                                 },
@@ -30942,9 +30942,9 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ChestDropTableId = "c4e50000-0000-4000-8000-000002020003",
                                     ItemLevel = 1,
                                     ItemType = 2,
-                                    MaxAmount = 4,
-                                    MinAmount = 3,
-                                    Probability = 0.34999999999999998,
+                                    MaxAmount = 12,
+                                    MinAmount = 9,
+                                    Probability = 0.40000000000000002,
                                     Rarity = 1,
                                     SubType = "Sapphire"
                                 },
@@ -30954,9 +30954,9 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ChestDropTableId = "c4e50000-0000-4000-8000-000002020003",
                                     ItemLevel = 1,
                                     ItemType = 2,
-                                    MaxAmount = 2,
-                                    MinAmount = 1,
-                                    Probability = 0.20000000000000001,
+                                    MaxAmount = 6,
+                                    MinAmount = 3,
+                                    Probability = 0.23999999999999999,
                                     Rarity = 2,
                                     SubType = "Sapphire"
                                 },
@@ -30966,9 +30966,9 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ChestDropTableId = "c4e50000-0000-4000-8000-000002020003",
                                     ItemLevel = 1,
                                     ItemType = 2,
-                                    MaxAmount = 1,
-                                    MinAmount = 1,
-                                    Probability = 0.059999999999999998,
+                                    MaxAmount = 3,
+                                    MinAmount = 2,
+                                    Probability = 0.070000000000000007,
                                     Rarity = 3,
                                     SubType = "Sapphire"
                                 },
@@ -30980,7 +30980,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.021428571428571429,
+                                    Probability = 0.064285714285714293,
                                     Rarity = 2,
                                     SubType = "EmberMace"
                                 },
@@ -30992,7 +30992,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.021428571428571429,
+                                    Probability = 0.064285714285714293,
                                     Rarity = 2,
                                     SubType = "StormSpear"
                                 },
@@ -31004,7 +31004,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.021428571428571429,
+                                    Probability = 0.064285714285714293,
                                     Rarity = 2,
                                     SubType = "EmberCrown"
                                 },
@@ -31016,7 +31016,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.021428571428571429,
+                                    Probability = 0.064285714285714293,
                                     Rarity = 2,
                                     SubType = "FrostCrown"
                                 },
@@ -31028,7 +31028,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.021428571428571429,
+                                    Probability = 0.064285714285714293,
                                     Rarity = 2,
                                     SubType = "RunicAmulet"
                                 },
@@ -31040,7 +31040,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.021428571428571429,
+                                    Probability = 0.064285714285714293,
                                     Rarity = 2,
                                     SubType = "RingOfLingeringWords"
                                 },
@@ -31052,7 +31052,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.021428571428571429,
+                                    Probability = 0.064285714285714293,
                                     Rarity = 2,
                                     SubType = "RingOfTheStoneSkin"
                                 },
@@ -31064,7 +31064,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.016,
+                                    Probability = 0.048000000000000001,
                                     Rarity = 3,
                                     SubType = "BlackIceSword"
                                 },
@@ -31076,7 +31076,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.016,
+                                    Probability = 0.048000000000000001,
                                     Rarity = 3,
                                     SubType = "ThornStaff"
                                 },
@@ -31088,7 +31088,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.016,
+                                    Probability = 0.048000000000000001,
                                     Rarity = 3,
                                     SubType = "GroveCirclet"
                                 },
@@ -31100,7 +31100,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.016,
+                                    Probability = 0.048000000000000001,
                                     Rarity = 3,
                                     SubType = "StormAmulet"
                                 },
@@ -31112,7 +31112,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.016,
+                                    Probability = 0.048000000000000001,
                                     Rarity = 3,
                                     SubType = "RingOfCleaving"
                                 },
@@ -31124,7 +31124,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0074999999999999997,
+                                    Probability = 0.022499999999999999,
                                     Rarity = 4,
                                     SubType = "DawnBlade"
                                 },
@@ -31136,7 +31136,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0074999999999999997,
+                                    Probability = 0.022499999999999999,
                                     Rarity = 4,
                                     SubType = "WarlordHelm"
                                 },
@@ -31148,7 +31148,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0074999999999999997,
+                                    Probability = 0.022499999999999999,
                                     Rarity = 4,
                                     SubType = "HeartOfTheMountain"
                                 },
@@ -31160,7 +31160,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0074999999999999997,
+                                    Probability = 0.022499999999999999,
                                     Rarity = 4,
                                     SubType = "RingOfWildfire"
                                 },
@@ -31172,7 +31172,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "ArmageddonBlade"
                                 },
@@ -31184,7 +31184,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "GlacialRelic"
                                 },
@@ -31196,7 +31196,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "PhoenixStaff"
                                 },
@@ -31208,7 +31208,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "VolcanoHeart"
                                 },
@@ -31220,7 +31220,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "WinterShard"
                                 },
@@ -31232,7 +31232,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "GlacierShackles"
                                 },
@@ -31244,7 +31244,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "ThunderHammer"
                                 },
@@ -31256,7 +31256,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "StormCoil"
                                 },
@@ -31268,7 +31268,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "ThunderHorn"
                                 },
@@ -31280,7 +31280,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "LifeTreeSeed"
                                 },
@@ -31292,7 +31292,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "WyvernSting"
                                 },
@@ -31304,7 +31304,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "ElderGroveStaff"
                                 },
@@ -31316,7 +31316,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "AbyssalSigil"
                                 },
@@ -31328,7 +31328,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "CurseDoll"
                                 },
@@ -31340,7 +31340,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "ReaperScythe"
                                 },
@@ -31352,7 +31352,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "PrismLens"
                                 },
@@ -31364,7 +31364,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "SunDisc"
                                 },
@@ -31376,7 +31376,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "MorningStar"
                                 },
@@ -31388,7 +31388,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "BloodMoonFang"
                                 },
@@ -31400,7 +31400,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "ThousandCutsDagger"
                                 },
@@ -31412,7 +31412,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "SacrificialAltar"
                                 },
@@ -31424,7 +31424,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 3,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.14999999999999999,
+                                    Probability = 0.28999999999999998,
                                     Rarity = 1,
                                     SubType = "Nature"
                                 },
@@ -31436,7 +31436,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 3,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.029999999999999999,
+                                    Probability = 0.059999999999999998,
                                     Rarity = 2,
                                     SubType = "Nature"
                                 },
@@ -31446,9 +31446,9 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ChestDropTableId = "c4e50000-0000-4000-8000-000002040001",
                                     ItemLevel = 1,
                                     ItemType = 2,
-                                    MaxAmount = 6,
-                                    MinAmount = 3,
-                                    Probability = 0.55000000000000004,
+                                    MaxAmount = 11,
+                                    MinAmount = 6,
+                                    Probability = 0.59999999999999998,
                                     Rarity = 0,
                                     SubType = "Emerald"
                                 },
@@ -31458,9 +31458,9 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ChestDropTableId = "c4e50000-0000-4000-8000-000002040001",
                                     ItemLevel = 1,
                                     ItemType = 2,
-                                    MaxAmount = 2,
-                                    MinAmount = 1,
-                                    Probability = 0.29999999999999999,
+                                    MaxAmount = 4,
+                                    MinAmount = 2,
+                                    Probability = 0.33000000000000002,
                                     Rarity = 1,
                                     SubType = "Emerald"
                                 },
@@ -31470,9 +31470,9 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ChestDropTableId = "c4e50000-0000-4000-8000-000002040001",
                                     ItemLevel = 1,
                                     ItemType = 2,
-                                    MaxAmount = 1,
+                                    MaxAmount = 2,
                                     MinAmount = 1,
-                                    Probability = 0.050000000000000003,
+                                    Probability = 0.070000000000000007,
                                     Rarity = 2,
                                     SubType = "Emerald"
                                 },
@@ -31484,7 +31484,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.024999999999999998,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "DwarvenHammer"
                                 },
@@ -31496,7 +31496,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.024999999999999998,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "MinerHelm"
                                 },
@@ -31508,7 +31508,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.024999999999999998,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "MoonstonePendant"
                                 },
@@ -31520,7 +31520,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.024999999999999998,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "RingOfTheUnderdog"
                                 },
@@ -31532,7 +31532,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.024999999999999998,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "SpitefulRing"
                                 },
@@ -31544,7 +31544,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.024999999999999998,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "TwinBand"
                                 },
@@ -31556,7 +31556,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0071428571428571435,
+                                    Probability = 0.014285714285714287,
                                     Rarity = 2,
                                     SubType = "EmberMace"
                                 },
@@ -31568,7 +31568,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0071428571428571435,
+                                    Probability = 0.014285714285714287,
                                     Rarity = 2,
                                     SubType = "StormSpear"
                                 },
@@ -31580,7 +31580,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0071428571428571435,
+                                    Probability = 0.014285714285714287,
                                     Rarity = 2,
                                     SubType = "EmberCrown"
                                 },
@@ -31592,7 +31592,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0071428571428571435,
+                                    Probability = 0.014285714285714287,
                                     Rarity = 2,
                                     SubType = "FrostCrown"
                                 },
@@ -31604,7 +31604,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0071428571428571435,
+                                    Probability = 0.014285714285714287,
                                     Rarity = 2,
                                     SubType = "RunicAmulet"
                                 },
@@ -31616,7 +31616,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0071428571428571435,
+                                    Probability = 0.014285714285714287,
                                     Rarity = 2,
                                     SubType = "RingOfLingeringWords"
                                 },
@@ -31628,7 +31628,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0071428571428571435,
+                                    Probability = 0.014285714285714287,
                                     Rarity = 2,
                                     SubType = "RingOfTheStoneSkin"
                                 },
@@ -31640,7 +31640,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.002,
+                                    Probability = 0.0040000000000000001,
                                     Rarity = 3,
                                     SubType = "BlackIceSword"
                                 },
@@ -31652,7 +31652,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.002,
+                                    Probability = 0.0040000000000000001,
                                     Rarity = 3,
                                     SubType = "ThornStaff"
                                 },
@@ -31664,7 +31664,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.002,
+                                    Probability = 0.0040000000000000001,
                                     Rarity = 3,
                                     SubType = "GroveCirclet"
                                 },
@@ -31676,7 +31676,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.002,
+                                    Probability = 0.0040000000000000001,
                                     Rarity = 3,
                                     SubType = "StormAmulet"
                                 },
@@ -31688,7 +31688,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.002,
+                                    Probability = 0.0040000000000000001,
                                     Rarity = 3,
                                     SubType = "RingOfCleaving"
                                 },
@@ -31700,7 +31700,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 3,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.12,
+                                    Probability = 0.35999999999999999,
                                     Rarity = 1,
                                     SubType = "Nature"
                                 },
@@ -31712,7 +31712,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 3,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.10000000000000001,
+                                    Probability = 0.29999999999999999,
                                     Rarity = 2,
                                     SubType = "Nature"
                                 },
@@ -31724,7 +31724,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 3,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.02,
+                                    Probability = 0.059999999999999998,
                                     Rarity = 3,
                                     SubType = "Nature"
                                 },
@@ -31734,9 +31734,9 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ChestDropTableId = "c4e50000-0000-4000-8000-000002040002",
                                     ItemLevel = 1,
                                     ItemType = 2,
-                                    MaxAmount = 8,
-                                    MinAmount = 4,
-                                    Probability = 0.34999999999999998,
+                                    MaxAmount = 24,
+                                    MinAmount = 12,
+                                    Probability = 0.40000000000000002,
                                     Rarity = 0,
                                     SubType = "Emerald"
                                 },
@@ -31746,9 +31746,9 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ChestDropTableId = "c4e50000-0000-4000-8000-000002040002",
                                     ItemLevel = 1,
                                     ItemType = 2,
-                                    MaxAmount = 3,
-                                    MinAmount = 2,
-                                    Probability = 0.34999999999999998,
+                                    MaxAmount = 9,
+                                    MinAmount = 6,
+                                    Probability = 0.40000000000000002,
                                     Rarity = 1,
                                     SubType = "Emerald"
                                 },
@@ -31758,9 +31758,9 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ChestDropTableId = "c4e50000-0000-4000-8000-000002040002",
                                     ItemLevel = 1,
                                     ItemType = 2,
-                                    MaxAmount = 2,
-                                    MinAmount = 1,
-                                    Probability = 0.12,
+                                    MaxAmount = 5,
+                                    MinAmount = 3,
+                                    Probability = 0.17000000000000001,
                                     Rarity = 2,
                                     SubType = "Emerald"
                                 },
@@ -31770,9 +31770,9 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ChestDropTableId = "c4e50000-0000-4000-8000-000002040002",
                                     ItemLevel = 1,
                                     ItemType = 2,
-                                    MaxAmount = 1,
+                                    MaxAmount = 3,
                                     MinAmount = 1,
-                                    Probability = 0.02,
+                                    Probability = 0.029999999999999999,
                                     Rarity = 3,
                                     SubType = "Emerald"
                                 },
@@ -31784,7 +31784,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.016666666666666666,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "DwarvenHammer"
                                 },
@@ -31796,7 +31796,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.016666666666666666,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "MinerHelm"
                                 },
@@ -31808,7 +31808,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.016666666666666666,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "MoonstonePendant"
                                 },
@@ -31820,7 +31820,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.016666666666666666,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "RingOfTheUnderdog"
                                 },
@@ -31832,7 +31832,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.016666666666666666,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "SpitefulRing"
                                 },
@@ -31844,7 +31844,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.016666666666666666,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "TwinBand"
                                 },
@@ -31856,7 +31856,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.014285714285714287,
+                                    Probability = 0.042857142857142858,
                                     Rarity = 2,
                                     SubType = "EmberMace"
                                 },
@@ -31868,7 +31868,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.014285714285714287,
+                                    Probability = 0.042857142857142858,
                                     Rarity = 2,
                                     SubType = "StormSpear"
                                 },
@@ -31880,7 +31880,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.014285714285714287,
+                                    Probability = 0.042857142857142858,
                                     Rarity = 2,
                                     SubType = "EmberCrown"
                                 },
@@ -31892,7 +31892,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.014285714285714287,
+                                    Probability = 0.042857142857142858,
                                     Rarity = 2,
                                     SubType = "FrostCrown"
                                 },
@@ -31904,7 +31904,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.014285714285714287,
+                                    Probability = 0.042857142857142858,
                                     Rarity = 2,
                                     SubType = "RunicAmulet"
                                 },
@@ -31916,7 +31916,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.014285714285714287,
+                                    Probability = 0.042857142857142858,
                                     Rarity = 2,
                                     SubType = "RingOfLingeringWords"
                                 },
@@ -31928,7 +31928,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.014285714285714287,
+                                    Probability = 0.042857142857142858,
                                     Rarity = 2,
                                     SubType = "RingOfTheStoneSkin"
                                 },
@@ -31940,7 +31940,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0080000000000000002,
+                                    Probability = 0.024,
                                     Rarity = 3,
                                     SubType = "BlackIceSword"
                                 },
@@ -31952,7 +31952,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0080000000000000002,
+                                    Probability = 0.024,
                                     Rarity = 3,
                                     SubType = "ThornStaff"
                                 },
@@ -31964,7 +31964,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0080000000000000002,
+                                    Probability = 0.024,
                                     Rarity = 3,
                                     SubType = "GroveCirclet"
                                 },
@@ -31976,7 +31976,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0080000000000000002,
+                                    Probability = 0.024,
                                     Rarity = 3,
                                     SubType = "StormAmulet"
                                 },
@@ -31988,7 +31988,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0080000000000000002,
+                                    Probability = 0.024,
                                     Rarity = 3,
                                     SubType = "RingOfCleaving"
                                 },
@@ -32000,7 +32000,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0025000000000000001,
+                                    Probability = 0.0074999999999999997,
                                     Rarity = 4,
                                     SubType = "DawnBlade"
                                 },
@@ -32012,7 +32012,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0025000000000000001,
+                                    Probability = 0.0074999999999999997,
                                     Rarity = 4,
                                     SubType = "WarlordHelm"
                                 },
@@ -32024,7 +32024,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0025000000000000001,
+                                    Probability = 0.0074999999999999997,
                                     Rarity = 4,
                                     SubType = "HeartOfTheMountain"
                                 },
@@ -32036,7 +32036,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0025000000000000001,
+                                    Probability = 0.0074999999999999997,
                                     Rarity = 4,
                                     SubType = "RingOfWildfire"
                                 },
@@ -32048,7 +32048,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 3,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.14999999999999999,
+                                    Probability = 0.45000000000000001,
                                     Rarity = 2,
                                     SubType = "Nature"
                                 },
@@ -32060,7 +32060,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 3,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.059999999999999998,
+                                    Probability = 0.17999999999999999,
                                     Rarity = 3,
                                     SubType = "Nature"
                                 },
@@ -32070,9 +32070,9 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ChestDropTableId = "c4e50000-0000-4000-8000-000002040003",
                                     ItemLevel = 1,
                                     ItemType = 2,
-                                    MaxAmount = 10,
-                                    MinAmount = 6,
-                                    Probability = 0.25,
+                                    MaxAmount = 30,
+                                    MinAmount = 18,
+                                    Probability = 0.28999999999999998,
                                     Rarity = 0,
                                     SubType = "Emerald"
                                 },
@@ -32082,9 +32082,9 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ChestDropTableId = "c4e50000-0000-4000-8000-000002040003",
                                     ItemLevel = 1,
                                     ItemType = 2,
-                                    MaxAmount = 4,
-                                    MinAmount = 3,
-                                    Probability = 0.34999999999999998,
+                                    MaxAmount = 12,
+                                    MinAmount = 9,
+                                    Probability = 0.40000000000000002,
                                     Rarity = 1,
                                     SubType = "Emerald"
                                 },
@@ -32094,9 +32094,9 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ChestDropTableId = "c4e50000-0000-4000-8000-000002040003",
                                     ItemLevel = 1,
                                     ItemType = 2,
-                                    MaxAmount = 2,
-                                    MinAmount = 1,
-                                    Probability = 0.20000000000000001,
+                                    MaxAmount = 6,
+                                    MinAmount = 3,
+                                    Probability = 0.23999999999999999,
                                     Rarity = 2,
                                     SubType = "Emerald"
                                 },
@@ -32106,9 +32106,9 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ChestDropTableId = "c4e50000-0000-4000-8000-000002040003",
                                     ItemLevel = 1,
                                     ItemType = 2,
-                                    MaxAmount = 1,
-                                    MinAmount = 1,
-                                    Probability = 0.059999999999999998,
+                                    MaxAmount = 3,
+                                    MinAmount = 2,
+                                    Probability = 0.070000000000000007,
                                     Rarity = 3,
                                     SubType = "Emerald"
                                 },
@@ -32120,7 +32120,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.021428571428571429,
+                                    Probability = 0.064285714285714293,
                                     Rarity = 2,
                                     SubType = "EmberMace"
                                 },
@@ -32132,7 +32132,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.021428571428571429,
+                                    Probability = 0.064285714285714293,
                                     Rarity = 2,
                                     SubType = "StormSpear"
                                 },
@@ -32144,7 +32144,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.021428571428571429,
+                                    Probability = 0.064285714285714293,
                                     Rarity = 2,
                                     SubType = "EmberCrown"
                                 },
@@ -32156,7 +32156,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.021428571428571429,
+                                    Probability = 0.064285714285714293,
                                     Rarity = 2,
                                     SubType = "FrostCrown"
                                 },
@@ -32168,7 +32168,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.021428571428571429,
+                                    Probability = 0.064285714285714293,
                                     Rarity = 2,
                                     SubType = "RunicAmulet"
                                 },
@@ -32180,7 +32180,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.021428571428571429,
+                                    Probability = 0.064285714285714293,
                                     Rarity = 2,
                                     SubType = "RingOfLingeringWords"
                                 },
@@ -32192,7 +32192,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.021428571428571429,
+                                    Probability = 0.064285714285714293,
                                     Rarity = 2,
                                     SubType = "RingOfTheStoneSkin"
                                 },
@@ -32204,7 +32204,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.016,
+                                    Probability = 0.048000000000000001,
                                     Rarity = 3,
                                     SubType = "BlackIceSword"
                                 },
@@ -32216,7 +32216,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.016,
+                                    Probability = 0.048000000000000001,
                                     Rarity = 3,
                                     SubType = "ThornStaff"
                                 },
@@ -32228,7 +32228,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.016,
+                                    Probability = 0.048000000000000001,
                                     Rarity = 3,
                                     SubType = "GroveCirclet"
                                 },
@@ -32240,7 +32240,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.016,
+                                    Probability = 0.048000000000000001,
                                     Rarity = 3,
                                     SubType = "StormAmulet"
                                 },
@@ -32252,7 +32252,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.016,
+                                    Probability = 0.048000000000000001,
                                     Rarity = 3,
                                     SubType = "RingOfCleaving"
                                 },
@@ -32264,7 +32264,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0074999999999999997,
+                                    Probability = 0.022499999999999999,
                                     Rarity = 4,
                                     SubType = "DawnBlade"
                                 },
@@ -32276,7 +32276,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0074999999999999997,
+                                    Probability = 0.022499999999999999,
                                     Rarity = 4,
                                     SubType = "WarlordHelm"
                                 },
@@ -32288,7 +32288,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0074999999999999997,
+                                    Probability = 0.022499999999999999,
                                     Rarity = 4,
                                     SubType = "HeartOfTheMountain"
                                 },
@@ -32300,7 +32300,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0074999999999999997,
+                                    Probability = 0.022499999999999999,
                                     Rarity = 4,
                                     SubType = "RingOfWildfire"
                                 },
@@ -32312,7 +32312,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "ArmageddonBlade"
                                 },
@@ -32324,7 +32324,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "GlacialRelic"
                                 },
@@ -32336,7 +32336,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "PhoenixStaff"
                                 },
@@ -32348,7 +32348,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "VolcanoHeart"
                                 },
@@ -32360,7 +32360,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "WinterShard"
                                 },
@@ -32372,7 +32372,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "GlacierShackles"
                                 },
@@ -32384,7 +32384,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "ThunderHammer"
                                 },
@@ -32396,7 +32396,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "StormCoil"
                                 },
@@ -32408,7 +32408,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "ThunderHorn"
                                 },
@@ -32420,7 +32420,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "LifeTreeSeed"
                                 },
@@ -32432,7 +32432,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "WyvernSting"
                                 },
@@ -32444,7 +32444,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "ElderGroveStaff"
                                 },
@@ -32456,7 +32456,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "AbyssalSigil"
                                 },
@@ -32468,7 +32468,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "CurseDoll"
                                 },
@@ -32480,7 +32480,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "ReaperScythe"
                                 },
@@ -32492,7 +32492,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "PrismLens"
                                 },
@@ -32504,7 +32504,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "SunDisc"
                                 },
@@ -32516,7 +32516,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "MorningStar"
                                 },
@@ -32528,7 +32528,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "BloodMoonFang"
                                 },
@@ -32540,7 +32540,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "ThousandCutsDagger"
                                 },
@@ -32552,7 +32552,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "SacrificialAltar"
                                 },
@@ -32564,7 +32564,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 3,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.14999999999999999,
+                                    Probability = 0.28999999999999998,
                                     Rarity = 1,
                                     SubType = "Lightning"
                                 },
@@ -32576,7 +32576,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 3,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.029999999999999999,
+                                    Probability = 0.059999999999999998,
                                     Rarity = 2,
                                     SubType = "Lightning"
                                 },
@@ -32586,9 +32586,9 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ChestDropTableId = "c4e50000-0000-4000-8000-000002030001",
                                     ItemLevel = 1,
                                     ItemType = 2,
-                                    MaxAmount = 6,
-                                    MinAmount = 3,
-                                    Probability = 0.55000000000000004,
+                                    MaxAmount = 11,
+                                    MinAmount = 6,
+                                    Probability = 0.59999999999999998,
                                     Rarity = 0,
                                     SubType = "Topaz"
                                 },
@@ -32598,9 +32598,9 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ChestDropTableId = "c4e50000-0000-4000-8000-000002030001",
                                     ItemLevel = 1,
                                     ItemType = 2,
-                                    MaxAmount = 2,
-                                    MinAmount = 1,
-                                    Probability = 0.29999999999999999,
+                                    MaxAmount = 4,
+                                    MinAmount = 2,
+                                    Probability = 0.33000000000000002,
                                     Rarity = 1,
                                     SubType = "Topaz"
                                 },
@@ -32610,9 +32610,9 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ChestDropTableId = "c4e50000-0000-4000-8000-000002030001",
                                     ItemLevel = 1,
                                     ItemType = 2,
-                                    MaxAmount = 1,
+                                    MaxAmount = 2,
                                     MinAmount = 1,
-                                    Probability = 0.050000000000000003,
+                                    Probability = 0.070000000000000007,
                                     Rarity = 2,
                                     SubType = "Topaz"
                                 },
@@ -32624,7 +32624,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.024999999999999998,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "DwarvenHammer"
                                 },
@@ -32636,7 +32636,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.024999999999999998,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "MinerHelm"
                                 },
@@ -32648,7 +32648,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.024999999999999998,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "MoonstonePendant"
                                 },
@@ -32660,7 +32660,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.024999999999999998,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "RingOfTheUnderdog"
                                 },
@@ -32672,7 +32672,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.024999999999999998,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "SpitefulRing"
                                 },
@@ -32684,7 +32684,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.024999999999999998,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "TwinBand"
                                 },
@@ -32696,7 +32696,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0071428571428571435,
+                                    Probability = 0.014285714285714287,
                                     Rarity = 2,
                                     SubType = "EmberMace"
                                 },
@@ -32708,7 +32708,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0071428571428571435,
+                                    Probability = 0.014285714285714287,
                                     Rarity = 2,
                                     SubType = "StormSpear"
                                 },
@@ -32720,7 +32720,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0071428571428571435,
+                                    Probability = 0.014285714285714287,
                                     Rarity = 2,
                                     SubType = "EmberCrown"
                                 },
@@ -32732,7 +32732,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0071428571428571435,
+                                    Probability = 0.014285714285714287,
                                     Rarity = 2,
                                     SubType = "FrostCrown"
                                 },
@@ -32744,7 +32744,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0071428571428571435,
+                                    Probability = 0.014285714285714287,
                                     Rarity = 2,
                                     SubType = "RunicAmulet"
                                 },
@@ -32756,7 +32756,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0071428571428571435,
+                                    Probability = 0.014285714285714287,
                                     Rarity = 2,
                                     SubType = "RingOfLingeringWords"
                                 },
@@ -32768,7 +32768,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0071428571428571435,
+                                    Probability = 0.014285714285714287,
                                     Rarity = 2,
                                     SubType = "RingOfTheStoneSkin"
                                 },
@@ -32780,7 +32780,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.002,
+                                    Probability = 0.0040000000000000001,
                                     Rarity = 3,
                                     SubType = "BlackIceSword"
                                 },
@@ -32792,7 +32792,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.002,
+                                    Probability = 0.0040000000000000001,
                                     Rarity = 3,
                                     SubType = "ThornStaff"
                                 },
@@ -32804,7 +32804,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.002,
+                                    Probability = 0.0040000000000000001,
                                     Rarity = 3,
                                     SubType = "GroveCirclet"
                                 },
@@ -32816,7 +32816,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.002,
+                                    Probability = 0.0040000000000000001,
                                     Rarity = 3,
                                     SubType = "StormAmulet"
                                 },
@@ -32828,7 +32828,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.002,
+                                    Probability = 0.0040000000000000001,
                                     Rarity = 3,
                                     SubType = "RingOfCleaving"
                                 },
@@ -32840,7 +32840,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 3,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.12,
+                                    Probability = 0.35999999999999999,
                                     Rarity = 1,
                                     SubType = "Lightning"
                                 },
@@ -32852,7 +32852,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 3,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.10000000000000001,
+                                    Probability = 0.29999999999999999,
                                     Rarity = 2,
                                     SubType = "Lightning"
                                 },
@@ -32864,7 +32864,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 3,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.02,
+                                    Probability = 0.059999999999999998,
                                     Rarity = 3,
                                     SubType = "Lightning"
                                 },
@@ -32874,9 +32874,9 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ChestDropTableId = "c4e50000-0000-4000-8000-000002030002",
                                     ItemLevel = 1,
                                     ItemType = 2,
-                                    MaxAmount = 8,
-                                    MinAmount = 4,
-                                    Probability = 0.34999999999999998,
+                                    MaxAmount = 24,
+                                    MinAmount = 12,
+                                    Probability = 0.40000000000000002,
                                     Rarity = 0,
                                     SubType = "Topaz"
                                 },
@@ -32886,9 +32886,9 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ChestDropTableId = "c4e50000-0000-4000-8000-000002030002",
                                     ItemLevel = 1,
                                     ItemType = 2,
-                                    MaxAmount = 3,
-                                    MinAmount = 2,
-                                    Probability = 0.34999999999999998,
+                                    MaxAmount = 9,
+                                    MinAmount = 6,
+                                    Probability = 0.40000000000000002,
                                     Rarity = 1,
                                     SubType = "Topaz"
                                 },
@@ -32898,9 +32898,9 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ChestDropTableId = "c4e50000-0000-4000-8000-000002030002",
                                     ItemLevel = 1,
                                     ItemType = 2,
-                                    MaxAmount = 2,
-                                    MinAmount = 1,
-                                    Probability = 0.12,
+                                    MaxAmount = 5,
+                                    MinAmount = 3,
+                                    Probability = 0.17000000000000001,
                                     Rarity = 2,
                                     SubType = "Topaz"
                                 },
@@ -32910,9 +32910,9 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ChestDropTableId = "c4e50000-0000-4000-8000-000002030002",
                                     ItemLevel = 1,
                                     ItemType = 2,
-                                    MaxAmount = 1,
+                                    MaxAmount = 3,
                                     MinAmount = 1,
-                                    Probability = 0.02,
+                                    Probability = 0.029999999999999999,
                                     Rarity = 3,
                                     SubType = "Topaz"
                                 },
@@ -32924,7 +32924,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.016666666666666666,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "DwarvenHammer"
                                 },
@@ -32936,7 +32936,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.016666666666666666,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "MinerHelm"
                                 },
@@ -32948,7 +32948,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.016666666666666666,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "MoonstonePendant"
                                 },
@@ -32960,7 +32960,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.016666666666666666,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "RingOfTheUnderdog"
                                 },
@@ -32972,7 +32972,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.016666666666666666,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "SpitefulRing"
                                 },
@@ -32984,7 +32984,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.016666666666666666,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "TwinBand"
                                 },
@@ -32996,7 +32996,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.014285714285714287,
+                                    Probability = 0.042857142857142858,
                                     Rarity = 2,
                                     SubType = "EmberMace"
                                 },
@@ -33008,7 +33008,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.014285714285714287,
+                                    Probability = 0.042857142857142858,
                                     Rarity = 2,
                                     SubType = "StormSpear"
                                 },
@@ -33020,7 +33020,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.014285714285714287,
+                                    Probability = 0.042857142857142858,
                                     Rarity = 2,
                                     SubType = "EmberCrown"
                                 },
@@ -33032,7 +33032,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.014285714285714287,
+                                    Probability = 0.042857142857142858,
                                     Rarity = 2,
                                     SubType = "FrostCrown"
                                 },
@@ -33044,7 +33044,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.014285714285714287,
+                                    Probability = 0.042857142857142858,
                                     Rarity = 2,
                                     SubType = "RunicAmulet"
                                 },
@@ -33056,7 +33056,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.014285714285714287,
+                                    Probability = 0.042857142857142858,
                                     Rarity = 2,
                                     SubType = "RingOfLingeringWords"
                                 },
@@ -33068,7 +33068,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.014285714285714287,
+                                    Probability = 0.042857142857142858,
                                     Rarity = 2,
                                     SubType = "RingOfTheStoneSkin"
                                 },
@@ -33080,7 +33080,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0080000000000000002,
+                                    Probability = 0.024,
                                     Rarity = 3,
                                     SubType = "BlackIceSword"
                                 },
@@ -33092,7 +33092,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0080000000000000002,
+                                    Probability = 0.024,
                                     Rarity = 3,
                                     SubType = "ThornStaff"
                                 },
@@ -33104,7 +33104,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0080000000000000002,
+                                    Probability = 0.024,
                                     Rarity = 3,
                                     SubType = "GroveCirclet"
                                 },
@@ -33116,7 +33116,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0080000000000000002,
+                                    Probability = 0.024,
                                     Rarity = 3,
                                     SubType = "StormAmulet"
                                 },
@@ -33128,7 +33128,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0080000000000000002,
+                                    Probability = 0.024,
                                     Rarity = 3,
                                     SubType = "RingOfCleaving"
                                 },
@@ -33140,7 +33140,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0025000000000000001,
+                                    Probability = 0.0074999999999999997,
                                     Rarity = 4,
                                     SubType = "DawnBlade"
                                 },
@@ -33152,7 +33152,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0025000000000000001,
+                                    Probability = 0.0074999999999999997,
                                     Rarity = 4,
                                     SubType = "WarlordHelm"
                                 },
@@ -33164,7 +33164,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0025000000000000001,
+                                    Probability = 0.0074999999999999997,
                                     Rarity = 4,
                                     SubType = "HeartOfTheMountain"
                                 },
@@ -33176,7 +33176,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0025000000000000001,
+                                    Probability = 0.0074999999999999997,
                                     Rarity = 4,
                                     SubType = "RingOfWildfire"
                                 },
@@ -33188,7 +33188,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 3,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.14999999999999999,
+                                    Probability = 0.45000000000000001,
                                     Rarity = 2,
                                     SubType = "Lightning"
                                 },
@@ -33200,7 +33200,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 3,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.059999999999999998,
+                                    Probability = 0.17999999999999999,
                                     Rarity = 3,
                                     SubType = "Lightning"
                                 },
@@ -33210,9 +33210,9 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ChestDropTableId = "c4e50000-0000-4000-8000-000002030003",
                                     ItemLevel = 1,
                                     ItemType = 2,
-                                    MaxAmount = 10,
-                                    MinAmount = 6,
-                                    Probability = 0.25,
+                                    MaxAmount = 30,
+                                    MinAmount = 18,
+                                    Probability = 0.28999999999999998,
                                     Rarity = 0,
                                     SubType = "Topaz"
                                 },
@@ -33222,9 +33222,9 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ChestDropTableId = "c4e50000-0000-4000-8000-000002030003",
                                     ItemLevel = 1,
                                     ItemType = 2,
-                                    MaxAmount = 4,
-                                    MinAmount = 3,
-                                    Probability = 0.34999999999999998,
+                                    MaxAmount = 12,
+                                    MinAmount = 9,
+                                    Probability = 0.40000000000000002,
                                     Rarity = 1,
                                     SubType = "Topaz"
                                 },
@@ -33234,9 +33234,9 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ChestDropTableId = "c4e50000-0000-4000-8000-000002030003",
                                     ItemLevel = 1,
                                     ItemType = 2,
-                                    MaxAmount = 2,
-                                    MinAmount = 1,
-                                    Probability = 0.20000000000000001,
+                                    MaxAmount = 6,
+                                    MinAmount = 3,
+                                    Probability = 0.23999999999999999,
                                     Rarity = 2,
                                     SubType = "Topaz"
                                 },
@@ -33246,9 +33246,9 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ChestDropTableId = "c4e50000-0000-4000-8000-000002030003",
                                     ItemLevel = 1,
                                     ItemType = 2,
-                                    MaxAmount = 1,
-                                    MinAmount = 1,
-                                    Probability = 0.059999999999999998,
+                                    MaxAmount = 3,
+                                    MinAmount = 2,
+                                    Probability = 0.070000000000000007,
                                     Rarity = 3,
                                     SubType = "Topaz"
                                 },
@@ -33260,7 +33260,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.021428571428571429,
+                                    Probability = 0.064285714285714293,
                                     Rarity = 2,
                                     SubType = "EmberMace"
                                 },
@@ -33272,7 +33272,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.021428571428571429,
+                                    Probability = 0.064285714285714293,
                                     Rarity = 2,
                                     SubType = "StormSpear"
                                 },
@@ -33284,7 +33284,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.021428571428571429,
+                                    Probability = 0.064285714285714293,
                                     Rarity = 2,
                                     SubType = "EmberCrown"
                                 },
@@ -33296,7 +33296,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.021428571428571429,
+                                    Probability = 0.064285714285714293,
                                     Rarity = 2,
                                     SubType = "FrostCrown"
                                 },
@@ -33308,7 +33308,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.021428571428571429,
+                                    Probability = 0.064285714285714293,
                                     Rarity = 2,
                                     SubType = "RunicAmulet"
                                 },
@@ -33320,7 +33320,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.021428571428571429,
+                                    Probability = 0.064285714285714293,
                                     Rarity = 2,
                                     SubType = "RingOfLingeringWords"
                                 },
@@ -33332,7 +33332,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.021428571428571429,
+                                    Probability = 0.064285714285714293,
                                     Rarity = 2,
                                     SubType = "RingOfTheStoneSkin"
                                 },
@@ -33344,7 +33344,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.016,
+                                    Probability = 0.048000000000000001,
                                     Rarity = 3,
                                     SubType = "BlackIceSword"
                                 },
@@ -33356,7 +33356,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.016,
+                                    Probability = 0.048000000000000001,
                                     Rarity = 3,
                                     SubType = "ThornStaff"
                                 },
@@ -33368,7 +33368,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.016,
+                                    Probability = 0.048000000000000001,
                                     Rarity = 3,
                                     SubType = "GroveCirclet"
                                 },
@@ -33380,7 +33380,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.016,
+                                    Probability = 0.048000000000000001,
                                     Rarity = 3,
                                     SubType = "StormAmulet"
                                 },
@@ -33392,7 +33392,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.016,
+                                    Probability = 0.048000000000000001,
                                     Rarity = 3,
                                     SubType = "RingOfCleaving"
                                 },
@@ -33404,7 +33404,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0074999999999999997,
+                                    Probability = 0.022499999999999999,
                                     Rarity = 4,
                                     SubType = "DawnBlade"
                                 },
@@ -33416,7 +33416,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0074999999999999997,
+                                    Probability = 0.022499999999999999,
                                     Rarity = 4,
                                     SubType = "WarlordHelm"
                                 },
@@ -33428,7 +33428,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0074999999999999997,
+                                    Probability = 0.022499999999999999,
                                     Rarity = 4,
                                     SubType = "HeartOfTheMountain"
                                 },
@@ -33440,7 +33440,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0074999999999999997,
+                                    Probability = 0.022499999999999999,
                                     Rarity = 4,
                                     SubType = "RingOfWildfire"
                                 },
@@ -33452,7 +33452,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "ArmageddonBlade"
                                 },
@@ -33464,7 +33464,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "GlacialRelic"
                                 },
@@ -33476,7 +33476,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "PhoenixStaff"
                                 },
@@ -33488,7 +33488,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "VolcanoHeart"
                                 },
@@ -33500,7 +33500,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "WinterShard"
                                 },
@@ -33512,7 +33512,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "GlacierShackles"
                                 },
@@ -33524,7 +33524,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "ThunderHammer"
                                 },
@@ -33536,7 +33536,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "StormCoil"
                                 },
@@ -33548,7 +33548,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "ThunderHorn"
                                 },
@@ -33560,7 +33560,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "LifeTreeSeed"
                                 },
@@ -33572,7 +33572,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "WyvernSting"
                                 },
@@ -33584,7 +33584,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "ElderGroveStaff"
                                 },
@@ -33596,7 +33596,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "AbyssalSigil"
                                 },
@@ -33608,7 +33608,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "CurseDoll"
                                 },
@@ -33620,7 +33620,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "ReaperScythe"
                                 },
@@ -33632,7 +33632,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "PrismLens"
                                 },
@@ -33644,7 +33644,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "SunDisc"
                                 },
@@ -33656,7 +33656,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "MorningStar"
                                 },
@@ -33668,7 +33668,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "BloodMoonFang"
                                 },
@@ -33680,7 +33680,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "ThousandCutsDagger"
                                 },
@@ -33692,7 +33692,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "SacrificialAltar"
                                 },
@@ -33704,7 +33704,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 3,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.14999999999999999,
+                                    Probability = 0.28999999999999998,
                                     Rarity = 1,
                                     SubType = "Dark"
                                 },
@@ -33716,7 +33716,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 3,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.029999999999999999,
+                                    Probability = 0.059999999999999998,
                                     Rarity = 2,
                                     SubType = "Dark"
                                 },
@@ -33726,9 +33726,9 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ChestDropTableId = "c4e50000-0000-4000-8000-000002050001",
                                     ItemLevel = 1,
                                     ItemType = 2,
-                                    MaxAmount = 6,
-                                    MinAmount = 3,
-                                    Probability = 0.55000000000000004,
+                                    MaxAmount = 11,
+                                    MinAmount = 6,
+                                    Probability = 0.59999999999999998,
                                     Rarity = 0,
                                     SubType = "Amethyst"
                                 },
@@ -33738,9 +33738,9 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ChestDropTableId = "c4e50000-0000-4000-8000-000002050001",
                                     ItemLevel = 1,
                                     ItemType = 2,
-                                    MaxAmount = 2,
-                                    MinAmount = 1,
-                                    Probability = 0.29999999999999999,
+                                    MaxAmount = 4,
+                                    MinAmount = 2,
+                                    Probability = 0.33000000000000002,
                                     Rarity = 1,
                                     SubType = "Amethyst"
                                 },
@@ -33750,9 +33750,9 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ChestDropTableId = "c4e50000-0000-4000-8000-000002050001",
                                     ItemLevel = 1,
                                     ItemType = 2,
-                                    MaxAmount = 1,
+                                    MaxAmount = 2,
                                     MinAmount = 1,
-                                    Probability = 0.050000000000000003,
+                                    Probability = 0.070000000000000007,
                                     Rarity = 2,
                                     SubType = "Amethyst"
                                 },
@@ -33764,7 +33764,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.024999999999999998,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "DwarvenHammer"
                                 },
@@ -33776,7 +33776,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.024999999999999998,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "MinerHelm"
                                 },
@@ -33788,7 +33788,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.024999999999999998,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "MoonstonePendant"
                                 },
@@ -33800,7 +33800,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.024999999999999998,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "RingOfTheUnderdog"
                                 },
@@ -33812,7 +33812,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.024999999999999998,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "SpitefulRing"
                                 },
@@ -33824,7 +33824,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.024999999999999998,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "TwinBand"
                                 },
@@ -33836,7 +33836,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0071428571428571435,
+                                    Probability = 0.014285714285714287,
                                     Rarity = 2,
                                     SubType = "EmberMace"
                                 },
@@ -33848,7 +33848,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0071428571428571435,
+                                    Probability = 0.014285714285714287,
                                     Rarity = 2,
                                     SubType = "StormSpear"
                                 },
@@ -33860,7 +33860,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0071428571428571435,
+                                    Probability = 0.014285714285714287,
                                     Rarity = 2,
                                     SubType = "EmberCrown"
                                 },
@@ -33872,7 +33872,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0071428571428571435,
+                                    Probability = 0.014285714285714287,
                                     Rarity = 2,
                                     SubType = "FrostCrown"
                                 },
@@ -33884,7 +33884,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0071428571428571435,
+                                    Probability = 0.014285714285714287,
                                     Rarity = 2,
                                     SubType = "RunicAmulet"
                                 },
@@ -33896,7 +33896,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0071428571428571435,
+                                    Probability = 0.014285714285714287,
                                     Rarity = 2,
                                     SubType = "RingOfLingeringWords"
                                 },
@@ -33908,7 +33908,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0071428571428571435,
+                                    Probability = 0.014285714285714287,
                                     Rarity = 2,
                                     SubType = "RingOfTheStoneSkin"
                                 },
@@ -33920,7 +33920,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.002,
+                                    Probability = 0.0040000000000000001,
                                     Rarity = 3,
                                     SubType = "BlackIceSword"
                                 },
@@ -33932,7 +33932,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.002,
+                                    Probability = 0.0040000000000000001,
                                     Rarity = 3,
                                     SubType = "ThornStaff"
                                 },
@@ -33944,7 +33944,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.002,
+                                    Probability = 0.0040000000000000001,
                                     Rarity = 3,
                                     SubType = "GroveCirclet"
                                 },
@@ -33956,7 +33956,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.002,
+                                    Probability = 0.0040000000000000001,
                                     Rarity = 3,
                                     SubType = "StormAmulet"
                                 },
@@ -33968,7 +33968,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.002,
+                                    Probability = 0.0040000000000000001,
                                     Rarity = 3,
                                     SubType = "RingOfCleaving"
                                 },
@@ -33980,7 +33980,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 3,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.12,
+                                    Probability = 0.35999999999999999,
                                     Rarity = 1,
                                     SubType = "Dark"
                                 },
@@ -33992,7 +33992,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 3,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.10000000000000001,
+                                    Probability = 0.29999999999999999,
                                     Rarity = 2,
                                     SubType = "Dark"
                                 },
@@ -34004,7 +34004,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 3,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.02,
+                                    Probability = 0.059999999999999998,
                                     Rarity = 3,
                                     SubType = "Dark"
                                 },
@@ -34014,9 +34014,9 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ChestDropTableId = "c4e50000-0000-4000-8000-000002050002",
                                     ItemLevel = 1,
                                     ItemType = 2,
-                                    MaxAmount = 8,
-                                    MinAmount = 4,
-                                    Probability = 0.34999999999999998,
+                                    MaxAmount = 24,
+                                    MinAmount = 12,
+                                    Probability = 0.40000000000000002,
                                     Rarity = 0,
                                     SubType = "Amethyst"
                                 },
@@ -34026,9 +34026,9 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ChestDropTableId = "c4e50000-0000-4000-8000-000002050002",
                                     ItemLevel = 1,
                                     ItemType = 2,
-                                    MaxAmount = 3,
-                                    MinAmount = 2,
-                                    Probability = 0.34999999999999998,
+                                    MaxAmount = 9,
+                                    MinAmount = 6,
+                                    Probability = 0.40000000000000002,
                                     Rarity = 1,
                                     SubType = "Amethyst"
                                 },
@@ -34038,9 +34038,9 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ChestDropTableId = "c4e50000-0000-4000-8000-000002050002",
                                     ItemLevel = 1,
                                     ItemType = 2,
-                                    MaxAmount = 2,
-                                    MinAmount = 1,
-                                    Probability = 0.12,
+                                    MaxAmount = 5,
+                                    MinAmount = 3,
+                                    Probability = 0.17000000000000001,
                                     Rarity = 2,
                                     SubType = "Amethyst"
                                 },
@@ -34050,9 +34050,9 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ChestDropTableId = "c4e50000-0000-4000-8000-000002050002",
                                     ItemLevel = 1,
                                     ItemType = 2,
-                                    MaxAmount = 1,
+                                    MaxAmount = 3,
                                     MinAmount = 1,
-                                    Probability = 0.02,
+                                    Probability = 0.029999999999999999,
                                     Rarity = 3,
                                     SubType = "Amethyst"
                                 },
@@ -34064,7 +34064,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.016666666666666666,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "DwarvenHammer"
                                 },
@@ -34076,7 +34076,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.016666666666666666,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "MinerHelm"
                                 },
@@ -34088,7 +34088,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.016666666666666666,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "MoonstonePendant"
                                 },
@@ -34100,7 +34100,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.016666666666666666,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "RingOfTheUnderdog"
                                 },
@@ -34112,7 +34112,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.016666666666666666,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "SpitefulRing"
                                 },
@@ -34124,7 +34124,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.016666666666666666,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "TwinBand"
                                 },
@@ -34136,7 +34136,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.014285714285714287,
+                                    Probability = 0.042857142857142858,
                                     Rarity = 2,
                                     SubType = "EmberMace"
                                 },
@@ -34148,7 +34148,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.014285714285714287,
+                                    Probability = 0.042857142857142858,
                                     Rarity = 2,
                                     SubType = "StormSpear"
                                 },
@@ -34160,7 +34160,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.014285714285714287,
+                                    Probability = 0.042857142857142858,
                                     Rarity = 2,
                                     SubType = "EmberCrown"
                                 },
@@ -34172,7 +34172,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.014285714285714287,
+                                    Probability = 0.042857142857142858,
                                     Rarity = 2,
                                     SubType = "FrostCrown"
                                 },
@@ -34184,7 +34184,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.014285714285714287,
+                                    Probability = 0.042857142857142858,
                                     Rarity = 2,
                                     SubType = "RunicAmulet"
                                 },
@@ -34196,7 +34196,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.014285714285714287,
+                                    Probability = 0.042857142857142858,
                                     Rarity = 2,
                                     SubType = "RingOfLingeringWords"
                                 },
@@ -34208,7 +34208,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.014285714285714287,
+                                    Probability = 0.042857142857142858,
                                     Rarity = 2,
                                     SubType = "RingOfTheStoneSkin"
                                 },
@@ -34220,7 +34220,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0080000000000000002,
+                                    Probability = 0.024,
                                     Rarity = 3,
                                     SubType = "BlackIceSword"
                                 },
@@ -34232,7 +34232,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0080000000000000002,
+                                    Probability = 0.024,
                                     Rarity = 3,
                                     SubType = "ThornStaff"
                                 },
@@ -34244,7 +34244,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0080000000000000002,
+                                    Probability = 0.024,
                                     Rarity = 3,
                                     SubType = "GroveCirclet"
                                 },
@@ -34256,7 +34256,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0080000000000000002,
+                                    Probability = 0.024,
                                     Rarity = 3,
                                     SubType = "StormAmulet"
                                 },
@@ -34268,7 +34268,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0080000000000000002,
+                                    Probability = 0.024,
                                     Rarity = 3,
                                     SubType = "RingOfCleaving"
                                 },
@@ -34280,7 +34280,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0025000000000000001,
+                                    Probability = 0.0074999999999999997,
                                     Rarity = 4,
                                     SubType = "DawnBlade"
                                 },
@@ -34292,7 +34292,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0025000000000000001,
+                                    Probability = 0.0074999999999999997,
                                     Rarity = 4,
                                     SubType = "WarlordHelm"
                                 },
@@ -34304,7 +34304,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0025000000000000001,
+                                    Probability = 0.0074999999999999997,
                                     Rarity = 4,
                                     SubType = "HeartOfTheMountain"
                                 },
@@ -34316,7 +34316,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0025000000000000001,
+                                    Probability = 0.0074999999999999997,
                                     Rarity = 4,
                                     SubType = "RingOfWildfire"
                                 },
@@ -34328,7 +34328,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 3,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.14999999999999999,
+                                    Probability = 0.45000000000000001,
                                     Rarity = 2,
                                     SubType = "Dark"
                                 },
@@ -34340,7 +34340,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 3,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.059999999999999998,
+                                    Probability = 0.17999999999999999,
                                     Rarity = 3,
                                     SubType = "Dark"
                                 },
@@ -34350,9 +34350,9 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ChestDropTableId = "c4e50000-0000-4000-8000-000002050003",
                                     ItemLevel = 1,
                                     ItemType = 2,
-                                    MaxAmount = 10,
-                                    MinAmount = 6,
-                                    Probability = 0.25,
+                                    MaxAmount = 30,
+                                    MinAmount = 18,
+                                    Probability = 0.28999999999999998,
                                     Rarity = 0,
                                     SubType = "Amethyst"
                                 },
@@ -34362,9 +34362,9 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ChestDropTableId = "c4e50000-0000-4000-8000-000002050003",
                                     ItemLevel = 1,
                                     ItemType = 2,
-                                    MaxAmount = 4,
-                                    MinAmount = 3,
-                                    Probability = 0.34999999999999998,
+                                    MaxAmount = 12,
+                                    MinAmount = 9,
+                                    Probability = 0.40000000000000002,
                                     Rarity = 1,
                                     SubType = "Amethyst"
                                 },
@@ -34374,9 +34374,9 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ChestDropTableId = "c4e50000-0000-4000-8000-000002050003",
                                     ItemLevel = 1,
                                     ItemType = 2,
-                                    MaxAmount = 2,
-                                    MinAmount = 1,
-                                    Probability = 0.20000000000000001,
+                                    MaxAmount = 6,
+                                    MinAmount = 3,
+                                    Probability = 0.23999999999999999,
                                     Rarity = 2,
                                     SubType = "Amethyst"
                                 },
@@ -34386,9 +34386,9 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ChestDropTableId = "c4e50000-0000-4000-8000-000002050003",
                                     ItemLevel = 1,
                                     ItemType = 2,
-                                    MaxAmount = 1,
-                                    MinAmount = 1,
-                                    Probability = 0.059999999999999998,
+                                    MaxAmount = 3,
+                                    MinAmount = 2,
+                                    Probability = 0.070000000000000007,
                                     Rarity = 3,
                                     SubType = "Amethyst"
                                 },
@@ -34400,7 +34400,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.021428571428571429,
+                                    Probability = 0.064285714285714293,
                                     Rarity = 2,
                                     SubType = "EmberMace"
                                 },
@@ -34412,7 +34412,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.021428571428571429,
+                                    Probability = 0.064285714285714293,
                                     Rarity = 2,
                                     SubType = "StormSpear"
                                 },
@@ -34424,7 +34424,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.021428571428571429,
+                                    Probability = 0.064285714285714293,
                                     Rarity = 2,
                                     SubType = "EmberCrown"
                                 },
@@ -34436,7 +34436,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.021428571428571429,
+                                    Probability = 0.064285714285714293,
                                     Rarity = 2,
                                     SubType = "FrostCrown"
                                 },
@@ -34448,7 +34448,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.021428571428571429,
+                                    Probability = 0.064285714285714293,
                                     Rarity = 2,
                                     SubType = "RunicAmulet"
                                 },
@@ -34460,7 +34460,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.021428571428571429,
+                                    Probability = 0.064285714285714293,
                                     Rarity = 2,
                                     SubType = "RingOfLingeringWords"
                                 },
@@ -34472,7 +34472,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.021428571428571429,
+                                    Probability = 0.064285714285714293,
                                     Rarity = 2,
                                     SubType = "RingOfTheStoneSkin"
                                 },
@@ -34484,7 +34484,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.016,
+                                    Probability = 0.048000000000000001,
                                     Rarity = 3,
                                     SubType = "BlackIceSword"
                                 },
@@ -34496,7 +34496,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.016,
+                                    Probability = 0.048000000000000001,
                                     Rarity = 3,
                                     SubType = "ThornStaff"
                                 },
@@ -34508,7 +34508,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.016,
+                                    Probability = 0.048000000000000001,
                                     Rarity = 3,
                                     SubType = "GroveCirclet"
                                 },
@@ -34520,7 +34520,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.016,
+                                    Probability = 0.048000000000000001,
                                     Rarity = 3,
                                     SubType = "StormAmulet"
                                 },
@@ -34532,7 +34532,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.016,
+                                    Probability = 0.048000000000000001,
                                     Rarity = 3,
                                     SubType = "RingOfCleaving"
                                 },
@@ -34544,7 +34544,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0074999999999999997,
+                                    Probability = 0.022499999999999999,
                                     Rarity = 4,
                                     SubType = "DawnBlade"
                                 },
@@ -34556,7 +34556,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0074999999999999997,
+                                    Probability = 0.022499999999999999,
                                     Rarity = 4,
                                     SubType = "WarlordHelm"
                                 },
@@ -34568,7 +34568,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0074999999999999997,
+                                    Probability = 0.022499999999999999,
                                     Rarity = 4,
                                     SubType = "HeartOfTheMountain"
                                 },
@@ -34580,7 +34580,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0074999999999999997,
+                                    Probability = 0.022499999999999999,
                                     Rarity = 4,
                                     SubType = "RingOfWildfire"
                                 },
@@ -34592,7 +34592,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "ArmageddonBlade"
                                 },
@@ -34604,7 +34604,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "GlacialRelic"
                                 },
@@ -34616,7 +34616,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "PhoenixStaff"
                                 },
@@ -34628,7 +34628,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "VolcanoHeart"
                                 },
@@ -34640,7 +34640,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "WinterShard"
                                 },
@@ -34652,7 +34652,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "GlacierShackles"
                                 },
@@ -34664,7 +34664,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "ThunderHammer"
                                 },
@@ -34676,7 +34676,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "StormCoil"
                                 },
@@ -34688,7 +34688,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "ThunderHorn"
                                 },
@@ -34700,7 +34700,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "LifeTreeSeed"
                                 },
@@ -34712,7 +34712,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "WyvernSting"
                                 },
@@ -34724,7 +34724,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "ElderGroveStaff"
                                 },
@@ -34736,7 +34736,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "AbyssalSigil"
                                 },
@@ -34748,7 +34748,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "CurseDoll"
                                 },
@@ -34760,7 +34760,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "ReaperScythe"
                                 },
@@ -34772,7 +34772,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "PrismLens"
                                 },
@@ -34784,7 +34784,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "SunDisc"
                                 },
@@ -34796,7 +34796,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "MorningStar"
                                 },
@@ -34808,7 +34808,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "BloodMoonFang"
                                 },
@@ -34820,7 +34820,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "ThousandCutsDagger"
                                 },
@@ -34832,7 +34832,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "SacrificialAltar"
                                 },
@@ -34844,7 +34844,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 3,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.14999999999999999,
+                                    Probability = 0.28999999999999998,
                                     Rarity = 1,
                                     SubType = "Radiance"
                                 },
@@ -34856,7 +34856,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 3,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.029999999999999999,
+                                    Probability = 0.059999999999999998,
                                     Rarity = 2,
                                     SubType = "Radiance"
                                 },
@@ -34866,9 +34866,9 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ChestDropTableId = "c4e50000-0000-4000-8000-000002060001",
                                     ItemLevel = 1,
                                     ItemType = 2,
-                                    MaxAmount = 6,
-                                    MinAmount = 3,
-                                    Probability = 0.55000000000000004,
+                                    MaxAmount = 11,
+                                    MinAmount = 6,
+                                    Probability = 0.59999999999999998,
                                     Rarity = 0,
                                     SubType = "Diamond"
                                 },
@@ -34878,9 +34878,9 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ChestDropTableId = "c4e50000-0000-4000-8000-000002060001",
                                     ItemLevel = 1,
                                     ItemType = 2,
-                                    MaxAmount = 2,
-                                    MinAmount = 1,
-                                    Probability = 0.29999999999999999,
+                                    MaxAmount = 4,
+                                    MinAmount = 2,
+                                    Probability = 0.33000000000000002,
                                     Rarity = 1,
                                     SubType = "Diamond"
                                 },
@@ -34890,9 +34890,9 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ChestDropTableId = "c4e50000-0000-4000-8000-000002060001",
                                     ItemLevel = 1,
                                     ItemType = 2,
-                                    MaxAmount = 1,
+                                    MaxAmount = 2,
                                     MinAmount = 1,
-                                    Probability = 0.050000000000000003,
+                                    Probability = 0.070000000000000007,
                                     Rarity = 2,
                                     SubType = "Diamond"
                                 },
@@ -34904,7 +34904,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.024999999999999998,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "DwarvenHammer"
                                 },
@@ -34916,7 +34916,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.024999999999999998,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "MinerHelm"
                                 },
@@ -34928,7 +34928,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.024999999999999998,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "MoonstonePendant"
                                 },
@@ -34940,7 +34940,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.024999999999999998,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "RingOfTheUnderdog"
                                 },
@@ -34952,7 +34952,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.024999999999999998,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "SpitefulRing"
                                 },
@@ -34964,7 +34964,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.024999999999999998,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "TwinBand"
                                 },
@@ -34976,7 +34976,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0071428571428571435,
+                                    Probability = 0.014285714285714287,
                                     Rarity = 2,
                                     SubType = "EmberMace"
                                 },
@@ -34988,7 +34988,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0071428571428571435,
+                                    Probability = 0.014285714285714287,
                                     Rarity = 2,
                                     SubType = "StormSpear"
                                 },
@@ -35000,7 +35000,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0071428571428571435,
+                                    Probability = 0.014285714285714287,
                                     Rarity = 2,
                                     SubType = "EmberCrown"
                                 },
@@ -35012,7 +35012,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0071428571428571435,
+                                    Probability = 0.014285714285714287,
                                     Rarity = 2,
                                     SubType = "FrostCrown"
                                 },
@@ -35024,7 +35024,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0071428571428571435,
+                                    Probability = 0.014285714285714287,
                                     Rarity = 2,
                                     SubType = "RunicAmulet"
                                 },
@@ -35036,7 +35036,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0071428571428571435,
+                                    Probability = 0.014285714285714287,
                                     Rarity = 2,
                                     SubType = "RingOfLingeringWords"
                                 },
@@ -35048,7 +35048,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0071428571428571435,
+                                    Probability = 0.014285714285714287,
                                     Rarity = 2,
                                     SubType = "RingOfTheStoneSkin"
                                 },
@@ -35060,7 +35060,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.002,
+                                    Probability = 0.0040000000000000001,
                                     Rarity = 3,
                                     SubType = "BlackIceSword"
                                 },
@@ -35072,7 +35072,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.002,
+                                    Probability = 0.0040000000000000001,
                                     Rarity = 3,
                                     SubType = "ThornStaff"
                                 },
@@ -35084,7 +35084,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.002,
+                                    Probability = 0.0040000000000000001,
                                     Rarity = 3,
                                     SubType = "GroveCirclet"
                                 },
@@ -35096,7 +35096,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.002,
+                                    Probability = 0.0040000000000000001,
                                     Rarity = 3,
                                     SubType = "StormAmulet"
                                 },
@@ -35108,7 +35108,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.002,
+                                    Probability = 0.0040000000000000001,
                                     Rarity = 3,
                                     SubType = "RingOfCleaving"
                                 },
@@ -35120,7 +35120,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 3,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.12,
+                                    Probability = 0.35999999999999999,
                                     Rarity = 1,
                                     SubType = "Radiance"
                                 },
@@ -35132,7 +35132,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 3,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.10000000000000001,
+                                    Probability = 0.29999999999999999,
                                     Rarity = 2,
                                     SubType = "Radiance"
                                 },
@@ -35144,7 +35144,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 3,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.02,
+                                    Probability = 0.059999999999999998,
                                     Rarity = 3,
                                     SubType = "Radiance"
                                 },
@@ -35154,9 +35154,9 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ChestDropTableId = "c4e50000-0000-4000-8000-000002060002",
                                     ItemLevel = 1,
                                     ItemType = 2,
-                                    MaxAmount = 8,
-                                    MinAmount = 4,
-                                    Probability = 0.34999999999999998,
+                                    MaxAmount = 24,
+                                    MinAmount = 12,
+                                    Probability = 0.40000000000000002,
                                     Rarity = 0,
                                     SubType = "Diamond"
                                 },
@@ -35166,9 +35166,9 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ChestDropTableId = "c4e50000-0000-4000-8000-000002060002",
                                     ItemLevel = 1,
                                     ItemType = 2,
-                                    MaxAmount = 3,
-                                    MinAmount = 2,
-                                    Probability = 0.34999999999999998,
+                                    MaxAmount = 9,
+                                    MinAmount = 6,
+                                    Probability = 0.40000000000000002,
                                     Rarity = 1,
                                     SubType = "Diamond"
                                 },
@@ -35178,9 +35178,9 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ChestDropTableId = "c4e50000-0000-4000-8000-000002060002",
                                     ItemLevel = 1,
                                     ItemType = 2,
-                                    MaxAmount = 2,
-                                    MinAmount = 1,
-                                    Probability = 0.12,
+                                    MaxAmount = 5,
+                                    MinAmount = 3,
+                                    Probability = 0.17000000000000001,
                                     Rarity = 2,
                                     SubType = "Diamond"
                                 },
@@ -35190,9 +35190,9 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ChestDropTableId = "c4e50000-0000-4000-8000-000002060002",
                                     ItemLevel = 1,
                                     ItemType = 2,
-                                    MaxAmount = 1,
+                                    MaxAmount = 3,
                                     MinAmount = 1,
-                                    Probability = 0.02,
+                                    Probability = 0.029999999999999999,
                                     Rarity = 3,
                                     SubType = "Diamond"
                                 },
@@ -35204,7 +35204,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.016666666666666666,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "DwarvenHammer"
                                 },
@@ -35216,7 +35216,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.016666666666666666,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "MinerHelm"
                                 },
@@ -35228,7 +35228,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.016666666666666666,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "MoonstonePendant"
                                 },
@@ -35240,7 +35240,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.016666666666666666,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "RingOfTheUnderdog"
                                 },
@@ -35252,7 +35252,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.016666666666666666,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "SpitefulRing"
                                 },
@@ -35264,7 +35264,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.016666666666666666,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "TwinBand"
                                 },
@@ -35276,7 +35276,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.014285714285714287,
+                                    Probability = 0.042857142857142858,
                                     Rarity = 2,
                                     SubType = "EmberMace"
                                 },
@@ -35288,7 +35288,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.014285714285714287,
+                                    Probability = 0.042857142857142858,
                                     Rarity = 2,
                                     SubType = "StormSpear"
                                 },
@@ -35300,7 +35300,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.014285714285714287,
+                                    Probability = 0.042857142857142858,
                                     Rarity = 2,
                                     SubType = "EmberCrown"
                                 },
@@ -35312,7 +35312,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.014285714285714287,
+                                    Probability = 0.042857142857142858,
                                     Rarity = 2,
                                     SubType = "FrostCrown"
                                 },
@@ -35324,7 +35324,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.014285714285714287,
+                                    Probability = 0.042857142857142858,
                                     Rarity = 2,
                                     SubType = "RunicAmulet"
                                 },
@@ -35336,7 +35336,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.014285714285714287,
+                                    Probability = 0.042857142857142858,
                                     Rarity = 2,
                                     SubType = "RingOfLingeringWords"
                                 },
@@ -35348,7 +35348,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.014285714285714287,
+                                    Probability = 0.042857142857142858,
                                     Rarity = 2,
                                     SubType = "RingOfTheStoneSkin"
                                 },
@@ -35360,7 +35360,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0080000000000000002,
+                                    Probability = 0.024,
                                     Rarity = 3,
                                     SubType = "BlackIceSword"
                                 },
@@ -35372,7 +35372,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0080000000000000002,
+                                    Probability = 0.024,
                                     Rarity = 3,
                                     SubType = "ThornStaff"
                                 },
@@ -35384,7 +35384,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0080000000000000002,
+                                    Probability = 0.024,
                                     Rarity = 3,
                                     SubType = "GroveCirclet"
                                 },
@@ -35396,7 +35396,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0080000000000000002,
+                                    Probability = 0.024,
                                     Rarity = 3,
                                     SubType = "StormAmulet"
                                 },
@@ -35408,7 +35408,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0080000000000000002,
+                                    Probability = 0.024,
                                     Rarity = 3,
                                     SubType = "RingOfCleaving"
                                 },
@@ -35420,7 +35420,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0025000000000000001,
+                                    Probability = 0.0074999999999999997,
                                     Rarity = 4,
                                     SubType = "DawnBlade"
                                 },
@@ -35432,7 +35432,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0025000000000000001,
+                                    Probability = 0.0074999999999999997,
                                     Rarity = 4,
                                     SubType = "WarlordHelm"
                                 },
@@ -35444,7 +35444,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0025000000000000001,
+                                    Probability = 0.0074999999999999997,
                                     Rarity = 4,
                                     SubType = "HeartOfTheMountain"
                                 },
@@ -35456,7 +35456,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0025000000000000001,
+                                    Probability = 0.0074999999999999997,
                                     Rarity = 4,
                                     SubType = "RingOfWildfire"
                                 },
@@ -35468,7 +35468,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 3,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.14999999999999999,
+                                    Probability = 0.45000000000000001,
                                     Rarity = 2,
                                     SubType = "Radiance"
                                 },
@@ -35480,7 +35480,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 3,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.059999999999999998,
+                                    Probability = 0.17999999999999999,
                                     Rarity = 3,
                                     SubType = "Radiance"
                                 },
@@ -35490,9 +35490,9 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ChestDropTableId = "c4e50000-0000-4000-8000-000002060003",
                                     ItemLevel = 1,
                                     ItemType = 2,
-                                    MaxAmount = 10,
-                                    MinAmount = 6,
-                                    Probability = 0.25,
+                                    MaxAmount = 30,
+                                    MinAmount = 18,
+                                    Probability = 0.28999999999999998,
                                     Rarity = 0,
                                     SubType = "Diamond"
                                 },
@@ -35502,9 +35502,9 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ChestDropTableId = "c4e50000-0000-4000-8000-000002060003",
                                     ItemLevel = 1,
                                     ItemType = 2,
-                                    MaxAmount = 4,
-                                    MinAmount = 3,
-                                    Probability = 0.34999999999999998,
+                                    MaxAmount = 12,
+                                    MinAmount = 9,
+                                    Probability = 0.40000000000000002,
                                     Rarity = 1,
                                     SubType = "Diamond"
                                 },
@@ -35514,9 +35514,9 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ChestDropTableId = "c4e50000-0000-4000-8000-000002060003",
                                     ItemLevel = 1,
                                     ItemType = 2,
-                                    MaxAmount = 2,
-                                    MinAmount = 1,
-                                    Probability = 0.20000000000000001,
+                                    MaxAmount = 6,
+                                    MinAmount = 3,
+                                    Probability = 0.23999999999999999,
                                     Rarity = 2,
                                     SubType = "Diamond"
                                 },
@@ -35526,9 +35526,9 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ChestDropTableId = "c4e50000-0000-4000-8000-000002060003",
                                     ItemLevel = 1,
                                     ItemType = 2,
-                                    MaxAmount = 1,
-                                    MinAmount = 1,
-                                    Probability = 0.059999999999999998,
+                                    MaxAmount = 3,
+                                    MinAmount = 2,
+                                    Probability = 0.070000000000000007,
                                     Rarity = 3,
                                     SubType = "Diamond"
                                 },
@@ -35540,7 +35540,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.021428571428571429,
+                                    Probability = 0.064285714285714293,
                                     Rarity = 2,
                                     SubType = "EmberMace"
                                 },
@@ -35552,7 +35552,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.021428571428571429,
+                                    Probability = 0.064285714285714293,
                                     Rarity = 2,
                                     SubType = "StormSpear"
                                 },
@@ -35564,7 +35564,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.021428571428571429,
+                                    Probability = 0.064285714285714293,
                                     Rarity = 2,
                                     SubType = "EmberCrown"
                                 },
@@ -35576,7 +35576,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.021428571428571429,
+                                    Probability = 0.064285714285714293,
                                     Rarity = 2,
                                     SubType = "FrostCrown"
                                 },
@@ -35588,7 +35588,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.021428571428571429,
+                                    Probability = 0.064285714285714293,
                                     Rarity = 2,
                                     SubType = "RunicAmulet"
                                 },
@@ -35600,7 +35600,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.021428571428571429,
+                                    Probability = 0.064285714285714293,
                                     Rarity = 2,
                                     SubType = "RingOfLingeringWords"
                                 },
@@ -35612,7 +35612,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.021428571428571429,
+                                    Probability = 0.064285714285714293,
                                     Rarity = 2,
                                     SubType = "RingOfTheStoneSkin"
                                 },
@@ -35624,7 +35624,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.016,
+                                    Probability = 0.048000000000000001,
                                     Rarity = 3,
                                     SubType = "BlackIceSword"
                                 },
@@ -35636,7 +35636,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.016,
+                                    Probability = 0.048000000000000001,
                                     Rarity = 3,
                                     SubType = "ThornStaff"
                                 },
@@ -35648,7 +35648,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.016,
+                                    Probability = 0.048000000000000001,
                                     Rarity = 3,
                                     SubType = "GroveCirclet"
                                 },
@@ -35660,7 +35660,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.016,
+                                    Probability = 0.048000000000000001,
                                     Rarity = 3,
                                     SubType = "StormAmulet"
                                 },
@@ -35672,7 +35672,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.016,
+                                    Probability = 0.048000000000000001,
                                     Rarity = 3,
                                     SubType = "RingOfCleaving"
                                 },
@@ -35684,7 +35684,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0074999999999999997,
+                                    Probability = 0.022499999999999999,
                                     Rarity = 4,
                                     SubType = "DawnBlade"
                                 },
@@ -35696,7 +35696,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0074999999999999997,
+                                    Probability = 0.022499999999999999,
                                     Rarity = 4,
                                     SubType = "WarlordHelm"
                                 },
@@ -35708,7 +35708,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0074999999999999997,
+                                    Probability = 0.022499999999999999,
                                     Rarity = 4,
                                     SubType = "HeartOfTheMountain"
                                 },
@@ -35720,7 +35720,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0074999999999999997,
+                                    Probability = 0.022499999999999999,
                                     Rarity = 4,
                                     SubType = "RingOfWildfire"
                                 },
@@ -35732,7 +35732,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "ArmageddonBlade"
                                 },
@@ -35744,7 +35744,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "GlacialRelic"
                                 },
@@ -35756,7 +35756,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "PhoenixStaff"
                                 },
@@ -35768,7 +35768,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "VolcanoHeart"
                                 },
@@ -35780,7 +35780,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "WinterShard"
                                 },
@@ -35792,7 +35792,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "GlacierShackles"
                                 },
@@ -35804,7 +35804,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "ThunderHammer"
                                 },
@@ -35816,7 +35816,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "StormCoil"
                                 },
@@ -35828,7 +35828,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "ThunderHorn"
                                 },
@@ -35840,7 +35840,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "LifeTreeSeed"
                                 },
@@ -35852,7 +35852,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "WyvernSting"
                                 },
@@ -35864,7 +35864,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "ElderGroveStaff"
                                 },
@@ -35876,7 +35876,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "AbyssalSigil"
                                 },
@@ -35888,7 +35888,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "CurseDoll"
                                 },
@@ -35900,7 +35900,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "ReaperScythe"
                                 },
@@ -35912,7 +35912,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "PrismLens"
                                 },
@@ -35924,7 +35924,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "SunDisc"
                                 },
@@ -35936,7 +35936,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "MorningStar"
                                 },
@@ -35948,7 +35948,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "BloodMoonFang"
                                 },
@@ -35960,7 +35960,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "ThousandCutsDagger"
                                 },
@@ -35972,7 +35972,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "SacrificialAltar"
                                 },
@@ -35984,7 +35984,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 3,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.14999999999999999,
+                                    Probability = 0.28999999999999998,
                                     Rarity = 1,
                                     SubType = "Blood"
                                 },
@@ -35996,7 +35996,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 3,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.029999999999999999,
+                                    Probability = 0.059999999999999998,
                                     Rarity = 2,
                                     SubType = "Blood"
                                 },
@@ -36006,9 +36006,9 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ChestDropTableId = "c4e50000-0000-4000-8000-000002070001",
                                     ItemLevel = 1,
                                     ItemType = 2,
-                                    MaxAmount = 6,
-                                    MinAmount = 3,
-                                    Probability = 0.55000000000000004,
+                                    MaxAmount = 11,
+                                    MinAmount = 6,
+                                    Probability = 0.59999999999999998,
                                     Rarity = 0,
                                     SubType = "Garnet"
                                 },
@@ -36018,9 +36018,9 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ChestDropTableId = "c4e50000-0000-4000-8000-000002070001",
                                     ItemLevel = 1,
                                     ItemType = 2,
-                                    MaxAmount = 2,
-                                    MinAmount = 1,
-                                    Probability = 0.29999999999999999,
+                                    MaxAmount = 4,
+                                    MinAmount = 2,
+                                    Probability = 0.33000000000000002,
                                     Rarity = 1,
                                     SubType = "Garnet"
                                 },
@@ -36030,9 +36030,9 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ChestDropTableId = "c4e50000-0000-4000-8000-000002070001",
                                     ItemLevel = 1,
                                     ItemType = 2,
-                                    MaxAmount = 1,
+                                    MaxAmount = 2,
                                     MinAmount = 1,
-                                    Probability = 0.050000000000000003,
+                                    Probability = 0.070000000000000007,
                                     Rarity = 2,
                                     SubType = "Garnet"
                                 },
@@ -36044,7 +36044,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.024999999999999998,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "DwarvenHammer"
                                 },
@@ -36056,7 +36056,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.024999999999999998,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "MinerHelm"
                                 },
@@ -36068,7 +36068,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.024999999999999998,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "MoonstonePendant"
                                 },
@@ -36080,7 +36080,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.024999999999999998,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "RingOfTheUnderdog"
                                 },
@@ -36092,7 +36092,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.024999999999999998,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "SpitefulRing"
                                 },
@@ -36104,7 +36104,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.024999999999999998,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "TwinBand"
                                 },
@@ -36116,7 +36116,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0071428571428571435,
+                                    Probability = 0.014285714285714287,
                                     Rarity = 2,
                                     SubType = "EmberMace"
                                 },
@@ -36128,7 +36128,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0071428571428571435,
+                                    Probability = 0.014285714285714287,
                                     Rarity = 2,
                                     SubType = "StormSpear"
                                 },
@@ -36140,7 +36140,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0071428571428571435,
+                                    Probability = 0.014285714285714287,
                                     Rarity = 2,
                                     SubType = "EmberCrown"
                                 },
@@ -36152,7 +36152,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0071428571428571435,
+                                    Probability = 0.014285714285714287,
                                     Rarity = 2,
                                     SubType = "FrostCrown"
                                 },
@@ -36164,7 +36164,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0071428571428571435,
+                                    Probability = 0.014285714285714287,
                                     Rarity = 2,
                                     SubType = "RunicAmulet"
                                 },
@@ -36176,7 +36176,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0071428571428571435,
+                                    Probability = 0.014285714285714287,
                                     Rarity = 2,
                                     SubType = "RingOfLingeringWords"
                                 },
@@ -36188,7 +36188,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0071428571428571435,
+                                    Probability = 0.014285714285714287,
                                     Rarity = 2,
                                     SubType = "RingOfTheStoneSkin"
                                 },
@@ -36200,7 +36200,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.002,
+                                    Probability = 0.0040000000000000001,
                                     Rarity = 3,
                                     SubType = "BlackIceSword"
                                 },
@@ -36212,7 +36212,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.002,
+                                    Probability = 0.0040000000000000001,
                                     Rarity = 3,
                                     SubType = "ThornStaff"
                                 },
@@ -36224,7 +36224,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.002,
+                                    Probability = 0.0040000000000000001,
                                     Rarity = 3,
                                     SubType = "GroveCirclet"
                                 },
@@ -36236,7 +36236,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.002,
+                                    Probability = 0.0040000000000000001,
                                     Rarity = 3,
                                     SubType = "StormAmulet"
                                 },
@@ -36248,7 +36248,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.002,
+                                    Probability = 0.0040000000000000001,
                                     Rarity = 3,
                                     SubType = "RingOfCleaving"
                                 },
@@ -36260,7 +36260,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 3,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.12,
+                                    Probability = 0.35999999999999999,
                                     Rarity = 1,
                                     SubType = "Blood"
                                 },
@@ -36272,7 +36272,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 3,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.10000000000000001,
+                                    Probability = 0.29999999999999999,
                                     Rarity = 2,
                                     SubType = "Blood"
                                 },
@@ -36284,7 +36284,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 3,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.02,
+                                    Probability = 0.059999999999999998,
                                     Rarity = 3,
                                     SubType = "Blood"
                                 },
@@ -36294,9 +36294,9 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ChestDropTableId = "c4e50000-0000-4000-8000-000002070002",
                                     ItemLevel = 1,
                                     ItemType = 2,
-                                    MaxAmount = 8,
-                                    MinAmount = 4,
-                                    Probability = 0.34999999999999998,
+                                    MaxAmount = 24,
+                                    MinAmount = 12,
+                                    Probability = 0.40000000000000002,
                                     Rarity = 0,
                                     SubType = "Garnet"
                                 },
@@ -36306,9 +36306,9 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ChestDropTableId = "c4e50000-0000-4000-8000-000002070002",
                                     ItemLevel = 1,
                                     ItemType = 2,
-                                    MaxAmount = 3,
-                                    MinAmount = 2,
-                                    Probability = 0.34999999999999998,
+                                    MaxAmount = 9,
+                                    MinAmount = 6,
+                                    Probability = 0.40000000000000002,
                                     Rarity = 1,
                                     SubType = "Garnet"
                                 },
@@ -36318,9 +36318,9 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ChestDropTableId = "c4e50000-0000-4000-8000-000002070002",
                                     ItemLevel = 1,
                                     ItemType = 2,
-                                    MaxAmount = 2,
-                                    MinAmount = 1,
-                                    Probability = 0.12,
+                                    MaxAmount = 5,
+                                    MinAmount = 3,
+                                    Probability = 0.17000000000000001,
                                     Rarity = 2,
                                     SubType = "Garnet"
                                 },
@@ -36330,9 +36330,9 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ChestDropTableId = "c4e50000-0000-4000-8000-000002070002",
                                     ItemLevel = 1,
                                     ItemType = 2,
-                                    MaxAmount = 1,
+                                    MaxAmount = 3,
                                     MinAmount = 1,
-                                    Probability = 0.02,
+                                    Probability = 0.029999999999999999,
                                     Rarity = 3,
                                     SubType = "Garnet"
                                 },
@@ -36344,7 +36344,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.016666666666666666,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "DwarvenHammer"
                                 },
@@ -36356,7 +36356,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.016666666666666666,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "MinerHelm"
                                 },
@@ -36368,7 +36368,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.016666666666666666,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "MoonstonePendant"
                                 },
@@ -36380,7 +36380,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.016666666666666666,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "RingOfTheUnderdog"
                                 },
@@ -36392,7 +36392,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.016666666666666666,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "SpitefulRing"
                                 },
@@ -36404,7 +36404,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.016666666666666666,
+                                    Probability = 0.049999999999999996,
                                     Rarity = 1,
                                     SubType = "TwinBand"
                                 },
@@ -36416,7 +36416,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.014285714285714287,
+                                    Probability = 0.042857142857142858,
                                     Rarity = 2,
                                     SubType = "EmberMace"
                                 },
@@ -36428,7 +36428,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.014285714285714287,
+                                    Probability = 0.042857142857142858,
                                     Rarity = 2,
                                     SubType = "StormSpear"
                                 },
@@ -36440,7 +36440,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.014285714285714287,
+                                    Probability = 0.042857142857142858,
                                     Rarity = 2,
                                     SubType = "EmberCrown"
                                 },
@@ -36452,7 +36452,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.014285714285714287,
+                                    Probability = 0.042857142857142858,
                                     Rarity = 2,
                                     SubType = "FrostCrown"
                                 },
@@ -36464,7 +36464,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.014285714285714287,
+                                    Probability = 0.042857142857142858,
                                     Rarity = 2,
                                     SubType = "RunicAmulet"
                                 },
@@ -36476,7 +36476,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.014285714285714287,
+                                    Probability = 0.042857142857142858,
                                     Rarity = 2,
                                     SubType = "RingOfLingeringWords"
                                 },
@@ -36488,7 +36488,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.014285714285714287,
+                                    Probability = 0.042857142857142858,
                                     Rarity = 2,
                                     SubType = "RingOfTheStoneSkin"
                                 },
@@ -36500,7 +36500,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0080000000000000002,
+                                    Probability = 0.024,
                                     Rarity = 3,
                                     SubType = "BlackIceSword"
                                 },
@@ -36512,7 +36512,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0080000000000000002,
+                                    Probability = 0.024,
                                     Rarity = 3,
                                     SubType = "ThornStaff"
                                 },
@@ -36524,7 +36524,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0080000000000000002,
+                                    Probability = 0.024,
                                     Rarity = 3,
                                     SubType = "GroveCirclet"
                                 },
@@ -36536,7 +36536,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0080000000000000002,
+                                    Probability = 0.024,
                                     Rarity = 3,
                                     SubType = "StormAmulet"
                                 },
@@ -36548,7 +36548,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0080000000000000002,
+                                    Probability = 0.024,
                                     Rarity = 3,
                                     SubType = "RingOfCleaving"
                                 },
@@ -36560,7 +36560,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0025000000000000001,
+                                    Probability = 0.0074999999999999997,
                                     Rarity = 4,
                                     SubType = "DawnBlade"
                                 },
@@ -36572,7 +36572,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0025000000000000001,
+                                    Probability = 0.0074999999999999997,
                                     Rarity = 4,
                                     SubType = "WarlordHelm"
                                 },
@@ -36584,7 +36584,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0025000000000000001,
+                                    Probability = 0.0074999999999999997,
                                     Rarity = 4,
                                     SubType = "HeartOfTheMountain"
                                 },
@@ -36596,7 +36596,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0025000000000000001,
+                                    Probability = 0.0074999999999999997,
                                     Rarity = 4,
                                     SubType = "RingOfWildfire"
                                 },
@@ -36608,7 +36608,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 3,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.14999999999999999,
+                                    Probability = 0.45000000000000001,
                                     Rarity = 2,
                                     SubType = "Blood"
                                 },
@@ -36620,7 +36620,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 3,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.059999999999999998,
+                                    Probability = 0.17999999999999999,
                                     Rarity = 3,
                                     SubType = "Blood"
                                 },
@@ -36630,9 +36630,9 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ChestDropTableId = "c4e50000-0000-4000-8000-000002070003",
                                     ItemLevel = 1,
                                     ItemType = 2,
-                                    MaxAmount = 10,
-                                    MinAmount = 6,
-                                    Probability = 0.25,
+                                    MaxAmount = 30,
+                                    MinAmount = 18,
+                                    Probability = 0.28999999999999998,
                                     Rarity = 0,
                                     SubType = "Garnet"
                                 },
@@ -36642,9 +36642,9 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ChestDropTableId = "c4e50000-0000-4000-8000-000002070003",
                                     ItemLevel = 1,
                                     ItemType = 2,
-                                    MaxAmount = 4,
-                                    MinAmount = 3,
-                                    Probability = 0.34999999999999998,
+                                    MaxAmount = 12,
+                                    MinAmount = 9,
+                                    Probability = 0.40000000000000002,
                                     Rarity = 1,
                                     SubType = "Garnet"
                                 },
@@ -36654,9 +36654,9 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ChestDropTableId = "c4e50000-0000-4000-8000-000002070003",
                                     ItemLevel = 1,
                                     ItemType = 2,
-                                    MaxAmount = 2,
-                                    MinAmount = 1,
-                                    Probability = 0.20000000000000001,
+                                    MaxAmount = 6,
+                                    MinAmount = 3,
+                                    Probability = 0.23999999999999999,
                                     Rarity = 2,
                                     SubType = "Garnet"
                                 },
@@ -36666,9 +36666,9 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ChestDropTableId = "c4e50000-0000-4000-8000-000002070003",
                                     ItemLevel = 1,
                                     ItemType = 2,
-                                    MaxAmount = 1,
-                                    MinAmount = 1,
-                                    Probability = 0.059999999999999998,
+                                    MaxAmount = 3,
+                                    MinAmount = 2,
+                                    Probability = 0.070000000000000007,
                                     Rarity = 3,
                                     SubType = "Garnet"
                                 },
@@ -36680,7 +36680,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.021428571428571429,
+                                    Probability = 0.064285714285714293,
                                     Rarity = 2,
                                     SubType = "EmberMace"
                                 },
@@ -36692,7 +36692,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.021428571428571429,
+                                    Probability = 0.064285714285714293,
                                     Rarity = 2,
                                     SubType = "StormSpear"
                                 },
@@ -36704,7 +36704,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.021428571428571429,
+                                    Probability = 0.064285714285714293,
                                     Rarity = 2,
                                     SubType = "EmberCrown"
                                 },
@@ -36716,7 +36716,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.021428571428571429,
+                                    Probability = 0.064285714285714293,
                                     Rarity = 2,
                                     SubType = "FrostCrown"
                                 },
@@ -36728,7 +36728,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.021428571428571429,
+                                    Probability = 0.064285714285714293,
                                     Rarity = 2,
                                     SubType = "RunicAmulet"
                                 },
@@ -36740,7 +36740,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.021428571428571429,
+                                    Probability = 0.064285714285714293,
                                     Rarity = 2,
                                     SubType = "RingOfLingeringWords"
                                 },
@@ -36752,7 +36752,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.021428571428571429,
+                                    Probability = 0.064285714285714293,
                                     Rarity = 2,
                                     SubType = "RingOfTheStoneSkin"
                                 },
@@ -36764,7 +36764,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.016,
+                                    Probability = 0.048000000000000001,
                                     Rarity = 3,
                                     SubType = "BlackIceSword"
                                 },
@@ -36776,7 +36776,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.016,
+                                    Probability = 0.048000000000000001,
                                     Rarity = 3,
                                     SubType = "ThornStaff"
                                 },
@@ -36788,7 +36788,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.016,
+                                    Probability = 0.048000000000000001,
                                     Rarity = 3,
                                     SubType = "GroveCirclet"
                                 },
@@ -36800,7 +36800,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.016,
+                                    Probability = 0.048000000000000001,
                                     Rarity = 3,
                                     SubType = "StormAmulet"
                                 },
@@ -36812,7 +36812,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.016,
+                                    Probability = 0.048000000000000001,
                                     Rarity = 3,
                                     SubType = "RingOfCleaving"
                                 },
@@ -36824,7 +36824,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0074999999999999997,
+                                    Probability = 0.022499999999999999,
                                     Rarity = 4,
                                     SubType = "DawnBlade"
                                 },
@@ -36836,7 +36836,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0074999999999999997,
+                                    Probability = 0.022499999999999999,
                                     Rarity = 4,
                                     SubType = "WarlordHelm"
                                 },
@@ -36848,7 +36848,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0074999999999999997,
+                                    Probability = 0.022499999999999999,
                                     Rarity = 4,
                                     SubType = "HeartOfTheMountain"
                                 },
@@ -36860,7 +36860,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0074999999999999997,
+                                    Probability = 0.022499999999999999,
                                     Rarity = 4,
                                     SubType = "RingOfWildfire"
                                 },
@@ -36872,7 +36872,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "ArmageddonBlade"
                                 },
@@ -36884,7 +36884,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "GlacialRelic"
                                 },
@@ -36896,7 +36896,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "PhoenixStaff"
                                 },
@@ -36908,7 +36908,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "VolcanoHeart"
                                 },
@@ -36920,7 +36920,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "WinterShard"
                                 },
@@ -36932,7 +36932,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "GlacierShackles"
                                 },
@@ -36944,7 +36944,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "ThunderHammer"
                                 },
@@ -36956,7 +36956,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "StormCoil"
                                 },
@@ -36968,7 +36968,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "ThunderHorn"
                                 },
@@ -36980,7 +36980,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "LifeTreeSeed"
                                 },
@@ -36992,7 +36992,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "WyvernSting"
                                 },
@@ -37004,7 +37004,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "ElderGroveStaff"
                                 },
@@ -37016,7 +37016,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "AbyssalSigil"
                                 },
@@ -37028,7 +37028,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "CurseDoll"
                                 },
@@ -37040,7 +37040,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "ReaperScythe"
                                 },
@@ -37052,7 +37052,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "PrismLens"
                                 },
@@ -37064,7 +37064,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "SunDisc"
                                 },
@@ -37076,7 +37076,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "MorningStar"
                                 },
@@ -37088,7 +37088,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "BloodMoonFang"
                                 },
@@ -37100,7 +37100,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "ThousandCutsDagger"
                                 },
@@ -37112,7 +37112,7 @@ namespace IdleDwarfsGame.Server.Migrations
                                     ItemType = 0,
                                     MaxAmount = 1,
                                     MinAmount = 1,
-                                    Probability = 0.0002380952380952381,
+                                    Probability = 0.00071428571428571429,
                                     Rarity = 5,
                                     SubType = "SacrificialAltar"
                                 });

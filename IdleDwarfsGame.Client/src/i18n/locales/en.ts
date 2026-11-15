@@ -659,6 +659,22 @@ const en = {
     openError: 'Could not open the chest.',
     dropped: 'Dropped from the chest:',
     nothing: 'The chest turned out to be empty.',
+    reveal: {
+      tapChest: 'Click the chest to open it',
+      tapCards: 'Break the veins: click hits one, space hits all of them',
+      space: 'Space',
+      skip: 'Skip',
+      openChest: 'Open',
+      hitAll: 'Hit them all',
+      collect: 'Collect',
+      bonus: 'Bonus',
+      kinds: {
+        Gold: 'Gold',
+        Experience: 'Experience',
+        RainbowCoins: 'Rainbow coins',
+        EventCurrency: 'Event coins',
+      },
+    },
   },
   gems: {
     Ruby: 'Ruby',

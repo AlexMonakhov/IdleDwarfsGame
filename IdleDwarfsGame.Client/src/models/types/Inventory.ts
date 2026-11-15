@@ -33,11 +33,24 @@ export interface InventoryInfo {
     items: ItemInfo[];
 }
 
+// Доп. награда сундука (ChestBonuses на сервере): карт всегда 5, основные награды + бонусы. Уже начислена
+export type ChestBonusKind = 'Gold' | 'Experience' | 'Gems' | 'RainbowCoins' | 'EventCurrency';
+
+export interface ChestBonusInfo {
+    kind: ChestBonusKind;
+    amount: number;
+    // Только цвет карты
+    rarity: Rarity;
+    // Камень у Gems ('Ruby'), иначе пусто
+    subType: string;
+}
+
 export interface ChestOpenResult {
     chest: ChestInfo;
     items: ItemInfo[];
     heroes: HeroInfo[];
     equipment: EquipmentInfo[];
+    bonuses: ChestBonusInfo[];
 }
 
 export interface RewardChestInfo {

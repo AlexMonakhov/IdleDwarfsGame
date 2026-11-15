@@ -165,10 +165,11 @@ public class RewardTests : IDisposable
             .ClaimAsync(_playerId, reward.Id);
 
         var inventory = new InventoryRepository(_context);
-        var chests = new ChestService(inventory, new ItemDropService(new Random(5)), Factory, new Random(5), NoActivity.Instance);
+        var chests = new ChestService(inventory, new ItemDropService(new Random(5)), Factory, new Random(5), NoActivity.Instance, new PlayerRepository(_context), TimeProvider.System);
         var gemChest = (await chests.GetInventoryAsync(_playerId)).Chests.Single(c => c.Type == ChestType.Gem);
         var heroChest = (await chests.GetInventoryAsync(_playerId)).Chests.Single(c => c.Type == ChestType.Hero);
 
+        var before = await _context.Players.AsNoTracking().SingleAsync(p => p.Id == _playerId);
         var gems = await chests.OpenAsync(_playerId, gemChest.Id);
         Assert.All(gems.Items, i => Assert.Equal(ItemType.Gem, i.ItemType));
         Assert.Empty(gems.Heroes);
@@ -186,7 +187,17 @@ public class RewardTests : IDisposable
         // Всё выпавшее лежит в инвентаре, а сундуки больше не открыть
         var after = await chests.GetInventoryAsync(_playerId);
         Assert.Empty(after.Chests);
-        Assert.Equal(gems.Items.Sum(i => i.Quantity), after.Items.Sum(i => i.Quantity));
+        // Камни сундука и бонусные камни обоих сундуков (ChestBonuses)
+        long bonusGems = gems.Bonuses.Concat(heroes.Bonuses).Where(b => b.Kind == ChestBonusKind.Gems).Sum(b => (long)b.Amount);
+        Assert.Equal(gems.Items.Sum(i => i.Quantity) + bonusGems, after.Items.Sum(i => i.Quantity));
+        // Карт всегда пять: основные награды + бонусы
+        Assert.Equal(ChestBonuses.CardCount, heroes.Heroes.Count + heroes.Bonuses.Count);
+        Assert.Equal(ChestBonuses.CardCount, gems.Items.Count + gems.Bonuses.Count);
+        // Бонусные золото и опыт начислены
+        var player = await _context.Players.AsNoTracking().SingleAsync(p => p.Id == _playerId);
+        var allBonuses = gems.Bonuses.Concat(heroes.Bonuses).ToList();
+        Assert.Equal(before.Gold + allBonuses.Where(b => b.Kind == ChestBonusKind.Gold).Sum(b => (long)b.Amount), player.Gold);
+        Assert.Equal(before.Experience + allBonuses.Where(b => b.Kind == ChestBonusKind.Experience).Sum(b => (long)b.Amount), player.Experience);
         await Assert.ThrowsAsync<InvalidOperationException>(() => chests.OpenAsync(_playerId, gemChest.Id));
     }
 

@@ -60,4 +60,23 @@ public class ChestOpenResult
     public List<ItemInfo> Items { get; set; } = new();
     public List<HeroInfo> Heroes { get; set; } = new();
     public List<EquipmentInfo> Equipment { get; set; } = new();
+    // Доп. награды до ChestBonuses.CardCount карт (уже начислены)
+    public List<ChestBonusInfo> Bonuses { get; set; } = new();
+}
+
+public class ChestBonusInfo
+{
+    public ChestBonusKind Kind { get; set; }
+    public int Amount { get; set; }
+    public Rarity Rarity { get; set; }
+    // Камень у Gems ("Ruby"), иначе пусто
+    public string SubType { get; set; } = string.Empty;
+
+    public static ChestBonusInfo From(ChestBonus bonus) => new()
+    {
+        Kind = bonus.Kind,
+        Amount = bonus.Amount,
+        Rarity = bonus.Rarity,
+        SubType = bonus.SubType
+    };
 }

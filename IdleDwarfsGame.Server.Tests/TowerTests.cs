@@ -260,7 +260,7 @@ public class TowerTests : IDisposable
         await tower.AdvanceAsync(_playerId, Week.AddDays(-7), 0, 5, Reward(), Now.AddDays(-7));
         await CreateService().SkipAsync(_playerId);
 
-        var chests = new ChestService(new InventoryRepository(_context), new ItemDropService(new Random(3)), Factory, new Random(3), NoActivity.Instance);
+        var chests = new ChestService(new InventoryRepository(_context), new ItemDropService(new Random(3)), Factory, new Random(3), NoActivity.Instance, new PlayerRepository(_context), TimeProvider.System);
         var chest = (await chests.GetInventoryAsync(_playerId)).Chests.Single(c => c.Type == ChestType.Infinity);
         Assert.Equal(HeroElement.Fire, chest.Element);
 

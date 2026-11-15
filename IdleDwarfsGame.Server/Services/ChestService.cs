@@ -1,11 +1,15 @@
 // Инвентарь сундуков и гемов. Открытие сундука: бросок его таблицы дропа (ItemDropService),
-// гемы ложатся стопками в PlayerItems, герои создаются вне отряда
+// гемы ложатся стопками в PlayerItems, герои создаются вне отряда.
+// До ChestBonuses.CardCount карт добиваются доп. наградами (ChestBonuses): золото и опыт — по этапу кампании игрока
+// (players), валюта ивента — только пока ивент идёт (clock)
 public class ChestService(
     IInventoryRepository inventory,
     ItemDropService drops,
     IEntityFactory entityFactory,
     Random random,
-    IActivityTracker activity)
+    IActivityTracker activity,
+    IPlayerRepository players,
+    TimeProvider clock)
 {
     public async Task<InventoryInfo> GetInventoryAsync(Guid playerId)
     {
@@ -41,7 +45,34 @@ public class ChestService(
             .SelectMany(d => Enumerable.Range(0, d.Amount).Select(_ => new PlayerEquipment { Id = Guid.NewGuid(), PlayerId = playerId, ItemKey = d.SubType }))
             .ToList();
 
-        if (!await inventory.OpenChestAsync(chest, items, heroes, equipment))
+        // Карта на каждую стопку, героя и предмет; остальное до пяти — бонусы
+        int mainCards = items.Count + heroes.Count + equipment.Count;
+        var activeEvent = WorldEvents.ActiveAt(clock.GetUtcNow().UtcDateTime);
+        var bonuses = ChestBonuses.Roll(
+            ChestBonuses.CountFor(mainCards),
+            chest.ChestDropTable.ChestLevel,
+            await players.GetProgressAsync(playerId),
+            activeEvent != null,
+            random);
+
+        // Бонусные камни — в те же стопки инвентаря, что и камни сундука
+        var bonusGems = bonuses
+            .Where(b => b.Kind == ChestBonusKind.Gems)
+            .Select(b => new LootDrop(ItemType.Gem, b.SubType, b.Rarity, 1, b.Amount));
+        var currency = new ChestCurrencyGrant(
+            Gold: bonuses.Where(b => b.Kind == ChestBonusKind.Gold).Sum(b => (long)b.Amount),
+            Experience: bonuses.Where(b => b.Kind == ChestBonusKind.Experience).Sum(b => (long)b.Amount),
+            RainbowCoins: bonuses.Where(b => b.Kind == ChestBonusKind.RainbowCoins).Sum(b => (long)b.Amount),
+            EventCurrency: bonuses.Where(b => b.Kind == ChestBonusKind.EventCurrency).Sum(b => (long)b.Amount),
+            EventStart: activeEvent?.StartsAt);
+
+        // Одинаковые камни из сундука и бонуса — одной стопкой: две новые строки одной стопки в одной транзакции не сохранить
+        var stacks = items.Concat(bonusGems)
+            .GroupBy(d => d with { Amount = 0 })
+            .Select(g => g.Key with { Amount = g.Sum(d => d.Amount) })
+            .ToList();
+
+        if (!await inventory.OpenChestAsync(chest, stacks, heroes, equipment, currency))
             throw new InvalidOperationException("Chest is already opened");
         await activity.RecordAsync(playerId, ActivityKind.ChestOpen);
 
@@ -51,7 +82,8 @@ public class ChestService(
             Items = items.Select(ItemInfo.From).ToList(),
             // Только что созданный герой не может быть в экспедиции
             Heroes = heroes.Select(h => HeroInfo.From(entityFactory, h, onExpedition: false)).ToList(),
-            Equipment = equipment.Select(EquipmentInfo.From).OfType<EquipmentInfo>().ToList()
+            Equipment = equipment.Select(EquipmentInfo.From).OfType<EquipmentInfo>().ToList(),
+            Bonuses = bonuses.Select(ChestBonusInfo.From).ToList()
         };
     }
 }
