@@ -39,7 +39,7 @@ public class SocialAndDelveTests : IDisposable
         _carol = AddUser("Carol");
         _context.SaveChanges();
 
-        var heroes = new HeroesRepository(_context);
+        var heroes = new HeroesRepository(_context, _clock);
         var players = new PlayerRepository(_context);
         var factory = new EntityFactory();
         var engine = new CombatEngine(new Random(1));
@@ -54,7 +54,7 @@ public class SocialAndDelveTests : IDisposable
         _depth = new GuildDepthService(_context, guildRepository, heroes, expeditions, players, _clock);
         var campaign = new CampaignService(campaignRepository, heroes, factory, scenarios, combat, new RewardRepository(_context),
             new Random(1), _clock, NoActivity.Instance);
-        _friendHelp = new FriendHelpService(_context, new MiningRepository(_context), heroes, players, factory, engine, scenarios, campaign, _clock);
+        _friendHelp = new FriendHelpService(_context, new MiningRepository(_context, _clock), heroes, players, factory, engine, scenarios, campaign, _clock);
         _bets = new ArenaBetService(_context, new PvpRepository(_context), factory, players, _clock);
         _delve = new DelveService(_context, campaignRepository, factory, engine, scenarios, _clock);
     }
@@ -99,7 +99,7 @@ public class SocialAndDelveTests : IDisposable
         await _depth.PlaceAsync(_carol.Id, carolDwarf.Id);
 
         // Дворф в гонке занят: ни в шахту, ни в экспедицию
-        Assert.Contains(aliceDwarf.Id, await new HeroesRepository(_context).GetMiningHeroIdsAsync(_alice.PlayerId));
+        Assert.Contains(aliceDwarf.Id, await new HeroesRepository(_context, _clock).GetMiningHeroIdsAsync(_alice.PlayerId));
 
         _clock.Advance(TimeSpan.FromHours(10));
         var overview = await _depth.GetAsync(_alice.Id);

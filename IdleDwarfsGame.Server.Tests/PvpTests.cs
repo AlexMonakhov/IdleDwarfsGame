@@ -24,7 +24,7 @@ public class PvpTests : IDisposable
         _context = new GameDbContext(new DbContextOptionsBuilder<GameDbContext>().UseSqlite(_connection).Options);
         _context.Database.EnsureCreated();
 
-        var heroes = new HeroesRepository(_context);
+        var heroes = new HeroesRepository(_context, _clock);
         var combat = new CombatService(new WorldFactory(heroes, Factory), new CombatEngine(new Random(1)), []);
         _squadPower = new SquadPowerService(new PvpRepository(_context), Factory);
         _service = new PvpService(new PvpRepository(_context), new UserRepository(_context), heroes, Factory, combat, _squadPower, _clock, NoActivity.Instance);
