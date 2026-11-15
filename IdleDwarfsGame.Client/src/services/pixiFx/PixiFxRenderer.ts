@@ -5,6 +5,16 @@ import { PIXI_EFFECTS } from './effects';
 
 export type FxLayer = 'background' | 'foreground';
 
+// Сколько пикселей видеопамяти на канвас: как у старого canvas-слоя (он вдвое больше арены по каждой стороне, 1:1).
+// Без потолка разрешение 2× на ретине давало в 4 раза больше — десятки мегапикселей на кадр и зависание браузера
+const MAX_PIXELS = 8_500_000;
+
+// Разрешение канваса: не больше 2× и не больше бюджета пикселей
+const resolutionFor = (width: number, height: number) => {
+  const area = Math.max(width * height, 1);
+  return Math.max(0.5, Math.min(window.devicePixelRatio || 1, 2, Math.sqrt(MAX_PIXELS / area)));
+};
+
 // Pixi-отрисовка эффектов слоя (CanvasLayer с pixi): два WebGL-канваса — под юнитами и над ними, как у canvas.
 // Жизнью эмиттеров по-прежнему управляет GlobalParticleService: он зовёт update/dispose и render раз за кадр
 // (свой ticker у Pixi выключен — один цикл на оба рендера). Координаты — те же пиксели слоя, что и у canvas
@@ -23,12 +33,13 @@ export class PixiFxRenderer {
         width,
         height,
         backgroundAlpha: 0,
-        antialias: true,
-        // Резче старого canvas (там 1:1 к CSS-пикселю), но не больше 2× — видеокарте этого хватает с запасом
-        resolution: Math.min(window.devicePixelRatio || 1, 2),
+        // MSAA спрайтам частиц не нужен, а на большом канвасе стоит дорого
+        antialias: false,
+        resolution: resolutionFor(width, height),
         autoDensity: true,
         autoStart: false,
         preference: 'webgl',
+        powerPreference: 'high-performance',
       });
       app.ticker.stop();
       return app;
@@ -74,8 +85,9 @@ export class PixiFxRenderer {
   }
 
   resize(width: number, height: number) {
-    this.apps.background.renderer.resize(width, height);
-    this.apps.foreground.renderer.resize(width, height);
+    const resolution = resolutionFor(width, height);
+    this.apps.background.renderer.resize(width, height, resolution);
+    this.apps.foreground.renderer.resize(width, height, resolution);
     this.empty = false;
   }
 
