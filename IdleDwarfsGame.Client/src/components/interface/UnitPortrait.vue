@@ -12,6 +12,7 @@ import { PROFESSION_ICONS } from '@/components/icons/professions';
 import UnitAvatar from './UnitAvatar.vue';
 import { useI18n } from 'vue-i18n';
 import { statusLabel } from '@/i18n';
+import PassiveName from '@/components/icons/passives/PassiveName.vue';
 
 const { t } = useI18n();
 
@@ -68,7 +69,7 @@ const powerDetails = computed(() => powerParts(props.unit.power)
             <div class="portrait-power"><StatIcon stat="power" size="14px" /> {{ t('power.value', { power: unit.power.total }) }}</div>
             <div class="portrait-power-parts">{{ powerDetails }}</div>
             <!-- «Подпись: значения» — две колонки: перенесённые значения остаются в своей колонке, а не уходят под подпись -->
-            <div v-if="unit.spells.length || unit.immunities.length || unit.aura" class="portrait-facts">
+            <div v-if="unit.spells.length || unit.immunities.length || unit.aura || unit.passives?.length" class="portrait-facts">
                 <template v-if="unit.spells.length">
                     <span class="portrait-fact-label">{{ t('unit.spells') }}</span>
                     <span class="portrait-fact-value">
@@ -87,6 +88,12 @@ const powerDetails = computed(() => powerParts(props.unit.power)
                 <template v-if="unit.aura">
                     <span class="portrait-fact-label">{{ t('unit.aura') }}</span>
                     <span class="portrait-fact-value"><AuraName :aura="unit.aura" size="14px" /></span>
+                </template>
+                <template v-if="unit.passives?.length">
+                    <span class="portrait-fact-label">{{ t('unit.passive') }}</span>
+                    <span class="portrait-fact-value">
+                        <PassiveName v-for="passive in unit.passives" :key="passive.passive" :passive="passive" size="14px" />
+                    </span>
                 </template>
             </div>
         </template>
@@ -143,4 +150,5 @@ const powerDetails = computed(() => powerParts(props.unit.power)
     gap: 2px 8px;
     min-width: 0;
 }
+
 </style>

@@ -139,6 +139,8 @@ public class CombatUnitInfo
     // Структурные данные ауры для визуала: имя эффекта (Burn, Frost, Regen...) и на кого она действует
     public string? AuraEffect { get; set; }
     public AuraTarget? AuraTarget { get; set; }
+    // Пассивки со значениями в бою (с кольцами) — для подсказки портрета
+    public List<PassiveInfo> Passives { get; set; } = new();
 
     public CombatPowerBreakdown Power { get; set; } = new();
 }

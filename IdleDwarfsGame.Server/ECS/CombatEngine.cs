@@ -65,6 +65,7 @@ public static class CombatSnapshot
             var info = world.Info.GetValueOrDefault(e.Id) ?? new UnitInfoComponent();
             var energy = world.Energy.GetValueOrDefault(e.Id);
             var aura = world.Auras.GetValueOrDefault(e.Id);
+            var passives = world.Passives.GetValueOrDefault(e.Id);
 
             return new CombatUnitInfo
             {
@@ -93,6 +94,12 @@ public static class CombatSnapshot
                 Aura = aura == null ? null : $"{aura.EffectName} {aura.Power} → {aura.TargetType}",
                 AuraEffect = aura?.EffectName,
                 AuraTarget = aura?.TargetType,
+                Passives = passives?.Active
+                    .Select(p => new PassiveInfo
+                    {
+                        Passive = p.Key, Level = passives.Level, Percent = p.Value.Percent, Turns = p.Value.Turns, Targets = p.Value.Targets
+                    })
+                    .ToList() ?? new(),
                 Power = CombatPower.Of(world, e.Id)
             };
         })

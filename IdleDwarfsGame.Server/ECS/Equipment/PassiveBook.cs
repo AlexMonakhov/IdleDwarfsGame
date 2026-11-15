@@ -97,6 +97,8 @@ public class PassiveComponent
 {
     public Dictionary<HeroPassive, PassiveValues> Base { get; set; } = new();
     public Dictionary<HeroPassive, PassiveValues> Active { get; set; } = new();
+    // Уровень пассивок героя (1..PassiveBook.MaxLevel) — для подсказки в бою
+    public int Level { get; set; } = PassiveBook.MinLevel;
 
     // LastStand уже спас героя в этом бою
     public bool LastStandUsed { get; set; }

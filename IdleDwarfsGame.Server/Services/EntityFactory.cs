@@ -90,8 +90,8 @@ public class EntityFactory : IEntityFactory
     // Пассивки героя на их уровне, сверху — прибавка колец
     public static PassiveComponent CreatePassives(Hero hero, GearComponent gear)
     {
-        var component = new PassiveComponent();
         int level = hero.PassiveLevel;
+        var component = new PassiveComponent { Level = Math.Clamp(level, PassiveBook.MinLevel, PassiveBook.MaxLevel) };
         foreach (var passive in hero.Passives.Distinct())
         {
             var values = PassiveBook.Values(passive, level);
