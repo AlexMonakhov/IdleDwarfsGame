@@ -1,10 +1,16 @@
 <script lang="ts" setup>
 import { ref, onMounted, onUnmounted, provide } from 'vue';
 import { GlobalParticleService } from '@/services/particleService/ParticleSystem';
+import type { PixiFxRenderer } from '@/services/pixiFx/PixiFxRenderer';
 
 const wrapperRef = ref<HTMLElement | null>(null); // Ссылка на саму обертку
 const bgCanvasRef = ref<HTMLCanvasElement | null>(null);
 const fgCanvasRef = ref<HTMLCanvasElement | null>(null);
+// Pixi-канвасы (prop pixi): лежат над своими canvas-слоями, перенесённые эффекты рисуются в них
+const pixiBgRef = ref<HTMLCanvasElement | null>(null);
+const pixiFgRef = ref<HTMLCanvasElement | null>(null);
+let pixiRenderer: PixiFxRenderer | null = null;
+let unmounted = false;
 
 const particleService = new GlobalParticleService();
 provide('particleService', particleService);
@@ -19,10 +25,14 @@ let resizeFrame = 0;
 
 interface Props { // Теперь всё передается только сюда
   page?: boolean;
+  // Перенесённые эффекты рисует Pixi (WebGL). Пока только у арены и тестов: у браузера ~16 живых WebGL-контекстов,
+  // а модалок с CanvasLayer много (docs/pixi-migration.md, этап 4)
+  pixi?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   page: true,
+  pixi: false,
 });
 
 const handleResize = () => {
@@ -37,6 +47,7 @@ const handleResize = () => {
       if (canvas.width !== width) canvas.width = width;
       if (canvas.height !== height) canvas.height = height;
     }
+    pixiRenderer?.resize(width, height);
   }
   layoutVersion.value++;
 };
@@ -58,11 +69,33 @@ onMounted(() => {
     window.addEventListener('resize', scheduleResize);
 
     handleResize(); // Задаем начальный размер
+    if (props.pixi) initPixi();
   }
 });
 
+// Pixi грузится лениво: в основной бандл он не попадает. Пока грузится — всё рисует canvas
+const initPixi = async () => {
+  if (!pixiBgRef.value || !pixiFgRef.value || !bgCanvasRef.value) return;
+  try {
+    const { PixiFxRenderer } = await import(/* webpackChunkName: "pixi-fx" */ '@/services/pixiFx/PixiFxRenderer');
+    const renderer = await PixiFxRenderer.create(pixiBgRef.value, pixiFgRef.value, bgCanvasRef.value.width, bgCanvasRef.value.height);
+    if (unmounted) {
+      renderer.destroy();
+      return;
+    }
+    pixiRenderer = renderer;
+    particleService.attachPixi(renderer);
+  } catch (error) {
+    // Нет WebGL — остаёмся на canvas
+    console.warn('Pixi effects are unavailable, falling back to canvas', error);
+  }
+};
+
 onUnmounted(() => {
+  unmounted = true;
   particleService.destroy();
+  pixiRenderer?.destroy();
+  pixiRenderer = null;
   cancelAnimationFrame(resizeFrame);
   resizeObserver?.disconnect();
   window.removeEventListener('resize', scheduleResize);
@@ -82,6 +115,10 @@ onUnmounted(() => {
 
 
     <canvas ref="fgCanvasRef" class="particle-canvas canvas-fg"></canvas>
+    <template v-if="props.pixi">
+      <canvas ref="pixiBgRef" class="particle-canvas pixi-bg"></canvas>
+      <canvas ref="pixiFgRef" class="particle-canvas pixi-fg"></canvas>
+    </template>
   </div>
 </template>
 
@@ -122,5 +159,14 @@ onUnmounted(() => {
 
 .canvas-fg {
   z-index: 9999; 
+}
+
+/* Pixi — сразу над своим canvas-слоем: под юнитами и над всем */
+.pixi-bg {
+  z-index: 1;
+}
+
+.pixi-fg {
+  z-index: 10000;
 }
 </style>

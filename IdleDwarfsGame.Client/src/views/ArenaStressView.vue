@@ -1,7 +1,7 @@
 <template>
   <div class="stress">
     <div class="stress-bg" :style="bgStyle"></div>
-    <CanvasLayer ref="layerRef">
+    <CanvasLayer ref="layerRef" pixi>
       <div class="grid">
         <template v-for="unit in teamA" :key="unit.id">
           <CanvasComponent :class="['grid-item', `grid-item-left-${unit.position}`]" :style="slotStyle(unit, 'marginLeft')">
@@ -27,6 +27,7 @@
           <button :class="{ active: aurasOn }" @click="aurasOn = !aurasOn">Ауры</button>
           <button :class="{ active: statusesOn }" @click="statusesOn = !statusesOn">Статусы</button>
           <button :class="{ active: flaresOn }" @click="flaresOn = !flaresOn">Вспышки</button>
+          <button :class="{ active: pixiOn }" v-tooltip="'Перенесённые эффекты рисует Pixi (WebGL); выключено — всё на canvas'" @click="pixiOn = !pixiOn">Pixi</button>
           <button @click="clearStatuses()">Снять статусы</button>
           <button @click="minFps = null">Сбросить минимум</button>
         </div>
@@ -140,6 +141,7 @@
 
 <script lang="ts" setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, provide, reactive, ref, shallowRef, watch } from 'vue';
+import { pixiFxSettings } from '@/services/pixiFx/settings';
 import CanvasComponent from '@/components/canvas/CanvasComponent.vue';
 import CanvasLayer from '@/components/canvas/CanvasLayer.vue';
 import CharacterComponent from '@/components/character-component.vue';
@@ -345,6 +347,9 @@ resetBattleState(state, { units, logs: [], winningTeam: 0, rounds: 0 });
 const fx = new BattleFx(() => layerRef.value?.particleService ?? null, () => speed.value);
 const flaresOn = ref(true);
 watch(flaresOn, on => (fx.flares = on));
+// Pixi или canvas для перенесённых эффектов — сравнить FPS на одном бою
+const pixiOn = ref(pixiFxSettings.enabled);
+watch(pixiOn, on => (pixiFxSettings.enabled = on));
 provide(BATTLE_FX_KEY, fx);
 
 const teamA = computed(() => teamUnits(state, 1));

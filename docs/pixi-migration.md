@@ -3,6 +3,14 @@
 Ветка `feature/pixi-effects`. Цель — убрать лаги заклинаний и сделать эффекты данными, которые потом
 переносятся в Unity (ParticleSystem) почти без переписывания.
 
+## Статус
+
+- Каркас готов: `services/pixiFx/` — `PixiFxRenderer` (два WebGL-слоя, ленивая загрузка), `particles.ts` (частицы
+  в единицах Unity: секунды, px/с; `fromFrames` переводит старые значения «за кадр при 60 Гц»), `textures.ts`
+  (процедурные белые текстуры, цвет — tint), `effects/index.ts` (какие типы уже на Pixi).
+- Pixi включён в `CanvasLayer` пропом `pixi`: арена, нагрузочный тест (кнопка «Pixi» — сравнить с canvas), тестовая страница.
+- Перенесено: `explosion`, `sparkles`, `flare`, `ring`.
+
 ## Как сейчас
 
 - `CanvasLayer.vue` — два `<canvas>` (под юнитами и над ними) вокруг DOM-слоя с юнитами (`character-component`),

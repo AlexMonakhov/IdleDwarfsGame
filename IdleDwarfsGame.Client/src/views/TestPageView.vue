@@ -1,6 +1,6 @@
 <template>
   <div class="town">
-    <CanvasLayer>
+    <CanvasLayer pixi>
       <h1>{{ t('town.title') }}</h1>
     <TimelineGorizontal></TimelineGorizontal>
     <CanvasComponent 

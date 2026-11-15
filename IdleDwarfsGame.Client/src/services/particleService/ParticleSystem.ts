@@ -27,7 +27,9 @@ import {
   ArcsStrategy,
   CometStrategy,
 } from '@/services/particleService/types/spell-effects';
-import { tickFrameClock } from '@/services/particleService/frameClock';
+import { frameScale, tickFrameClock } from '@/services/particleService/frameClock';
+import type { PixiFxRenderer } from '@/services/pixiFx/PixiFxRenderer';
+import { pixiFxSettings } from '@/services/pixiFx/settings';
 
 export class GlobalParticleService {
   private bgCanvas: HTMLCanvasElement | null = null;
@@ -39,6 +41,10 @@ export class GlobalParticleService {
   private cleared = false;
 
   private emitters: Map<string, EmitterConfig> = new Map();
+
+  // Pixi-отрисовка (CanvasLayer с pixi): перенесённые типы рисует она, остальные — canvas-стратегии
+  private pixi: PixiFxRenderer | null = null;
+  private pixiWasEnabled = true;
 
   // Замер по типам эффектов (включает нагрузочный тест арены): сколько эмиттеров живо и сколько мс за кадр
   // уходит на их update + draw (сглажено). Время только JS: растр на видеокарте сюда не попадает —
@@ -84,6 +90,11 @@ export class GlobalParticleService {
   // Подменить/добавить стратегию отрисовки (например, для нового эффекта статуса)
   registerStrategy(type: EffectType, strategy: EffectStrategy) {
     this.strategies[type] = strategy;
+  }
+
+  attachPixi(renderer: PixiFxRenderer | null) {
+    this.pixi?.clear();
+    this.pixi = renderer;
   }
 
   hasEmitter(id: string) {
@@ -173,6 +184,7 @@ export class GlobalParticleService {
     } else {
       this.emitters.delete(id);
       this.strategies[emitter.type]?.disposeEmitter?.(id);
+      this.pixi?.dispose(id);
     }
   }
 
@@ -211,6 +223,14 @@ export class GlobalParticleService {
     const render = (frameTime: number = performance.now()) => {
       if (!this.bgCtx || !this.fgCtx || !this.bgCanvas || !this.fgCanvas) return;
       tickFrameClock(frameTime);
+
+      // Переключили Pixi в тесте — его эффекты убираем, дальше эти эмиттеры дорисует canvas (и наоборот)
+      if (this.pixi && pixiFxSettings.enabled !== this.pixiWasEnabled) {
+        this.pixi.clear();
+        this.pixiWasEnabled = pixiFxSettings.enabled;
+        this.pixi.render();
+      }
+      const pixi = this.pixi && pixiFxSettings.enabled ? this.pixi : null;
 
       // Пустой кадр после пустого не трогаем: очистка двух канвасов вчетверо больше арены — лишняя работа в простое
       if (this.emitters.size === 0 && this.cleared) {
@@ -251,6 +271,19 @@ export class GlobalParticleService {
           }
         }
 
+        if (pixi?.supports(emitter.type)) {
+          const started = frame ? performance.now() : 0;
+          if (this.hidden.has(emitter.type)) pixi.dispose(emitter.id);
+          else pixi.update(emitter, frameScale / 60);
+          if (frame) {
+            const stat = frame.get(emitter.type) ?? { emitters: 0, ms: 0 };
+            stat.emitters++;
+            stat.ms += performance.now() - started;
+            frame.set(emitter.type, stat);
+          }
+          return;
+        }
+
         const strategy = this.strategies[emitter.type];
         if (strategy) {
           const started = frame ? performance.now() : 0;
@@ -279,8 +312,12 @@ export class GlobalParticleService {
         const emitter = this.emitters.get(id);
         if (!emitter) continue;
         this.strategies[emitter.type]?.disposeEmitter?.(id);
+        this.pixi?.dispose(id);
         this.emitters.delete(id);
       }
+
+      // Pixi рисует оба своих слоя раз за кадр, уже после удаления отыгравших эмиттеров
+      pixi?.render();
 
       this.animationId = requestAnimationFrame(render);
     };
@@ -302,6 +339,8 @@ export class GlobalParticleService {
 
   destroy() {
     if (this.animationId) cancelAnimationFrame(this.animationId);
+    this.pixi?.clear();
+    this.pixi = null;
     this.emitters.clear();
   }
 }
