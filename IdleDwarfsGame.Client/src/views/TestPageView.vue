@@ -68,6 +68,103 @@
     <InfoComponent></InfoComponent>
     </CanvasLayer>
 
+    <!-- Открытие сундука: варианты анимации (награды — мок, chestOpening/chestRewards.ts) -->
+    <div class="chest-lab">
+      <b>Открытие сундука — варианты анимации</b>
+      <div class="chest-lab-controls">
+        <label>
+          Сундук
+          <select v-model="chestLab.type">
+            <option v-for="type in chestLabTypes" :key="type" :value="type">{{ t(`chests.types.${type}`) }}</option>
+          </select>
+        </label>
+        <label>
+          Уровень
+          <select v-model.number="chestLab.level">
+            <option v-for="level in 5" :key="level" :value="level">{{ level }}</option>
+          </select>
+        </label>
+        <label>
+          Фон карты
+          <select v-model="chestLab.backdrop">
+            <option v-for="style in BACKDROP_STYLES" :key="style.id" :value="style.id">{{ style.name }}</option>
+          </select>
+        </label>
+        <label>
+          <input type="checkbox" v-model="chestLab.bowl" /> чаша под иконкой
+        </label>
+        <label>
+          Рамка
+          <select v-model="chestLab.frame">
+            <option v-for="frame in FRAME_OPTIONS" :key="frame.id" :value="frame.id">{{ frame.name }}</option>
+          </select>
+        </label>
+        <label>
+          <input type="checkbox" v-model="chestLab.glass" /> выпуклое стекло
+        </label>
+        <label>
+          <input type="checkbox" v-model="chestLab.forceLegendary" /> гарантировать легендарку
+        </label>
+        <label>
+          <input type="checkbox" v-model="chestLab.forceArtifact" /> гарантировать артефакт
+        </label>
+      </div>
+      <GemButton color="green" width="220px" height="48px" @click="openChestLab()">Открыть сундук (случайно)</GemButton>
+      <span class="chest-lab-help">Отдельный вариант — для отладки:</span>
+      <div class="chest-lab-variants">
+        <div v-for="variant in CHEST_OPENING_VARIANTS" :key="variant.id" class="chest-lab-variant">
+          <GemButton color="yellow" width="140px" @click="openChestLab(variant.id)">{{ variant.name }}</GemButton>
+          <span>{{ variant.description }}</span>
+        </div>
+      </div>
+      <b>Фоны карт — все варианты (наведи курсор, чтобы увидеть параллакс)</b>
+      <div class="chest-lab-backdrops">
+        <div v-for="(style, i) in BACKDROP_STYLES" :key="style.id" class="chest-lab-backdrop" :style="{ '--slot-color': RARITY_COLORS[backdropSamples[i].rarity] }">
+          <CardComponent
+            :ref="el => revealOnMount(el)"
+            :color="RARITY_CARD_COLORS[backdropSamples[i].rarity]"
+            hide-info
+          >
+            <template #backdrop><CardBackdrop :type="style.id" /></template>
+            <ChestRewardFace :reward="backdropSamples[i]" :bowl="chestLab.bowl" />
+          </CardComponent>
+          <span>{{ i + 1 }}. {{ style.name }}</span>
+        </div>
+      </div>
+      <b>Рамка и стекло — сравнение (фон из списка «Фон карты»)</b>
+      <div class="chest-lab-backdrops">
+        <template v-for="glass in [false, true]" :key="String(glass)">
+          <div v-for="frame in FRAME_OPTIONS" :key="frame.id + glass" class="chest-lab-backdrop" :style="{ '--slot-color': RARITY_COLORS[backdropSamples[2].rarity] }">
+            <CardComponent
+              :ref="el => revealOnMount(el)"
+              :color="RARITY_CARD_COLORS[backdropSamples[2].rarity]"
+              :frame="frame.id"
+              :glass="glass"
+              hide-info
+            >
+              <template #backdrop><CardBackdrop :type="chestLab.backdrop" /></template>
+              <ChestRewardFace :reward="backdropSamples[2]" :bowl="chestLab.bowl" />
+            </CardComponent>
+            <span>{{ frame.name }}{{ glass ? ' + стекло' : '' }}</span>
+          </div>
+        </template>
+      </div>
+      <span class="chest-lab-help">Клик по карте — удар, пробел — удар по всем, Esc / «Пропустить» — сразу результат, пробел / Enter — забрать</span>
+    </div>
+    <ChestOpening
+      v-if="chestLab.open"
+      :key="chestLab.run"
+      :rewards="chestLab.rewards"
+      :chest-type="chestLab.type"
+      :chest-level="chestLab.level"
+      :variant="chestLab.variant"
+      :backdrop="chestLab.backdrop"
+      :bowl="chestLab.bowl"
+      :frame="chestLab.frame"
+      :glass="chestLab.glass"
+      @close="chestLab.open = false"
+    />
+
     <!-- Тест параметров ледяной кромки (прокрутить вниз) -->
     <div class="card-lab">
       <div v-for="sample in frameSamples" :key="sample.name" class="card-lab-item">
@@ -190,11 +287,17 @@ import CrystalLoader from '@/components/loading/CrystalLoader.vue';
 import CrystalBar from '@/components/loading/CrystalBar.vue';
 import CrystalIcon from '@/components/loading/CrystalIcon.vue';
 import ArenaLoadingScreen from '@/components/loading/ArenaLoadingScreen.vue';
-import { GEM_COLORS } from '@/components/inventory/lootStyles';
+import { GEM_COLORS, RARITY_COLORS } from '@/components/inventory/lootStyles';
 import { AURA_MIN_RANK } from '@/components/effects/elementAura';
 import type { HeroElement } from '@/battle/types';
 import type { HeroInfo } from '@/models/types/Heroes';
 import { useI18n } from 'vue-i18n';
+import ChestOpening from '@/components/chestOpening/ChestOpening.vue';
+import ChestRewardFace from '@/components/chestOpening/ChestRewardFace.vue';
+import CardBackdrop from '@/components/chestOpening/CardBackdrop.vue';
+import { BACKDROP_STYLES, CHEST_OPENING_VARIANTS, RARITY_CARD_COLORS, mockArtifactReward, mockChestRewards } from '@/components/chestOpening/chestRewards';
+import type { BackdropStyle, ChestOpeningVariant, ChestRewardCard } from '@/components/chestOpening/chestRewards';
+import type { ChestType } from '@/models/types/Inventory';
 
 const { t } = useI18n();
 const open = ref(false);
@@ -216,6 +319,58 @@ const animationObject = computed(() => {
 type CardColor = 'pink' | 'green' | 'blue' | 'yellow' | 'red' | 'grey';
 
 // Варианты рубашки для сравнения (не указанные параметры — по умолчанию, см. components/card/README.md)
+// Тест открытия сундука
+const chestLabTypes: ChestType[] = ['Hero', 'Gem', 'Equipment', 'Infinity'];
+const chestLab = reactive({
+  open: false,
+  run: 0,
+  type: 'Hero' as ChestType,
+  level: 3,
+  forceLegendary: false,
+  forceArtifact: false,
+  backdrop: 'shards' as BackdropStyle,
+  bowl: false,
+  frame: 'thin' as CardFrame,
+  glass: true,
+  variant: undefined as ChestOpeningVariant | undefined,
+  rewards: [] as ChestRewardCard[],
+});
+
+type CardFrame = 'default' | 'thin' | 'none';
+const FRAME_OPTIONS: { id: CardFrame; name: string }[] = [
+  { id: 'default', name: 'Обычная рамка' },
+  { id: 'thin', name: 'Тонкая рамка' },
+  { id: 'none', name: 'Без рамки' },
+];
+
+// Галерея фонов: карты сразу раскрыты, награды разных редкостей
+const backdropSamples: ChestRewardCard[] = BACKDROP_STYLES.map((_, i) => {
+  const rewards = mockChestRewards(i % 2 ? 'Equipment' : 'Hero', 5);
+  const reward = rewards.find(r => !r.bonus) ?? rewards[0];
+  return { ...reward, rarity: (['Rare', 'Mythic', 'Legendary', 'Artifact', 'Uncommon'] as const)[i % 5], rank: reward.kind === 'Hero' ? 4 : reward.rank };
+});
+const revealOnMount = (el: unknown) => {
+  const card = el as { reveal?: () => void } | null;
+  if (card?.reveal) nextTick(() => card.reveal?.());
+};
+
+// Без варианта ChestOpening выбирает случайный
+const openChestLab = (variant?: ChestOpeningVariant) => {
+  const rewards = mockChestRewards(chestLab.type, chestLab.level);
+  if (chestLab.forceLegendary) {
+    // Легендарная — основная награда сундука (у дворфа это 4-й ранг)
+    const main = rewards.find(r => !r.bonus) ?? rewards[0];
+    main.rarity = 'Legendary';
+    if (main.kind === 'Hero') main.rank = 4;
+  }
+  if (chestLab.forceArtifact) {
+    // Артефакт бывает только у оружия: подменяем основную награду артефактом
+    const index = rewards.findIndex(r => !r.bonus);
+    rewards[index < 0 ? 0 : index] = mockArtifactReward();
+  }
+  Object.assign(chestLab, { variant, rewards, open: true, run: chestLab.run + 1 });
+};
+
 const frameSamples: { name: string; color: CardColor; back: CardBackOptions }[] = [
   { name: '1. По умолчанию', color: 'grey', back: {} },
   { name: '2. Тонкая', color: 'blue', back: { frame: { depth: 8, depthJitter: 3 } } },
@@ -466,4 +621,57 @@ const iconSamples = (['Ruby', 'Sapphire', 'Topaz', 'Emerald', 'Diamond', 'Amethy
 }
 
 
+.chest-lab {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 24px;
+  padding: 16px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.35);
+  color: #fff;
+}
+
+.chest-lab-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+}
+
+.chest-lab-controls select {
+  margin-left: 6px;
+}
+
+.chest-lab-variants {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.chest-lab-variant {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 220px;
+  font-size: 13px;
+  opacity: 0.9;
+}
+
+.chest-lab-help {
+  font-size: 12px;
+  opacity: 0.7;
+}
+.chest-lab-backdrops {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chest-lab-backdrop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 13px;
+}
 </style>

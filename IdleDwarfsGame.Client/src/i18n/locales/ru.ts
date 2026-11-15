@@ -659,6 +659,22 @@ const ru: LocaleMessages = {
     openError: 'Не удалось открыть сундук.',
     dropped: 'Из сундука выпало:',
     nothing: 'Сундук оказался пустым.',
+    reveal: {
+      tapChest: 'Нажмите на сундук, чтобы открыть',
+      tapCards: 'Разбейте жилы: клик — удар по одной, пробел — по всем сразу',
+      space: 'Пробел',
+      skip: 'Пропустить',
+      openChest: 'Открыть',
+      hitAll: 'Ударить по всем',
+      collect: 'Забрать',
+      bonus: 'Бонус',
+      kinds: {
+        Gold: 'Золото',
+        Experience: 'Опыт',
+        RainbowCoins: 'Радужные монеты',
+        EventCurrency: 'Монеты ивента',
+      },
+    },
   },
   gems: {
     Ruby: 'Рубин',

@@ -2,15 +2,14 @@
 import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { AxiosError } from 'axios';
-import GemTile from './GemTile.vue';
 import ChestFilters from './ChestFilters.vue';
-import HeroCard from '@/components/inventory/HeroCard.vue';
-import ItemTile from '@/components/equipment/ItemTile.vue';
+import ChestOpening from '@/components/chestOpening/ChestOpening.vue';
+import { cardsFromResult, type ChestRewardCard } from '@/components/chestOpening/chestRewards';
+import { useResources } from '@/composables/UseResources';
 import InventoryApiService from '@/services/apiServices/InventoryApiService';
 import { ChestInfo, ChestOpenResult, ChestType } from '@/models/types/Inventory';
 import { CHEST_ICONS, ELEMENT_COLORS, RARITY_COLORS } from './lootStyles';
 import { HeroElement } from '@/battle/types';
-import { chestLabel } from '@/i18n';
 import GlassButton from '@/components/common/GlassButton.vue';
 import GemButton from '@/components/common/GemButton.vue';
 import { RARITY_ORDER } from '@/models/types/Forge';
@@ -29,7 +28,9 @@ const chests = ref<ChestInfo[]>([]);
 const loading = ref(true);
 const opening = ref(false);
 const errorMessage = ref<string | null>(null);
-const opened = ref<ChestOpenResult | null>(null);
+// Открытый сундук: окно с пятью картами (ChestOpening) поверх инвентаря
+const opened = ref<{ result: ChestOpenResult; cards: ChestRewardCard[] } | null>(null);
+const { refresh: refreshResources } = useResources();
 
 // Одинаковые сундуки показываем одной карточкой со счётчиком, «Открыть» открывает один из них
 // Фильтры по виду и уровню
@@ -66,8 +67,11 @@ const open = async (chestId: string) => {
     opening.value = true;
     errorMessage.value = null;
     try {
-        opened.value = await InventoryApiService.openChest(chestId);
+        const result = await InventoryApiService.openChest(chestId);
+        opened.value = { result, cards: cardsFromResult(result, t) };
         emit('opened');
+        // Бонусные золото, опыт и монеты уже начислены — обновляем счётчики
+        refreshResources();
     } catch (error) {
         errorMessage.value = errorText(error, t('chests.openError'));
     } finally {
@@ -85,17 +89,14 @@ onMounted(load);
         <template v-else>
             <div v-if="errorMessage" class="inventory-hint inventory-hint-error">{{ errorMessage }}</div>
 
-            <section v-if="opened" class="chest-result">
-                <div class="chest-result-title">
-                    <component :is="CHEST_ICONS[opened.chest.type]" /> {{ chestLabel(opened.chest) }}
-                    — {{ opened.items.length || opened.heroes.length || opened.equipment?.length ? t('chests.dropped') : t('chests.nothing') }}
-                </div>
-                <div class="inventory-grid">
-                    <GemTile v-for="item in opened.items" :key="`${item.subType}-${item.rarity}`" :item="item" />
-                    <HeroCard v-for="hero in opened.heroes" :key="hero.id" :hero="hero" selectable />
-                    <ItemTile v-for="item in opened.equipment" :key="item.id" :item="item" />
-                </div>
-            </section>
+            <ChestOpening
+                v-if="opened"
+                :key="opened.result.chest.id"
+                :rewards="opened.cards"
+                :chest-type="opened.result.chest.type"
+                :chest-level="opened.result.chest.level"
+                @close="opened = null"
+            />
 
             <div class="inventory-hint">
                 {{ chests.length ? t('inventory.chestsCount', { count: chests.length }) : t('inventory.noChests') }}
@@ -157,24 +158,6 @@ onMounted(load);
     align-items: center;
     gap: 10px;
     padding: 4px;
-}
-
-.chest-result {
-    margin-bottom: 14px;
-    padding: 10px;
-    border: 1px solid rgba(255, 209, 102, 0.55);
-    border-radius: 12px;
-    background: rgba(14, 19, 34, 0.55);
-}
-
-.chest-result-title {
-    margin: 0 4px 8px;
-    text-align: center;
-    color: #ffd166;
-    font-family: 'Arial', sans-serif;
-    font-size: 14px;
-    font-weight: 700;
-    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.6);
 }
 
 /* Стихия сундука бесконечности — под названием, её цветом */
