@@ -25403,6 +25403,57 @@ namespace IdleDwarfsGame.Server.Migrations
                     b.ToTable("PlayerChests");
                 });
 
+            modelBuilder.Entity("MailAttachment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AbilityKind")
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
+
+                    b.Property<long>("Amount")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("HeroSpec")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
+
+                    b.Property<int>("Level")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("MailId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Position")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Rarity")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
+
+                    b.Property<int>("Seed")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MailId");
+
+                    b.ToTable("MailAttachments");
+                });
+
             modelBuilder.Entity("Mine", b =>
                 {
                     b.Property<Guid>("Id")
@@ -25765,6 +25816,47 @@ namespace IdleDwarfsGame.Server.Migrations
                         .IsUnique();
 
                     b.ToTable("PlayerItems");
+                });
+
+            modelBuilder.Entity("PlayerMail", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Body")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<DateTime?>("ClaimedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PlayerId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(36)");
+
+                    b.Property<DateTime?>("ReadAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Sender")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PlayerId", "CreatedAt");
+
+                    b.ToTable("PlayerMails");
                 });
 
             modelBuilder.Entity("PlayerQuest", b =>
@@ -37409,6 +37501,15 @@ namespace IdleDwarfsGame.Server.Migrations
                     b.Navigation("Player");
                 });
 
+            modelBuilder.Entity("MailAttachment", b =>
+                {
+                    b.HasOne("PlayerMail", null)
+                        .WithMany("Attachments")
+                        .HasForeignKey("MailId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Mine", b =>
                 {
                     b.HasOne("Player", null)
@@ -37490,6 +37591,15 @@ namespace IdleDwarfsGame.Server.Migrations
                 });
 
             modelBuilder.Entity("PlayerItem", b =>
+                {
+                    b.HasOne("Player", null)
+                        .WithMany()
+                        .HasForeignKey("PlayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("PlayerMail", b =>
                 {
                     b.HasOne("Player", null)
                         .WithMany()
@@ -37680,6 +37790,11 @@ namespace IdleDwarfsGame.Server.Migrations
             modelBuilder.Entity("Mine", b =>
                 {
                     b.Navigation("Dwarves");
+                });
+
+            modelBuilder.Entity("PlayerMail", b =>
+                {
+                    b.Navigation("Attachments");
                 });
 
             modelBuilder.Entity("PlayerReward", b =>

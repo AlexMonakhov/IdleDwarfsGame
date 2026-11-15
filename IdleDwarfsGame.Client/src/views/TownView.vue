@@ -92,6 +92,7 @@ import { useAuth } from '@/composables/UseAuth';
 import { useGuild } from '@/composables/UseGuild';
 import { usePvp } from '@/composables/UsePvp';
 import { useInterface } from '@/composables/UseInterface';
+import { useMail } from '@/composables/UseMail';
 
 const { t } = useI18n();
 const route = useRoute();
@@ -270,6 +271,8 @@ const scrollToCenter = async () => {
 };
 
 onMounted(() => {
+  // Почта пока без push: перечитываем при каждом заходе в город
+  if (isAuthenticated.value) useMail().refresh();
   skyIntervalId = window.setInterval(() => {
     isNight.value = isNightNow();
   }, SKY_CHECK_INTERVAL_MS);

@@ -1,5 +1,6 @@
 // Контракт с сервером (IdleDwarfsGame.Server/ECS/ECSEntities.cs). Енамы приходят строками.
 import type { HeroProfession } from '@/models/types/Heroes';
+import type { PassiveInfo } from '@/models/types/Equipment';
 
 export type CombatEventType =
   | 'CombatStart'
@@ -101,6 +102,8 @@ export interface CombatUnitInfo {
   aura?: string | null;
   auraEffect?: string | null;
   auraTarget?: AuraTarget | null;
+  // Пассивки со значениями в бою (с кольцами); нет у ответа старого сервера
+  passives?: PassiveInfo[];
   power: CombatPowerBreakdown;
 }
 
@@ -121,7 +124,7 @@ export type HeroElement = 'Basic' | 'Fire' | 'Frost' | 'Lightning' | 'Nature' | 
 
 // То, что нужно портрету: подходит и юнит боя, и герой из инвентаря
 export type PortraitUnit = Pick<CombatUnitInfo,
-  'name' | 'unitType' | 'element' | 'profession' | 'level' | 'maxHp' | 'attack' | 'speed' | 'energyPerAttack' | 'spells' | 'immunities' | 'aura' | 'isBoss' | 'power'>;
+  'name' | 'unitType' | 'element' | 'profession' | 'level' | 'maxHp' | 'attack' | 'speed' | 'energyPerAttack' | 'spells' | 'immunities' | 'aura' | 'passives' | 'isBoss' | 'power'>;
 
 export interface CombatRewards {
   gold: number;

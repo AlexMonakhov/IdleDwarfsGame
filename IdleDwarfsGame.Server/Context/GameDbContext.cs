@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System.Collections.Generic;
 using System.Numerics;
 using IdleDwarfsGame.Server.Entities.GameEntities;
@@ -44,6 +45,8 @@ public class GameDbContext : DbContext
     public DbSet<Mine> Mines => Set<Mine>();
     public DbSet<MineDwarf> MineDwarves => Set<MineDwarf>();
     public DbSet<PlayerAbility> PlayerAbilities => Set<PlayerAbility>();
+    public DbSet<PlayerMail> PlayerMails => Set<PlayerMail>();
+    public DbSet<MailAttachment> MailAttachments => Set<MailAttachment>();
     public DbSet<PlayerTowerProgress> PlayerTowerProgress => Set<PlayerTowerProgress>();
     public DbSet<ShopState> ShopStates => Set<ShopState>();
     public DbSet<ShopOffer> ShopOffers => Set<ShopOffer>();
@@ -944,6 +947,72 @@ public class GameDbContext : DbContext
         modelBuilder.Entity<MineDwarf>()
             .HasIndex(d => new { d.MineId, d.Slot })
             .IsUnique();
+
+        // ===== Почта =====
+        modelBuilder.Entity<PlayerMail>()
+            .HasKey(m => m.Id);
+
+        modelBuilder.Entity<PlayerMail>()
+            .Property(m => m.PlayerId)
+            .HasConversion<string>();
+
+        modelBuilder.Entity<PlayerMail>()
+            .Property(m => m.Sender)
+            .HasMaxLength(MailRules.MaxSenderLength);
+
+        modelBuilder.Entity<PlayerMail>()
+            .Property(m => m.Title)
+            .HasMaxLength(MailRules.MaxTitleLength);
+
+        modelBuilder.Entity<PlayerMail>()
+            .Property(m => m.Body)
+            .HasMaxLength(MailRules.MaxBodyLength);
+
+        modelBuilder.Entity<PlayerMail>()
+            .HasOne<Player>()
+            .WithMany()
+            .HasForeignKey(m => m.PlayerId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<PlayerMail>()
+            .HasMany(m => m.Attachments)
+            .WithOne()
+            .HasForeignKey(a => a.MailId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Письма игрока, новые сверху
+        modelBuilder.Entity<PlayerMail>()
+            .HasIndex(m => new { m.PlayerId, m.CreatedAt });
+
+        modelBuilder.Entity<MailAttachment>()
+            .HasKey(a => a.Id);
+
+        modelBuilder.Entity<MailAttachment>()
+            .Property(a => a.Kind)
+            .HasConversion<string>()
+            .HasMaxLength(16);
+
+        modelBuilder.Entity<MailAttachment>()
+            .Property(a => a.Key)
+            .HasMaxLength(64);
+
+        modelBuilder.Entity<MailAttachment>()
+            .Property(a => a.Rarity)
+            .HasConversion<string>()
+            .HasMaxLength(16);
+
+        modelBuilder.Entity<MailAttachment>()
+            .Property(a => a.AbilityKind)
+            .HasConversion<string>()
+            .HasMaxLength(16);
+
+        // Дворф из конструктора админки — JSON (null — дворф как из сундука)
+        modelBuilder.Entity<MailAttachment>()
+            .Property(a => a.HeroSpec)
+            .HasConversion(
+                spec => spec == null ? null : JsonSerializer.Serialize(spec, (JsonSerializerOptions?)null),
+                json => json == null ? null : JsonSerializer.Deserialize<MailHeroSpec>(json, (JsonSerializerOptions?)null))
+            .HasMaxLength(2000);
 
         // ===== Извлечённые способности =====
         modelBuilder.Entity<PlayerAbility>()

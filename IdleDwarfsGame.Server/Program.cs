@@ -156,6 +156,8 @@ builder.Services.AddScoped<GuildDepthService>();
 builder.Services.AddScoped<FriendHelpService>();
 builder.Services.AddScoped<ArenaBetService>();
 builder.Services.AddScoped<DelveService>();
+// Почта игрока и отправка писем из админки
+builder.Services.AddScoped<MailService>();
 //builder.Services.AddScoped<IMonsterRepository, MonsterRepository>();
 
 var app = builder.Build();
