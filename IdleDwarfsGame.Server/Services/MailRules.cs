@@ -18,6 +18,7 @@ public static class MailRules
     public const int MaxHeroes = 20;
     public const int MaxEquipment = 50;
     public const int MaxAbilities = 20;
+    public const int MaxChests = 50;
     public const long MaxGems = 1_000_000;
     public const long MaxCurrency = 1_000_000_000_000;
 
@@ -26,7 +27,8 @@ public static class MailRules
 
     public static readonly MailAttachmentKind[] KindOrder =
     [
-        MailAttachmentKind.Hero, MailAttachmentKind.Equipment, MailAttachmentKind.Gem, MailAttachmentKind.Ability, MailAttachmentKind.Currency
+        MailAttachmentKind.Hero, MailAttachmentKind.Equipment, MailAttachmentKind.Gem, MailAttachmentKind.Ability,
+        MailAttachmentKind.Chest, MailAttachmentKind.Currency
     ];
 
     public static IEnumerable<MailAttachment> Ordered(IEnumerable<MailAttachment> attachments) => attachments
@@ -78,6 +80,15 @@ public static class MailRules
                 RequireAmount(attachment, MaxAbilities);
                 break;
 
+            case MailAttachmentKind.Chest:
+                Require(TryParseChest(attachment.Key, out var chestType, out var chestElement), $"Unknown chest {attachment.Key}");
+                // Сундук выдаётся только такой, для которого есть таблица дропа (иначе его не открыть)
+                Require(LootSeedData.TablesWithEntries().Any(t => t.ChestType == chestType && t.ChestLevel == attachment.Level && t.Element == chestElement),
+                    $"No {attachment.Key} chest of level {attachment.Level}");
+                attachment.Key = ChestKey(chestType, chestElement);
+                RequireAmount(attachment, MaxChests);
+                break;
+
             case MailAttachmentKind.Currency:
                 Require(Enum.TryParse<MailCurrency>(attachment.Key, out var currency) && Enum.IsDefined(currency), $"Unknown currency {attachment.Key}");
                 attachment.Key = currency.ToString();
@@ -94,6 +105,19 @@ public static class MailRules
         if (attachment.Kind != MailAttachmentKind.Hero)
             attachment.HeroSpec = null;
         return attachment;
+    }
+
+    // Ключ сундука во вложении: тип, у сундука со стихией — "Infinity:Fire"
+    public static string ChestKey(ChestType type, HeroElement element) =>
+        element == HeroElement.Basic ? type.ToString() : $"{type}:{element}";
+
+    public static bool TryParseChest(string key, out ChestType type, out HeroElement element)
+    {
+        element = HeroElement.Basic;
+        var parts = key.Split(':', 2);
+        if (!Enum.TryParse(parts[0], out type) || !Enum.IsDefined(type))
+            return false;
+        return parts.Length == 1 || Enum.TryParse(parts[1], out element) && Enum.IsDefined(element);
     }
 
     private static void RequireAmount(MailAttachment attachment, long max) =>

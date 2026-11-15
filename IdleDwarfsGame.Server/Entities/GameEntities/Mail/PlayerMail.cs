@@ -18,8 +18,9 @@ public class PlayerMail
     public DateTime? ClaimedAt { get; set; }
 }
 
-// Вид вложения; порядок в письме всегда такой: дворфы, предметы, камни, способности, валюты (MailRules.Order)
-public enum MailAttachmentKind { Hero, Equipment, Gem, Ability, Currency }
+// Вид вложения; порядок в письме всегда такой: дворфы, предметы, камни, способности, сундуки, валюты (MailRules.KindOrder).
+// В БД хранится строкой — значения можно дописывать
+public enum MailAttachmentKind { Hero, Equipment, Gem, Ability, Currency, Chest }
 
 // Валюты аккаунта, которые можно вложить в письмо. EventCurrency — в кошелёк ивента текущей недели
 public enum MailCurrency { Gold, Experience, RainbowCoins, BloodCoins, HonorBadges, ElderSeals, EventCurrency }
@@ -29,6 +30,8 @@ public enum MailCurrency { Gold, Experience, RainbowCoins, BloodCoins, HonorBadg
 //   Equipment — Key: ключ предмета (EquipmentCatalog), Amount: сколько штук;
 //   Gem       — Key: камень (GemType), Rarity: ступень, Amount: сколько камней;
 //   Ability   — AbilityKind + Key (как у PlayerAbility), Level, Amount: сколько штук;
+//   Chest     — Key: тип сундука, у сундука бесконечности через двоеточие стихия ("Infinity:Fire"), Level: уровень,
+//               Amount: сколько сундуков (ложатся на склад закрытыми);
 //   Currency  — Key: MailCurrency, Amount: сколько
 public class MailAttachment
 {

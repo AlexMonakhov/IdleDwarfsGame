@@ -716,6 +716,7 @@ const en = {
       Equipment: 'Items',
       Gem: 'Gems',
       Ability: 'Abilities',
+      Chest: 'Chests',
       Currency: 'Currencies',
     },
     amount: 'Amount',

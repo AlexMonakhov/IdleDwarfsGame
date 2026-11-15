@@ -187,6 +187,40 @@ public class MailTests : IDisposable
     }
 
     [Fact]
+    public async Task Chests_GoToTheWarehouseClosed_BeforeCurrenciesInTheMail()
+    {
+        List<MailAttachment> attachments =
+        [
+            new() { Kind = MailAttachmentKind.Currency, Key = "Gold", Amount = 10 },
+            new() { Kind = MailAttachmentKind.Chest, Key = "Infinity:Frost", Level = 2, Amount = 2 },
+            new() { Kind = MailAttachmentKind.Chest, Key = "Hero", Level = 5 },
+        ];
+        var sent = await _service.SendAsync(_playerId, null, "Chests", "", attachments);
+        Assert.Equal([MailAttachmentKind.Chest, MailAttachmentKind.Chest, MailAttachmentKind.Currency], sent.Attachments.Select(a => a.Kind));
+        Assert.Equal((ChestType.Infinity, 2, HeroElement.Frost), (sent.Attachments[0].Chest!.Type, sent.Attachments[0].Chest!.Level, sent.Attachments[0].Chest!.Element));
+
+        await _service.ClaimAsync(_playerId, sent.Id);
+
+        var inventory = new InventoryRepository(_context);
+        var chests = await inventory.GetClosedChestsAsync(_playerId);
+        Assert.Equal(3, chests.Count);
+        Assert.Equal(2, chests.Count(c => c.ChestDropTable.ChestType == ChestType.Infinity && c.ChestDropTable.Element == HeroElement.Frost));
+        Assert.Single(chests, c => c.ChestDropTable.ChestType == ChestType.Hero && c.ChestDropTable.ChestLevel == 5);
+    }
+
+    [Theory]
+    [InlineData("Infinity", 1)]        // у сундука бесконечности нужна стихия
+    [InlineData("Infinity:Fire", 4)]   // таких уровней у бесконечности нет
+    [InlineData("Hero:Fire", 1)]       // у сундука героев стихии нет
+    [InlineData("Treasure", 1)]
+    [InlineData("Gem", 9)]
+    public async Task Chests_OnlyThoseWithADropTable(string key, int level)
+    {
+        var attachment = new MailAttachment { Kind = MailAttachmentKind.Chest, Key = key, Level = level };
+        await Assert.ThrowsAsync<MailException>(() => _service.SendAsync(_playerId, null, "Bad", "", [attachment]));
+    }
+
+    [Fact]
     public async Task FindPlayers_ByPartOfName()
     {
         var found = await _service.FindPlayersAsync("est");
@@ -206,6 +240,7 @@ public class MailTests : IDisposable
         Assert.Contains(catalog.Abilities, a => a.Kind == AbilityKind.Passive);
         Assert.Contains(catalog.Abilities, a => a.Kind == AbilityKind.Aura);
         Assert.Contains(MailCurrency.EventCurrency, catalog.Currencies);
+        Assert.Equal(LootSeedData.TablesWithEntries().Count, catalog.Chests.Count);
     }
 
     private static List<MailAttachment> AllKinds() =>

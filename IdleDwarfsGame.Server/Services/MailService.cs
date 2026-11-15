@@ -148,6 +148,10 @@ public class MailService(GameDbContext db, IEntityFactory entityFactory, IPlayer
                     ItemType = ItemType.Gem, SubType = gem.ToString(), Rarity = rarity, Level = 1, Quantity = 1
                 }))
                 .ToList(),
+            Chests = LootSeedData.TablesWithEntries()
+                .OrderBy(t => t.ChestType).ThenBy(t => t.ChestLevel).ThenBy(t => t.Element)
+                .Select(t => new ChestInfo { Id = t.Id, Type = t.ChestType, Level = t.ChestLevel, Element = t.Element })
+                .ToList(),
             Currencies = Enum.GetValues<MailCurrency>().ToList(),
             Professions = ProfessionBook.SquadOrder.ToList(),
             Immunities = HeroGenerator.Immunities.ToList()
@@ -214,6 +218,12 @@ public class MailService(GameDbContext db, IEntityFactory entityFactory, IPlayer
                 case MailAttachmentKind.Equipment:
                     for (int i = 0; i < attachment.Amount; i++)
                         db.PlayerEquipment.Add(new PlayerEquipment { Id = Guid.NewGuid(), PlayerId = playerId, ItemKey = attachment.Key });
+                    break;
+                case MailAttachmentKind.Chest:
+                    MailRules.TryParseChest(attachment.Key, out var chestType, out var chestElement);
+                    var tableId = LootSeedData.TableId(chestType, attachment.Level, chestElement);
+                    for (int i = 0; i < attachment.Amount; i++)
+                        db.PlayerChests.Add(new PlayerChest { Id = Guid.NewGuid(), PlayerId = playerId, ChestDropTableId = tableId, IsOpened = false });
                     break;
                 case MailAttachmentKind.Ability:
                     for (int i = 0; i < attachment.Amount; i++)
@@ -304,6 +314,10 @@ public class MailService(GameDbContext db, IEntityFactory entityFactory, IPlayer
                 break;
             case MailAttachmentKind.Ability:
                 info.Ability = AbilityInfo.Describe(attachment.AbilityKind ?? AbilityKind.Spell, attachment.Key, attachment.Level, attachment.Id);
+                break;
+            case MailAttachmentKind.Chest:
+                if (MailRules.TryParseChest(attachment.Key, out var chestType, out var chestElement))
+                    info.Chest = new ChestInfo { Id = attachment.Id, Type = chestType, Level = attachment.Level, Element = chestElement };
                 break;
             case MailAttachmentKind.Currency:
                 info.Currency = Enum.TryParse<MailCurrency>(attachment.Key, out var currency) ? currency : null;

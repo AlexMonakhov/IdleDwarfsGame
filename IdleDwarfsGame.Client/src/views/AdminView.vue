@@ -8,6 +8,7 @@ import type { FilterOption } from '@/components/common/filterOptions';
 import HeroFilters from '@/components/inventory/HeroFilters.vue';
 import ItemFilters from '@/components/equipment/ItemFilters.vue';
 import GemFilters from '@/components/inventory/GemFilters.vue';
+import ChestFilters from '@/components/inventory/ChestFilters.vue';
 import MailAttachmentCard from '@/components/mail/MailAttachmentCard.vue';
 import HeroConstructor from '@/components/admin/HeroConstructor.vue';
 import type { HeroInfo } from '@/models/types/Heroes';
@@ -18,7 +19,7 @@ import AdminApiService from '@/services/apiServices/AdminApiService';
 import type { AbilityInfo, AbilityKind } from '@/models/types/Abilities';
 import type { HeroElement } from '@/battle/types';
 import type { EquipmentType } from '@/models/types/Equipment';
-import type { Rarity } from '@/models/types/Inventory';
+import type { ChestType, Rarity } from '@/models/types/Inventory';
 import type {
     AdminMailCatalog,
     AdminPlayerInfo,
@@ -79,7 +80,7 @@ const loadHistory = async () => {
 // ---------- Каталог ----------
 const catalog = ref<AdminMailCatalog | null>(null);
 const catalogError = ref<string | null>(null);
-const KINDS: MailAttachmentKind[] = ['Hero', 'Equipment', 'Gem', 'Ability', 'Currency'];
+const KINDS: MailAttachmentKind[] = ['Hero', 'Equipment', 'Gem', 'Ability', 'Chest', 'Currency'];
 const kind = ref<MailAttachmentKind>('Hero');
 
 onMounted(async () => {
@@ -104,6 +105,12 @@ const gemRarity = ref<Rarity | null>(null);
 const gemOptions = computed(() => (catalog.value?.gems ?? []).map(g => ({ gem: g.subType, rarity: g.rarity })));
 const filteredGems = computed(() => (catalog.value?.gems ?? [])
     .filter(g => (!gemKind.value || g.subType === gemKind.value) && (!gemRarity.value || g.rarity === gemRarity.value)));
+
+// Сундуки: вид и уровень (как на складе)
+const chestType = ref<ChestType | null>(null);
+const chestLevel = ref<number | null>(null);
+const filteredChests = computed(() => (catalog.value?.chests ?? [])
+    .filter(c => (!chestType.value || c.type === chestType.value) && (!chestLevel.value || c.level === chestLevel.value)));
 
 // Способности: вид, стихия (у заклинаний) и уровень
 const abilityKind = ref<AbilityKind | null>(null);
@@ -174,6 +181,18 @@ const entries = computed<CatalogEntry[]>(() => {
                 `ability-${ability.kind}-${ability.key}-${ability.level}`,
                 { kind: 'Ability', key: ability.key, level: ability.level, rarity: 'Common', abilityKind: ability.kind },
                 { ability },
+            ));
+        case 'Chest':
+            return filteredChests.value.map(chest => entry(
+                `chest-${chest.type}-${chest.level}-${chest.element}`,
+                {
+                    kind: 'Chest',
+                    key: chest.element === 'Basic' ? chest.type : `${chest.type}:${chest.element}`,
+                    level: chest.level,
+                    rarity: 'Common',
+                    abilityKind: null,
+                },
+                { chest },
             ));
         case 'Currency':
             return [...catalog.value.currencies]
@@ -352,6 +371,7 @@ const dateText = (iso: string) => new Date(iso).toLocaleString(locale.value, { d
                 <div class="admin-filters">
                     <HeroFilters v-if="kind === 'Hero'" v-model:element="heroElement" v-model:rank="heroRank" :heroes="heroes" />
                     <ItemFilters v-if="kind === 'Equipment'" v-model:type="itemType" v-model:rarity="itemRarity" :items="catalog?.equipment ?? []" />
+                    <ChestFilters v-if="kind === 'Chest'" v-model:type="chestType" v-model:level="chestLevel" :chests="catalog?.chests ?? []" />
                     <GemFilters v-if="kind === 'Gem'" v-model:gem="gemKind" v-model:rarity="gemRarity" :gems="gemOptions" />
                     <template v-if="kind === 'Ability'">
                         <FilterRow :options="abilityKindOptions" :model-value="abilityKind" :all-label="t('admin.allKinds')" @update:model-value="abilityKind = $event as AbilityKind | null" />
