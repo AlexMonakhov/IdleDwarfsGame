@@ -3,10 +3,10 @@ import type { AbilityInfo, AbilityKind } from '@/models/types/Abilities';
 import type { EquipmentInfo } from '@/models/types/Equipment';
 import type { PlayerResources } from '@/models/types/Expeditions';
 import type { HeroInfo, HeroProfession } from '@/models/types/Heroes';
-import type { ItemInfo, Rarity } from '@/models/types/Inventory';
+import type { ChestInfo, ItemInfo, Rarity } from '@/models/types/Inventory';
 
-// Порядок в письме всегда такой: дворфы, предметы, камни, способности, валюты
-export type MailAttachmentKind = 'Hero' | 'Equipment' | 'Gem' | 'Ability' | 'Currency';
+// Порядок в письме всегда такой: дворфы, предметы, камни, способности, сундуки, валюты
+export type MailAttachmentKind = 'Hero' | 'Equipment' | 'Gem' | 'Ability' | 'Chest' | 'Currency';
 export type MailCurrency = 'Gold' | 'Experience' | 'RainbowCoins' | 'BloodCoins' | 'HonorBadges' | 'ElderSeals' | 'EventCurrency';
 
 // Вложение с превью: заполнено поле своего вида
@@ -20,6 +20,7 @@ export interface MailAttachmentInfo {
     equipment?: EquipmentInfo | null;
     gem?: ItemInfo | null;
     ability?: AbilityInfo | null;
+    chest?: ChestInfo | null;
     currency?: MailCurrency | null;
 }
 
@@ -54,6 +55,8 @@ export interface AdminMailCatalog {
     equipment: EquipmentInfo[];
     gems: ItemInfo[];
     abilities: AbilityInfo[];
+    // Все сундуки с таблицей дропа; key вложения — тип, у бесконечности «Infinity:Fire»
+    chests: ChestInfo[];
     currencies: MailCurrency[];
     // Для конструктора дворфа
     professions: HeroProfession[];

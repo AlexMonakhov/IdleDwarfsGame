@@ -6,6 +6,7 @@ import GemTile from '@/components/inventory/GemTile.vue';
 import AbilityTile from '@/components/abilities/AbilityTile.vue';
 import { IconCheck } from '@/components/icons/ui';
 import CurrencyTile from './CurrencyTile.vue';
+import ChestTile from './ChestTile.vue';
 import type { MailAttachmentInfo } from '@/models/types/Mail';
 
 // Вложение письма — карточкой своего вида (дворф, предмет, камень, способность, валюта).
@@ -22,6 +23,7 @@ const { locale } = useI18n();
             <ItemTile v-else-if="attachment.equipment" :item="attachment.equipment" />
             <GemTile v-else-if="attachment.gem" :item="attachment.gem" />
             <AbilityTile v-else-if="attachment.ability" :ability="attachment.ability" />
+            <ChestTile v-else-if="attachment.chest" :chest="attachment.chest" :amount="attachment.amount" />
             <CurrencyTile v-else-if="attachment.currency" :currency="attachment.currency" :amount="attachment.amount" />
         </div>
         <!-- Несколько одинаковых дворфов, предметов или способностей (у камней и валют число на самой карточке) -->

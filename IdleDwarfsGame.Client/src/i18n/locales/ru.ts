@@ -716,6 +716,7 @@ const ru: LocaleMessages = {
       Equipment: 'Предметы',
       Gem: 'Гемы',
       Ability: 'Способности',
+      Chest: 'Сундуки',
       Currency: 'Валюты',
     },
     amount: 'Кол-во',

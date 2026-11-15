@@ -28,6 +28,7 @@ public class MailAttachmentInfo
     public EquipmentInfo? Equipment { get; set; }
     public ItemInfo? Gem { get; set; }
     public AbilityInfo? Ability { get; set; }
+    public ChestInfo? Chest { get; set; }
     public MailCurrency? Currency { get; set; }
 }
 
@@ -56,6 +57,8 @@ public class AdminMailCatalog
     public List<EquipmentInfo> Equipment { get; set; } = new();
     public List<ItemInfo> Gems { get; set; } = new();
     public List<AbilityInfo> Abilities { get; set; } = new();
+    // Все сундуки, у которых есть таблица дропа: тип, уровень, стихия (у сундуков бесконечности)
+    public List<ChestInfo> Chests { get; set; } = new();
     public List<MailCurrency> Currencies { get; set; } = new();
     // Для конструктора дворфа
     public List<HeroProfession> Professions { get; set; } = new();
