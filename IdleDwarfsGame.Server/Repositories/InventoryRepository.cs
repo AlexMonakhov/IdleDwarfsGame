@@ -30,7 +30,8 @@ public class InventoryRepository(GameDbContext context) : IInventoryRepository
             .ToListAsync();
     }
 
-    public async Task<bool> OpenChestAsync(PlayerChest chest, IReadOnlyList<LootDrop> items, IReadOnlyList<Hero> heroes, IReadOnlyList<PlayerEquipment>? equipment = null)
+    public async Task<bool> OpenChestAsync(PlayerChest chest, IReadOnlyList<LootDrop> items, IReadOnlyList<Hero> heroes,
+        IReadOnlyList<PlayerEquipment>? equipment = null, ChestCurrencyGrant? currency = null)
     {
         await using var transaction = await context.Database.BeginTransactionAsync();
 
@@ -48,6 +49,21 @@ public class InventoryRepository(GameDbContext context) : IInventoryRepository
         if (equipment != null)
             context.PlayerEquipment.AddRange(equipment);
         await context.SaveChangesAsync();
+
+        if (currency != null)
+        {
+            if (currency.Gold > 0 || currency.Experience > 0 || currency.RainbowCoins > 0)
+            {
+                await context.Players
+                    .Where(p => p.Id == chest.PlayerId)
+                    .ExecuteUpdateAsync(s => s
+                        .SetProperty(p => p.Gold, p => p.Gold + currency.Gold)
+                        .SetProperty(p => p.Experience, p => p.Experience + currency.Experience)
+                        .SetProperty(p => p.RainbowCoins, p => p.RainbowCoins + currency.RainbowCoins));
+            }
+            if (currency.EventStart is { } eventStart)
+                await EventWallets.AddAsync(context, chest.PlayerId, eventStart, currency.EventCurrency);
+        }
 
         await transaction.CommitAsync();
         return true;

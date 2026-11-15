@@ -57,15 +57,15 @@ public static class LootSeedData
         // ===== Сундуки гемов =====
         new(ChestType.Gem, 1, Rolls: 2,
         [
-            .. ElementGems.Select(gem => Gem(gem, Rarity.Common, 0.22, 2, 4)),
-            Gem(GemType.Diamond, Rarity.Rare, 0.05, 1, 1)
-            // остаток 7% — пустой бросок
+            .. ElementGems.Select(gem => Gem(gem, Rarity.Common, 0.235, 2, 4)),
+            Gem(GemType.Diamond, Rarity.Rare, 0.06, 1, 1)
+            // без пустого броска: сундук всегда даёт хоть одну карту (ChestBonuses добивает до пяти)
         ]),
         new(ChestType.Gem, 2, Rolls: 3,
         [
             .. ElementGems.Select(gem => Gem(gem, Rarity.Common, 0.18, 3, 6)),
             .. ElementGems.Select(gem => Gem(gem, Rarity.Uncommon, 0.05, 1, 2)),
-            Gem(GemType.Diamond, Rarity.Rare, 0.06, 1, 1)
+            Gem(GemType.Diamond, Rarity.Rare, 0.08, 1, 1)
         ]),
         new(ChestType.Gem, 3, Rolls: 3,
         [
@@ -128,46 +128,48 @@ public static class LootSeedData
         ]),
 
         // ===== Сундуки бесконечности (босс башни, TowerRewards): своя таблица на каждую стихию.
-        // Герой и камни — только этой стихии, снаряжение — общее =====
+        // Герой и камень — только этой стихии, снаряжение — общее. Каждая группа бросается один раз:
+        // камень — всегда, герой и предмет — с шансом, то есть 1–3 карты (до пяти добивают ChestBonuses).
+        // Шансы и стопки — как прежние 2–3 броска, собранные в один =====
         .. InfinityTower.ElementOrder.SelectMany(element => new TableDefinition[]
         {
-            new(ChestType.Infinity, 1, Rolls: 2,
+            new(ChestType.Infinity, 1, Rolls: 1,
             [
-                Hero(rank: 2, 0.15, element),
-                Hero(rank: 3, 0.03, element),
-                Gem(InfinityTower.GemOf(element), Rarity.Common, 0.55, 3, 6),
-                Gem(InfinityTower.GemOf(element), Rarity.Uncommon, 0.30, 1, 2),
-                Gem(InfinityTower.GemOf(element), Rarity.Rare, 0.05, 1, 1),
-                .. EquipmentOf(Rarity.Uncommon, 0.15),
-                .. EquipmentOf(Rarity.Rare, 0.05),
-                .. EquipmentOf(Rarity.Mythic, 0.01)
-            ], element),
-            new(ChestType.Infinity, 2, Rolls: 3,
-            [
-                Hero(rank: 2, 0.12, element),
-                Hero(rank: 3, 0.10, element),
-                Hero(rank: 4, 0.02, element),
-                Gem(InfinityTower.GemOf(element), Rarity.Common, 0.35, 4, 8),
-                Gem(InfinityTower.GemOf(element), Rarity.Uncommon, 0.35, 2, 3),
-                Gem(InfinityTower.GemOf(element), Rarity.Rare, 0.12, 1, 2),
-                Gem(InfinityTower.GemOf(element), Rarity.Mythic, 0.02, 1, 1),
-                .. EquipmentOf(Rarity.Uncommon, 0.10),
+                Hero(rank: 2, 0.29, element),
+                Hero(rank: 3, 0.06, element),
+                Gem(InfinityTower.GemOf(element), Rarity.Common, 0.60, 6, 11),
+                Gem(InfinityTower.GemOf(element), Rarity.Uncommon, 0.33, 2, 4),
+                Gem(InfinityTower.GemOf(element), Rarity.Rare, 0.07, 1, 2),
+                .. EquipmentOf(Rarity.Uncommon, 0.30),
                 .. EquipmentOf(Rarity.Rare, 0.10),
-                .. EquipmentOf(Rarity.Mythic, 0.04),
-                .. EquipmentOf(Rarity.Legendary, 0.01)
+                .. EquipmentOf(Rarity.Mythic, 0.02)
             ], element),
-            new(ChestType.Infinity, 3, Rolls: 3,
+            new(ChestType.Infinity, 2, Rolls: 1,
             [
-                Hero(rank: 3, 0.15, element),
+                Hero(rank: 2, 0.36, element),
+                Hero(rank: 3, 0.30, element),
                 Hero(rank: 4, 0.06, element),
-                Gem(InfinityTower.GemOf(element), Rarity.Common, 0.25, 6, 10),
-                Gem(InfinityTower.GemOf(element), Rarity.Uncommon, 0.35, 3, 4),
-                Gem(InfinityTower.GemOf(element), Rarity.Rare, 0.20, 1, 2),
-                Gem(InfinityTower.GemOf(element), Rarity.Mythic, 0.06, 1, 1),
-                .. EquipmentOf(Rarity.Rare, 0.15),
-                .. EquipmentOf(Rarity.Mythic, 0.08),
-                .. EquipmentOf(Rarity.Legendary, 0.03),
-                .. EquipmentOf(Rarity.Artifact, 0.005)
+                Gem(InfinityTower.GemOf(element), Rarity.Common, 0.40, 12, 24),
+                Gem(InfinityTower.GemOf(element), Rarity.Uncommon, 0.40, 6, 9),
+                Gem(InfinityTower.GemOf(element), Rarity.Rare, 0.17, 3, 5),
+                Gem(InfinityTower.GemOf(element), Rarity.Mythic, 0.03, 1, 3),
+                .. EquipmentOf(Rarity.Uncommon, 0.30),
+                .. EquipmentOf(Rarity.Rare, 0.30),
+                .. EquipmentOf(Rarity.Mythic, 0.12),
+                .. EquipmentOf(Rarity.Legendary, 0.03)
+            ], element),
+            new(ChestType.Infinity, 3, Rolls: 1,
+            [
+                Hero(rank: 3, 0.45, element),
+                Hero(rank: 4, 0.18, element),
+                Gem(InfinityTower.GemOf(element), Rarity.Common, 0.29, 18, 30),
+                Gem(InfinityTower.GemOf(element), Rarity.Uncommon, 0.40, 9, 12),
+                Gem(InfinityTower.GemOf(element), Rarity.Rare, 0.24, 3, 6),
+                Gem(InfinityTower.GemOf(element), Rarity.Mythic, 0.07, 2, 3),
+                .. EquipmentOf(Rarity.Rare, 0.45),
+                .. EquipmentOf(Rarity.Mythic, 0.24),
+                .. EquipmentOf(Rarity.Legendary, 0.09),
+                .. EquipmentOf(Rarity.Artifact, 0.015)
             ], element)
         })
     ];

@@ -695,7 +695,7 @@ public class EquipmentTests : IDisposable
         await _context.SaveChangesAsync();
         _context.ChangeTracker.Clear();
 
-        var service = new ChestService(new InventoryRepository(_context), new ItemDropService(new Random(1)), Factory, new Random(1), NoActivity.Instance);
+        var service = new ChestService(new InventoryRepository(_context), new ItemDropService(new Random(1)), Factory, new Random(1), NoActivity.Instance, new PlayerRepository(_context), TimeProvider.System);
         var opened = await service.OpenAsync(_playerId, chest.Id);
 
         Assert.Empty(opened.Items);
