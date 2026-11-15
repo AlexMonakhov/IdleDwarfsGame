@@ -25,6 +25,9 @@ public static class AuraBook
         new("Regen", AuraTarget.Allies, [10, 15, 20])
     }.ToDictionary(d => d.Effect);
 
+    // Все ауры (эффекты) — для каталога админки
+    public static IReadOnlyCollection<string> Effects => Definitions.Keys;
+
     // Мороз и выжигание энергии не наносят урона: у мороза сила — сам процент замедления, у выжигания — единицы энергии
     public static bool PowerIsPercentOfAttack(string effect) => effect is not ("Frost" or EnergyBurnEffect.Name);
 
