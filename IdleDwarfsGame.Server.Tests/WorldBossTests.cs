@@ -30,7 +30,7 @@ public class WorldBossTests : IDisposable
         _bob = AddPlayer("Bob");
         _context.SaveChanges();
 
-        var heroes = new HeroesRepository(_context);
+        var heroes = new HeroesRepository(_context, _clock);
         var factory = new EntityFactory();
         var combat = new CombatService(new WorldFactory(heroes, factory), new CombatEngine(new Random(1)), []);
         _service = new WorldBossService(new WorldBossRepository(_context), heroes, factory, combat, new FixedShopRepository(_context),

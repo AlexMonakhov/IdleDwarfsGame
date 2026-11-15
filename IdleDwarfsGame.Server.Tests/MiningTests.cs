@@ -35,8 +35,8 @@ public class MiningTests : IDisposable
         _context.SaveChanges();
         _context.ChangeTracker.Clear();
 
-        _heroes = new HeroesRepository(_context);
-        _mining = new MiningRepository(_context);
+        _heroes = new HeroesRepository(_context, _clock);
+        _mining = new MiningRepository(_context, _clock);
         _service = new MiningService(_mining, _heroes, new ExpeditionRepository(_context), _clock, NoActivity.Instance);
     }
 

@@ -8,10 +8,13 @@ using System.Threading.Tasks;
 public class HeroesRepository : IHeroesRepository
 {
     private readonly GameDbContext _context;
+    // Часы игры: занятость дворфа в «Гонке глубины» (ReleaseAt) сверяется с ними, а не с DateTime.UtcNow
+    private readonly TimeProvider _clock;
 
-    public HeroesRepository(GameDbContext context)
+    public HeroesRepository(GameDbContext context, TimeProvider? clock = null)
     {
         _context = context;
+        _clock = clock ?? TimeProvider.System;
     }
 
     public async Task<Hero?> GetByIdAsync(Guid id)
@@ -52,13 +55,14 @@ public class HeroesRepository : IHeroesRepository
     // Дворфы в личных шахтах и на месторождениях ивента «Общие шахты» — для всех проверок «занят ли герой»
     public async Task<HashSet<Guid>> GetMiningHeroIdsAsync(Guid playerId)
     {
+        var now = _clock.GetUtcNow().UtcDateTime;
         var ids = await _context.MineDwarves
             .Where(d => _context.Mines.Any(m => m.Id == d.MineId && m.PlayerId == playerId))
             .Select(d => d.HeroId)
             .Concat(_context.DepositDwarves.Where(d => d.PlayerId == playerId).Select(d => d.HeroId))
             // Дворф в шахте «Гонки глубины» гильдии — до конца гонки
             .Concat(_context.GuildDepthDwarves
-                .Where(d => d.PlayerId == playerId && d.HeroId != null && d.ReleaseAt > DateTime.UtcNow)
+                .Where(d => d.PlayerId == playerId && d.HeroId != null && d.ReleaseAt > now)
                 .Select(d => d.HeroId!.Value))
             .ToListAsync();
 
@@ -66,18 +70,22 @@ public class HeroesRepository : IHeroesRepository
     }
 
     // Заняты герои в экспедиции и дворфы, работающие в шахтах (личных и общих)
-    private IQueryable<Guid> BusyHeroIds(List<Guid> heroIds) => _context.ExpeditionHeroes
-        .Where(h => heroIds.Contains(h.HeroId))
-        .Select(h => h.HeroId)
-        .Concat(_context.MineDwarves
-            .Where(d => heroIds.Contains(d.HeroId))
-            .Select(d => d.HeroId))
-        .Concat(_context.DepositDwarves
-            .Where(d => heroIds.Contains(d.HeroId))
-            .Select(d => d.HeroId))
-        .Concat(_context.GuildDepthDwarves
-            .Where(d => d.HeroId != null && heroIds.Contains(d.HeroId.Value) && d.ReleaseAt > DateTime.UtcNow)
-            .Select(d => d.HeroId!.Value));
+    private IQueryable<Guid> BusyHeroIds(List<Guid> heroIds)
+    {
+        var now = _clock.GetUtcNow().UtcDateTime;
+        return _context.ExpeditionHeroes
+            .Where(h => heroIds.Contains(h.HeroId))
+            .Select(h => h.HeroId)
+            .Concat(_context.MineDwarves
+                .Where(d => heroIds.Contains(d.HeroId))
+                .Select(d => d.HeroId))
+            .Concat(_context.DepositDwarves
+                .Where(d => heroIds.Contains(d.HeroId))
+                .Select(d => d.HeroId))
+            .Concat(_context.GuildDepthDwarves
+                .Where(d => d.HeroId != null && heroIds.Contains(d.HeroId.Value) && d.ReleaseAt > now)
+                .Select(d => d.HeroId!.Value));
+    }
 
     public async Task CreateAsync(Hero hero)
     {

@@ -30,7 +30,7 @@ public class GuildTests : IDisposable
         _context.SaveChanges();
 
         _repository = new GuildRepository(_context);
-        var heroes = new HeroesRepository(_context);
+        var heroes = new HeroesRepository(_context, _clock);
         var factory = new EntityFactory();
         var combat = new CombatService(new WorldFactory(heroes, factory), new CombatEngine(new Random(1)), []);
         var sessions = new SessionService(new UserSessionRepository(_context), new FriendRepository(_context), _clock);

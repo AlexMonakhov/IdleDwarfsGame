@@ -20,7 +20,7 @@ public class RankedPvpTests : IDisposable
         _context = new GameDbContext(new DbContextOptionsBuilder<GameDbContext>().UseSqlite(_connection).Options);
         _context.Database.EnsureCreated();
 
-        var heroes = new HeroesRepository(_context);
+        var heroes = new HeroesRepository(_context, _clock);
         var factory = new EntityFactory();
         var combat = new CombatService(new WorldFactory(heroes, factory), new CombatEngine(new Random(1)), []);
         var pvp = new PvpRepository(_context);

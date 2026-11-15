@@ -1,8 +1,11 @@
 using System.Data.Common;
 using Microsoft.EntityFrameworkCore;
 
-public class MiningRepository(GameDbContext context) : IMiningRepository
+// clock — часы игры: занятость дворфа в «Гонке глубины» (ReleaseAt) сверяется с ними, а не с DateTime.UtcNow
+public class MiningRepository(GameDbContext context, TimeProvider? clock = null) : IMiningRepository
 {
+    private readonly TimeProvider _clock = clock ?? TimeProvider.System;
+
     // Кристаллы шахт — обычные гемы 1-го уровня: одна стопка на камень
     private const Rarity CrystalRarity = Rarity.Common;
     private const int CrystalLevel = 1;
@@ -28,12 +31,13 @@ public class MiningRepository(GameDbContext context) : IMiningRepository
     public async Task<HashSet<Guid>> GetHeroIdsAsync(Guid playerId)
     {
         // Дворф на месторождении ивента «Общие шахты» тоже занят — в личную шахту его не поставить
+        var now = _clock.GetUtcNow().UtcDateTime;
         var ids = await context.MineDwarves
             .Where(d => context.Mines.Any(m => m.Id == d.MineId && m.PlayerId == playerId))
             .Select(d => d.HeroId)
             .Concat(context.DepositDwarves.Where(d => d.PlayerId == playerId).Select(d => d.HeroId))
             .Concat(context.GuildDepthDwarves
-                .Where(d => d.PlayerId == playerId && d.HeroId != null && d.ReleaseAt > DateTime.UtcNow)
+                .Where(d => d.PlayerId == playerId && d.HeroId != null && d.ReleaseAt > now)
                 .Select(d => d.HeroId!.Value))
             .ToListAsync();
 

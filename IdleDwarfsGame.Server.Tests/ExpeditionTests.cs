@@ -35,7 +35,7 @@ public class ExpeditionTests : IDisposable
         _context.Heroes.AddRange(_reserve);
         _context.SaveChanges();
 
-        _heroes = new HeroesRepository(_context);
+        _heroes = new HeroesRepository(_context, _clock);
         _service = new ExpeditionService(
             new ExpeditionRepository(_context), _heroes, new PlayerRepository(_context), Factory, _clock, NoActivity.Instance);
     }

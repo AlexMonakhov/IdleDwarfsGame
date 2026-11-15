@@ -33,7 +33,7 @@ public class CommunityMineTests : IDisposable
         _context.SaveChanges();
         _context.ChangeTracker.Clear();
 
-        _heroes = new HeroesRepository(_context);
+        _heroes = new HeroesRepository(_context, _clock);
         _service = new CommunityMineService(new CommunityMineRepository(_context), _heroes, new ExpeditionRepository(_context),
             new PlayerRepository(_context), new ActivityRepository(_context), new FixedShopRepository(_context), _clock);
     }
@@ -179,7 +179,7 @@ public class CommunityMineTests : IDisposable
 
         // Заняты для личных шахт, экспедиций и отряда
         Assert.Contains(dwarves[0].Id, await _heroes.GetMiningHeroIdsAsync(_alice));
-        Assert.Contains(dwarves[0].Id, await new MiningRepository(_context).GetHeroIdsAsync(_alice));
+        Assert.Contains(dwarves[0].Id, await new MiningRepository(_context, _clock).GetHeroIdsAsync(_alice));
         await Assert.ThrowsAsync<InvalidOperationException>(() => _heroes.SaveSquadAsync(_alice, [dwarves[0].Id, null, null, null, null]));
 
         var copper = await DepositAsync(_alice, 0);
