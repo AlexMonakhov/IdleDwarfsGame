@@ -139,6 +139,7 @@ const footerText = computed(() => errorMessage.value ?? notice.value ?? '');
 <template>
     <ModalComponent
         v-model="open"
+        tutorial-id="guild"
         v-model:active-tab="activeTab"
         :tabs="tabs"
         :header-message="header"

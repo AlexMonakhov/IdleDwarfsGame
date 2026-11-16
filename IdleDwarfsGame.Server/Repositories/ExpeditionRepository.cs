@@ -35,6 +35,22 @@ public class ExpeditionRepository(GameDbContext context) : IExpeditionRepository
         }
     }
 
+    public async Task<bool> AddAsync(Expedition offer)
+    {
+        context.Expeditions.Add(offer);
+        try
+        {
+            await context.SaveChangesAsync();
+            return true;
+        }
+        catch (DbUpdateException)
+        {
+            // Место уже занял параллельный запрос
+            context.ChangeTracker.Clear();
+            return false;
+        }
+    }
+
     public async Task<Expedition?> GetAsync(Guid playerId, Guid expeditionId)
     {
         return await context.Expeditions

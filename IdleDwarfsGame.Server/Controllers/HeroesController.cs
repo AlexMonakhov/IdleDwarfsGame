@@ -19,16 +19,8 @@ public class HeroesController(
         if (CurrentPlayerId() is not { } playerId)
             return Unauthorized();
 
+        // Новичок до стартового сундука дворфов не имеет (Onboarding) — пустой список
         var heroes = await heroesRepository.GetByPlayerAsync(playerId);
-
-        // Аккаунты, созданные до появления стартового отряда, получают его при первом заходе в инвентарь
-        if (heroes.Count == 0)
-        {
-            heroes = StarterSquad.Roster(playerId);
-            foreach (var hero in heroes)
-                await heroesRepository.CreateAsync(hero);
-            await squadPower.RefreshAsync(playerId);
-        }
 
         return Ok(await ToInfoAsync(playerId, heroes));
     }

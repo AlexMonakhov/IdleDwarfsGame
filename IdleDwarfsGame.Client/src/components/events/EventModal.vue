@@ -83,6 +83,7 @@ const format = (value: number) => value.toLocaleString(locale.value);
 <template>
     <ModalComponent
         v-model="open"
+        tutorial-id="event"
         v-model:active-tab="activeTab"
         :tabs="tabs"
         :header-message="header"

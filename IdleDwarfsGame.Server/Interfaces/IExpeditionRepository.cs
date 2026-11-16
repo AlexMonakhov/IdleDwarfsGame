@@ -11,6 +11,10 @@ public interface IExpeditionRepository
     Task<bool> ReplaceBoardAsync(Guid playerId, DateTime boardStartsAt, IReadOnlyList<Expedition> offers);
     Task<Expedition?> GetAsync(Guid playerId, Guid expeditionId);
     /// <summary>
+    /// Adds a single offer (the onboarding expedition). Returns false if the slot is already taken.
+    /// </summary>
+    Task<bool> AddAsync(Expedition offer);
+    /// <summary>
     /// Ids of player's heroes that are on an expedition right now (not claimed yet).
     /// </summary>
     Task<HashSet<Guid>> GetBusyHeroIdsAsync(Guid playerId);

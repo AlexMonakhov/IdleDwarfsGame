@@ -16,6 +16,11 @@ const forgeOpen = ref(false)
 // Ежедневные задания и ивент недели открываются кнопками в шапке
 const questsOpen = ref(false)
 const eventOpen = ref(false)
+const mailOpen = ref(false)
+const collectionOpen = ref(false)
+// Кампания и башня живут в городе (TownView), но флаги общие: их открывает и обучение
+const campaignOpen = ref(false)
+const towerOpen = ref(false)
 
 export function useInterface() {
   return {
@@ -28,6 +33,10 @@ export function useInterface() {
     shopOpen,
     forgeOpen,
     questsOpen,
-    eventOpen
+    eventOpen,
+    mailOpen,
+    collectionOpen,
+    campaignOpen,
+    towerOpen
   }
 }

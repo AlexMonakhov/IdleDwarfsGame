@@ -14,6 +14,12 @@ import type { ModalTab } from '@/models/types/Modal';
 
 import { vDragScroll } from '@/directives/dragScroll';
 
+import { vTutorial } from '@/tutorial/anchors';
+
+import { useTutorial } from '@/composables/UseTutorial';
+
+import type { TutorialModalId } from '@/tutorial/types';
+
 
 
 interface Props {
@@ -36,6 +42,13 @@ interface Props {
   tabs?: ModalTab[]
 
   activeTab?: string
+
+  // Окно для обучения: по нему срабатывают знакомства, а окно, вкладки и их ряд становятся якорями
+  // (`<id>`, `<id>.tab.<key>`, `<id>.tabs`)
+  tutorialId?: TutorialModalId
+
+  // Только якоря обучения, без триггеров: вложенные окна (шахта внутри окна шахт). Окно — `<anchor>`, крестик — `<anchor>.close`
+  tutorialAnchor?: string
 
 }
 
@@ -88,6 +101,35 @@ const selectTab = (key: string): void => {
 
 
 const { zIndex, push, pop, isTop } = useModalStack()
+
+// Имя для якорей обучения: окно, крестик, вкладки
+const anchorId = computed(() => props.tutorialId ?? props.tutorialAnchor)
+
+// Обучение узнаёт, что окно открылось или сменило вкладку, и само переключает вкладку для своего шага
+const tutorial = useTutorial()
+
+watch(
+  () => [props.modelValue, props.activeTab] as const,
+  ([isOpen, tab], previous) => {
+    if (!props.tutorialId) return
+    // Закрытое окно сообщает о себе один раз — при закрытии, а не при каждой смене пропсов
+    if (!isOpen && !previous?.[0]) return
+    tutorial.notifyModal(props.tutorialId, isOpen, tab)
+  },
+  { immediate: true }
+)
+
+let unregisterTutorial: (() => void) | null = null
+
+watch(() => props.tutorialId, id => {
+  unregisterTutorial?.()
+  unregisterTutorial = id ? tutorial.registerModalControl(id, { selectTab }) : null
+}, { immediate: true })
+
+onBeforeUnmount(() => {
+  unregisterTutorial?.()
+  if (props.tutorialId && props.modelValue) tutorial.notifyModal(props.tutorialId, false)
+})
 
 // Esc закрывает верхнее окно. Кто обработал Esc сам (правка имени, выпадающий список), вызывает
 // preventDefault — тогда окно остаётся открытым
@@ -620,6 +662,7 @@ const modalStyle = computed<CSSProperties>(() => ({
 
         <div
           ref="windowEl"
+          v-tutorial="anchorId"
           class="modal-window"
           :class="{ 'modal-window-tabs': tabs?.length, 'modal-window-headless': !props.headerMessage }"
           @click.stop
@@ -630,12 +673,12 @@ const modalStyle = computed<CSSProperties>(() => ({
             v-if="showClose"
             class="close-btn"
           >
-            <GemButton v-if="showClose" round @click="close" :color="'red'">X</GemButton>
+            <GemButton v-if="showClose" v-tutorial="anchorId && `${anchorId}.close`" round @click="close" :color="'red'">X</GemButton>
           </div>
 
           <div v-if="props.headerMessage" class="modal-header"><div class="modal-header-text">{{ props.headerMessage }}</div></div>
 
-          <div v-if="tabs?.length" class="modal-tabs" role="tablist">
+          <div v-if="tabs?.length" v-tutorial="anchorId && `${anchorId}.tabs`" class="modal-tabs" role="tablist">
             <button
               v-for="(tab, index) in tabs"
               :key="tab.key"
@@ -645,6 +688,7 @@ const modalStyle = computed<CSSProperties>(() => ({
               :class="{ 'modal-tab-active': tab.key === activeTab }"
               :style="{ '--tab-index': index }"
               :aria-selected="tab.key === activeTab"
+              v-tutorial="anchorId && `${anchorId}.tab.${tab.key}`"
               v-tooltip="tab.label"
               @click="selectTab(tab.key)"
             >

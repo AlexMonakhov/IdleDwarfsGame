@@ -3,6 +3,8 @@ interface Props {
   type?: 'error' | 'success' | 'info' | 'warning'
   count?: number
   showDotOnly?: boolean 
+  // Знак вместо числа: «!» у ещё не освоенного здания (обучение). Число, если оно есть, важнее
+  text?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -13,10 +15,11 @@ const props = withDefaults(defineProps<Props>(), {
 </script>
 
 <template>
-  <div v-if="count > 0 || showDotOnly" class="badge-outer">
+  <div v-if="count > 0 || showDotOnly || text" class="badge-outer">
     <div v-if="count > 0 && !showDotOnly" :class="['badge-inner', `badge-${props.type}`]">
         {{ count > 99 ? '99+' : count }}
     </div>
+    <div v-else-if="text && !showDotOnly" :class="['badge-inner', `badge-${props.type}`]">{{ text }}</div>
     <span class="sparkle sparkle-top"></span>
     <span class="sparkle sparkle-bottom"></span>
   </div>

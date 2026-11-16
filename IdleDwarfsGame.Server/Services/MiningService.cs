@@ -39,7 +39,8 @@ public class MiningService(
     IHeroesRepository heroes,
     IExpeditionRepository expeditions,
     TimeProvider time,
-    IActivityTracker activity)
+    IActivityTracker activity,
+    OnboardingService? onboarding = null)
 {
     public const int PlotCount = 6;
     public const int MaxLevel = 10;
@@ -450,9 +451,15 @@ public class MiningService(
         int version = mine.Version;
         Settle(mine, now);
         int collected = (int)Math.Floor(mine.Stored);
-        if (collected <= 0)
+        // Стартовое обучение: дворф копал несколько секунд, но первого сбора золотой шахты хватает на улучшение героя
+        int bonus = 0;
+        if (mine.Type == Onboarding.MineKind && mine.Dwarves.Count > 0 && collected < Onboarding.MineGold && onboarding != null
+            && await onboarding.TryGrantAsync(playerId, Onboarding.Grants.Mine))
+            bonus = Onboarding.MineGold - collected;
+        if (collected + bonus <= 0)
             throw new MiningException(MiningError.NothingToCollect, "Nothing to collect yet");
         mine.Stored -= collected;
+        collected += bonus;
 
         await SaveOrThrowAsync(mine, version, MiningChange.Credit(mine.Type, collected), null);
         await activity.RecordAsync(playerId, ActivityKind.MineCollect);

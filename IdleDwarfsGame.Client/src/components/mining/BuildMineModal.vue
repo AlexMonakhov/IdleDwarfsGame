@@ -61,6 +61,7 @@ const build = async () => {
 <template>
     <ModalComponent
         v-model="open"
+        tutorial-anchor="mine.build"
         :header-message="t('mining.build.header')"
         width="min(760px, 94vw)"
         height="min(560px, 90vh)"
@@ -91,7 +92,7 @@ const build = async () => {
                     <template v-if="isFree">{{ t('mining.build.free') }}</template>
                     <MineCostView v-else :cost="cost" :wallet="wallet" />
                 </span>
-                <GemButton :color="'green'" :disabled="busy || !affordable" @click="build">
+                <GemButton v-tutorial="'mine.build.confirm'" :color="'green'" :disabled="busy || !affordable" @click="build">
                     {{ busy ? t('mining.build.building') : t('mining.build.build') }}
                 </GemButton>
             </div>

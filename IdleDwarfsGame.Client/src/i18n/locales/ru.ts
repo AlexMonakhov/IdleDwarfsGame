@@ -655,7 +655,10 @@ const ru: LocaleMessages = {
       Gem: 'Сундук гемов',
       Infinity: 'Сундук бесконечности',
       Equipment: 'Сундук снаряжения',
+      Starter: 'Стартовый сундук',
     },
+    squadDwarves: 'В отряд',
+    reserveDwarves: 'В запас',
     open: 'Открыть',
     opening: 'Открываем...',
     openError: 'Не удалось открыть сундук.',
@@ -1083,6 +1086,7 @@ const ru: LocaleMessages = {
     header: 'экспедиции',
     refreshIn: 'Новые задания через {time}',
     duration: '{hours} ч',
+    durationSeconds: '{seconds} с',
     timeLeft: 'Осталось {time}',
     power: 'Мощь группы: {power}',
     reward: '+{gold} золота · +{experience} опыта',
@@ -1112,6 +1116,10 @@ const ru: LocaleMessages = {
       Claimed: 'Награда получена',
     },
     templates: {
+      tutorial: {
+        name: 'Первое поручение',
+        description: 'Короткая вылазка в ближайшую пещеру: дворфы вернутся в мгновение ока с мешочком золота.',
+      },
       scoutTunnels: {
         name: 'Разведка туннелей',
         description: 'За ночь под холмом кто-то прорыл свежие ходы. Узнайте, кто это, пока они не дошли до города.',

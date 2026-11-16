@@ -42,6 +42,7 @@ const header = computed(() => (tab.value === 'elder' ? t('fixedShop.elder.header
 <template>
     <ModalComponent
         v-model="open"
+        tutorial-id="quests"
         v-model:active-tab="activeTab"
         :tabs="tabs"
         :header-message="header"

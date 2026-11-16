@@ -73,6 +73,7 @@ const dateText = (iso: string) => new Date(iso).toLocaleString(locale.value, { d
 <template>
     <ModalComponent
         v-model="open"
+        tutorial-id="mail"
         :header-message="t('mail.header')"
         width="min(980px, calc(calc(94 * var(--vw)) - 40px))"
         height="min(760px, calc(90 * var(--vh)))"

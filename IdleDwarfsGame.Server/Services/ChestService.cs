@@ -1,3 +1,4 @@
+using IdleDwarfsGame.Server.Enums;
 // Инвентарь сундуков и гемов. Открытие сундука: бросок его таблицы дропа (ItemDropService),
 // гемы ложатся стопками в PlayerItems, герои создаются вне отряда.
 // До ChestBonuses.CardCount карт добиваются доп. наградами (ChestBonuses): золото и опыт — по этапу кампании игрока
@@ -9,7 +10,8 @@ public class ChestService(
     Random random,
     IActivityTracker activity,
     IPlayerRepository players,
-    TimeProvider clock)
+    TimeProvider clock,
+    OnboardingService? onboarding = null)
 {
     public async Task<InventoryInfo> GetInventoryAsync(Guid playerId)
     {
@@ -33,12 +35,16 @@ public class ChestService(
         var chest = await inventory.GetClosedChestAsync(playerId, chestId)
             ?? throw new InvalidOperationException("Chest not found or already opened");
 
-        var loot = drops.Roll(chest.ChestDropTable);
+        // Стартовый сундук обучения не бросается: в нём отряд и запас новичка (один раз на аккаунт)
+        bool starter = chest.ChestDropTable.ChestType == ChestType.Starter;
+        var loot = starter ? [] : drops.Roll(chest.ChestDropTable);
         var items = loot.Where(d => d.ItemType is not (ItemType.Hero or ItemType.Equipment)).ToList();
-        var heroes = loot
-            .Where(d => d.ItemType == ItemType.Hero)
-            .SelectMany(d => Enumerable.Range(0, d.Amount).Select(_ => HeroGenerator.Create(playerId, d.Level, d.SubType, random)))
-            .ToList();
+        var heroes = starter
+            ? onboarding != null ? await onboarding.StarterChestHeroesAsync(playerId) : []
+            : loot
+                .Where(d => d.ItemType == ItemType.Hero)
+                .SelectMany(d => Enumerable.Range(0, d.Amount).Select(_ => HeroGenerator.Create(playerId, d.Level, d.SubType, random)))
+                .ToList();
         // Снаряжение не складывается в стопки: каждая штука — своя строка
         var equipment = loot
             .Where(d => d.ItemType == ItemType.Equipment)
@@ -75,6 +81,9 @@ public class ChestService(
         if (!await inventory.OpenChestAsync(chest, stacks, heroes, equipment, currency))
             throw new InvalidOperationException("Chest is already opened");
         await activity.RecordAsync(playerId, ActivityKind.ChestOpen);
+        // Стартовый сундук поставил пятерых в отряд — мощь отряда изменилась
+        if (heroes.Any(h => h.PlaceInSquad != null) && onboarding != null)
+            await onboarding.RefreshSquadPowerAsync(playerId);
 
         return new ChestOpenResult
         {

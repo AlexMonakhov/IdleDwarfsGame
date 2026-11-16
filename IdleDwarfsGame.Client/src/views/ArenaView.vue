@@ -11,7 +11,8 @@
             :active="unit.alive"
             style="position: absolute;"
           >
-            <CharacterComponent :unit="unit" :scale="UNIT_SCALE" />
+            <!-- Якорь обучения: обучающий бой подсвечивает бойца (tutorial/battle.ts) -->
+            <CharacterComponent v-tutorial="unitAnchor(unit.id)" :unit="unit" :scale="UNIT_SCALE" />
           </CanvasComponent>
         </template>
 
@@ -21,7 +22,7 @@
             :active="unit.alive"
             style="position: absolute;"
           >
-            <CharacterComponent :unit="unit" :scale="UNIT_SCALE" rotate />
+            <CharacterComponent v-tutorial="unitAnchor(unit.id)" :unit="unit" :scale="UNIT_SCALE" rotate />
           </CanvasComponent>
         </template>
       </div>
@@ -76,6 +77,7 @@
           <!-- Сначала только баннер; по клику под ним появляются кнопки -->
           <button
             ref="bannerEl"
+            v-tutorial="'arena.result'"
             type="button"
             class="arena-result-banner"
             :class="{ 'arena-result-banner-open': resultOpen || !hasResultActions }"
@@ -99,7 +101,7 @@
               <!-- Внешний режим (наёмник, «Бой дня», спуск): обратно в окно, откуда пришли -->
               <GemButton v-else-if="externalMode" :color="'blue'" @click="goBackExternal()">{{ pendingFight?.backLabel ?? t('social.toTown') }}</GemButton>
               <template v-else>
-                <GemButton v-if="stageId" :color="'blue'" @click="goToCampaign()">{{ t('arena.toCampaign') }}</GemButton>
+                <GemButton v-if="stageId" v-tutorial="'arena.toCampaign'" :color="'blue'" @click="goToCampaign()">{{ t('arena.toCampaign') }}</GemButton>
                 <GemButton v-if="nextStageId" :color="'green'" @click="goToNextStage()"><IconPower /> {{ t('arena.nextStage') }}</GemButton>
                 <!-- Башня: после победы — дальше или в окно за наградой, после поражения — сменить отряд и попробовать снова -->
                 <GemButton v-if="towerFloor" :color="'blue'" @click="goToTower()">{{ t('arena.toTower') }}</GemButton>
@@ -160,6 +162,8 @@ import ArenaLoadingScreen from '@/components/loading/ArenaLoadingScreen.vue';
 import { IconPower } from '@/components/icons/stats';
 import { createBattleState, teamUnits } from '@/battle/BattleState';
 import { BattlePlayer } from '@/battle/BattlePlayer';
+import { battlePauses, unitAnchor } from '@/tutorial/battle';
+import { useTutorial } from '@/composables/UseTutorial';
 import { BATTLE_FX_KEY, BattleFx } from '@/battle/BattleFx';
 import { CombatResult } from '@/battle/types';
 import { soundService } from '@/services/soundService/SoundService';
@@ -224,6 +228,7 @@ const { pvpOpen, pvpTab } = usePvp();
 const externalMode = computed(() => route.query.external === '1');
 const { pendingFight } = useExternalFight();
 
+const tutorial = useTutorial();
 const state = createBattleState();
 const fx = new BattleFx(() => layerRef.value?.particleService ?? null, () => speed.value);
 const player = new BattlePlayer(state, fx);
@@ -346,6 +351,8 @@ const playFight = async (load: () => Promise<CombatResult>) => {
   error.value = null;
   // Итог прошлого боя PvP не должен остаться на экране после боя другого режима
   pvpResult.value = null;
+  // Паузы с пояснениями — только в обучающем бою кампании (его ставит startCampaignFight)
+  player.beforeEntry = null;
   worldBossResult.value = null;
 
   restored.value = false;
@@ -377,6 +384,8 @@ const startCampaignFight = (id: number) => playFight(async () => {
   campaignResult.value = null;
   const fight = await CampaignApiService.fight(id);
   campaignResult.value = fight;
+  // Первая попытка 1-го уровня — обучающий бой: останавливается на событиях и объясняет механики
+  if (fight.tutorial) player.beforeEntry = battlePauses(fight.combat, tutorial.pause);
   bgImage.value = fight.arena.background;
   return fight.combat;
 });
@@ -593,6 +602,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   player.stop();
+  tutorial.cancelPause();
   window.clearTimeout(resultTimer);
 });
 </script>

@@ -41,7 +41,7 @@ watch(() => props.refreshToken, refresh);
 </script>
 
 <template>
-    <div class="inventory-heroes">
+    <div v-tutorial="'warehouse.heroes'" class="inventory-heroes">
         <div v-if="!heroes && !error" class="inventory-hint">{{ t('common.loading') }}</div>
         <div v-else-if="!heroes" class="inventory-hint inventory-hint-error">{{ t('squad.loadError') }}</div>
         <template v-else>
@@ -50,7 +50,7 @@ watch(() => props.refreshToken, refresh);
             <div v-if="sorted.length" class="inventory-grid">
                 <!-- selectable — чтобы карточку не тащили: клик открывает героя в алтаре.
                      v-pause-offscreen — анимации престижа и ауры стоят, пока карточка за краем списка -->
-                <HeroCard v-for="hero in visible" :key="hero.id" v-pause-offscreen :hero="hero" selectable @click="openInAltar(hero)" />
+                <HeroCard v-for="hero in visible" :key="hero.id" v-pause-offscreen v-tutorial="hero.placeInSquad === 1 ? 'warehouse.hero.squad' : null" :hero="hero" selectable @click="openInAltar(hero)" />
             </div>
             <div v-else class="inventory-hint">{{ heroes.length ? t('heroFilters.nothing') : t('inventory.noHeroes') }}</div>
         </template>

@@ -50,6 +50,7 @@ const activeTab = computed({
         v-model="open"
         v-model:active-tab="activeTab"
         :tabs="tabs"
+        tutorial-id="warehouse"
         :header-message="t(`inventory.tabs.${tab}`)"
         width="min(860px, calc(calc(94 * var(--vw)) - 140px))"
         height="min(640px, calc(84 * var(--vh)))"

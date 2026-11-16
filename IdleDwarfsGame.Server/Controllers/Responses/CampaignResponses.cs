@@ -74,6 +74,8 @@ public class CampaignFightResult
     public int StageId { get; set; }
     // Уровень пройден впервые именно этим боем — за это выдана награда, её забирают в кампании
     public bool FirstClear { get; set; }
+    // Обучающий бой (TutorialBattle): фронт останавливает его на событиях и объясняет механики
+    public bool Tutorial { get; set; }
     // Уровень, доступный после боя (null — кампания пройдена)
     public int? CurrentStageId { get; set; }
     public ArenaInfo Arena { get; set; } = new();

@@ -69,6 +69,32 @@
     </CanvasLayer>
 
     <!-- Открытие сундука: варианты анимации (награды — мок, chestOpening/chestRewards.ts) -->
+    <!-- Песочница обучения: запустить любой сценарий с нужного шага (docs/tutorial-plan.md, этап 1) -->
+    <div v-tutorial="'sandbox.panel'" class="chest-lab">
+      <b>Обучение — песочница</b>
+      <div class="chest-lab-controls">
+        <label>
+          Сценарий
+          <select v-model="tutorialLab.scenario">
+            <option v-for="scenario in tutorial.scenarios" :key="scenario.id" :value="scenario.id">
+              {{ scenario.id }} ({{ tutorial.statuses.value[scenario.id] ?? 'не пройден' }})
+            </option>
+          </select>
+        </label>
+        <label>
+          Шаг
+          <select v-model.number="tutorialLab.step">
+            <option v-for="(step, index) in tutorialLabSteps" :key="step.id" :value="index">{{ index + 1 }}. {{ step.id }}</option>
+          </select>
+        </label>
+        <GemButton :color="'green'" @click="tutorial.start(tutorialLab.scenario, tutorialLab.step)">Запустить</GemButton>
+        <GemButton :color="'yellow'" @click="tutorial.reset()">Сбросить всё</GemButton>
+        <!-- Цель шага «клик по подсвеченному» в сценарии sandbox -->
+        <GemButton v-tutorial="'sandbox.button'" :color="'blue'" @click="tutorialLab.clicks++">Тестовая кнопка ({{ tutorialLab.clicks }})</GemButton>
+      </div>
+      <div>Сейчас: {{ tutorial.active.value ? `${tutorial.active.value.scenario.id}, шаг ${tutorial.active.value.stepIndex + 1}` : 'ничего' }}</div>
+    </div>
+
     <div class="chest-lab">
       <b>Открытие сундука — варианты анимации</b>
       <div class="chest-lab-controls">
@@ -271,7 +297,7 @@ import GemButton from '@/components/common/GemButton.vue';
 import IconHelm from '@/components/icons/IconHelm.vue';
 import { useInventoryBadge } from '@/composables/UseInventoryBadge';
 import IconButton from '@/components/common/IconButton.vue';
-import { ref, reactive, onMounted, onUnmounted, provide, nextTick, computed } from 'vue';
+import { ref, reactive, onMounted, onUnmounted, provide, nextTick, computed, watch } from 'vue';
 import CanvasComponent from '@/components/canvas/CanvasComponent.vue';
 import CanvasLayer from '@/components/canvas/CanvasLayer.vue';
 import CardComponent from '@/components/card/CardComponent.vue';
@@ -298,6 +324,7 @@ import CardBackdrop from '@/components/chestOpening/CardBackdrop.vue';
 import { BACKDROP_STYLES, CHEST_OPENING_VARIANTS, RARITY_CARD_COLORS, mockArtifactReward, mockChestRewards } from '@/components/chestOpening/chestRewards';
 import type { BackdropStyle, ChestOpeningVariant, ChestRewardCard } from '@/components/chestOpening/chestRewards';
 import type { ChestType } from '@/models/types/Inventory';
+import { useTutorial } from '@/composables/UseTutorial';
 
 const { t } = useI18n();
 const open = ref(false);
@@ -319,6 +346,12 @@ const animationObject = computed(() => {
 type CardColor = 'pink' | 'green' | 'blue' | 'yellow' | 'red' | 'grey';
 
 // Варианты рубашки для сравнения (не указанные параметры — по умолчанию, см. components/card/README.md)
+// Песочница обучения
+const tutorial = useTutorial();
+const tutorialLab = reactive({ scenario: 'sandbox', step: 0, clicks: 0 });
+const tutorialLabSteps = computed(() => tutorial.scenarios.find(scenario => scenario.id === tutorialLab.scenario)?.steps ?? []);
+watch(() => tutorialLab.scenario, () => { tutorialLab.step = 0; });
+
 // Тест открытия сундука
 const chestLabTypes: ChestType[] = ['Hero', 'Gem', 'Equipment', 'Infinity'];
 const chestLab = reactive({

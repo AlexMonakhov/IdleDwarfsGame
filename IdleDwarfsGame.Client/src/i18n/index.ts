@@ -2,6 +2,7 @@ import { createI18n } from 'vue-i18n';
 import en from './locales/en';
 import ru from './locales/ru';
 import { socialEn, socialRu } from './locales/social';
+import { tutorialEn, tutorialRu } from './locales/tutorial';
 
 // Чтобы добавить язык: создать locales/<код>.ts по образцу ru.ts и дописать код сюда и в messages
 export const SUPPORTED_LOCALES = ['en', 'ru'] as const;
@@ -38,8 +39,11 @@ export const i18n = createI18n({
   legacy: false,
   locale: initialLocale,
   fallbackLocale: DEFAULT_LOCALE,
-  // Тексты социальных активностей и спуска — отдельным файлом, ключом social
-  messages: { en: { ...en, social: socialEn }, ru: { ...ru, social: socialRu } },
+  // Тексты социальных активностей и спуска — отдельным файлом, ключом social; обучения — ключом tutorial
+  messages: {
+    en: { ...en, social: socialEn, tutorial: tutorialEn },
+    ru: { ...ru, social: socialRu, tutorial: tutorialRu },
+  },
 });
 
 // Для кода вне компонентов (сервисы, BattlePlayer). Внутри шаблонов вызовы тоже реактивны.

@@ -105,11 +105,37 @@ const heroRarity = (rank: number): Rarity => RARITY_ORDER[Math.min(Math.max(rank
 
 // Пять карт открытия: герои, камни и снаряжение сундука + доп. награды, в случайном порядке.
 // translate — i18n t(): подписи доп. наград
+// Больше пяти героев за раз (стартовый сундук — 25) по карте на каждого не показываем: окно всегда открывает
+// CHEST_CARD_COUNT карт. Герои идут стопками по HERO_STACK: «×5 в отряд» и «×5 в запас» сколько нужно
+const MAX_HERO_CARDS = 5;
+const HERO_STACK = 5;
+
+const heroCards = (heroes: ChestOpenResult['heroes'], translate: (key: string) => string): ChestRewardCard[] => {
+    if (heroes.length <= MAX_HERO_CARDS) {
+        return heroes.map(hero => ({
+            kind: 'Hero' as const, rarity: heroRarity(hero.level), title: hero.name, element: hero.element, rank: hero.level, bonus: false,
+        }));
+    }
+    const stacks = (group: ChestOpenResult['heroes'], title: string) =>
+        Array.from({ length: Math.ceil(group.length / HERO_STACK) }, (_, i) => group.slice(i * HERO_STACK, (i + 1) * HERO_STACK))
+            .map(stack => ({
+                kind: 'Hero' as const,
+                rarity: heroRarity(Math.max(...stack.map(h => h.level))),
+                title: translate(title),
+                element: stack[0].element,
+                rank: Math.max(...stack.map(h => h.level)),
+                amount: stack.length,
+                bonus: false,
+            }));
+    return [
+        ...stacks(heroes.filter(h => h.placeInSquad != null), 'chests.squadDwarves'),
+        ...stacks(heroes.filter(h => h.placeInSquad == null), 'chests.reserveDwarves'),
+    ];
+};
+
 export const cardsFromResult = (result: ChestOpenResult, translate: (key: string) => string): ChestRewardCard[] => {
     const cards: ChestRewardCard[] = [
-        ...result.heroes.map(hero => ({
-            kind: 'Hero' as const, rarity: heroRarity(hero.level), title: hero.name, element: hero.element, rank: hero.level, bonus: false,
-        })),
+        ...heroCards(result.heroes, translate),
         ...result.items.map(item => ({
             kind: 'Gem' as const, rarity: item.rarity, title: item.subType, gem: item.subType, amount: item.quantity, bonus: false,
         })),
@@ -169,7 +195,7 @@ const ITEMS_BY_RARITY: Record<Rarity, string[]> = {
 };
 
 // Сколько основных наград даёт сундук: остальное до пяти — доп. награды
-const MAIN_SLOTS: Record<ChestType, number> = { Hero: 2, Equipment: 1, Gem: 2, Infinity: 3 };
+const MAIN_SLOTS: Record<ChestType, number> = { Hero: 2, Equipment: 1, Gem: 2, Infinity: 3, Starter: 5 };
 
 const mainReward = (type: ChestType, level: number, index: number): ChestRewardCard => {
     // Выше уровень — тяжелее хвост редкостей

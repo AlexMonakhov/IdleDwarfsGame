@@ -10,6 +10,8 @@ interface Props {
   round?: boolean
   badgeCount?: number
   showBadgeDotOnly?: boolean
+  // Знак на значке без числа: «!» у раздела, с которым игрок ещё не знаком (обучение)
+  badgeText?: string
   // Подсветка при наведении без filter: brightness. Фильтр рисуется в отдельный буфер — внутри обрезанных
   // скруглённых блоков с анимацией (стекло карточки сундука с бликом) это лишний проход видеокарты на каждый кадр
   noFilter?: boolean
@@ -270,6 +272,6 @@ const buttonClasses = computed<string[]>(() => {
             <span class="sparkle sparkle-top"></span>
             <span class="sparkle sparkle-bottom"></span>    
         </span>
-        <BadgeComponent v-if="props.badgeCount > 0" :count="props.badgeCount" :show-dot-only="props.showBadgeDotOnly"></BadgeComponent>
+        <BadgeComponent v-if="props.badgeCount > 0 || props.badgeText" :count="props.badgeCount" :text="props.badgeText" :show-dot-only="props.showBadgeDotOnly"></BadgeComponent>
     </button>
 </template>

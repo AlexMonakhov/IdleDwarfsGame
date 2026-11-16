@@ -30,6 +30,8 @@ public class ExpeditionInfo
     public int Slot { get; set; }
     public string TemplateKey { get; set; } = string.Empty;
     public int DurationHours { get; set; }
+    // Точная длительность: у обучающей экспедиции (Onboarding) — секунды, у остальных — DurationHours × 3600
+    public int DurationSeconds { get; set; }
     public ExpeditionStatus Status { get; set; }
     public DateTime? StartedAt { get; set; }
     public DateTime? EndsAt { get; set; }
