@@ -43,6 +43,3 @@ export const activityByModal = (modal: TutorialModalId) => ACTIVITIES.find(activ
 export const activityByBuilding = (building: string) => ACTIVITIES.find(activity => activity.building === building)
 export const activityByNav = (nav: string) => ACTIVITIES.find(activity => activity.nav === nav)
 
-// Якорь кнопки активности: здание в городе или кнопка шапки
-export const activityAnchor = (activity: TutorialActivity) =>
-  activity.building ? `town.${activity.building}` : `nav.${activity.nav}`

@@ -5,7 +5,7 @@ import { SCENARIOS, findScenario } from '@/tutorial/scenarios'
 import { ONBOARDING_ID, onboarding } from '@/tutorial/scenarios/onboarding'
 import { TOUR_ID, tour } from '@/tutorial/scenarios/tour'
 import { MODAL_FLAGS } from '@/tutorial/modals'
-import { ACTIVITIES, activityAnchor, activityByModal, type TutorialActivity } from '@/tutorial/activities'
+import { ACTIVITIES, activityByModal, type TutorialActivity } from '@/tutorial/activities'
 import { findAnchor, isInAnchor } from '@/tutorial/anchors'
 import { onTutorialEvent } from '@/tutorial/events'
 import type { TutorialAction, TutorialModalId, TutorialScenario, TutorialStatus, TutorialStep } from '@/tutorial/types'
@@ -84,10 +84,6 @@ const runAction = (action: TutorialAction) => {
 
 // Познакомился: сценарий активности пройден или пропущен (без сценария — открыл окно)
 const isSeen = (activity: TutorialActivity) => !!progress.value?.scenarios[activity.id]
-
-// Попробовал: главное действие (отмечает сервер), а у активностей без своего действия — знакомство
-const isDone = (activity: TutorialActivity) =>
-  !!progress.value?.done.includes(activity.id) || (!!activity.doneOnSeen && isSeen(activity))
 
 // «!» на кнопке активности: только когда прогресс известен, иначе значки мигнули бы у всех.
 // Пока идёт стартовое обучение, значков нет: дорогу показывает наставник
@@ -272,64 +268,11 @@ watch(currentStep, (step, _, onCleanup) => {
   onCleanup(() => window.removeEventListener('click', onClick, true))
 })
 
-/* ===== Подсказка «куда сходить» ===== */
-
-// Раз за вход (сессию вкладки): после выхода и нового входа подсказка покажется снова
-const HINT_KEY = 'idle-dwarfs-tutorial-hint'
-
-const hintShown = () => {
-  try {
-    return sessionStorage.getItem(`${HINT_KEY}:${user.value?.id}`) === '1'
-  } catch {
-    return false
-  }
-}
-
-const markHintShown = (shown: boolean) => {
-  try {
-    if (shown) sessionStorage.setItem(`${HINT_KEY}:${user.value?.id}`, '1')
-    else sessionStorage.removeItem(`${HINT_KEY}:${user.value?.id}`)
-  } catch {
-    // sessionStorage недоступен — подсказка может повториться, не страшно
-  }
-}
-
-// Первая по порядку активность, которую игрок ещё не пробовал и до которой уже дорос по кампании
-const suggestion = computed(() => {
-  const loaded = progress.value
-  if (!loaded) return null
-  return ACTIVITIES.find(activity => activity.unlockStage <= loaded.campaignCleared && !isDone(activity)) ?? null
-})
-
-// Стартовое обучение пропущено: сам не зовём (позвать может только «Начать заново» в аккаунте — force)
-const onboardingSkipped = () => progress.value?.scenarios[ONBOARDING_ID] === 'skipped'
-
-// Наставник подсвечивает кнопку активности. Нужна сама кнопка на экране (город): без неё звать некуда
-const showHint = (force = false) => {
-  const activity = suggestion.value
-  // Поверх открытого окна и во время стартового обучения не зовём
-  if (!activity || active.value || onboardingActive() || openModals.size > 0) return false
-  if (!force && (hintShown() || onboardingSkipped())) return false
-  const anchor = activityAnchor(activity)
-  if (!findAnchor(anchor)) return false
-  markHintShown(true)
-  begin({
-    id: `hint.${activity.id}`,
-    trigger: 'manual',
-    transient: true,
-    skipLabel: 'ui.later',
-    // Блокирующий: новичок не уйдёт мимо подсвеченного в другое здание
-    steps: [{ id: activity.id, target: anchor, text: `hints.${activity.id}`, placement: 'auto', advance: 'click-target', block: true }],
-  })
-  return true
-}
-
 export function useTutorial() {
   // Сбросить: все сценарии снова не пройдены, знакомства и «!» вернутся. Отметки «попробовал» сервер сохраняет,
   // стартовое обучение сбросом не начинается заново
   const reset = async () => {
     if (active.value?.scenario.id !== ONBOARDING_ID) active.value = null
-    markHintShown(false)
     try {
       progress.value = await TutorialApiService.reset()
     } catch {
@@ -398,7 +341,6 @@ export function useTutorial() {
     // Что показано: пауза поверх сценария или сам сценарий
     active: shown,
     currentStep,
-    suggestion,
     onboardingActive: computed(onboardingActive),
     next,
     skip,
@@ -408,7 +350,6 @@ export function useTutorial() {
     reset,
     restart,
     refresh: load,
-    showHint,
     needsBadge,
     notifyModal,
     registerModalControl,
