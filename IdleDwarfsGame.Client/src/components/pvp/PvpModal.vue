@@ -253,6 +253,7 @@ const footerText = computed(() => {
 <template>
     <ModalComponent
         v-model="open"
+        tutorial-id="pvp"
         v-model:active-tab="activeTab"
         :tabs="tabs"
         :header-message="header"

@@ -1,5 +1,7 @@
 <script lang="ts" setup>
 import { computed, onBeforeUnmount, ref, watch, type Component } from 'vue';
+import { emitTutorialEvent } from '@/tutorial/events';
+import { useTutorial } from '@/composables/UseTutorial';
 import HeroFilters from '@/components/inventory/HeroFilters.vue';
 import { useHeroFilters } from '@/composables/UseHeroFilters';
 import { AxiosError } from 'axios';
@@ -229,8 +231,16 @@ const remove = async (heroId: string) => {
 const collect = () => act(
     'collect',
     () => MiningApiService.collect(props.mine.id),
-    result => t('mining.dwarf.collected', { amount: format(result.collected) }),
+    result => {
+        emitTutorialEvent('mine:collected');
+        return t('mining.dwarf.collected', { amount: format(result.collected) });
+    },
 );
+
+// Стартовое обучение: дворф копал секунды, но первый сбор сервер добивает до суммы на улучшение героя —
+// на этом шаге «Собрать» доступна и без накопленного
+const tutorial = useTutorial();
+const tutorialCollect = computed(() => tutorial.currentStep.value?.id === 'mineCollect');
 
 /* ===== Улучшения ===== */
 const upgradeText = (info: MineUpgradeInfo) => {
@@ -277,6 +287,7 @@ onBeforeUnmount(() => {
 <template>
     <ModalComponent
         v-model="open"
+        tutorial-anchor="mine.detail"
         :header-message="name"
         width="min(1100px, calc(94vw - 40px))"
         height="min(880px, 94vh)"
@@ -330,7 +341,7 @@ onBeforeUnmount(() => {
                             <div class="mine-bar" :class="{ 'mine-bar-full': isFull }">
                                 <div class="mine-bar-fill" :style="{ width: `${Math.min(100, (stored / mine.capacity) * 100)}%` }"></div>
                             </div>
-                            <GemButton :color="'yellow'" :disabled="!!busy || collectable < 1" @click="collect">
+                            <GemButton v-tutorial="'mine.collect'" :color="'yellow'" :disabled="!!busy || (collectable < 1 && !tutorialCollect)" @click="collect">
                                 {{ isFull ? t('mining.dwarf.full') + ' ' : '' }}{{ t('mining.dwarf.collect') }}
                             </GemButton>
                         </div>
@@ -339,7 +350,7 @@ onBeforeUnmount(() => {
                         <div class="mine-places">
                             <div v-for="place in places" :key="place.key" class="mine-place">
                                 <template v-if="place.heroId">
-                                    <HeroCard v-if="place.hero" :hero="place.hero" />
+                                    <HeroCard v-if="place.hero" v-tutorial="'mine.dwarf'" :hero="place.hero" />
                                     <div v-else class="mine-place-empty">…</div>
                                     <GemButton class="mine-place-recall" :color="'red'" :disabled="!!busy" @click="remove(place.heroId)">
                                         {{ t('mining.dwarf.remove') }}
@@ -357,8 +368,9 @@ onBeforeUnmount(() => {
                             <HeroFilters v-model:element="elementFilter" v-model:rank="rankFilter" :heroes="freeHeroes" />
                             <div v-drag-scroll class="mine-candidates">
                                 <HeroCard
-                                    v-for="hero in candidates"
+                                    v-for="(hero, heroIndex) in candidates"
                                     :key="hero.id"
+                                    v-tutorial="heroIndex === 0 ? 'mine.candidate.first' : null"
                                     :hero="hero"
                                     selectable
                                     :disabled="!!busy"
@@ -387,6 +399,7 @@ onBeforeUnmount(() => {
                             <span v-else class="mine-upgrade-blocked">{{ upgradeBlocked(info) }}</span>
                             <GemButton
                                 v-if="info.cost"
+                                v-tutorial="`mine.upgrade.${info.upgrade}`"
                                 :color="'green'"
                                 :disabled="!!busy || !canAfford(wallet, info.cost)"
                                 @click="upgrade(info)"

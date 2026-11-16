@@ -64,6 +64,7 @@ watch(open, isOpen => {
 <template>
     <ModalComponent
         v-model="open"
+        tutorial-id="forge"
         v-model:active-tab="activeTab"
         :tabs="tabs"
         :header-message="t('forge.header')"

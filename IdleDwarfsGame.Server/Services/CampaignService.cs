@@ -7,7 +7,8 @@ public class CampaignService(
     IRewardRepository rewards,
     Random random,
     TimeProvider time,
-    IActivityTracker activity
+    IActivityTracker activity,
+    OnboardingService? onboarding = null
 )
 {
     // Сколько заблокированных уровней показываем после текущего
@@ -63,14 +64,23 @@ public class CampaignService(
         if (!alreadyCleared && FindCurrentStage(stageIds, cleared) != stageId)
             throw new InvalidOperationException($"Campaign stage {stageId} is locked");
 
-        // Незабранные награды не мешают идти дальше: они ждут в списке кампании
-        var combat = fight != null ? await fight(stage) : await combatService.StartCampaignFight(playerId, stage);
+        // Незабранные награды не мешают идти дальше: они ждут в списке кампании.
+        // Первая попытка 1-го уровня — обучающий бой с наставником (TutorialBattle)
+        bool tutorial = fight == null && TutorialBattle.AppliesTo(stageId, alreadyCleared);
+        var combat = fight != null ? await fight(stage)
+            : tutorial ? await TutorialFightAsync(playerId, stage)
+            : await combatService.StartCampaignFight(playerId, stage);
 
         bool firstClear = false;
         if (combat.WinningTeam == 1)
         {
             // Награда только за первое прохождение. Пишется вместе с прогрессом, но на аккаунт попадёт лишь при получении
-            var reward = alreadyCleared ? null : CampaignRewards.Roll(playerId, stage, random, time.GetUtcNow().UtcDateTime);
+            // В стартовом обучении награда обучающего боя — стартовый сундук и золото с опытом на первое улучшение
+            var now = time.GetUtcNow().UtcDateTime;
+            var reward = alreadyCleared ? null
+                : tutorial && onboarding != null && await onboarding.TryGrantAsync(playerId, Onboarding.Grants.StageReward)
+                    ? Onboarding.StageReward(playerId, stageId, now)
+                    : CampaignRewards.Roll(playerId, stage, random, now);
             firstClear = await campaign.MarkClearedAsync(playerId, stageId, reward);
             cleared.Add(stageId);
             await activity.RecordAsync(playerId, ActivityKind.CampaignWin);
@@ -81,10 +91,22 @@ public class CampaignService(
         {
             StageId = stageId,
             FirstClear = firstClear,
+            Tutorial = tutorial,
             CurrentStageId = FindCurrentStage(stageIds, cleared),
             Arena = ToArenaInfo(stage.Arena),
             Combat = combat
         };
+    }
+
+    // Отряд игрока с наставником на его месте, враги уровня, его арена и постоянный сид — бой всегда одинаковый
+    private async Task<CombatResult> TutorialFightAsync(Guid playerId, CampaignStage stage)
+    {
+        var squad = TutorialBattle.Squad(playerId, await heroes.GetSquadAsync(playerId));
+        var world = new World();
+        entityFactory.CreateSquad(world, squad, teamId: 1);
+        Scenario.SpawnEnemies(world, stage);
+        PreparedFight.AddArena(world, stage.Arena);
+        return PreparedFight.Run(TutorialBattle.Engine(), world, ((ICombatScenario)Scenario).MaxRounds);
     }
 
     // Пройденные уровни для списка: с незабранной наградой и последний пройденный — он стоит над текущим.

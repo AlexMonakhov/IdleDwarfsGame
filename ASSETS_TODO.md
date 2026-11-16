@@ -100,3 +100,11 @@
 | `mining-ore-<тип>.png` | Руда или кристалл в окне шахты, по нему кликают: `mining-ore-gold.png`, `mining-ore-ruby.png`… | нет, значок 🪙 ✦ ◆ |
 
 Типы: `gold`, `experience`, `ruby`, `sapphire`, `topaz`, `emerald`, `amethyst`, `diamond`, `garnet`.
+
+## 5. Обучение
+
+Наставник — старый дворф, говорит в облачке шагов обучения ([TutorialOverlay.vue](IdleDwarfsGame.Client/src/components/tutorial/TutorialOverlay.vue)).
+
+| Что | Размер | Что сейчас |
+|---|---|---|
+| Свой портрет наставника, если нужен отдельный от боевого (голова и плечи, смотрит вправо, на текст) | 256×256, прозрачный фон, вписывается в круг | портрет огненного дворфа 4-го ранга (`UnitAvatar`) — тот же Брокк, что в обучающем бою |

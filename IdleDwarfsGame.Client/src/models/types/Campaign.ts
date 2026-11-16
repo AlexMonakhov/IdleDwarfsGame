@@ -68,6 +68,8 @@ export interface CampaignFightResult {
     stageId: number;
     // Первое прохождение: за него выдана награда, её забирают в кампании
     firstClear: boolean;
+    // Обучающий бой (первая попытка 1-го уровня): фронт останавливает его с пояснениями (tutorial/battle.ts)
+    tutorial?: boolean;
     currentStageId: number | null;
     arena: ArenaInfo;
     combat: CombatResult;

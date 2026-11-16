@@ -51,6 +51,7 @@ public class GameDbContext : DbContext
     public DbSet<ShopState> ShopStates => Set<ShopState>();
     public DbSet<ShopOffer> ShopOffers => Set<ShopOffer>();
     public DbSet<PlayerDailyActivity> PlayerDailyActivities => Set<PlayerDailyActivity>();
+    public DbSet<PlayerTutorial> PlayerTutorials => Set<PlayerTutorial>();
     public DbSet<DailyQuestState> DailyQuestStates => Set<DailyQuestState>();
     public DbSet<PlayerQuest> PlayerQuests => Set<PlayerQuest>();
     public DbSet<PlayerEventWallet> PlayerEventWallets => Set<PlayerEventWallet>();
@@ -1139,6 +1140,29 @@ public class GameDbContext : DbContext
             .HasOne<Player>()
             .WithMany()
             .HasForeignKey(a => a.PlayerId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // ===== Обучение =====
+        modelBuilder.Entity<PlayerTutorial>()
+            .HasKey(t => new { t.PlayerId, t.Key });
+
+        modelBuilder.Entity<PlayerTutorial>()
+            .Property(t => t.PlayerId)
+            .HasConversion<string>();
+
+        modelBuilder.Entity<PlayerTutorial>()
+            .Property(t => t.Key)
+            .HasMaxLength(64);
+
+        modelBuilder.Entity<PlayerTutorial>()
+            .Property(t => t.Status)
+            .HasConversion<string>()
+            .HasMaxLength(16);
+
+        modelBuilder.Entity<PlayerTutorial>()
+            .HasOne<Player>()
+            .WithMany()
+            .HasForeignKey(t => t.PlayerId)
             .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<DailyQuestState>()

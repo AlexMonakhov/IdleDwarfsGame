@@ -156,6 +156,7 @@ const lastClearedIndex = computed(() => (tower.value?.clearedFloors.length ?? 0)
 <template>
   <ModalComponent
     v-model="open"
+    tutorial-id="tower"
     :header-message="t('tower.header')"
     width="min(980px, calc(94 * var(--vw)))"
     height="min(780px, calc(88 * var(--vh)))"

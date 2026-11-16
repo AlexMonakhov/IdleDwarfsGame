@@ -81,6 +81,9 @@ export class BattlePlayer {
   speed = 1;
   // Чего дождаться перед первым ходом, когда сцена уже готова (на арене — пока уйдет экран загрузки)
   beforeStart: (() => Promise<void>) | null = null;
+  // Перед каждой записью лога: бой ждёт, пока промис не разрешится (паузы обучающего боя, tutorial/battle.ts).
+  // При пропуске и мгновенном показе не вызывается
+  beforeEntry: ((log: CombatLogEntry) => Promise<void> | void) | null = null;
 
   readonly fx: BattleFx;
   // Заклинания на концептах (ConceptSpells.BATTLE_CONCEPTS); без концепта — прежний визуал из FxRegistry
@@ -151,6 +154,11 @@ export class BattlePlayer {
     while (i < logs.length) {
       if (runId !== this.runId) return;
       const log = logs[i];
+
+      if (this.beforeEntry && !this.skipping) {
+        await this.beforeEntry(log);
+        if (runId !== this.runId) return;
+      }
 
       await this.beginTurn(log);
       if (runId !== this.runId) return;

@@ -153,8 +153,11 @@ public static class CampaignSeedData
 
     private static CampaignStageEnemy[] HandcraftedEnemies =>
     [
+        // Первый уровень — обучающий бой (TutorialBattle): гоблинов трое, чтобы Огненный шар наставника
+        // во 2-м раунде накрыл нескольких сразу
         Enemy(1, 1, GoblinScout),
         Enemy(1, 2, GoblinShaman),
+        Enemy(1, 3, GoblinScout),
 
         Enemy(2, 1, OrcBrute),
         Enemy(2, 2, GoblinScout),

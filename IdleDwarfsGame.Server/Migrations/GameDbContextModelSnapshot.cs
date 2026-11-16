@@ -4829,6 +4829,15 @@ namespace IdleDwarfsGame.Server.Migrations
                         },
                         new
                         {
+                            Id = 103,
+                            HeroId = new Guid("22222222-0000-4000-8000-000000000002"),
+                            HpMultiplier = 1.0,
+                            IsBoss = false,
+                            Position = 3,
+                            StageId = 1
+                        },
+                        new
+                        {
                             Id = 201,
                             HeroId = new Guid("22222222-0000-4000-8000-000000000001"),
                             HpMultiplier = 1.0,
@@ -22827,6 +22836,14 @@ namespace IdleDwarfsGame.Server.Migrations
                     b.HasData(
                         new
                         {
+                            Id = "c4e50000-0000-4000-8000-000004000001",
+                            ChestLevel = 1,
+                            ChestType = 4,
+                            Element = "Basic",
+                            Rolls = 1
+                        },
+                        new
+                        {
                             Id = "c4e50000-0000-4000-8000-000000000001",
                             ChestLevel = 1,
                             ChestType = 0,
@@ -26063,6 +26080,33 @@ namespace IdleDwarfsGame.Server.Migrations
                     b.ToTable("PlayerTowerProgress");
                 });
 
+            modelBuilder.Entity("PlayerTutorial", b =>
+                {
+                    b.Property<string>("PlayerId")
+                        .HasColumnType("nvarchar(36)");
+
+                    b.Property<string>("Key")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<DateTime?>("DoneAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Status")
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
+
+                    b.Property<int>("Step")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("PlayerId", "Key");
+
+                    b.ToTable("PlayerTutorials");
+                });
+
             modelBuilder.Entity("PvpBattle", b =>
                 {
                     b.Property<string>("Id")
@@ -26576,6 +26620,18 @@ namespace IdleDwarfsGame.Server.Migrations
                                 .HasForeignKey("ChestDropTableId");
 
                             b1.HasData(
+                                new
+                                {
+                                    Id = new Guid("c4e50001-0000-4000-8000-000400010000"),
+                                    ChestDropTableId = "c4e50000-0000-4000-8000-000004000001",
+                                    ItemLevel = 1,
+                                    ItemType = 3,
+                                    MaxAmount = 25,
+                                    MinAmount = 25,
+                                    Probability = 1.0,
+                                    Rarity = 0,
+                                    SubType = ""
+                                },
                                 new
                                 {
                                     Id = new Guid("c4e50001-0000-4000-8000-000000010000"),
@@ -37645,6 +37701,15 @@ namespace IdleDwarfsGame.Server.Migrations
                 });
 
             modelBuilder.Entity("PlayerTowerProgress", b =>
+                {
+                    b.HasOne("Player", null)
+                        .WithMany()
+                        .HasForeignKey("PlayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("PlayerTutorial", b =>
                 {
                     b.HasOne("Player", null)
                         .WithMany()

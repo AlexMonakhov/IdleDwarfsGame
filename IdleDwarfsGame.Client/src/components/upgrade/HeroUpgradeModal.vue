@@ -243,6 +243,7 @@ watch([tab, sorted], () => {
 <template>
     <ModalComponent
         v-model="open"
+        tutorial-id="altar"
         v-model:active-tab="activeTab"
         :tabs="tabs"
         :header-message="t('heroUpgrade.header')"
@@ -302,6 +303,7 @@ watch([tab, sorted], () => {
                         <HeroCard
                             v-for="hero in sorted"
                             :key="hero.id"
+                            v-tutorial="hero.placeInSquad === 1 ? 'altar.hero.squad' : null"
                             :hero="hero"
                             selectable
                             :selected="hero.id === selectedId"

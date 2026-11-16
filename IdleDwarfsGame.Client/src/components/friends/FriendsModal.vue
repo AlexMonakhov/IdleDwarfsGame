@@ -194,6 +194,7 @@ const footerText = computed(() => errorMessage.value ?? notice.value ?? '');
 <template>
     <ModalComponent
         v-model="open"
+        tutorial-id="friends"
         :header-message="t('friends.header')"
         width="min(640px, calc(94 * var(--vw)))"
         height="min(700px, calc(88 * var(--vh)))"

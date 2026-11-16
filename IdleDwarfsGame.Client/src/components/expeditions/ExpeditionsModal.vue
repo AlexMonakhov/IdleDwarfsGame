@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
+import { emitTutorialEvent } from '@/tutorial/events';
 import HeroFilters from '@/components/inventory/HeroFilters.vue';
 import { useHeroFilters } from '@/composables/UseHeroFilters';
 import { AxiosError } from 'axios';
@@ -107,6 +108,11 @@ onBeforeUnmount(() => window.clearInterval(ticker));
 const expeditions = computed(() => board.value?.expeditions ?? []);
 const maxHeroes = computed(() => board.value?.maxHeroes ?? 4);
 
+// Обучающая экспедиция длится секунды, остальные — часы
+const durationText = (expedition: ExpeditionInfo) => expedition.durationSeconds && expedition.durationSeconds < 3600
+    ? t('expeditions.durationSeconds', { seconds: expedition.durationSeconds })
+    : t('expeditions.duration', { hours: expedition.durationHours });
+
 const templateText = (key: string, field: 'name' | 'description') =>
     te(`expeditions.templates.${key}.${field}`) ? t(`expeditions.templates.${key}.${field}`) : key;
 
@@ -115,7 +121,8 @@ const BACKGROUNDS = [
     { image: caveBackground, color: 'red' },
     { image: crystalsBackground, color: 'blue' },
 ];
-const sceneOf = (expedition: ExpeditionInfo) => BACKGROUNDS[(expedition.slot - 1) % BACKGROUNDS.length];
+// Обучающая экспедиция стоит на месте 0 — у неё сцена первого места
+const sceneOf = (expedition: ExpeditionInfo) => BACKGROUNDS[(Math.max(expedition.slot, 1) - 1) % BACKGROUNDS.length];
 const backgroundOf = (expedition: ExpeditionInfo) => sceneOf(expedition).image;
 
 // Свечение карточки: доступное — горит цветом фона, в пути — приглушено, выполнено — золотом, награда забрана — гаснет
@@ -224,6 +231,7 @@ const claim = async (expedition: ExpeditionInfo | null = selected.value) => {
         const result = await ExpeditionsApiService.claim(expedition.id);
         setResources(result.resources);
         notice.value = t('expeditions.claimed', { gold: result.reward.gold, experience: result.reward.experience });
+        emitTutorialEvent('expedition:claimed');
         selectedId.value = null;
     } catch (error) {
         errorMessage.value = errorText(error, t('expeditions.claimError'));
@@ -245,6 +253,7 @@ const footerText = computed(() => {
 <template>
     <ModalComponent
         v-model="open"
+        tutorial-id="expeditions"
         :header-message="t('expeditions.header')"
         width="min(1280px, calc(94 * var(--vw)))"
         height="min(780px, calc(90 * var(--vh)))"
@@ -258,6 +267,7 @@ const footerText = computed(() => {
                 <article
                     v-for="expedition in expeditions"
                     :key="expedition.id"
+                    v-tutorial="expedition.templateKey === 'tutorial' ? 'expeditions.tutorial' : null"
                     class="exp-card"
                     :class="[`exp-card-${sceneOf(expedition).color}`, CARD_STATE[statusOf(expedition)]]"
                     :role="expedition.status === 'Claimed' ? undefined : 'button'"
@@ -271,7 +281,7 @@ const footerText = computed(() => {
                     </div>
 
                     <div class="exp-card-top">
-                        <span class="exp-tier"><IconHourglass /> {{ t('expeditions.duration', { hours: expedition.durationHours }) }}</span>
+                        <span class="exp-tier"><IconHourglass /> {{ durationText(expedition) }}</span>
                         <span class="exp-name">{{ templateText(expedition.templateKey, 'name') }}</span>
                         <span class="exp-status">{{ t(`expeditions.status.${statusOf(expedition)}`) }}</span>
                     </div>
@@ -313,7 +323,7 @@ const footerText = computed(() => {
             <div v-else-if="selectedStatus === 'Available'" class="expedition-details">
                 <div class="expedition-heading">
                     <h3 class="expedition-title">{{ templateText(selected.templateKey, 'name') }}</h3>
-                    <span class="expedition-duration"><IconHourglass /> {{ t('expeditions.duration', { hours: selected.durationHours }) }}</span>
+                    <span class="expedition-duration"><IconHourglass /> {{ durationText(selected) }}</span>
                 </div>
                 <div class="expeditions-hint">{{ templateText(selected.templateKey, 'description') }}</div>
 
@@ -346,8 +356,9 @@ const footerText = computed(() => {
                     <HeroFilters v-model:element="elementFilter" v-model:rank="rankFilter" :heroes="outsideSquad" />
                     <div class="reserve-grid">
                         <HeroCard
-                            v-for="hero in reserve"
+                            v-for="(hero, heroIndex) in reserve"
                             :key="hero.id"
+                            v-tutorial="heroIndex === 0 ? 'expeditions.reserve.first' : null"
                             :hero="hero"
                             selectable
                             :disabled="isBusy(hero)"
@@ -361,7 +372,7 @@ const footerText = computed(() => {
             </div>
 
             <!-- ===== Задание идёт / выполнено ===== -->
-            <div v-else class="expedition-details">
+            <div v-else v-tutorial="'expeditions.progress'" class="expedition-details">
                 <div class="expedition-heading">
                     <h3 class="expedition-title">{{ templateText(selected.templateKey, 'name') }}</h3>
                     <span class="expedition-power">
@@ -392,12 +403,14 @@ const footerText = computed(() => {
                 <GemButton
                     v-if="selectedStatus === 'Available'"
                     :color="'green'"
+                    v-tutorial="'expeditions.start'"
                     :disabled="!partyIds.length || busy"
                     @click="start"
                 >{{ busy ? t('expeditions.starting') : t('expeditions.start') }}</GemButton>
                 <GemButton
                     v-if="selectedStatus === 'InProgress' || selectedStatus === 'Ready'"
                     :color="'yellow'"
+                    v-tutorial="selectedStatus === 'Ready' ? 'expeditions.claim' : null"
                     :disabled="selectedStatus !== 'Ready' || busy"
                     @click="claim()"
                 >{{ busy ? t('expeditions.claiming') : t('expeditions.claim') }}</GemButton>

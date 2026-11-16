@@ -137,6 +137,7 @@ const onBuilt = async (result: MiningActionResult) => {
 <template>
     <ModalComponent
         v-model="open"
+        tutorial-id="mine"
         :header-message="t('mining.title')"
         width="min(1100px, calc(94 * var(--vw)))"
         height="min(780px, calc(90 * var(--vh)))"
@@ -166,6 +167,7 @@ const onBuilt = async (result: MiningActionResult) => {
                     <button
                         v-for="{ plot, mine } in plots"
                         :key="plot"
+                        v-tutorial="`mine.plot.${plot}`"
                         type="button"
                         class="mining-plot"
                         :class="{ 'mining-plot-empty': !mine, 'mining-plot-full': mine && isFull(mine) }"

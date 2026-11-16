@@ -5,7 +5,8 @@ import { EquipmentInfo } from '@/models/types/Equipment';
 import { PlayerResources } from '@/models/types/Expeditions';
 import { HeroInfo } from '@/models/types/Heroes';
 
-export type ChestType = 'Hero' | 'Gem' | 'Infinity' | 'Equipment';
+// Starter — стартовый сундук обучения: 25 дворфов 1-го ранга, пятеро сразу в отряд
+export type ChestType = 'Hero' | 'Gem' | 'Infinity' | 'Equipment' | 'Starter';
 export type ItemType = 'Equipment' | 'Material' | 'Gem' | 'Hero';
 export type Rarity = 'Common' | 'Uncommon' | 'Rare' | 'Mythic' | 'Legendary' | 'Artifact';
 

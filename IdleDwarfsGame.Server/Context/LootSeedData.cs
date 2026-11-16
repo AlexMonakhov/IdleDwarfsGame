@@ -17,6 +17,17 @@ public static class LootSeedData
 
     private static readonly TableDefinition[] Definitions =
     [
+        // ===== Стартовый сундук обучения: только награда 1-го уровня кампании у новичка. Содержимое не бросается —
+        // ChestService выдаёт Onboarding.StarterHeroes (пятеро в отряд, остальные в запас); запись — для справки =====
+        new(ChestType.Starter, 1, Rolls: 1,
+        [
+            new DropEntry
+            {
+                ItemType = ItemType.Hero, SubType = string.Empty, ItemLevel = 1, Rarity = Rarity.Common,
+                Probability = 1, MinAmount = Onboarding.StarterHeroCount, MaxAmount = Onboarding.StarterHeroCount
+            }
+        ]),
+
         // ===== Сундуки героев: два дворфа, ранг каждого — по таблице, стихия случайная.
         // 1-й ранг выпадает всегда: это материал для слияния и работники шахт =====
         new(ChestType.Hero, 1, Rolls: 2,

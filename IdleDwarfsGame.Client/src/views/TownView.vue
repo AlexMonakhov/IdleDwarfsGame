@@ -14,7 +14,7 @@
       class="parallax-bg" 
       :style="{ transform: `translateX(${-bgOffset}px)` }"
     >
-      <img :src="isNight ? backgroundskynight : backgroundsky" class="wide-image-bg" @load="onSkyLoad" />
+      <img ref="skyRef" :src="isNight ? backgroundskynight : backgroundsky" class="wide-image-bg" />
     </div>
 
     <div class="about-content">
@@ -31,6 +31,7 @@
           <!-- Обычная и hover-картинка лежат друг на друге, при наведении меняется только прозрачность.
                Если менять src, браузер заново декодирует большую картинку и здание мигает -->
           <div
+            v-tutorial="`town.${b.key}`"
             :class="['building', `building-${b.key}`, { 'is-hovered': hoveredBuilding === b.key, 'is-active': !!b.onClick }]"
             :style="{ left: `${b.left}%`, top: `${b.top}%`, width: `${b.width}%` }"
             @mouseenter="hoveredBuilding = b.key"
@@ -41,7 +42,9 @@
             <img :src="b.hover" class="building-img building-img-hover" @dragstart.prevent />
           </div>
           <!-- Плашка с названием: стоит у нижнего края здания, наведение и клик — как у самого здания -->
+          <!-- Плашка — якорь обучения (town.<здание>); «!» — с активностью здания игрок ещё не знаком -->
           <div
+            v-tutorial="`town.${b.key}`"
             :class="['building-plaque', { 'is-hovered': hoveredBuilding === b.key, 'is-active': !!b.onClick }]"
             :style="{ left: `${b.left}%`, top: `${b.top}%` }"
             @mouseenter="hoveredBuilding = b.key"
@@ -49,6 +52,7 @@
             @click.capture="b.onClick?.()"
           >
             {{ t(`town.buildings.${b.key}`) }}
+            <span v-if="isAuthenticated && tutorial.needsBadge(activityByBuilding(b.key))" class="building-badge">!</span>
           </div>
         </template>
       </div>
@@ -93,6 +97,8 @@ import { useGuild } from '@/composables/UseGuild';
 import { usePvp } from '@/composables/UsePvp';
 import { useInterface } from '@/composables/UseInterface';
 import { useMail } from '@/composables/UseMail';
+import { useTutorial } from '@/composables/UseTutorial';
+import { activityByBuilding } from '@/tutorial/activities';
 
 const { t } = useI18n();
 const route = useRoute();
@@ -117,14 +123,16 @@ const ALWAYS_DAY = true;
 // --- СОСТОЯНИЕ ---
 const slider = ref<HTMLElement | null>(null);
 const imageRef = ref<HTMLImageElement | null>(null);
+const skyRef = ref<HTMLImageElement | null>(null);
 const isDown = ref(false);
 const startX = ref(0);
 const scrollLeftState = ref(0);
 const opacity = ref(0);
-// /town?campaign=1 — возврат с арены после боя кампании: окно кампании открывается сразу
-const campaignDialogOpen = ref(!!route.query.campaign);
-// /town?tower=1 — возврат с арены после боя в башне: окно башни открывается сразу
-const infinityTowerDialogOpen = ref(!!route.query.tower);
+// Окна кампании и башни — общие флаги (useInterface): их открывает и обучение.
+// /town?campaign=1 и /town?tower=1 — возврат с арены после боя: окно открывается сразу
+const { campaignOpen: campaignDialogOpen, towerOpen: infinityTowerDialogOpen } = useInterface();
+if (route.query.campaign) campaignDialogOpen.value = true;
+if (route.query.tower) infinityTowerDialogOpen.value = true;
 
 // --- ЗДАНИЯ ГОРОДА ---
 // left/top/width — в процентах от фоновой картинки. left — центр здания,
@@ -174,14 +182,10 @@ const isNightNow = () => {
 };
 const isNight = ref(isNightNow());
 let skyIntervalId = 0;
-let skyLoadedOnce = false;
 
-// Центрируем только при первой загрузке, чтобы смена неба не сбрасывала скролл игрока
-const onSkyLoad = () => {
-  if (skyLoadedOnce) return;
-  skyLoadedOnce = true;
-  scrollToCenter();
-};
+// Город проявляется, когда и фон, и небо загружены и декодированы целиком. Раньше ждали только неба (5 МБ),
+// а фон (26 МБ) ещё догружался — и был виден недорисованным. Ошибка загрузки не держит город невидимым
+const decoded = (img: HTMLImageElement | null) => img?.decode().catch(() => undefined) ?? Promise.resolve();
 
 // Данные для Edge Scroll
 const mouseX = ref(-1);
@@ -270,20 +274,37 @@ const scrollToCenter = async () => {
   }, 50);
 };
 
+// Обучение: «!» на зданиях и подсказка наставника, куда ещё не заглядывали (раз за вход).
+// Прогресс перечитываем при каждом заходе в город — после боёв и прокачки там новые отметки
+const tutorial = useTutorial();
+const HINT_DELAY_MS = 1200;
+let hintTimer = 0;
+
 onMounted(() => {
   // Почта пока без push: перечитываем при каждом заходе в город
   if (isAuthenticated.value) useMail().refresh();
+  if (isAuthenticated.value) {
+    const refreshed = tutorial.refresh();
+    // Подсказка — когда город проявился и прокрутился к центру
+    hintTimer = window.setTimeout(async () => {
+      await refreshed;
+      tutorial.showHint();
+    }, HINT_DELAY_MS);
+  }
   skyIntervalId = window.setInterval(() => {
     isNight.value = isNightNow();
   }, SKY_CHECK_INTERVAL_MS);
-  if (imageRef.value && imageRef.value.complete) {
-    scrollToCenter();
-  }
+  // Центрируем один раз: смена неба (день/ночь) не сбрасывает скролл игрока
+  Promise.all([decoded(imageRef.value), decoded(skyRef.value)]).then(scrollToCenter);
 });
 
 onUnmounted(() => {
+  clearTimeout(hintTimer);
   cancelAnimationFrame(animationFrameId);
   clearInterval(skyIntervalId);
+  // Окна кампании и башни живут только в городе: раньше они закрывались вместе с ним, флаги теперь общие
+  campaignDialogOpen.value = false;
+  infinityTowerDialogOpen.value = false;
 });
 
 const onStageClick = (n: number) => {
@@ -439,5 +460,28 @@ const onStageClick = (n: number) => {
     align-items: center;
     gap: 15px;
   }
+}
+.building-badge {
+  /* «!» обучения: с этим зданием игрок ещё не знаком. Стоит на углу плашки */
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--warning);
+  box-shadow: 0 0 0 2px #333, 0 2px 4px rgba(0, 0, 0, 0.6);
+  color: #2b1d0e;
+  font-size: 14px;
+  line-height: 20px;
+  text-align: center;
+  text-shadow: none;
+  pointer-events: none;
+  animation: building-badge-bounce 1.6s ease-in-out infinite;
+}
+
+@keyframes building-badge-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
 }
 </style>

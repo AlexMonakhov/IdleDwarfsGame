@@ -31,6 +31,8 @@ export interface ExpeditionInfo {
     slot: number;
     templateKey: string;
     durationHours: number;
+    // Точная длительность: у обучающей экспедиции — секунды (старый сервер её не присылает)
+    durationSeconds?: number;
     status: ExpeditionStatus;
     startedAt: string | null;
     endsAt: string | null;

@@ -140,6 +140,9 @@ builder.Services.AddScoped<ForgeService>();
 // Счётчики действий за сутки — по ним идут ежедневные задания
 builder.Services.AddScoped<IActivityRepository, ActivityRepository>();
 builder.Services.AddScoped<IActivityTracker, ActivityTracker>();
+builder.Services.AddScoped<ITutorialRepository, TutorialRepository>();
+builder.Services.AddScoped<TutorialService>();
+builder.Services.AddScoped<OnboardingService>();
 builder.Services.AddScoped<IQuestRepository, QuestRepository>();
 builder.Services.AddScoped<QuestService>();
 // Лавка старейшин и лавка ивента недели (WorldEvents)

@@ -92,6 +92,7 @@ const status = computed(() => campaign.value
   <!-- Ширина — под строку уровня: два отряда по 5 портретов, арена и кнопка боя без переноса -->
   <ModalComponent
     v-model="open"
+    tutorial-id="campaign"
     :header-message="t('campaign.header')"
     width="min(980px, calc(94 * var(--vw)))"
     height="min(780px, calc(88 * var(--vh)))"
@@ -112,6 +113,7 @@ const status = computed(() => campaign.value
                 <li
                   v-for="(stage, index) in campaign.clearedStages"
                   :key="`cleared-${stage.id}`"
+                  v-tutorial="rewards.stateOf(stage.rewardId) === 'pending' ? null : `campaign.rewardDone.${stage.id}`"
                   :data-anchor="index === lastClearedIndex ? '' : undefined"
                 >
                     <ClearedStageRow
@@ -121,6 +123,7 @@ const status = computed(() => campaign.value
                       :element="stage.element"
                       :boss="stage.type === 'Boss'"
                       :reward-state="rewards.stateOf(stage.rewardId)"
+                      :claim-anchor="`campaign.reward.${stage.id}`"
                       :claiming="rewards.busy.value === stage.rewardId"
                       :disabled="!!rewards.busy.value"
                       @claim="rewards.claim(stage.rewardId)"
@@ -145,6 +148,7 @@ const status = computed(() => campaign.value
                             <GemButton
                               v-if="stage.status === 'Available'"
                               :color="'red'"
+                              v-tutorial="'campaign.fight'"
                               class="stage-fight stage-fight-ready"
                               v-tooltip="stage.description"
                               @click="startStage(stage)"

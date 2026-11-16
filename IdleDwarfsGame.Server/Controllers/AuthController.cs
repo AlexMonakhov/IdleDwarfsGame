@@ -42,12 +42,10 @@ public class AuthController(
         user.PasswordHash = passwordHasher.HashPassword(user, request.Password);
 
         await context.Players.AddAsync(player);
-        // Отряд из 5 и ещё 10 дворфов 1-го ранга в запасе
-        var starter = StarterSquad.Roster(player.Id);
-        // Мощь — только отряда: запас в бой не ходит
-        player.SquadPower = squadPower.Of(starter.Where(h => h.PlaceInSquad != null));
-        await context.Heroes.AddRangeAsync(starter);
-        // Сохраняется одной транзакцией вместе с игроком и героями
+        // Дворфов при регистрации нет: первый бой новичок проводит с наставником, а отряд и запас приносит
+        // стартовый сундук — награда этого боя (Onboarding). Здесь начинается стартовое обучение
+        await context.PlayerTutorials.AddAsync(Onboarding.StartRow(player.Id, user.CreatedAt));
+        // Сохраняется одной транзакцией вместе с игроком
         await userRepository.CreateAsync(user);
 
         return Ok(BuildResponse(user));

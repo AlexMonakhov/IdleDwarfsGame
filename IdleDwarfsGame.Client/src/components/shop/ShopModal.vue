@@ -43,6 +43,7 @@ const header = computed(() => (tab.value === 'underground' ? t('shop.underground
 <template>
     <ModalComponent
         v-model="open"
+        tutorial-id="shop"
         v-model:active-tab="activeTab"
         :tabs="tabs"
         :header-message="header"

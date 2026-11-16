@@ -23,6 +23,8 @@ interface Props {
     // Забираем эту награду / заняты другой
     claiming?: boolean;
     disabled?: boolean;
+    // Якорь обучения на кнопке «Забрать»
+    claimAnchor?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -73,6 +75,7 @@ const status = computed(() => ({
         <div class="cleared-action">
             <GemButton
                 v-if="props.rewardState === 'pending'"
+                v-tutorial="props.claimAnchor"
                 :color="'yellow'"
                 class="cleared-claim"
                 :disabled="props.disabled"

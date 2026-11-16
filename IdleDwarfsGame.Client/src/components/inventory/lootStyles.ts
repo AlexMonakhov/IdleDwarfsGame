@@ -85,4 +85,5 @@ export const CHEST_ICONS: Record<ChestType, Component> = {
     Gem: IconChestGem,
     Infinity: IconChestInfinity,
     Equipment: IconChestEquipment,
+    Starter: IconChestHero,
 };

@@ -14,6 +14,7 @@ import GlassButton from '@/components/common/GlassButton.vue';
 import GemButton from '@/components/common/GemButton.vue';
 import { RARITY_ORDER } from '@/models/types/Forge';
 import type { Rarity } from '@/models/types/Inventory';
+import { emitTutorialEvent } from '@/tutorial/events';
 
 // Уровень сундука — как редкость: 1 — обычный … 5 — легендарный (цвет стекла и свечение)
 const chestRarity = (level: number): Rarity => RARITY_ORDER[Math.min(Math.max(level, 1), 5) - 1];
@@ -70,6 +71,7 @@ const open = async (chestId: string) => {
         const result = await InventoryApiService.openChest(chestId);
         opened.value = { result, cards: cardsFromResult(result, t) };
         emit('opened');
+        emitTutorialEvent('chest:opened');
         // Бонусные золото, опыт и монеты уже начислены — обновляем счётчики
         refreshResources();
     } catch (error) {
@@ -84,7 +86,7 @@ onMounted(load);
 </script>
 
 <template>
-    <div class="inventory-chests">
+    <div v-tutorial="'warehouse.chests'" class="inventory-chests">
         <div v-if="loading" class="inventory-hint">{{ t('common.loading') }}</div>
         <template v-else>
             <div v-if="errorMessage" class="inventory-hint inventory-hint-error">{{ errorMessage }}</div>
@@ -95,7 +97,7 @@ onMounted(load);
                 :rewards="opened.cards"
                 :chest-type="opened.result.chest.type"
                 :chest-level="opened.result.chest.level"
-                @close="opened = null"
+                @close="opened = null; emitTutorialEvent('chest:closed')"
             />
 
             <div class="inventory-hint">
@@ -106,7 +108,7 @@ onMounted(load);
             <div class="inventory-grid">
                 <!-- Карточка как у предмета (lootTile.css): стекло цвета стихии сундука (бесконечности) или его уровня -->
                 <div
-                    v-for="group in groups"
+                    v-for="(group, groupIndex) in groups"
                     :key="group.key"
                     class="loot-tile chest-card"
                     :class="`loot-tile-${chestRarity(group.level)}`"
@@ -119,7 +121,7 @@ onMounted(load);
                             {{ t(`elementNames.${group.element}`) }}
                         </span>
                         <span class="loot-tile-rarity">{{ t('chests.level', { level: group.level }) }}</span>
-                        <GemButton class="chest-card-open" :color="'yellow'" no-filter :disabled="opening" @click="open(group.ids[0])">
+                        <GemButton v-tutorial="groupIndex === 0 ? 'warehouse.chest.open' : null" class="chest-card-open" :color="'yellow'" no-filter :disabled="opening" @click="open(group.ids[0])">
                             {{ opening ? t('chests.opening') : t('chests.open') }}
                         </GemButton>
                     </GlassButton>

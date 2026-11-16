@@ -655,7 +655,11 @@ const en = {
       Gem: 'Gem',
       Infinity: 'Infinity',
       Equipment: 'Equipment',
+      Starter: 'Starter',
     },
+    // Карты стартового сундука: дворфы сразу в отряд и в запас
+    squadDwarves: 'Into the squad',
+    reserveDwarves: 'Into the reserve',
     open: 'Open',
     opening: 'Opening...',
     openError: 'Could not open the chest.',
@@ -1083,6 +1087,7 @@ const en = {
     header: 'expeditions',
     refreshIn: 'New expeditions in {time}',
     duration: '{hours} h',
+    durationSeconds: '{seconds} s',
     timeLeft: '{time} left',
     power: 'Party power: {power}',
     reward: '+{gold} gold · +{experience} xp',
@@ -1112,6 +1117,11 @@ const en = {
       Claimed: 'Reward claimed',
     },
     templates: {
+      // Обучающая экспедиция стартового обучения (несколько секунд)
+      tutorial: {
+        name: 'First errand',
+        description: 'A short walk to the nearest cave: the dwarves will be back in no time with a pouch of gold.',
+      },
       scoutTunnels: {
         name: 'Scout the tunnels',
         description: 'Fresh tunnels were dug under the hill overnight. Find out who dug them before they reach the town.',

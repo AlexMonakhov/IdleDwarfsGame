@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { computed, ref, toRef, watch } from 'vue';
+import { emitTutorialEvent } from '@/tutorial/events';
 import HeroFilters from '@/components/inventory/HeroFilters.vue';
 import { useHeroFilters } from '@/composables/UseHeroFilters';
 import { useI18n } from 'vue-i18n';
@@ -98,6 +99,9 @@ const chances = computed<Chance[]>(() => {
         .sort((a, b) => b.percent - a.percent);
 });
 
+// Обучение ждёт, пока игрок выберет всех пятерых
+watch(() => full.value, isFull => { if (isFull) emitTutorialEvent('fusion:ready'); });
+
 const fuse = async () => {
     if (!full.value || busy.value) return;
     if (!confirming.value) {
@@ -117,6 +121,7 @@ const fuse = async () => {
         if (result.resources) setResources(result.resources);
         pickedIds.value = [];
         emit('fused', result);
+        emitTutorialEvent('fusion:done');
     } catch (error) {
         message.value = { text: abilityErrorText(error), error: true };
         emit('stale');
@@ -179,6 +184,7 @@ const buttonText = computed(() => {
             <div class="fusion-actions">
                 <button class="forge-filter" :disabled="!picked.length || busy" @click="pickedIds = []">{{ t('abilities.fusion.clear') }}</button>
                 <GemButton
+                    v-tutorial="'fusion.fuse'"
                     class="forge-action"
                     :color="confirming ? 'red' : 'blue'"
                     :disabled="!full || busy"
@@ -189,7 +195,7 @@ const buttonText = computed(() => {
             <div v-if="message" class="forge-message" :class="{ 'forge-message-error': message.error }">{{ message.text }}</div>
 
             <!-- Последний полученный дворф -->
-            <div v-if="fused" class="fusion-result">
+            <div v-if="fused" v-tutorial="'fusion.result'" class="fusion-result">
                 <h4 class="forge-subtitle">{{ t('abilities.fusion.received') }}</h4>
                 <HeroCard :hero="fused" />
             </div>
@@ -197,7 +203,7 @@ const buttonText = computed(() => {
 
         <section v-drag-scroll class="forge-list">
             <HeroFilters v-model:element="elementFilter" v-model:rank="rankFilter" :heroes="heroes" />
-            <div class="forge-grid">
+            <div v-tutorial="'fusion.grid'" class="forge-grid">
                 <HeroCard
                     v-for="item in sorted"
                     :key="item.id"

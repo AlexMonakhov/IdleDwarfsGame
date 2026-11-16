@@ -35,11 +35,22 @@ import { soundService } from '@/services/soundService/SoundService';
 import { useI18n } from 'vue-i18n';
 import { IconCoin, IconExperience, IconRainbowCoin } from '@/components/icons/ui';
 import ConfirmModal from '@/components/common/ConfirmModal.vue';
+import TutorialOverlay from '@/components/tutorial/TutorialOverlay.vue';
+import { useTutorial } from '@/composables/UseTutorial';
+import { activityByNav } from '@/tutorial/activities';
 
 const { t, locale } = useI18n();
 const router = useRouter();
 const route = useRoute();
 const onArena = computed(() => route.name === 'arena');
+// «!» на кнопке раздела, с которым игрок ещё не знаком (обучение)
+const tutorial = useTutorial();
+const badge = (nav: string) => tutorial.needsBadge(activityByNav(nav)) ? '!' : undefined;
+// Пропуск стартового обучения: сервер выдал дворфов, золото и шахту сразу — счётчики перечитываем
+tutorial.onOnboardingFinished(() => {
+    refreshResources();
+    clearHeroes();
+});
 // Выход из аккаунта — только после подтверждения
 const logoutConfirmOpen = ref(false);
 const { isAuthenticated, logout } = useAuth();
@@ -51,14 +62,12 @@ const { incomingFriendRequests, start: startPresence, stop: stopPresence } = use
 const { friendsOpen, delveOpen } = useSocial();
 const { guildOpen } = useGuild();
 const { pvpOpen } = usePvp();
-const collectionOpen = ref(false);
 const { squadOpen } = useSquadModal();
 // Экспедиции, склад (инвентарь), алтарь (прокачка) и шахты открываются кликом по зданиям города
-const { interfaceHidden, expeditionsOpen, inventoryOpen, upgradeOpen, miningOpen, shopOpen, forgeOpen, questsOpen, eventOpen } = useInterface();
+const { interfaceHidden, expeditionsOpen, inventoryOpen, upgradeOpen, miningOpen, shopOpen, forgeOpen, questsOpen, eventOpen, mailOpen, collectionOpen } = useInterface();
 const { claimable: questsClaimable, start: startQuests, clear: clearQuests } = useQuests();
 const accountOpen = ref(false);
 // Почта: значок — непрочитанные письма и незабранные вложения
-const mailOpen = ref(false);
 const { badge: mailBadge, refresh: refreshMail, clear: clearMail } = useMail();
 
 // Ресурсы аккаунта подтягиваем при входе и сбрасываем при выходе; там же открываем и закрываем сессию вкладки
@@ -118,15 +127,15 @@ watchEffect(() => {
     <div v-show="!interfaceHidden" class="interface-view" >
         <div  class="nav-menu">
             <GemButton @click="router.push('/')" :color="'blue'">{{ t('nav.home') }}</GemButton>
-            <GemButton @click="router.push({ name: 'town' })" :color="'blue'">{{ t('nav.town') }}</GemButton>
+            <GemButton v-tutorial="'nav.town'" @click="router.push({ name: 'town' })" :color="'blue'">{{ t('nav.town') }}</GemButton>
             <!-- На арене верхнее меню урезано до «Главная» и «Город»; кнопки результата боя — в самой арене (ArenaView) -->
             <template v-if="!onArena">
-                <GemButton v-if="isAuthenticated" @click="collectionOpen = true" :color="'yellow'">{{ t('nav.collection') }}</GemButton>
-                <GemButton v-if="isAuthenticated" @click="friendsOpen = true" :color="'green'" :badge-count="incomingFriendRequests">{{ t('nav.friends') }}</GemButton>
-                <GemButton v-if="isAuthenticated" @click="questsOpen = true" :color="'yellow'" :badge-count="questsClaimable">{{ t('nav.quests') }}</GemButton>
-                <GemButton v-if="isAuthenticated" @click="mailOpen = true" :color="'blue'" :badge-count="mailBadge">{{ t('nav.mail') }}</GemButton>
-                <GemButton v-if="isAuthenticated" @click="eventOpen = true" :color="'red'">{{ t('nav.event') }}</GemButton>
-                <GemButton v-if="isAuthenticated" @click="delveOpen = true" :color="'pink'">{{ t('social.delve.nav') }}</GemButton>
+                <GemButton v-if="isAuthenticated" v-tutorial="'nav.collection'" :badge-text="badge('collection')" @click="collectionOpen = true" :color="'yellow'">{{ t('nav.collection') }}</GemButton>
+                <GemButton v-if="isAuthenticated" v-tutorial="'nav.friends'" :badge-text="badge('friends')" @click="friendsOpen = true" :color="'green'" :badge-count="incomingFriendRequests">{{ t('nav.friends') }}</GemButton>
+                <GemButton v-if="isAuthenticated" v-tutorial="'nav.quests'" :badge-text="badge('quests')" @click="questsOpen = true" :color="'yellow'" :badge-count="questsClaimable">{{ t('nav.quests') }}</GemButton>
+                <GemButton v-if="isAuthenticated" v-tutorial="'nav.mail'" :badge-text="badge('mail')" @click="mailOpen = true" :color="'blue'" :badge-count="mailBadge">{{ t('nav.mail') }}</GemButton>
+                <GemButton v-if="isAuthenticated" v-tutorial="'nav.event'" :badge-text="badge('event')" @click="eventOpen = true" :color="'red'">{{ t('nav.event') }}</GemButton>
+                <GemButton v-if="isAuthenticated" v-tutorial="'nav.delve'" :badge-text="badge('delve')" @click="delveOpen = true" :color="'pink'">{{ t('social.delve.nav') }}</GemButton>
                 <template v-if="!isAuthenticated">
                     <GemButton v-if="route.name != 'login'" @click="router.push('/login')" :color="'green'">{{ t('nav.login') }}</GemButton>
                     <GemButton v-if="route.name != 'register'" @click="router.push('/register')" :color="'yellow'">{{ t('nav.register') }}</GemButton>
@@ -135,7 +144,7 @@ watchEffect(() => {
             </template>
         </div>
         <div class="settings">
-            <div v-if="isAuthenticated && resources" class="resources">
+            <div v-if="isAuthenticated && resources" v-tutorial="'resources'" class="resources">
                 <span class="resource resource-gold" v-tooltip="t('resources.gold')"><IconCoin /> {{ resources.gold.toLocaleString(locale) }}</span>
                 <span class="resource resource-experience" v-tooltip="t('resources.experience')"><IconExperience /> {{ resources.experience.toLocaleString(locale) }}</span>
                 <span v-if="resources.rainbowCoins !== undefined" class="resource resource-rainbow" v-tooltip="t('shop.currency.rainbowCoins')"><IconRainbowCoin /> {{ resources.rainbowCoins.toLocaleString(locale) }}</span>
@@ -165,6 +174,8 @@ watchEffect(() => {
         :message="t('nav.logoutConfirm')"
         @confirm="onLogout"
     />
+    <!-- Шаг обучения — поверх всех окон -->
+    <TutorialOverlay />
 </template>
 
 <style scoped>

@@ -8,7 +8,8 @@ public class ExpeditionService(
     IPlayerRepository players,
     IEntityFactory entityFactory,
     TimeProvider time,
-    IActivityTracker activity
+    IActivityTracker activity,
+    OnboardingService? onboarding = null
 )
 {
     public const int MaxHeroes = 4;
@@ -50,12 +51,33 @@ public class ExpeditionService(
             list = await expeditions.GetBoardAsync(playerId, boardStartsAt);
         }
 
+        // Стартовое обучение: обучающая экспедиция на месте 0, пока её награда не забрана. Ставится после обычных
+        // заданий — по ним проверяется, создана ли доска
+        if (onboarding != null && !list.Any(IsTutorial)
+            && await onboarding.IsActiveAsync(playerId) && !await onboarding.WasGrantedAsync(playerId, Onboarding.Grants.Expedition))
+        {
+            await expeditions.AddAsync(new Expedition
+            {
+                Id = Guid.NewGuid(),
+                PlayerId = playerId,
+                BoardStartsAt = boardStartsAt,
+                Slot = 0,
+                TemplateKey = Onboarding.ExpeditionTemplate,
+                DurationHours = 0
+            });
+            list = await expeditions.GetBoardAsync(playerId, boardStartsAt);
+        }
+
         return new ExpeditionBoard
         {
             ServerTime = now,
             RefreshAt = boardStartsAt + BoardLifetime,
             MaxHeroes = MaxHeroes,
-            Expeditions = list.Select(e => ToInfo(e, now)).ToList()
+            // Забранная обучающая экспедиция с доски уходит — у обычных заданий забранное остаётся до новой доски
+            Expeditions = list
+                .Where(e => !(IsTutorial(e) && e.Status == ExpeditionStatus.Claimed))
+                .Select(e => ToInfo(e, now))
+                .ToList()
         };
     }
 
@@ -93,11 +115,15 @@ public class ExpeditionService(
             throw new InvalidOperationException("One of the heroes works in a mine");
 
         int power = selected.Sum(h => CombatPower.OfHero(entityFactory, h).Total);
-        var reward = RewardFor(expedition.DurationHours, power);
+        // Обучающая: несколько секунд и награда ровно на улучшение шахты, от мощи не зависит
+        bool tutorial = IsTutorial(expedition);
+        var reward = tutorial
+            ? new ExpeditionReward { Gold = Onboarding.ExpeditionGold, Experience = Onboarding.ExpeditionExperience }
+            : RewardFor(expedition.DurationHours, power);
 
         expedition.Status = ExpeditionStatus.InProgress;
         expedition.StartedAt = now;
-        expedition.EndsAt = now.AddHours(expedition.DurationHours);
+        expedition.EndsAt = tutorial ? now.AddSeconds(Onboarding.ExpeditionSeconds) : now.AddHours(expedition.DurationHours);
         expedition.Power = power;
         expedition.Gold = reward.Gold;
         expedition.Experience = reward.Experience;
@@ -121,6 +147,13 @@ public class ExpeditionService(
         if (expedition.Status == ExpeditionStatus.InProgress && expedition.EndsAt > now)
             throw new InvalidOperationException("Expedition is not finished yet");
 
+        // Награду обучающей экспедиции пропуск мог уже выдать — тогда герои просто возвращаются
+        if (IsTutorial(expedition) && onboarding != null && !await onboarding.TryMarkGrantAsync(playerId, Onboarding.Grants.Expedition))
+        {
+            expedition.Gold = 0;
+            expedition.Experience = 0;
+        }
+
         if (!await expeditions.ClaimAsync(expedition, now))
             throw new InvalidOperationException("Reward is already claimed");
         await activity.RecordAsync(playerId, ActivityKind.ExpeditionClaim);
@@ -131,6 +164,8 @@ public class ExpeditionService(
             Resources = await players.GetResourcesAsync(playerId) ?? new PlayerResources()
         };
     }
+
+    private static bool IsTutorial(Expedition expedition) => expedition.TemplateKey == Onboarding.ExpeditionTemplate;
 
     // Начало окна доски, в которое попадает момент времени
     public static DateTime BoardStart(DateTime utc) =>
@@ -181,6 +216,7 @@ public class ExpeditionService(
         Slot = expedition.Slot,
         TemplateKey = expedition.TemplateKey,
         DurationHours = expedition.DurationHours,
+        DurationSeconds = IsTutorial(expedition) ? Onboarding.ExpeditionSeconds : expedition.DurationHours * 3600,
         Status = expedition.Status == ExpeditionStatus.InProgress && expedition.EndsAt <= now
             ? ExpeditionStatus.Ready
             : expedition.Status,

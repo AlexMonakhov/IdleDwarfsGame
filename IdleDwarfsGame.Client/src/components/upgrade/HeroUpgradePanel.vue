@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { emitTutorialEvent } from '@/tutorial/events';
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue';
 import { AxiosError } from 'axios';
 import { useI18n } from 'vue-i18n';
@@ -216,6 +217,7 @@ const upgradeHero = async () => {
         const result = await HeroesApiService.upgrade(props.hero.id);
         setResources(result.resources);
         emit('upgraded', result);
+        emitTutorialEvent('hero:upgraded');
         message.value = { text: t('heroUpgrade.upgraded', { name: result.hero.name, level: result.hero.upgrade.level }), error: false };
         celebrate();
     } catch (error) {
@@ -402,7 +404,7 @@ const hint = computed(() => {
                     </span>
                 </div>
                 <span class="upgrade-hint" :class="{ 'upgrade-hint-error': message?.error }">{{ hint }}</span>
-                <GemButton :color="'green'" :disabled="!affordable || busy" @click="upgradeHero">{{ buttonText }}</GemButton>
+                <GemButton v-tutorial="'altar.upgrade'" :color="'green'" :disabled="!affordable || busy" @click="upgradeHero">{{ buttonText }}</GemButton>
             </div>
         </div>
     </div>
