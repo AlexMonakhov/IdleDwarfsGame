@@ -14,12 +14,14 @@ const props = defineProps<{
 
 
 
+// Заполнение полосок — масштабом, а не шириной: transform анимирует композитор без перерисовки.
+// Смена ширины каждый кадр перерисовывала всю рамку с её тенями — на залпе заклинаний это стоило половины кадров
 const hpFillStyle = computed(() => ({
-    width: `${props.maxHp ? Math.max(0, props.currentHp) / props.maxHp * 100 : 0}%`
+    transform: `scaleX(${props.maxHp ? Math.min(1, Math.max(0, props.currentHp) / props.maxHp) : 0})`
 }) )
 
 const energyFillStyle = computed(() => ({
-    width: `${props.maxEnergy ? Math.min(props.energy ?? 0, props.maxEnergy) / props.maxEnergy * 100 : 0}%`
+    transform: `scaleX(${props.maxEnergy ? Math.max(0, Math.min(props.energy ?? 0, props.maxEnergy)) / props.maxEnergy : 0})`
 }) )
 
 // Метки каста: первая (самое дешёвое заклинание) — главная, на ней юнит начнёт кастовать.
@@ -82,10 +84,13 @@ const castReady = computed(() => castMarks.value.some(mark => mark.ready));
     &-fill{
         position: absolute;
         background: linear-gradient(45deg, transparent, #ff1d00);
+        width: 100%;
         height: 100%;
         left: 0;
         bottom: 0;
-        transition: width 0.8s;
+        transform-origin: left center;
+        will-change: transform;
+        transition: transform 0.8s;
     }
     &-numbers{
         position: absolute;
@@ -155,10 +160,13 @@ const castReady = computed(() => castMarks.value.some(mark => mark.ready));
     &-fill{
         position: absolute;
         background: linear-gradient(90deg, #2563eb, #7dd3fc);
+        width: 100%;
         height: 100%;
         left: 0;
         bottom: 0;
-        transition: width 0.5s;
+        transform-origin: left center;
+        will-change: transform;
+        transition: transform 0.5s;
     }
 }
 

@@ -2,11 +2,12 @@ import { soundService } from '@/services/soundService/SoundService';
 import { dialogueService } from '@/services/dialogueService/DialogueService';
 import { DamageSource } from '@/services/dialogueService/types';
 import { t } from '@/i18n';
-import { BattleFx } from './BattleFx';
+import { BASE_BATTLE_SPEED, BattleFx } from './BattleFx';
 import { BattleState, BattleUnit, FloatingText, FloatingTextDetails, TURN_COLOR, UnitFocus, addFloatingText, auraEffectOf, resetBattleState } from './BattleState';
 import { DAMAGE_COLORS, STATUS_VISUALS, resolveAuraVisual, resolveSpellVisual } from './FxRegistry';
 import { CombatLogEntry, CombatResult, StatusEffectLogData } from './types';
 import { getUnitView } from './UnitRegistry';
+import { ConceptSpells, type ConceptCast } from './ConceptSpells';
 
 // Аура тьмы (EnergyBurnEffect на сервере)
 const ENERGY_BURN = 'EnergyBurn';
@@ -40,19 +41,26 @@ const ACTION_EVENTS = new Set(['Attack', 'Damage', 'StatusTick', 'Heal', 'Stunne
 const TIMING = {
   roundBanner: 500,
   attackWindup: 350,
-  attackRecover: 450,
+  attackRecover: 250,
   castWindup: 300,
-  castRecover: 400,
+  // После попаданий каста ждём, пока эффект почти доиграет (см. FX_OVERLAP), но в этих пределах
+  castRecoverMin: 120,
+  castRecoverMax: 500,
   tick: 380,
+  // Шаг между тиками нескольких статусов одного юнита: они идут почти разом, а не по очереди
+  tickStagger: 150,
   stunned: 450,
-  turnStart: 300,
+  turnStart: 150,
   death: 500,
   floatingText: 1100,
-  actionGap: 400,
+  actionGap: 120,
   speech: 2400,
   auraWave: 300,
   auraRecover: 450,
 };
+
+// Следующий ход начинается за столько мс до конца эффекта каста — хвост гаснет уже под него
+const FX_OVERLAP = 300;
 
 // Облачко с репликой не короче этого даже на x4 — иначе не успеть прочитать
 const MIN_SPEECH_MS = 1500;
@@ -75,9 +83,15 @@ export class BattlePlayer {
   beforeStart: (() => Promise<void>) | null = null;
 
   readonly fx: BattleFx;
+  // Заклинания на концептах (ConceptSpells.BATTLE_CONCEPTS); без концепта — прежний визуал из FxRegistry
+  readonly concepts: ConceptSpells;
+  // Откуда идут срабатывания артефактов без кастера: последний умерший (заражение, раскол) и последний вылеченный
+  private lastDeathId: number | null = null;
+  private lastHealedId: number | null = null;
 
   constructor(private readonly state: BattleState, fx: BattleFx) {
     this.fx = fx;
+    this.concepts = new ConceptSpells(fx, () => this.rate);
   }
 
   get isSkipping() {
@@ -87,11 +101,13 @@ export class BattlePlayer {
   // Мгновенно доиграть бой без анимаций
   skip() {
     this.skipping = true;
+    this.concepts.clear();
   }
 
   // Прервать проигрывание (например, при уходе со страницы)
   stop() {
     this.runId++;
+    this.concepts.clear();
   }
 
   // instant — сразу показать итог без анимаций (восстановление боя после перезагрузки страницы)
@@ -99,6 +115,9 @@ export class BattlePlayer {
     const runId = ++this.runId;
     this.skipping = false;
     this.currentActor = null;
+    this.concepts.clear();
+    this.lastDeathId = null;
+    this.lastHealedId = null;
     resetBattleState(this.state, result);
     this.state.playing = true;
     // Сцена под экраном загрузки, пока у юнитов не готовы спрайт-листы:
@@ -156,6 +175,18 @@ export class BattlePlayer {
           group.push(logs[j++]);
         }
         await this.playAura(log.attackerId, group);
+        i = j;
+        continue;
+      }
+
+      // Тики статусов юнита в начале его хода (горение, яд, регенерация) — почти разом, одной пачкой
+      if (this.isTurnTick(log)) {
+        const group = [log];
+        let j = i + 1;
+        while (j < logs.length && logs[j].targetId === log.targetId && this.isTurnTick(logs[j])) {
+          group.push(logs[j++]);
+        }
+        if (await this.playTicks(group)) await this.delay(TIMING.actionGap);
         i = j;
         continue;
       }
@@ -288,13 +319,29 @@ export class BattlePlayer {
     this.animate(cast.attackerId, v => v.cast?.(color));
     this.sound(s => s.cast());
     this.float(cast.attackerId, cast.skillName, 'cast', { color });
+
+    // Плата здоровьем (Кровавая цена) — урон кастера по самому себе
+    const isSacrifice = (e: CombatLogEntry) => e.eventType === 'Damage' && e.targetId === cast.attackerId;
+    // Записи группируем по цели: заклинание до неё дошло — применяем всё, что к ней относится
+    const byTarget = new Map<number, CombatLogEntry[]>();
+    for (const entry of group.filter(e => !isSacrifice(e))) {
+      const entries = byTarget.get(entry.targetId) ?? [];
+      entries.push(entry);
+      byTarget.set(entry.targetId, entries);
+    }
+
+    const concept = this.skipping ? null : this.conceptCast(cast, byTarget);
+    if (concept && this.concepts.canPlay(concept)) {
+      await this.playConceptCast(cast, group.filter(isSacrifice), byTarget, concept);
+      return;
+    }
+
     if (!this.skipping) {
       this.fx.castCircle(getUnitView(cast.attackerId)?.el?.(), color, TIMING.castWindup + 700);
     }
     await this.delay(TIMING.castWindup);
 
-    // Плата здоровьем (Кровавая цена) — урон кастера по самому себе: показываем сразу, до доставки
-    const isSacrifice = (e: CombatLogEntry) => e.eventType === 'Damage' && e.targetId === cast.attackerId;
+    // Плату показываем сразу, до доставки
     const sacrifice = group.filter(isSacrifice);
     if (sacrifice.length) {
       sacrifice.forEach(entry => {
@@ -303,14 +350,6 @@ export class BattlePlayer {
       });
       if (!this.skipping) this.fx.play(visual.sacrifice, getUnitView(cast.attackerId)?.el?.());
       await this.delay(visual.sacrificeDelay ?? 0);
-    }
-
-    // Записи группируем по цели: заклинание до неё дошло — применяем всё, что к ней относится
-    const byTarget = new Map<number, CombatLogEntry[]>();
-    for (const entry of group.filter(e => !isSacrifice(e))) {
-      const entries = byTarget.get(entry.targetId) ?? [];
-      entries.push(entry);
-      byTarget.set(entry.targetId, entries);
     }
 
     // Визуал заклинания идёт в тех, кого оно ранит, а у лечащих со своим визуалом (Рассвет) — в лечимых союзников.
@@ -330,7 +369,61 @@ export class BattlePlayer {
     if (struck.length && rest.length) await this.delay(visual.healDelay ?? 0);
     rest.forEach(([, entries]) => this.applyCastEntries(entries));
 
-    await this.delay(TIMING.castRecover);
+    // Попадание уже было — ждём, пока взрыв на цели почти догорит
+    const impactLeft = Math.max(0, ...visual.impact.map(spec => (spec.delay ?? 0) + spec.duration));
+    await this.delay(this.castRecover(impactLeft - FX_OVERLAP));
+    this.endTurn();
+  }
+
+  // Каст для концепта: враги-цели, лечимые, союзники и остальные враги — по записям лога и расстановке
+  private conceptCast(cast: CombatLogEntry, byTarget: Map<number, CombatLogEntry[]>): ConceptCast | null {
+    const caster = this.unit(cast.attackerId);
+    if (!caster) return null;
+    const byPosition = (a: number, b: number) => (this.unit(a)?.position ?? 0) - (this.unit(b)?.position ?? 0);
+    const ids = [...byTarget.keys()];
+    const enemyIds = ids.filter(id => this.unit(id) && this.unit(id)?.team !== caster.team).sort(byPosition);
+    const healIds = ids.filter(id => byTarget.get(id)?.some(e => e.eventType === 'Heal')).sort(byPosition);
+    const living = Object.values(this.state.units).filter(u => u.alive || ids.includes(u.id));
+    const trigger = cast.triggerKind ? { kind: cast.triggerKind, spell: cast.triggerSpell ?? '' } : null;
+    // Раскол и заражение идут от умершего носителя, яд «Семени древа» — от вылеченного союзника
+    const originId = trigger?.kind === 'SpreadOnDeath' || trigger?.kind === 'Shatter'
+      ? this.lastDeathId
+      : trigger?.kind === 'OverhealProc' ? this.lastHealedId : null;
+    return {
+      skillName: cast.skillName,
+      level: cast.skillLevel ?? 1,
+      damageType: cast.damageType,
+      casterId: caster.id,
+      enemyIds,
+      healIds,
+      entryIds: ids,
+      procIds: new Set(ids.filter(id => byTarget.get(id)?.some(e => !!e.triggerKind))),
+      allyIds: living.filter(u => u.team === caster.team).map(u => u.id).sort(byPosition),
+      bystanderIds: living.filter(u => u.team !== caster.team && !enemyIds.includes(u.id)).map(u => u.id).sort(byPosition),
+      artifacts: cast.artifactKinds ?? [],
+      trigger,
+      originId,
+    };
+  }
+
+  // Заклинание на концепте: записи цели применяются, когда концепт до неё дошёл (попал или вылечил)
+  private async playConceptCast(cast: CombatLogEntry, sacrifice: CombatLogEntry[], byTarget: Map<number, CombatLogEntry[]>, concept: ConceptCast) {
+    // Плата кровью — сразу: из ран кастера и начинается анимация
+    sacrifice.forEach(entry => {
+      this.show(entry);
+      this.applyDamage(entry, { silent: true });
+    });
+    const { hits, settled } = this.concepts.play(concept, FX_OVERLAP);
+    await Promise.all([...byTarget.entries()].map(async ([id, entries]) => {
+      await hits.get(id);
+      this.applyCastEntries(entries);
+    }));
+    // Следующий ход — когда концепту осталось FX_OVERLAP до конца (хвост догорает уже под него),
+    // но не раньше castRecoverMin и не позже castRecoverMax после попаданий
+    await Promise.race([
+      Promise.all([settled, this.delay(TIMING.castRecoverMin)]),
+      this.delay(TIMING.castRecoverMax),
+    ]);
     this.endTurn();
   }
 
@@ -365,6 +458,28 @@ export class BattlePlayer {
       if (!this.skipping) this.fx.play(visual.hit, getUnitView(entry.targetId)?.el?.());
     }
     await this.delay(TIMING.auraRecover);
+  }
+
+  // Запись тиков начала хода: урон или лечение от статуса и истечение статуса
+  private isTurnTick(log: CombatLogEntry) {
+    return log.phase === 'TurnStart' && (log.eventType === 'StatusTick' || log.eventType === 'Heal' || log.eventType === 'StatusExpired');
+  }
+
+  // Пачка тиков одного юнита: видимые идут с шагом tickStagger, затем одна пауза tick.
+  // true — что-то было видно (тики без урона и истечения ничего не показывают)
+  private async playTicks(group: CombatLogEntry[]) {
+    let shown = 0;
+    for (const entry of group) {
+      const visible = entry.eventType === 'Heal' || (entry.eventType === 'StatusTick' && entry.damage > 0);
+      if (visible && shown++ > 0) await this.delay(TIMING.tickStagger);
+      this.show(entry);
+      if (STATUS_TICK_EVENTS.has(entry.eventType)) this.syncStatus(entry);
+      if (entry.eventType === 'StatusExpired') this.removeStatus(entry);
+      else if (entry.eventType === 'Heal') this.applyHeal(entry);
+      else if (visible) this.applyDamage(entry, { status: entry.activeEffects[0]?.name ?? entry.actionType });
+    }
+    if (shown) await this.delay(TIMING.tick);
+    return shown > 0;
   }
 
   // Статус наложен аурой: источник — её носитель и эффект совпадает с эффектом ауры.
@@ -420,6 +535,7 @@ export class BattlePlayer {
     if (!target) return;
 
     target.hp = log.targetRemainingHp;
+    this.lastHealedId = target.id;
     this.float(target.id, `+${log.heal}`, 'heal', { amount: log.heal });
     this.animate(target.id, v => v.heal?.());
     this.sound(s => s.heal());
@@ -477,6 +593,7 @@ export class BattlePlayer {
     if (!target) return;
     target.hp = 0;
     target.alive = false;
+    this.lastDeathId = target.id;
     target.statuses = {};
     target.focus = null;
     this.sound(s => s.death());
@@ -569,11 +686,21 @@ export class BattlePlayer {
     unit.speech = speech;
     setTimeout(() => {
       if (unit.speech?.id === speech.id) unit.speech = null;
-    }, Math.max(MIN_SPEECH_MS, TIMING.speech / this.speed));
+    }, Math.max(MIN_SPEECH_MS, TIMING.speech / this.rate));
+  }
+
+  // Пауза после каста, мс при x1: сколько эффекту осталось, в пределах castRecoverMin..castRecoverMax
+  private castRecover(left: number) {
+    return Math.min(TIMING.castRecoverMax, Math.max(TIMING.castRecoverMin, left));
+  }
+
+  // Фактическая скорость: выбранная игроком (speed) с учётом базовой
+  private get rate() {
+    return this.speed * BASE_BATTLE_SPEED;
   }
 
   private delay(ms: number) {
     if (this.skipping) return Promise.resolve();
-    return new Promise<void>(resolve => setTimeout(resolve, ms / this.speed));
+    return new Promise<void>(resolve => setTimeout(resolve, ms / this.rate));
   }
 }

@@ -1,9 +1,10 @@
-import { EffectType } from '@/services/particleService/types/interfaces/canvas-interfaces';
-import type { AuraMote, GroundMarkKind } from '@/services/particleService/types/combat-effects';
+import { EffectType } from '@/services/particleService/types/emitter';
+import type { AuraMote } from '@/services/pixiFx/effects/mote';
+import type { GroundMarkKind } from '@/services/pixiFx/art';
 import type { AuraTarget } from './types';
 
 // Описания боевых визуалов. Чтобы добавить новый эффект (статус, заклинание, тип урона),
-// достаточно дописать запись сюда; при необходимости — новую canvas-стратегию в particleService.
+// достаточно дописать запись сюда; при необходимости — новый эффект в services/pixiFx/effects.
 
 export const DAMAGE_COLORS: Record<string, string> = {
   Physical: '#ffd166',

@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { ref, onMounted, onUnmounted, inject, watch } from 'vue';
 import type { Ref } from 'vue';
-import { EffectType } from '@/services/particleService/types/interfaces/canvas-interfaces';
+import { EffectType } from '@/services/particleService/types/emitter';
 
 export interface EffectConfig {
   func: EffectType;
@@ -80,27 +80,15 @@ const effectKey = (e: EffectConfig) =>
 
 const layerOf = (effect: EffectConfig) => (effect.isUnder === false ? 'foreground' : 'background');
 
-// Координаты эффекта в системе канваса его слоя: центр компонента либо from/to-элементы
+// Координаты эффекта в системе слоя (particleService.toLocal): центр компонента либо from/to-элементы
 const resolvePoints = (effect: EffectConfig, rect: DOMRect) => {
-  const canvasNode = layerOf(effect) === 'foreground' ? particleService?.fgCanvas : particleService?.bgCanvas;
-  const canvasRect = canvasNode?.getBoundingClientRect();
-  const offsetX = canvasRect?.left ?? 0;
-  const offsetY = canvasRect?.top ?? 0;
-  // Экранные пиксели → пиксели канваса: канвас масштабирован вместе с интерфейсом (UseUiScale.ts)
-  const k = canvasNode && canvasRect?.width ? canvasNode.width / canvasRect.width : 1;
-
-  const localX = (rect.left + rect.width / 2 - offsetX) * k;
-  const localY = (rect.top + rect.height / 2 - offsetY) * k;
-
-  const fromPoint = resolveCenter(effect.from ?? effect.args?.from);
-  const toPoint = resolveCenter(effect.to ?? effect.args?.to);
-
-  return {
-    startX: fromPoint ? (fromPoint.x - offsetX) * k : localX,
-    startY: fromPoint ? (fromPoint.y - offsetY) * k : localY,
-    endX: toPoint ? (toPoint.x - offsetX) * k : localX,
-    endY: toPoint ? (toPoint.y - offsetY) * k : localY,
-  };
+  const toLocal = (x: number, y: number) => particleService?.toLocal(x, y) ?? { x, y };
+  const local = toLocal(rect.left + rect.width / 2, rect.top + rect.height / 2);
+  const fromCenter = resolveCenter(effect.from ?? effect.args?.from);
+  const toCenter = resolveCenter(effect.to ?? effect.args?.to);
+  const from = fromCenter ? toLocal(fromCenter.x, fromCenter.y) : local;
+  const to = toCenter ? toLocal(toCenter.x, toCenter.y) : local;
+  return { startX: from.x, startY: from.y, endX: to.x, endY: to.y };
 };
 
 // После ресайза окна/обёртки двигаем уже запущенные эмиттеры, не перезапуская их анимацию

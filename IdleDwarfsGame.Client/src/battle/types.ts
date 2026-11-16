@@ -59,6 +59,11 @@ export interface CombatLogEntry {
   skillName: string;
   // Уровень спелла 1..3, есть у записи SkillCast
   skillLevel?: number | null;
+  // Запись от артефакта: вид эффекта (ItemEffectInfo.Kind) и заклинание, на котором артефакт
+  triggerKind?: string | null;
+  triggerSpell?: string | null;
+  // У обычного каста: виды эффектов артефактов, надетых на это заклинание
+  artifactKinds?: string[] | null;
   damageType: DamageType;
   damage: number;
   heal: number;

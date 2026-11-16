@@ -149,7 +149,7 @@ import { STATUS_VISUALS, resolveAuraVisual, resolveSpellVisual } from '@/battle/
 import { SpriteAnimation, SpritePose } from '@/battle/sprites';
 import { getUnitView } from '@/battle/UnitRegistry';
 import { useInterface } from '@/composables/UseInterface';
-import { EffectType } from '@/services/particleService/types/interfaces/canvas-interfaces';
+import { EffectType } from '@/services/particleService/types/emitter';
 import { CombatUnitInfo, HeroElement } from '@/battle/types';
 import { AURA_SAMPLES, AuraSample, HERO_KINDS, PREVIEW_LOOK_RANK, SPELL_LEVELS, SPELLS, SpellSample } from '@/components/collection/catalog';
 

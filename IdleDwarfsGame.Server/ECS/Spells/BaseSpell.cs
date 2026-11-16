@@ -40,7 +40,7 @@ public abstract class BaseSpell : ISpell
 
             modifier.CastCount++;
             foreach (var effect in modifier.Effects.ToList())
-                effect.AfterCast(scope);
+                context.RunTrigger(effect, () => effect.AfterCast(scope));
         }
         finally
         {
@@ -269,9 +269,16 @@ public abstract class BaseSpell : ISpell
             SkillLevel = Level,
             DamageType = DamageType,
             AttackerEnergy = world.GetEnergy(casterId),
-            Text = $"{Name} → {targets.Count} target(s)"
+            Text = $"{Name} → {targets.Count} target(s)",
+            // Срабатывание артефакта помечается в AddLog; обычный каст несёт артефакты, надетые на спелл
+            ArtifactKinds = context.CurrentTrigger == null ? ArtifactKinds(world, casterId) : null
         });
     }
+
+    private List<string>? ArtifactKinds(World world, int casterId) =>
+        world.Gear.GetValueOrDefault(casterId)?.Spells.GetValueOrDefault(Name) is { Effects.Count: > 0 } modifier
+            ? modifier.Effects.Select(e => e.Info.Kind).Distinct().ToList()
+            : null;
 
     // Пишет в открытый каст этого спелла (если он идёт): для спеллов с платой здоровьем и снятием проклятий
     protected void RecordInCast(CombatContext context, Action<CastScope> record)

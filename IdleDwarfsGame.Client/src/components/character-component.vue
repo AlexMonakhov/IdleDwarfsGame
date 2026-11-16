@@ -1,5 +1,9 @@
 <script lang="ts" setup >
-import { ref, defineProps, computed, onMounted, onBeforeUnmount, inject, watch } from 'vue';
+import { ref, defineProps, computed, onMounted, onBeforeUnmount, inject, watch, nextTick } from 'vue';
+import type { Ref, ShallowRef } from 'vue';
+import type { PixiScene } from '@/services/pixiFx/PixiScene';
+import type { PixiUnit } from '@/services/pixiFx/units/PixiUnit';
+import type { GlobalParticleService } from '@/services/particleService/ParticleSystem';
 import CharacterSkeleton from './character-skeleton.vue';
 import CharacterStats from './character-stats.vue';
 import { HeroModel } from '@/models/hero';
@@ -177,31 +181,153 @@ const flash = (cls: string, duration: number) => {
   });
 };
 
+// ===== Тело в Pixi-сцене слоя (CanvasLayer) =====
+// Внутри слоя со сценой тело рисует PixiUnit (services/pixiFx/units): DOM-рамка sprite-box остаётся пустой и задаёт,
+// где юнит стоит. Вне слоя (окно прокачки, экспедиции) или без WebGL — character-skeleton со своим канвасом
+const pixiScene = inject<ShallowRef<PixiScene | null> | null>('pixiScene', null);
+const pixiFailed = inject<Ref<boolean> | null>('pixiSceneFailed', null);
+const particleService = inject<GlobalParticleService | null>('particleService', null);
+const layoutVersion = inject<Ref<number> | null>('particleLayoutVersion', null);
+const pixiBody = computed(() => !!pixiScene && !pixiFailed?.value);
+
+let pixiUnit: PixiUnit | null = null;
+let unitTicker: (() => void) | null = null;
+let unmounted = false;
+let measureTimer = 0;
+let boxObserver: ResizeObserver | null = null;
+// Юнит создаётся, когда сцена загрузилась; ready арены ждёт его
+let unitCreated: Promise<PixiUnit> = new Promise(() => undefined);
+let resolveUnit: (unit: PixiUnit) => void = () => undefined;
+const resetUnitPromise = () => {
+  unitCreated = new Promise(resolve => (resolveUnit = resolve));
+};
+resetUnitPromise();
+
+// Рамка юнита в координатах сцены
+const measure = () => {
+  if (!pixiUnit || !spriteRef.value || !particleService) return;
+  const rect = spriteRef.value.getBoundingClientRect();
+  const k = particleService.scale();
+  const at = particleService.toLocal(rect.left, rect.top);
+  pixiUnit.setBox(at.x, at.y, rect.width * k, rect.height * k);
+};
+
+const focusOf = () => (props.unit.focus?.role === 'target' || props.unit.focus?.role === 'attacker' || props.unit.focus?.role === 'caster'
+  ? props.unit.focus.role
+  : null);
+
+// Всё состояние юнита — в PixiUnit (после создания и при каждом изменении)
+const syncPixi = () => {
+  if (!pixiUnit) return;
+  pixiUnit.setTint(spriteTint.value ?? null);
+  pixiUnit.setSpeed(statusVisual.value.animSpeed);
+  pixiUnit.setStatusClasses(statusVisual.value.classes);
+  pixiUnit.setFocus(focusOf(), props.unit.focus?.color ?? TURN_COLOR);
+};
+
+const destroyPixiUnit = () => {
+  if (unitTicker) pixiScene?.value?.removeTicker(unitTicker);
+  unitTicker = null;
+  pixiUnit?.destroy();
+  pixiUnit = null;
+};
+
+const createPixiUnit = async () => {
+  destroyPixiUnit();
+  const scene = pixiScene?.value;
+  if (!scene || !pixiBody.value) return;
+  // Модуль юнита — в том же ленивом чанке, что и сцена
+  const { PixiUnit } = await import(/* webpackChunkName: "pixi-fx" */ '@/services/pixiFx/units/PixiUnit');
+  if (unmounted || scene !== pixiScene?.value) return;
+  destroyPixiUnit();
+  const unit = new PixiUnit(scene, {
+    color: spriteColor(props.unit),
+    level: props.unit.level,
+    unitType: props.unit.unitType ?? 'Dwarf',
+    animations: props.animations ?? BATTLE_ANIMATIONS,
+    frameWidth: props.frameWidth ?? 409.6,
+    frameHeight: props.frameHeight ?? 409.6,
+    frameCount: props.frameCount ?? 24,
+    fps: 16,
+    scale: drawScale.value,
+    mirrored: !!props.rotate,
+    unitSize: unitSize.value,
+  });
+  pixiUnit = unit;
+  if (props.pose) unit.setPose(props.pose);
+  // Уже мёртвый юнит сразу лежит на последнем кадре смерти
+  unit.setPaused(!props.unit.alive, true);
+  syncPixi();
+  measure();
+  unitTicker = () => unit.tick();
+  scene.addTicker(unitTicker);
+  resolveUnit(unit);
+};
+
+if (pixiScene) {
+  watch(pixiScene, createPixiUnit);
+  // Другой вид юнита (новый бой, другой ранг или стихия) или размер — пересоздаём
+  watch(() => `${props.unit.id}-${props.unit.level}-${props.unit.unitType}-${props.unit.element}-${drawScale.value}-${props.rotate}`, () => {
+    resetUnitPromise();
+    createPixiUnit();
+  });
+  watch([spriteTint, statusVisual, () => props.unit.focus], syncPixi, { deep: true });
+  watch(() => props.unit.alive, alive => pixiUnit?.setPaused(!alive));
+  watch(() => props.pose, pose => pixiUnit?.setPose(pose ?? null));
+  if (layoutVersion) watch(layoutVersion, () => nextTick(measure));
+}
+
 const view: UnitView = {
   el: () => spriteRef.value,
   attack: () => {
+    if (pixiUnit) {
+      pixiUnit.playAnimation('attack');
+      pixiUnit.flash('#fff6d5', 0.35, 300);
+      pixiUnit.lunge();
+      return;
+    }
     skeletonRef.value?.playAnimation('attack');
     skeletonRef.value?.flash('#fff6d5', 0.35, 300);
     flash('fx-lunge', 650);
   },
   cast: (color?: string) => {
+    if (pixiUnit) {
+      pixiUnit.playAnimation('attack');
+      pixiUnit.flash(color ?? DAMAGE_COLORS.Magical, 0.4, 600);
+      return;
+    }
     skeletonRef.value?.playAnimation('attack');
     skeletonRef.value?.flash(color ?? DAMAGE_COLORS.Magical, 0.4, 600);
   },
   hit: (_damageType, options) => {
+    if (pixiUnit) {
+      pixiUnit.shake(options?.crit);
+      pixiUnit.flash(options?.flash ?? '#ff1414', options?.crit ? 0.95 : 0.85, 450);
+      return;
+    }
     flash(options?.crit ? 'fx-hit fx-crit' : 'fx-hit', 450);
     skeletonRef.value?.flash(options?.flash ?? '#ff1414', options?.crit ? 0.95 : 0.85, 450);
   },
   heal: () => {
+    if (pixiUnit) {
+      pixiUnit.healGlow();
+      pixiUnit.flash(DAMAGE_COLORS.Heal, 0.45, 600);
+      return;
+    }
     flash('fx-heal', 700);
     skeletonRef.value?.flash(DAMAGE_COLORS.Heal, 0.45, 600);
   },
   aura: (color: string) => {
+    if (pixiUnit) {
+      pixiUnit.swell();
+      pixiUnit.flash(color, 0.5, 550);
+      return;
+    }
     flash('fx-aura', 600);
     skeletonRef.value?.flash(color, 0.5, 550);
   },
-  victory: () => skeletonRef.value?.playAnimation('victory'),
-  ready: () => skeletonRef.value?.ready() ?? Promise.resolve(),
+  victory: () => (pixiUnit ? pixiUnit.playAnimation('victory') : skeletonRef.value?.playAnimation('victory')),
+  ready: () => (pixiBody.value ? unitCreated.then(unit => unit.ready()) : skeletonRef.value?.ready() ?? Promise.resolve()),
 };
 
 // id юнита может смениться при новом бое, а компонент переиспользоваться
@@ -214,12 +340,33 @@ onMounted(() => {
   registerUnitView(props.unit.id, view);
   syncAuras();
   syncHeroAura();
+  if (pixiScene) {
+    createPixiUnit();
+    // Рамка меняет размер (масштаб юнита) — меряем заново; изредка и просто так: раскладка вокруг могла сдвинуться
+    if (spriteRef.value) {
+      boxObserver = new ResizeObserver(() => measure());
+      boxObserver.observe(spriteRef.value);
+    }
+    measureTimer = window.setInterval(measure, 500);
+    window.addEventListener('resize', measure);
+  }
 });
 onBeforeUnmount(() => {
+  unmounted = true;
   unregisterUnitView(props.unit.id, view);
   clearAuras();
   fx?.stopAura(heroAuraIds);
+  destroyPixiUnit();
+  boxObserver?.disconnect();
+  window.clearInterval(measureTimer);
+  window.removeEventListener('resize', measure);
 });
+
+// Пустая рамка на месте тела в Pixi-режиме: размер как у канваса скелета в раскладке
+const boxStyle = computed(() => ({
+  width: `${(props.frameWidth ?? 409.6) * drawScale.value * PADDING}px`,
+  height: `${(props.frameHeight ?? 409.6) * drawScale.value * PADDING}px`,
+}));
 
 defineExpose(view);
 </script>
@@ -268,8 +415,10 @@ defineExpose(view);
 
         <!-- data-face, data-size и data-head читает BattleFx.point: куда смотрит юнит (то же, что --face), во сколько раз он крупнее и где его голова -->
         <div ref="spriteRef" class="sprite-box" :class="fxClass" :data-face="props.rotate ? -1 : 1" :data-size="unitSize" :data-head="getUnitHead(unit.unitType)">
-          <div class="unit-shadow"></div>
-          <div class="unit-body">
+          <!-- В Pixi-сцене тень и тело рисует PixiUnit, здесь — только рамка нужного размера -->
+          <div v-if="pixiBody" class="unit-box" :style="boxStyle"></div>
+          <div v-if="!pixiBody" class="unit-shadow"></div>
+          <div v-if="!pixiBody" class="unit-body">
             <CharacterSkeleton
                   ref="skeletonRef"
                   :style="getSkeletonStyle"

@@ -1,6 +1,6 @@
 import type { InjectionKey } from 'vue';
 import { GlobalParticleService } from '@/services/particleService/ParticleSystem';
-import { Point } from '@/services/particleService/types/interfaces/canvas-interfaces';
+import { Point } from '@/services/particleService/types/emitter';
 import {
   Anchor,
   AuraVisual,
@@ -26,6 +26,9 @@ export interface HitOptions {
   attacker?: UnitEl;
   crit?: boolean;
 }
+
+// Базовая скорость боя: кнопка x1 на арене — это столько; x2 и x4 умножаются на неё
+export const BASE_BATTLE_SPEED = 1.25;
 
 const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 let emitterSequence = 0;
@@ -59,6 +62,11 @@ export class BattleFx {
     private readonly speed: () => number,
   ) {}
 
+  // Фактическая скорость: выбранная игроком с учётом базовой
+  private rate() {
+    return this.speed() * BASE_BATTLE_SPEED;
+  }
+
   // Вспышка света на юните: пятно цвета эффекта и отсвет на земле под ним.
   // За юнитом: свет обрисовывает силуэт контровым, а не засвечивает спрайт
   flare(el: UnitEl, color: string, radius: number, intensity = 1) {
@@ -66,33 +74,31 @@ export class BattleFx {
     this.play([{ type: 'flare', layer: 'background', duration: FLARE_DURATION, padding: radius, args: { color, radius, intensity } }], el, { ground: this.groundOffset(el) });
   }
 
-  // Точка на спрайте юнита в координатах канваса нужного слоя
-  point(el: UnitEl, anchor: Anchor = 'center', layer: FxSpec['layer'] = 'foreground'): Point | null {
-    const canvas = this.service()?.getCanvas(layer ?? 'foreground');
-    if (!el || !canvas || !el.isConnected) return null;
+  // Pixi-сцена арены (концепты заклинаний рисуются прямо в неё); null — сцена ещё не создана
+  scene() {
+    return this.service()?.pixiScene ?? null;
+  }
+
+  // Точка на спрайте юнита в координатах слоя (particleService.toLocal); слой эффекта на координаты не влияет
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  point(el: UnitEl, anchor: Anchor = 'center', _layer: FxSpec['layer'] = 'foreground'): Point | null {
+    const service = this.service();
+    if (!el || !service || !el.isConnected) return null;
     const rect = el.getBoundingClientRect();
-    const canvasRect = canvas.getBoundingClientRect();
     // Из атрибута, а не getComputedStyle: точку следующих эффектов считают каждый кадр, а стили — дорого
     const face = Number(el.dataset.face) || 1;
     // Крупный юнит растёт от ног вверх: и голова, и центр у него выше
     const anchorY = anchor === 'head' && el.dataset.head
       ? Number(el.dataset.head)
       : UNIT_ANCHORS.feet + (UNIT_ANCHORS[anchor] - UNIT_ANCHORS.feet) * this.unitSize(el);
-    // Экранные пиксели → пиксели канваса: канвас масштабирован вместе с интерфейсом (UseUiScale.ts)
-    const k = canvasRect.width ? canvas.width / canvasRect.width : 1;
-    return {
-      x: (rect.left + rect.width * (0.5 + UNIT_FACE_SHIFT * face) - canvasRect.left) * k,
-      y: (rect.top + rect.height * anchorY - canvasRect.top) * k,
-    };
+    return service.toLocal(rect.left + rect.width * (0.5 + UNIT_FACE_SHIFT * face), rect.top + rect.height * anchorY);
   }
 
-  // Высота кадра юнита в пикселях канваса (как и координаты point): на экране она умножена на масштаб интерфейса
+  // Высота кадра юнита в координатах слоя (как и point): на экране она умножена на масштаб интерфейса
   private unitHeight(el: UnitEl) {
     const height = el?.getBoundingClientRect().height;
     if (!height) return 290;
-    const canvas = this.service()?.getCanvas('foreground');
-    const canvasWidth = canvas?.getBoundingClientRect().width;
-    return canvas && canvasWidth ? height * (canvas.width / canvasWidth) : height;
+    return height * (this.service()?.scale() ?? 1);
   }
 
   // Во сколько раз юнит крупнее обычного (data-size на его рамке)
@@ -107,7 +113,7 @@ export class BattleFx {
 
     const start = () => {
       const id = `fx-${spec.type}-${++emitterSequence}`;
-      const lifetime = spec.duration / this.speed();
+      const lifetime = spec.duration / this.rate();
       service.addEmitter({
         id,
         type: spec.type,
@@ -127,7 +133,7 @@ export class BattleFx {
       setTimeout(() => service.removeEmitter(id, 150), lifetime);
     };
 
-    if (spec.delay) setTimeout(start, spec.delay / this.speed());
+    if (spec.delay) setTimeout(start, spec.delay / this.rate());
     else start();
   }
 
@@ -227,7 +233,7 @@ export class BattleFx {
 
   // Доставка к одной цели: метка на цели, снаряд или луч, затем взрыв. Промис — момент попадания
   private async deliver(visual: SpellVisual, caster: Point, source: Point, target: UnitEl, startIn: number) {
-    if (startIn > 0) await wait(startIn / this.speed());
+    if (startIn > 0) await wait(startIn / this.rate());
     const to = this.point(target, (visual.beam ?? visual.projectile)?.anchor);
     if (!to) return;
     const direction = caster.x > to.x ? -1 : 1;
@@ -239,11 +245,11 @@ export class BattleFx {
 
     if (visual.beam) {
       this.emit(visual.beam, origin, to);
-      await wait((visual.hitDelay ?? 0) / this.speed());
+      await wait((visual.hitDelay ?? 0) / this.rate());
     } else if (visual.projectile) {
       await this.launch(visual, visual.projectile, origin, to);
     } else {
-      await wait((visual.hitDelay ?? 0) / this.speed());
+      await wait((visual.hitDelay ?? 0) / this.rate());
     }
 
     if (visual.flare) this.flare(target, visual.color, visual.flare);
@@ -255,7 +261,7 @@ export class BattleFx {
     const volley = visual.volley;
     if (!volley) {
       this.emit(spec, from, to);
-      await wait(spec.duration / this.speed());
+      await wait(spec.duration / this.rate());
       return;
     }
 
@@ -269,7 +275,7 @@ export class BattleFx {
         this.later(spec.duration, () => volley.hit?.forEach(hit => this.emit(hit, end)));
       });
     }
-    await wait(((volley.count - 1) * volley.interval + spec.duration) / this.speed());
+    await wait(((volley.count - 1) * volley.interval + spec.duration) / this.rate());
   }
 
   // Эффект над всей группой целей: по центру, шириной во всю группу (args.spread)
@@ -290,7 +296,7 @@ export class BattleFx {
   }
 
   private later(ms: number, action: () => void) {
-    if (ms > 0) setTimeout(action, ms / this.speed());
+    if (ms > 0) setTimeout(action, ms / this.rate());
     else action();
   }
 
