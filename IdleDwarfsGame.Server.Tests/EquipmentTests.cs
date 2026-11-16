@@ -106,6 +106,32 @@ public class EquipmentTests : IDisposable
         Assert.NotEqual(wave[0].ActionId, cast.ActionId);
     }
 
+    [Fact]
+    public void ArtifactLogs_MarkTriggerAndEquippedKinds()
+    {
+        var hero = MakeHero(spells: [FlameWave1], items: "ArmageddonBlade");
+        var (world, heroId, _) = Arena(hero);
+        var context = new CombatContext();
+
+        SpellRegistry.All[FlameWave1].Execute(world, heroId, context);
+
+        // Обычный каст несёт виды надетых эффектов и сам не помечен как срабатывание
+        var wave = Assert.Single(context.Logs, l => l.EventType == CombatEventType.SkillCast && l.SkillName == "Flame Wave");
+        Assert.Null(wave.TriggerKind);
+        Assert.Contains("SpellProc", wave.ArtifactKinds!);
+        Assert.All(context.Logs.Where(l => l.SkillName == "Flame Wave"), l => Assert.Null(l.TriggerKind));
+
+        // Метеор от клинка: каст и попадания помечены видом эффекта и спеллом артефакта
+        var meteor = context.Logs.Where(l => l.SkillName == "Meteor").ToList();
+        Assert.NotEmpty(meteor);
+        Assert.All(meteor, l =>
+        {
+            Assert.Equal("SpellProc", l.TriggerKind);
+            Assert.Equal("Flame Wave", l.TriggerSpell);
+        });
+        Assert.Null(meteor.Single(l => l.EventType == CombatEventType.SkillCast).ArtifactKinds);
+    }
+
     // Random.Next(max) всегда возвращает одно число: так проверяем шанс без случайности
     private sealed class FixedRandom(int roll) : Random
     {

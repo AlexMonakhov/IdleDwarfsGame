@@ -1,125 +1,58 @@
-import { EffectType, EffectStrategy, EmitterConfig } from '@/services/particleService/types/interfaces/canvas-interfaces';
-import { ParticlesStrategy, GodRaysStrategy, GodRaysRadianceStrategy, LightningStrategy, ImpactStrategy } from '@/services/particleService/types/canvas-effects';
-import {
-  ProjectileStrategy,
-  ExplosionStrategy,
-  SlashStrategy,
-  FlamesStrategy,
-  FrostAuraStrategy,
-  StunStarsStrategy,
-  SparklesStrategy,
-  RingStrategy,
-  AuraSphereStrategy,
-  AuraBurstStrategy,
-  FlareStrategy,
-  GroundMarkStrategy,
-} from '@/services/particleService/types/combat-effects';
-import {
-  FireWallStrategy,
-  StormStrategy,
-  ScreenFlashStrategy,
-  IcePrisonStrategy,
-  RootsStrategy,
-  DrainStrategy,
-  SigilStrategy,
-  NovaStrategy,
-  LightPillarStrategy,
-  ArcsStrategy,
-  CometStrategy,
-} from '@/services/particleService/types/spell-effects';
+import { EffectType, EmitterConfig, Point } from '@/services/particleService/types/emitter';
 import { frameScale, tickFrameClock } from '@/services/particleService/frameClock';
-import type { PixiFxRenderer } from '@/services/pixiFx/PixiFxRenderer';
-import { pixiFxSettings } from '@/services/pixiFx/settings';
+import type { PixiScene } from '@/services/pixiFx/PixiScene';
 
+// Эффекты слоя (CanvasLayer): жизнь эмиттеров — появление, полёт от start к end, следование за юнитом (follow),
+// затухание — и один цикл кадров на слой. Рисует их Pixi-сцена (services/pixiFx): эффект по типу эмиттера
+// (pixiFx/effects), там же анимация юнитов. Координаты эмиттеров — CSS-пиксели слоя без масштаба интерфейса,
+// от его левого верхнего угла (toLocal переводит в них экранные точки)
 export class GlobalParticleService {
-  private bgCanvas: HTMLCanvasElement | null = null;
-  private fgCanvas: HTMLCanvasElement | null = null;
-  private bgCtx: CanvasRenderingContext2D | null = null;
-  private fgCtx: CanvasRenderingContext2D | null = null;
   private animationId: number | null = null;
-  // Канвасы уже пусты: пока эмиттеров нет, кадр можно не чистить
-  private cleared = false;
-
   private emitters: Map<string, EmitterConfig> = new Map();
+  private scene: PixiScene | null = null;
+  // Элемент слоя: от его прямоугольника считаются координаты
+  private space: HTMLElement | null = null;
 
-  // Pixi-отрисовка (CanvasLayer с pixi): перенесённые типы рисует она, остальные — canvas-стратегии
-  private pixi: PixiFxRenderer | null = null;
-  private pixiWasEnabled = true;
-
-  // Замер по типам эффектов (включает нагрузочный тест арены): сколько эмиттеров живо и сколько мс за кадр
-  // уходит на их update + draw (сглажено). Время только JS: растр на видеокарте сюда не попадает —
-  // для него типы можно скрыть (hidden) и смотреть, как меняется FPS
+  // Замер по типам эффектов (включает нагрузочный тест арены): сколько эмиттеров живо и сколько мс JS за кадр
+  // уходит на их обновление (сглажено). Растр на видеокарте сюда не попадает — для него типы можно скрыть (hidden)
+  // и смотреть, как меняется FPS
   profiling = false;
   readonly profile = new Map<EffectType, { emitters: number; ms: number }>();
-  // Весь кадр сервиса вместе с очисткой канвасов, мс (сглажено)
+  // Весь кадр сервиса вместе с анимацией юнитов и отрисовкой сцены, мс (сглажено)
   frameMs = 0;
   // Эти типы обновляются, но не рисуются
   readonly hidden = new Set<EffectType>();
 
-  private strategies: Record<EffectType, EffectStrategy> = {
-    'particles': new ParticlesStrategy(),
-    'god-rays': new GodRaysStrategy(),
-    'god-rays-radiance': new GodRaysRadianceStrategy(),
-    'lightning': new LightningStrategy(),
-    'impact': new ImpactStrategy(),
-    'projectile': new ProjectileStrategy(),
-    'explosion': new ExplosionStrategy(),
-    'slash': new SlashStrategy(),
-    'flames': new FlamesStrategy(),
-    'frost-aura': new FrostAuraStrategy(),
-    'stun-stars': new StunStarsStrategy(),
-    'sparkles': new SparklesStrategy(),
-    'ring': new RingStrategy(),
-    'aura-sphere': new AuraSphereStrategy(),
-    'aura-burst': new AuraBurstStrategy(),
-    'fire-wall': new FireWallStrategy(),
-    'storm': new StormStrategy(),
-    'screen-flash': new ScreenFlashStrategy(),
-    'ice-prison': new IcePrisonStrategy(),
-    'roots': new RootsStrategy(),
-    'drain': new DrainStrategy(),
-    'sigil': new SigilStrategy(),
-    'nova': new NovaStrategy(),
-    'light-pillar': new LightPillarStrategy(),
-    'arcs': new ArcsStrategy(),
-    'comet': new CometStrategy(),
-    'flare': new FlareStrategy(),
-    'ground-mark': new GroundMarkStrategy(),
-  };
-
-  // Подменить/добавить стратегию отрисовки (например, для нового эффекта статуса)
-  registerStrategy(type: EffectType, strategy: EffectStrategy) {
-    this.strategies[type] = strategy;
+  init(space: HTMLElement) {
+    this.space = space;
+    this.startLoop();
   }
 
-  attachPixi(renderer: PixiFxRenderer | null) {
-    this.pixi?.clear();
-    this.pixi = renderer;
+  attachScene(scene: PixiScene | null) {
+    this.scene?.clear();
+    this.scene = scene;
+  }
+
+  get pixiScene() {
+    return this.scene;
+  }
+
+  // Экранная точка → координаты слоя. Слой масштабирован вместе с интерфейсом (.ui-stage, UseUiScale.ts)
+  toLocal(clientX: number, clientY: number): Point {
+    const rect = this.space?.getBoundingClientRect();
+    if (!rect || !this.space) return { x: clientX, y: clientY };
+    const k = this.scale();
+    return { x: (clientX - rect.left) * k, y: (clientY - rect.top) * k };
+  }
+
+  // Во сколько раз размер на экране меньше размера в координатах слоя
+  scale(): number {
+    const width = this.space?.getBoundingClientRect().width;
+    return this.space && width ? this.space.offsetWidth / width : 1;
   }
 
   hasEmitter(id: string) {
     return this.emitters.has(id);
-  }
-
-  getCanvas(layer: 'background' | 'foreground'): HTMLCanvasElement | null {
-    return layer === 'foreground' ? this.fgCanvas : this.bgCanvas;
-  }
-
-  /**
-   * Инициализация сервиса с двумя канвасами
-   */
-  init(bgCanvas: HTMLCanvasElement, fgCanvas: HTMLCanvasElement) {
-    this.bgCanvas = bgCanvas;
-    this.fgCanvas = fgCanvas;
-    this.bgCtx = bgCanvas.getContext('2d');
-    this.fgCtx = fgCanvas.getContext('2d');
-
-    if (!this.bgCtx || !this.fgCtx) {
-      console.error('Canvas contexts could not be initialized');
-      return;
-    }
-
-    this.startLoop();
   }
 
   addEmitter(config: EmitterConfig) {
@@ -167,10 +100,7 @@ export class GlobalParticleService {
     if (emitter) Object.assign(emitter, patch);
   }
 
-  /**
-   * Remove emitter. If fadeDurationMs is provided, the emitter will be faded out over that many milliseconds
-   * before being removed. If omitted, emitter is removed immediately.
-   */
+  // С fadeDurationMs эмиттер гаснет столько миллисекунд и только потом удаляется; без — удаляется сразу
   removeEmitter(id: string, fadeDurationMs?: number) {
     const emitter = this.emitters.get(id);
     if (!emitter) return;
@@ -180,11 +110,9 @@ export class GlobalParticleService {
       emitter.fadeDuration = fadeDurationMs;
       emitter.fadeDirection = 'out';
       emitter.opacity = emitter.opacity ?? 1;
-      this.emitters.set(id, emitter);
     } else {
       this.emitters.delete(id);
-      this.strategies[emitter.type]?.disposeEmitter?.(id);
-      this.pixi?.dispose(id);
+      this.scene?.dispose(id);
     }
   }
 
@@ -198,127 +126,71 @@ export class GlobalParticleService {
       return;
     }
 
-    if (emitter.travelStartedAt === undefined || emitter.travelDuration === undefined) {
-      return;
-    }
+    if (emitter.travelStartedAt === undefined || emitter.travelDuration === undefined) return;
 
-    const elapsed = now - emitter.travelStartedAt;
-    const t = Math.min(elapsed / emitter.travelDuration, 1);
+    const t = Math.min((now - emitter.travelStartedAt) / emitter.travelDuration, 1);
+    if (emitter.startX !== undefined && emitter.endX !== undefined) emitter.x = emitter.startX + (emitter.endX - emitter.startX) * t;
+    if (emitter.startY !== undefined && emitter.endY !== undefined) emitter.y = emitter.startY + (emitter.endY - emitter.startY) * t;
+  }
 
-    if (emitter.startX !== undefined && emitter.endX !== undefined) {
-      emitter.x = emitter.startX + (emitter.endX - emitter.startX) * t;
-    }
-
-    if (emitter.startY !== undefined && emitter.endY !== undefined) {
-      emitter.y = emitter.startY + (emitter.endY - emitter.startY) * t;
-    }
-
-    if (t >= 1) {
-      emitter.x = emitter.endX ?? emitter.x;
-      emitter.y = emitter.endY ?? emitter.y;
-    }
+  // Появление и затухание; true — эмиттер догас и его пора удалить
+  private updateFade(emitter: EmitterConfig, now: number): boolean {
+    if (emitter.fadeStart === undefined || emitter.fadeDuration === undefined) return false;
+    const progress = Math.min((now - emitter.fadeStart) / emitter.fadeDuration, 1);
+    emitter.opacity = emitter.fadeDirection === 'in' ? progress : 1 - progress;
+    if (progress < 1) return false;
+    if (emitter.fadeDirection === 'out') return true;
+    emitter.opacity = 1;
+    emitter.fadeStart = undefined;
+    emitter.fadeDuration = undefined;
+    emitter.fadeDirection = undefined;
+    return false;
   }
 
   private startLoop() {
     const render = (frameTime: number = performance.now()) => {
-      if (!this.bgCtx || !this.fgCtx || !this.bgCanvas || !this.fgCanvas) return;
       tickFrameClock(frameTime);
-
-      // Переключили Pixi в тесте — его эффекты убираем, дальше эти эмиттеры дорисует canvas (и наоборот)
-      if (this.pixi && pixiFxSettings.enabled !== this.pixiWasEnabled) {
-        this.pixi.clear();
-        this.pixiWasEnabled = pixiFxSettings.enabled;
-        this.pixi.render();
-      }
-      const pixi = this.pixi && pixiFxSettings.enabled ? this.pixi : null;
-
-      // Пустой кадр после пустого не трогаем: очистка двух канвасов вчетверо больше арены — лишняя работа в простое
-      if (this.emitters.size === 0 && this.cleared) {
+      const scene = this.scene;
+      if (!scene) {
         this.animationId = requestAnimationFrame(render);
         return;
       }
 
       const frameStarted = this.profiling ? performance.now() : 0;
-      this.bgCtx.clearRect(0, 0, this.bgCanvas.width, this.bgCanvas.height);
-      this.fgCtx.clearRect(0, 0, this.fgCanvas.width, this.fgCanvas.height);
-      this.cleared = this.emitters.size === 0;
-
+      const dt = frameScale / 60;
       const now = performance.now();
-      const toRemove: string[] = [];
       const frame = this.profiling ? new Map<EffectType, { emitters: number; ms: number }>() : null;
-      this.emitters.forEach((emitter) => {
+      const toRemove: string[] = [];
+
+      this.emitters.forEach(emitter => {
         this.updateEmitterPosition(emitter, now);
-
-        if (emitter.fadeStart !== undefined && emitter.fadeDuration !== undefined) {
-          const progress = Math.min((now - emitter.fadeStart) / emitter.fadeDuration, 1);
-          if (emitter.fadeDirection === 'in') {
-            emitter.opacity = progress;
-          } else {
-            emitter.opacity = 1 - progress;
-          }
-
-          if (progress >= 1) {
-            if (emitter.fadeDirection === 'in') {
-              emitter.opacity = 1;
-              emitter.fadeStart = undefined;
-              emitter.fadeDuration = undefined;
-              emitter.fadeDirection = undefined;
-            } else {
-              emitter.opacity = 0;
-              toRemove.push(emitter.id);
-              return;
-            }
-          }
-        }
-
-        if (pixi?.supports(emitter.type)) {
-          const started = frame ? performance.now() : 0;
-          if (this.hidden.has(emitter.type)) pixi.dispose(emitter.id);
-          else pixi.update(emitter, frameScale / 60);
-          if (frame) {
-            const stat = frame.get(emitter.type) ?? { emitters: 0, ms: 0 };
-            stat.emitters++;
-            stat.ms += performance.now() - started;
-            frame.set(emitter.type, stat);
-          }
+        if (this.updateFade(emitter, now)) {
+          toRemove.push(emitter.id);
           return;
         }
-
-        const strategy = this.strategies[emitter.type];
-        if (strategy) {
-          const started = frame ? performance.now() : 0;
-          strategy.update(emitter);
-
-          if (!this.hidden.has(emitter.type)) {
-            const targetCtx = emitter.layer === 'foreground' ? this.fgCtx! : this.bgCtx!;
-            strategy.draw(targetCtx, emitter);
-          }
-
-          if (frame) {
-            const stat = frame.get(emitter.type) ?? { emitters: 0, ms: 0 };
-            stat.emitters++;
-            stat.ms += performance.now() - started;
-            frame.set(emitter.type, stat);
-          }
+        const started = frame ? performance.now() : 0;
+        if (this.hidden.has(emitter.type)) scene.dispose(emitter.id);
+        else scene.update(emitter, dt);
+        if (frame) {
+          const stat = frame.get(emitter.type) ?? { emitters: 0, ms: 0 };
+          stat.emitters++;
+          stat.ms += performance.now() - started;
+          frame.set(emitter.type, stat);
         }
       });
+
+      for (const id of toRemove) {
+        this.emitters.delete(id);
+        scene.dispose(id);
+      }
+
+      scene.tick(dt);
+      scene.render();
 
       if (frame) {
         this.recordProfile(frame);
         this.frameMs = this.frameMs * 0.9 + (performance.now() - frameStarted) * 0.1;
       }
-
-      for (const id of toRemove) {
-        const emitter = this.emitters.get(id);
-        if (!emitter) continue;
-        this.strategies[emitter.type]?.disposeEmitter?.(id);
-        this.pixi?.dispose(id);
-        this.emitters.delete(id);
-      }
-
-      // Pixi рисует оба своих слоя раз за кадр, уже после удаления отыгравших эмиттеров
-      pixi?.render();
-
       this.animationId = requestAnimationFrame(render);
     };
 
@@ -339,8 +211,8 @@ export class GlobalParticleService {
 
   destroy() {
     if (this.animationId) cancelAnimationFrame(this.animationId);
-    this.pixi?.clear();
-    this.pixi = null;
+    this.scene?.clear();
+    this.scene = null;
     this.emitters.clear();
   }
 }

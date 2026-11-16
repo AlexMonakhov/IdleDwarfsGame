@@ -29,6 +29,12 @@ const routes: Array<RouteRecordRaw> = [
     name: 'arena-stress',
     component: () => import(/* webpackChunkName: "arena-stress" */ '@/views/ArenaStressView.vue')
   },
+  // Концепты анимаций заклинаний: наброски эффектов на арене, из них выбираются будущие (в меню её нет)
+  {
+    path: '/fx-concepts',
+    name: 'fx-concepts',
+    component: () => import(/* webpackChunkName: "fx-concepts" */ '@/views/FxConceptsView.vue')
+  },
   // Тестовая страница компонентов (в меню её нет)
   {
     path: '/testpage',

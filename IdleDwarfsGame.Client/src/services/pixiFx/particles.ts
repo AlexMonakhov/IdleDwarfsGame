@@ -1,4 +1,5 @@
-import { Container, Sprite } from 'pixi.js';
+import { Container, type Sprite, type Texture } from 'pixi.js';
+import { giveSprite, takeSprite } from './spritePool';
 import type { BLEND_MODES } from 'pixi.js';
 import { fxTexture, TEXTURE_FIGURE, type FxTextureName } from './textures';
 
@@ -20,8 +21,14 @@ export const rand = (min: number, max: number) => min + Math.random() * (max - m
 export const clamp01 = (value: number) => Math.min(Math.max(value, 0), 1);
 export const easeOut = (t: number) => 1 - (1 - t) * (1 - t);
 
+// Своя текстура частицы (не из общего набора textures.ts): figure — радиус фигуры в пикселях текстуры
+export interface CustomParticleTexture {
+  texture: Texture;
+  figure: number;
+}
+
 export interface ParticleBehavior {
-  texture: FxTextureName;
+  texture: FxTextureName | CustomParticleTexture;
   blend?: BLEND_MODES;
   // Доля скорости, что остаётся за секунду (1 — без сопротивления)
   drag?: number;
@@ -36,6 +43,8 @@ export interface ParticleBehavior {
   tint?: (life: number) => number;
   // Во сколько раз спрайт больше «тела» частицы (ореол огонька)
   halo?: number;
+  // Растяжение по осям (языки пламени — капля, вытянутая вверх)
+  stretch?: [number, number];
 }
 
 export interface ParticleInit {
@@ -67,10 +76,13 @@ export class ParticleSim {
   readonly container = new Container();
   private readonly particles: LiveParticle[] = [];
   private readonly figure: number;
+  private readonly texture: Texture;
 
   constructor(private readonly behavior: ParticleBehavior) {
     this.container.blendMode = behavior.blend ?? 'add';
-    this.figure = TEXTURE_FIGURE[behavior.texture];
+    const custom = typeof behavior.texture === 'object' ? behavior.texture : null;
+    this.texture = custom ? custom.texture : fxTexture(behavior.texture as FxTextureName);
+    this.figure = custom ? custom.figure : TEXTURE_FIGURE[behavior.texture as FxTextureName];
   }
 
   get count() {
@@ -78,8 +90,7 @@ export class ParticleSim {
   }
 
   spawn(init: ParticleInit) {
-    const sprite = new Sprite(fxTexture(this.behavior.texture));
-    sprite.anchor.set(0.5);
+    const sprite = takeSprite(this.texture);
     sprite.position.set(init.x, init.y);
     sprite.rotation = init.rotation ?? 0;
     sprite.tint = init.tint ?? 0xffffff;
@@ -116,7 +127,7 @@ export class ParticleSim {
       if (p.spin) s.rotation += p.spin * dt;
 
       if (p.life <= 0 || p.size < minSize) {
-        s.destroy();
+        giveSprite(s);
         this.particles.splice(i, 1);
         continue;
       }
@@ -126,17 +137,27 @@ export class ParticleSim {
 
   private apply(p: LiveParticle) {
     const b = this.behavior;
-    p.sprite.scale.set((p.size * (b.halo ?? 1)) / this.figure);
+    const scale = (p.size * (b.halo ?? 1)) / this.figure;
+    if (b.stretch) p.sprite.scale.set(scale * b.stretch[0], scale * b.stretch[1]);
+    else p.sprite.scale.set(scale);
     p.sprite.alpha = b.alpha ? b.alpha(p.life) : p.life;
     if (b.tint) p.sprite.tint = b.tint(p.life);
   }
 
+  // Спрайты живых частиц — обратно в пул, сам контейнер удаляется
   destroy() {
-    this.container.destroy({ children: true });
+    for (const p of this.particles) giveSprite(p.sprite);
     this.particles.length = 0;
+    this.container.destroy();
   }
 }
 
 // Цвет по оставшейся жизни: свежая частица — первый цвет палитры, угасающая — последний (как paletteColor у canvas)
+// Сколько частиц родить за кадр при «rate за кадр при 60 Гц» (дробная часть — с шансом), как perFrameCount у прежних canvas-эффектов
+export const countFor = (ratePerFrame: number, dt: number) => {
+  const scaled = ratePerFrame * dt * 60;
+  return Math.floor(scaled) + (Math.random() < scaled % 1 ? 1 : 0);
+};
+
 export const paletteTint = (palette: number[]) => (life: number) =>
   palette[Math.min(palette.length - 1, Math.floor((1 - clamp01(life)) * palette.length))];

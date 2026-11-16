@@ -1,3 +1,5 @@
+// Эмиттер эффекта: тип (какой Pixi-эффект его рисует — services/pixiFx/effects), где он и как живёт.
+// Жизнью эмиттеров управляет GlobalParticleService
 export type EffectType =
   | 'particles'
   | 'god-rays'
@@ -60,23 +62,4 @@ export interface EmitterConfig {
   instant?: boolean;
   // привязка к движущемуся объекту: позиция пересчитывается каждый кадр (ауры статусов на юнитах)
   follow?: () => Point | null;
-}
-
-export interface Particle {
-  x: number;
-  y: number;
-  vx: number;
-  vy: number;
-  life: number;
-  maxLife: number;
-  size: number;
-  color: string;
-  rotation?: number;
-  spin?: number;
-}
-
-export interface EffectStrategy {
-  update(emitter: EmitterConfig): void;
-  draw(ctx: CanvasRenderingContext2D, emitter: EmitterConfig): void;
-  disposeEmitter?(id: string): void;
 }

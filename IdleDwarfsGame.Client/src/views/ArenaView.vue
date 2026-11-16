@@ -3,7 +3,7 @@
   <div class="arena" @click="openResult">
     <!-- Фон отдельным слоем: временные фоны арен перекрашиваются фильтром, юниты — нет -->
     <div class="arena-bg" :style="bgStyle"></div>
-    <CanvasLayer ref="layerRef" pixi>
+    <CanvasLayer ref="layerRef">
       <div class="grid">
         <template v-for="unit in teamA" :key="unit.id">
           <CanvasComponent

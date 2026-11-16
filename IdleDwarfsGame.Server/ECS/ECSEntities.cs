@@ -77,6 +77,12 @@ public class CombatLogEntry
     public string SkillName { get; set; } = string.Empty;
     // Уровень спелла 1..3 (в записи каста): фронт по нему выбирает вариант анимации
     public int? SkillLevel { get; set; }
+    // Запись от артефакта (отдельное срабатывание или его действие после каста): вид эффекта (ItemEffectInfo.Kind)
+    // и спелл, на который надет артефакт — фронт играет по ним анимацию артефакта, а не обычный каст
+    public string? TriggerKind { get; set; }
+    public string? TriggerSpell { get; set; }
+    // У обычного каста: виды эффектов артефактов, надетых на этот спелл — фронт добавляет их к анимации каста
+    public List<string>? ArtifactKinds { get; set; }
     public DamageType DamageType { get; set; } = DamageType.Physical;
     public int Damage { get; set; }
     public int Heal { get; set; }
@@ -192,8 +198,30 @@ public class CombatContext
     // Каст, который идёт сейчас: в него пишутся попадания, убийства и лечение для эффектов предметов (CastScope)
     public CastScope? CurrentCast { get; set; }
 
+    // Эффект артефакта, который срабатывает сейчас: все записи за это время помечаются им (TriggerKind/TriggerSpell)
+    public SpellBoundEffect? CurrentTrigger { get; private set; }
+
+    public void RunTrigger(SpellBoundEffect effect, Action action)
+    {
+        var outer = CurrentTrigger;
+        CurrentTrigger = effect;
+        try
+        {
+            action();
+        }
+        finally
+        {
+            CurrentTrigger = outer;
+        }
+    }
+
     public CombatLogEntry AddLog(CombatLogEntry entry)
     {
+        if (CurrentTrigger != null && entry.TriggerKind == null)
+        {
+            entry.TriggerKind = CurrentTrigger.Info.Kind;
+            entry.TriggerSpell = CurrentTrigger.Spell;
+        }
         entry.Sequence = Logs.Count;
         entry.Round = CurrentRound;
         if (entry.ActionId == 0) entry.ActionId = CurrentActionId;

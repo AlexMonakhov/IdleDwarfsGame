@@ -1,6 +1,8 @@
 .DS_Store
 node_modules
 /dist
+/dist-perf
+/tools/perf/results
 
 
 # local env files

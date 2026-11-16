@@ -553,14 +553,14 @@ public static class ItemReactions
     {
         if (status is not StatusEffectBase effect || world.Gear.Count == 0) return;
         foreach (var (owner, item) in Effects(world).Where(x => effect.HasSource(x.Owner)))
-            Run(context, () => item.OnStatusTick(world, context, owner, targetId, effect));
+            Run(context, item, () => item.OnStatusTick(world, context, owner, targetId, effect));
     }
 
     public static void StatusExpired(World world, CombatContext context, int targetId, IStatusEffect status)
     {
         if (status is not StatusEffectBase effect || world.Gear.Count == 0) return;
         foreach (var (owner, item) in Effects(world).Where(x => effect.HasSource(x.Owner)))
-            Run(context, () => item.OnStatusExpired(world, context, owner, targetId, effect));
+            Run(context, item, () => item.OnStatusExpired(world, context, owner, targetId, effect));
     }
 
     public static void Died(World world, CombatContext context, int deadId, IReadOnlyList<IStatusEffect> statuses)
@@ -569,14 +569,14 @@ public static class ItemReactions
         var effects = statuses.OfType<StatusEffectBase>().ToList();
         if (effects.Count == 0) return;
         foreach (var (owner, item) in Effects(world))
-            Run(context, () => item.OnDeath(world, context, owner, deadId, effects));
+            Run(context, item, () => item.OnDeath(world, context, owner, deadId, effects));
     }
 
     // Реакция с логами — отдельное действие: следующие записи хода не должны попасть в её группу каста на фронте
-    private static void Run(CombatContext context, Action reaction)
+    private static void Run(CombatContext context, SpellBoundEffect item, Action reaction)
     {
         int logs = context.Logs.Count;
-        reaction();
+        context.RunTrigger(item, reaction);
         if (context.Logs.Count > logs) context.NextAction();
     }
 }
