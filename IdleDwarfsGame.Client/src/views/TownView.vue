@@ -274,23 +274,14 @@ const scrollToCenter = async () => {
   }, 50);
 };
 
-// Обучение: «!» на зданиях и подсказка наставника, куда ещё не заглядывали (раз за вход).
+// Обучение: «!» на зданиях, куда ещё не заглядывали.
 // Прогресс перечитываем при каждом заходе в город — после боёв и прокачки там новые отметки
 const tutorial = useTutorial();
-const HINT_DELAY_MS = 1200;
-let hintTimer = 0;
 
 onMounted(() => {
   // Почта пока без push: перечитываем при каждом заходе в город
   if (isAuthenticated.value) useMail().refresh();
-  if (isAuthenticated.value) {
-    const refreshed = tutorial.refresh();
-    // Подсказка — когда город проявился и прокрутился к центру
-    hintTimer = window.setTimeout(async () => {
-      await refreshed;
-      tutorial.showHint();
-    }, HINT_DELAY_MS);
-  }
+  if (isAuthenticated.value) tutorial.refresh();
   skyIntervalId = window.setInterval(() => {
     isNight.value = isNightNow();
   }, SKY_CHECK_INTERVAL_MS);
@@ -299,7 +290,6 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
-  clearTimeout(hintTimer);
   cancelAnimationFrame(animationFrameId);
   clearInterval(skyIntervalId);
   // Окна кампании и башни живут только в городе: раньше они закрывались вместе с ним, флаги теперь общие

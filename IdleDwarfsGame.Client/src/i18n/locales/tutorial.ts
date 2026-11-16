@@ -12,7 +12,6 @@ export const tutorialEn = {
     clickHint: 'Click the highlighted spot',
     actionHint: 'Do it to continue',
     waitHint: 'Wait a moment…',
-    later: 'Later',
   },
   // Стартовое обучение (tutorial/scenarios/onboarding.ts). Говорит наставник
   onboarding: {
@@ -70,25 +69,6 @@ export const tutorialEn = {
     mentorSpell: 'I\'ve got enough energy now. Watch: a level 3 Fireball hits every enemy and sets them on fire!',
     victory: 'Victory! The stage reward waits in the Campaign window — go claim it.',
   },
-  // Подсказка при входе: куда ещё не заглядывали (tutorial/activities.ts)
-  hints: {
-    campaign: 'Let\'s start with the Campaign: fight your first battle, I\'ll be there.',
-    warehouse: 'Your loot is waiting at the Warehouse — open a chest.',
-    altar: 'Heroes grow stronger at the Altar. Upgrade one of them.',
-    mail: 'You\'ve got mail — check what it brought.',
-    forge: 'At the Blacksmith you can fuse spare items into better ones.',
-    shop: 'Drop by the Market: offers change every day.',
-    mine: 'The Mines dig gold for you, even while you\'re away.',
-    expeditions: 'Send idle dwarves on an Expedition — they\'ll bring back loot.',
-    quests: 'Daily quests give rewards for things you do anyway.',
-    tower: 'The Infinity Tower never ends — how high can you climb?',
-    pvp: 'Test your squad against other players at the Arena.',
-    friends: 'Add friends: you can borrow their heroes for hard battles.',
-    guild: 'Join a Guild: bosses, a depth race and a guild shop await.',
-    event: 'This week\'s event is on — it has its own rewards.',
-    collection: 'The Collection shows every hero and item you\'ve found.',
-    delve: 'The Deep Delve: a three-day run with its own squad and relics.',
-  },
   // Песочница на /testpage
   sandbox: {
     center: 'A step without a target: the bubble stands in the middle of the screen.',
@@ -109,7 +89,6 @@ export const tutorialRu: typeof tutorialEn = {
     clickHint: 'Нажми на подсвеченное',
     actionHint: 'Сделай это, чтобы продолжить',
     waitHint: 'Подожди немного…',
-    later: 'Позже',
   },
   onboarding: {
     toTown: 'Здравствуй, юный дворф! Я Брокк, покажу тебе, что тут к чему. Пойдём в город.',
@@ -164,24 +143,6 @@ export const tutorialRu: typeof tutorialEn = {
     death: 'Здоровье кончилось — боец выбывает из боя.',
     mentorSpell: 'Теперь энергии хватает и мне. Смотри: Огненный шар 3-го уровня бьёт по всем врагам и поджигает их!',
     victory: 'Победа! Награда за уровень ждёт в окне кампании — забери её.',
-  },
-  hints: {
-    campaign: 'Начнём с кампании: проведи первый бой, я буду рядом.',
-    warehouse: 'На складе тебя ждёт добыча — открой сундук.',
-    altar: 'В алтаре герои становятся сильнее. Улучши кого-нибудь.',
-    mail: 'Тебе пришло письмо — посмотри, что в нём.',
-    forge: 'В кузнице лишние предметы сплавляются в более сильные.',
-    shop: 'Загляни на рынок: предложения меняются каждый день.',
-    mine: 'Шахты добывают золото сами, даже пока тебя нет.',
-    expeditions: 'Отправь свободных дворфов в экспедицию — они вернутся с добычей.',
-    quests: 'Ежедневные задания дают награды за то, что ты и так делаешь.',
-    tower: 'Башня бесконечности не кончается — как высоко поднимешься?',
-    pvp: 'Проверь отряд против других игроков на арене.',
-    friends: 'Добавь друзей: их героев можно позвать на трудный бой.',
-    guild: 'Вступи в гильдию: там боссы, гонка глубины и своя лавка.',
-    event: 'Идёт ивент недели — у него свои награды.',
-    collection: 'В коллекции — все герои и предметы, что ты находил.',
-    delve: 'Глубинный спуск: забег на три дня со своим отрядом и реликвиями.',
   },
   sandbox: {
     center: 'Шаг без якоря: облачко стоит по центру экрана.',
