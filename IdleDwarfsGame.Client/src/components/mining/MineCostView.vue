@@ -2,7 +2,7 @@
 import { useI18n } from 'vue-i18n';
 import { GEM_COLORS } from '@/components/inventory/lootStyles';
 import { MineCost, MiningWallet } from '@/models/types/Mining';
-import GemIcon from '@/components/icons/GemIcon.vue';
+import MineResourceIcon from './MineResourceIcon.vue';
 import { IconCoin, IconExperience } from '@/components/icons/ui';
 
 // Цена в шахтах: золото, опыт и кристаллы; чего не хватает — красным
@@ -35,7 +35,7 @@ const lacks = (have: number | undefined, need: number) => (have ?? 0) < need;
             :class="{ 'mine-cost-lacking': lacks(props.wallet?.crystals[cost.gem], cost.crystals) }"
             :style="{ '--gem-color': GEM_COLORS[cost.gem] }"
             v-tooltip="t(`gems.${cost.gem}`)"
-        ><GemIcon class="mine-cost-gem" :gem="cost.gem" /> {{ format(cost.crystals) }}</span>
+        ><MineResourceIcon class="mine-cost-gem" :type="cost.gem" /> {{ format(cost.crystals) }}</span>
     </span>
 </template>
 

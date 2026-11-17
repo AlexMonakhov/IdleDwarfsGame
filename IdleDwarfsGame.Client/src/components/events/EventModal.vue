@@ -9,6 +9,7 @@ import { EVENT_CURRENCY_ICONS, formatCountdown } from './eventShared';
 import { IconCrate, IconMinecart, IconSkull } from '@/components/icons/ui';
 import type { ModalTab, TabIcon } from '@/models/types/Modal';
 import type { FixedShopOverview, WorldEventInfo } from '@/models/types/FixedShop';
+import LoadingCrystal from '@/components/loading/LoadingCrystal.vue';
 
 // Ивент недели для всех аккаунтов: шапка (что идёт, сколько осталось, сколько валюты), активность ивента —
 // мировые боссы или общие шахты — и лавка ивента с фиксированными наградами.
@@ -114,7 +115,7 @@ const format = (value: number) => value.toLocaleString(locale.value);
                 <p v-if="event" class="event-about-text">{{ t(`${kindKey}.about`) }} {{ t('events.burnWarning') }}</p>
                 <WorldBossPanel v-if="event?.kind === 'WorldBosses'" @event="onEvent" @navigate="open = false" />
                 <CommunityMinesPanel v-else-if="event?.kind === 'CommunityMines'" @event="onEvent" />
-                <span v-else class="event-loading">{{ t('common.loading') }}</span>
+                <LoadingCrystal v-else />
             </template>
 
             <!-- Лавка грузится сразу: из её ответа берётся ивент для шапки. При переходе на вкладку — перечитывается

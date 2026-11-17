@@ -9,6 +9,7 @@ import { useInterface } from '@/composables/UseInterface';
 import { HeroInfo } from '@/models/types/Heroes';
 import { useProgressiveList } from '@/composables/UseProgressiveList';
 import { vPauseOffscreen } from '@/directives/pauseOffscreen';
+import LoadingCrystal from '@/components/loading/LoadingCrystal.vue';
 
 // refreshToken меняется, когда из сундука выпали новые герои — тогда перечитываем список
 const props = defineProps<{ refreshToken?: number }>();
@@ -42,7 +43,7 @@ watch(() => props.refreshToken, refresh);
 
 <template>
     <div v-tutorial="'warehouse.heroes'" class="inventory-heroes">
-        <div v-if="!heroes && !error" class="inventory-hint">{{ t('common.loading') }}</div>
+        <LoadingCrystal v-if="!heroes && !error" />
         <div v-else-if="!heroes" class="inventory-hint inventory-hint-error">{{ t('squad.loadError') }}</div>
         <template v-else>
             <div class="inventory-hint">{{ t('inventory.heroesCount', { count: heroes.length }) }}</div>

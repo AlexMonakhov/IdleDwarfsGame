@@ -1,6 +1,8 @@
 <template>
   <!-- Всё приложение — в логическом экране ~1920×1000, масштабированном под окно (composables/UseUiScale.ts) -->
-  <div class="ui-stage">
+  <!-- Сцена не прокручивается никогда: overflow: hidden не мешает браузеру сдвинуть её программно (scrollIntoView,
+       фокус поля у края) — тогда весь интерфейс уезжал. Такой сдвиг сразу возвращаем -->
+  <div class="ui-stage" @scroll="resetStageScroll">
     <InterfaceView></InterfaceView>
     <router-view></router-view>
   </div>
@@ -10,6 +12,11 @@
 import GemButton from './components/common/GemButton.vue';
 import router from './router';
 import InterfaceView from './views/InterfaceView.vue';
+
+const resetStageScroll = (event: Event) => {
+  const stage = event.currentTarget as HTMLElement;
+  if (stage.scrollLeft || stage.scrollTop) stage.scrollTo(0, 0);
+};
 </script>
 
 <style lang="less">

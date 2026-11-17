@@ -8,6 +8,7 @@ import ForgeApiService from '@/services/apiServices/ForgeApiService';
 import type { ForgeOverview } from '@/models/types/Forge';
 import type { ModalTab, TabIcon } from '@/models/types/Modal';
 import { IconAnvil, IconGem } from '@/components/icons/ui';
+import LoadingCrystal from '@/components/loading/LoadingCrystal.vue';
 
 // Кузница — по образцу алтаря: «Предметы» — переплавка пяти предметов одной редкости в предмет редкостью выше,
 // «Камни» — сплав камней в камень ступенью выше
@@ -72,7 +73,7 @@ watch(open, isOpen => {
         height="min(780px, calc(90 * var(--vh)))"
     >
         <div class="blacksmith">
-            <div v-if="loading && !forge" class="blacksmith-hint">{{ t('common.loading') }}</div>
+            <LoadingCrystal v-if="loading && !forge" />
             <div v-else-if="loadError && !forge" class="blacksmith-hint blacksmith-hint-error">{{ t('forge.loadError') }}</div>
             <template v-else-if="forge">
                 <ForgeItemsTab v-if="tab === 'items'" :forge="forge" @changed="forge = $event" @stale="load" />

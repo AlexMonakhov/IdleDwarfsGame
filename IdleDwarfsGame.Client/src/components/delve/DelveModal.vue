@@ -23,6 +23,7 @@ import DelveRelicSlot from './DelveRelicSlot.vue';
 import { groupRelics } from './delveText';
 import { regionOf } from './delveMap';
 import { arenaPreview } from '@/battle/arenaBackgrounds';
+import LoadingCrystal from '@/components/loading/LoadingCrystal.vue';
 
 // «Глубинный спуск» — бесконечный забег своим отрядом (сервер: DelveRules / DelveService).
 // Вкладка «Забег»: слева путь (или выбор узла — награда, реликвия, привал: идти дальше без него нельзя),
@@ -305,7 +306,7 @@ const footerText = computed(() => errorMessage.value ?? notice.value ?? '');
         width="min(1180px, calc(96 * var(--vw)))"
         height="min(960px, calc(94 * var(--vh)))"
     >
-        <div v-if="!overview" class="delve-hint">{{ t('common.loading') }}</div>
+        <LoadingCrystal v-if="!overview" />
 
         <!-- ===== Рейтинг ===== -->
         <div v-else-if="tab === 'rating'" class="delve-rating">

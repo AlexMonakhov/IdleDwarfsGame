@@ -5,6 +5,7 @@ import EquipmentList from '@/components/equipment/EquipmentList.vue';
 import EquipmentApiService from '@/services/apiServices/EquipmentApiService';
 import { useHeroes } from '@/composables/UseHeroes';
 import { EquipmentInfo, EquipmentType } from '@/models/types/Equipment';
+import LoadingCrystal from '@/components/loading/LoadingCrystal.vue';
 
 // Все предметы игрока, только просмотр: надевают их в окне прокачки.
 // refreshToken меняется, когда из сундука что-то выпало
@@ -41,7 +42,7 @@ watch(() => props.refreshToken, load);
 
 <template>
     <div class="inventory-equipment">
-        <div v-if="loading" class="inventory-hint">{{ t('common.loading') }}</div>
+        <LoadingCrystal v-if="loading" />
         <div v-else-if="errorMessage" class="inventory-hint inventory-hint-error">{{ errorMessage }}</div>
         <div v-else-if="!items.length" class="inventory-hint">{{ t('inventory.noEquipment') }}</div>
         <template v-else>

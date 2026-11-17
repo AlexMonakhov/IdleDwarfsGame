@@ -10,6 +10,7 @@ import { useSocial } from '@/composables/UseSocial';
 import type { MercenaryFriendInfo, MercenaryOverview } from '@/models/types/Social';
 import { openExternalFight, socialErrorText } from '@/components/social/socialShared';
 import { IconElderSeal, IconSword } from '@/components/icons/ui';
+import LoadingCrystal from '@/components/loading/LoadingCrystal.vue';
 
 // Наёмники: герой из отряда друга на один бой кампании (сервер: FriendHelpService.FightCampaignAsync)
 const emit = defineEmits<{
@@ -77,7 +78,8 @@ const fight = () => {
 
 <template>
     <div class="mercenaries">
-        <div v-if="!overview" class="merc-hint">{{ loadError ? t('social.loadError') : t('common.loading') }}</div>
+        <div v-if="!overview && loadError" class="merc-hint">{{ t('social.loadError') }}</div>
+        <LoadingCrystal v-else-if="!overview" />
         <template v-else>
             <p class="merc-hint">{{ t('social.mercenary.hint', { seals: overview.lenderElderSeals }) }}</p>
             <p class="merc-hint">

@@ -19,7 +19,7 @@ import { useMail } from '@/composables/UseMail';
 import { useSocial } from '@/composables/UseSocial';
 import AccountButton from '@/components/account/AccountButton.vue';
 import AccountModal from '@/components/account/AccountModal.vue';
-import { computed, ref, watch, watchEffect } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch, watchEffect } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import backgroundMusic from "@/assets/sounds/Beneath_The_Marble_Dome.mp3";
 import { useAuth } from '@/composables/UseAuth';
@@ -38,6 +38,9 @@ import ConfirmModal from '@/components/common/ConfirmModal.vue';
 import TutorialOverlay from '@/components/tutorial/TutorialOverlay.vue';
 import { useTutorial } from '@/composables/UseTutorial';
 import { activityByNav } from '@/tutorial/activities';
+import { topModalZ } from '@/composables/UseModalStack';
+import { loadingScreenVisible } from '@/composables/UseLoadingScreen';
+import { uiScale } from '@/composables/UseUiScale';
 
 const { t, locale } = useI18n();
 const router = useRouter();
@@ -110,6 +113,31 @@ const onLogout = () => {
     router.push('/login');
 };
 
+// Ресурсы видны и при открытом окне: окна телепортируются в body над всей сценой, поэтому табличка на это время
+// уезжает туда же — в слой чуть выше верхнего окна, ровно на своё место. В шапке остаётся пустое место её размера.
+// Под полноэкранной загрузкой (город, арена) не поднимаем — она закрывает и шапку
+const resourcesSlot = ref<HTMLElement | null>(null);
+const resourcesRaised = computed(() => topModalZ.value > 0 && !interfaceHidden.value && !loadingScreenVisible.value);
+const slotBox = ref({ left: 0, top: 0, width: 0, height: 0 });
+const measureSlot = () => {
+    const el = resourcesSlot.value;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    // width/height — в логических пикселях (offset* не видят масштаб), положение — в пикселях окна
+    slotBox.value = { left: rect.left, top: rect.top, width: el.offsetWidth, height: el.offsetHeight };
+};
+// flush: 'pre' — замер до перерисовки, пока табличка ещё стоит в шапке и задаёт размер места
+watch([resourcesRaised, uiScale], ([raised]) => { if (raised) measureSlot(); }, { flush: 'pre' });
+const onResize = () => { if (resourcesRaised.value) measureSlot(); };
+onMounted(() => window.addEventListener('resize', onResize));
+onBeforeUnmount(() => window.removeEventListener('resize', onResize));
+const slotStyle = computed(() => resourcesRaised.value
+    ? { width: `${slotBox.value.width}px`, height: `${slotBox.value.height}px` }
+    : undefined);
+const resourcesLayerStyle = computed(() => resourcesRaised.value
+    ? { left: `${slotBox.value.left}px`, top: `${slotBox.value.top}px`, zIndex: topModalZ.value + 5 }
+    : undefined);
+
 // Фоновая музыка: громкость и mute — из настроек звука
 const audioRef = ref<HTMLAudioElement | null>(null);
 
@@ -144,10 +172,16 @@ watchEffect(() => {
             </template>
         </div>
         <div class="settings">
-            <div v-if="isAuthenticated && resources" v-tutorial="'resources'" class="resources">
-                <span class="resource resource-gold" v-tooltip="t('resources.gold')"><IconCoin /> {{ resources.gold.toLocaleString(locale) }}</span>
-                <span class="resource resource-experience" v-tooltip="t('resources.experience')"><IconExperience /> {{ resources.experience.toLocaleString(locale) }}</span>
-                <span v-if="resources.rainbowCoins !== undefined" class="resource resource-rainbow" v-tooltip="t('shop.currency.rainbowCoins')"><IconRainbowCoin /> {{ resources.rainbowCoins.toLocaleString(locale) }}</span>
+            <div v-if="isAuthenticated && resources" ref="resourcesSlot" class="resources-slot" :style="slotStyle">
+                <Teleport to="body" :disabled="!resourcesRaised">
+                    <div :class="{ 'resources-layer': resourcesRaised }" :style="resourcesLayerStyle">
+                        <div v-tutorial="'resources'" class="resources">
+                            <span class="resource resource-gold" v-tooltip="t('resources.gold')"><IconCoin /> {{ resources.gold.toLocaleString(locale) }}</span>
+                            <span class="resource resource-experience" v-tooltip="t('resources.experience')"><IconExperience /> {{ resources.experience.toLocaleString(locale) }}</span>
+                            <span v-if="resources.rainbowCoins !== undefined" class="resource resource-rainbow" v-tooltip="t('shop.currency.rainbowCoins')"><IconRainbowCoin /> {{ resources.rainbowCoins.toLocaleString(locale) }}</span>
+                        </div>
+                    </div>
+                </Teleport>
             </div>
             <AccountButton v-if="isAuthenticated" @click="accountOpen = true" />
         </div>
@@ -205,13 +239,23 @@ watchEffect(() => {
   align-items: flex-start;
   padding: 20px;
 }
+.resources-slot {
+  margin-right: 10px;
+}
+
+/* Табличка над открытыми окнами: в body, масштаб — как у .ui-stage и оверлея окон */
+.resources-layer {
+  position: fixed;
+  transform: scale(var(--ui-scale));
+  transform-origin: 0 0;
+}
+
 /* Ресурсы аккаунта: табличка в стиле шапки модалки */
 .resources {
   display: flex;
   align-items: center;
   column-gap: 14px;
   height: 40px;
-  margin-right: 10px;
   padding: 0 14px;
   box-sizing: border-box;
   border-radius: 10px;

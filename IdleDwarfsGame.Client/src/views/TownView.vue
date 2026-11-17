@@ -62,32 +62,35 @@
   <!-- Окна кампании и башни сами держат модалку: в её футере — «Забрать всё» -->
   <FightPreviewListContainer v-model="campaignDialogOpen" />
   <TowerContainer v-model="infinityTowerDialogOpen" />
+
+  <!-- Экран загрузки, как на арене, но с градиентом вместо пещеры: пока фон и небо грузятся и декодируются -->
+  <SceneLoadingScreen scene="town" :active="loading" :progress="loadProgress" @closed="openFromQuery" />
 </template>
 
 <script lang="ts" setup>
 import { ref, onMounted, onUnmounted, nextTick } from 'vue';
-import background from "@/assets/town/background.png";
-import backgroundsky from "@/assets/backgroundsky.png";
-import altar from "@/assets/town/altar.png";
-import altarHover from "@/assets/town/altar-hover.png";
-import arena from "@/assets/town/arena.png";
-import arenaHover from "@/assets/town/arena-hover.png";
-import blacksmith from "@/assets/town/blacksmith.png";
-import blacksmithHover from "@/assets/town/blacksmith-hover.png";
-import campaign from "@/assets/town/campaign.png";
-import campaignHover from "@/assets/town/campaign-hover.png";
-import expedition from "@/assets/town/expedition.png";
-import expeditionHover from "@/assets/town/expedition-hover.png";
-import guild from "@/assets/town/guild.png";
-import guildHover from "@/assets/town/guild-hover.png";
-import market from "@/assets/town/market.png";
-import marketHover from "@/assets/town/market-hover.png";
-import tower from "@/assets/town/tower.png";
-import towerHover from "@/assets/town/tower-hover.png";
-import warehouse from "@/assets/town/warehouse.png";
-import warehouseHover from "@/assets/town/warehouse-hover.png";
-import mine from "@/assets/town/mine.png";
-import mineHover from "@/assets/town/mine-hover.png";
+import background from "@/assets/town/background.webp";
+import backgroundsky from "@/assets/backgroundsky.webp";
+import altar from "@/assets/town/altar.webp";
+import altarHover from "@/assets/town/altar-hover.webp";
+import arena from "@/assets/town/arena.webp";
+import arenaHover from "@/assets/town/arena-hover.webp";
+import blacksmith from "@/assets/town/blacksmith.webp";
+import blacksmithHover from "@/assets/town/blacksmith-hover.webp";
+import campaign from "@/assets/town/campaign.webp";
+import campaignHover from "@/assets/town/campaign-hover.webp";
+import expedition from "@/assets/town/expedition.webp";
+import expeditionHover from "@/assets/town/expedition-hover.webp";
+import guild from "@/assets/town/guild.webp";
+import guildHover from "@/assets/town/guild-hover.webp";
+import market from "@/assets/town/market.webp";
+import marketHover from "@/assets/town/market-hover.webp";
+import tower from "@/assets/town/tower.webp";
+import towerHover from "@/assets/town/tower-hover.webp";
+import warehouse from "@/assets/town/warehouse.webp";
+import warehouseHover from "@/assets/town/warehouse-hover.webp";
+import mine from "@/assets/town/mine.webp";
+import mineHover from "@/assets/town/mine-hover.webp";
 import FightPreviewListContainer from '@/components/interface/FightPreviewListContainer.vue';
 import TowerContainer from '@/components/tower/TowerContainer.vue';
 import { useI18n } from 'vue-i18n';
@@ -99,6 +102,7 @@ import { useInterface } from '@/composables/UseInterface';
 import { useMail } from '@/composables/UseMail';
 import { useTutorial } from '@/composables/UseTutorial';
 import { activityByBuilding } from '@/tutorial/activities';
+import SceneLoadingScreen from '@/components/loading/SceneLoadingScreen.vue';
 
 const { t } = useI18n();
 const route = useRoute();
@@ -129,10 +133,13 @@ const startX = ref(0);
 const scrollLeftState = ref(0);
 const opacity = ref(0);
 // Окна кампании и башни — общие флаги (useInterface): их открывает и обучение.
-// /town?campaign=1 и /town?tower=1 — возврат с арены после боя: окно открывается сразу
+// /town?campaign=1 и /town?tower=1 — возврат с арены после боя: окно открывается, как только сойдет экран загрузки
+// (окна висят над сценой — раньше оно легло бы поверх загрузки)
 const { campaignOpen: campaignDialogOpen, towerOpen: infinityTowerDialogOpen } = useInterface();
-if (route.query.campaign) campaignDialogOpen.value = true;
-if (route.query.tower) infinityTowerDialogOpen.value = true;
+const openFromQuery = () => {
+  if (route.query.campaign) campaignDialogOpen.value = true;
+  if (route.query.tower) infinityTowerDialogOpen.value = true;
+};
 
 // --- ЗДАНИЯ ГОРОДА ---
 // left/top/width — в процентах от фоновой картинки. left — центр здания,
@@ -158,14 +165,14 @@ const requireAuth = (open: () => void) => () => {
 };
 
 const buildings: TownBuilding[] = [
-  { key: 'expedition', image: expedition, hover: expeditionHover, left: 34,   top: 31,   width: 8,    onClick: requireAuth(() => (expeditionsOpen.value = true)) },
+  { key: 'campaign',   image: campaign,   hover: campaignHover,   left: 34,   top: 30,   width: 14.5, onClick: () => (campaignDialogOpen.value = true) },
   { key: 'guild',      image: guild,      hover: guildHover,      left: 14.5, top: 43,   width: 12,   onClick: requireAuth(() => (guildOpen.value = true)) },
   { key: 'tower',      image: tower,      hover: towerHover,      left: 83,   top: 51,   width: 13.5, onClick: () => (infinityTowerDialogOpen.value = true) },
   { key: 'altar',      image: altar,      hover: altarHover,      left: 38,   top: 53,   width: 9,    onClick: requireAuth(() => (upgradeOpen.value = true)) },
   { key: 'blacksmith', image: blacksmith, hover: blacksmithHover, left: 26.5, top: 56,   width: 9,    onClick: requireAuth(() => (forgeOpen.value = true)) },
-  { key: 'campaign',   image: campaign,   hover: campaignHover,   left: 51,   top: 56,   width: 14.5, onClick: () => (campaignDialogOpen.value = true) },
+  { key: 'arena',      image: arena,      hover: arenaHover,      left: 48.8, top: 60,   width: 9,    onClick: requireAuth(() => (pvpOpen.value = true)) },
   { key: 'market',     image: market,     hover: marketHover,     left: 61.5, top: 61.5, width: 7.5,  onClick: requireAuth(() => (shopOpen.value = true)) },
-  { key: 'arena',      image: arena,      hover: arenaHover,      left: 59,   top: 83,   width: 9,    onClick: requireAuth(() => (pvpOpen.value = true)) },
+  { key: 'expedition', image: expedition, hover: expeditionHover, left: 59,   top: 83,   width: 9,    onClick: requireAuth(() => (expeditionsOpen.value = true)) },
   { key: 'warehouse',  image: warehouse,  hover: warehouseHover,  left: 35,   top: 87,   width: 9,    onClick: requireAuth(() => (inventoryOpen.value = true)) },
   { key: 'mine',       image: mine,       hover: mineHover,       left: 47,   top: 84,   width: 9,    onClick: requireAuth(() => (miningOpen.value = true)) },
 ];
@@ -183,9 +190,16 @@ const isNightNow = () => {
 const isNight = ref(isNightNow());
 let skyIntervalId = 0;
 
-// Город проявляется, когда и фон, и небо загружены и декодированы целиком. Раньше ждали только неба (5 МБ),
-// а фон (26 МБ) ещё догружался — и был виден недорисованным. Ошибка загрузки не держит город невидимым
+// Город проявляется, когда и фон, и небо загружены и декодированы целиком — иначе фон виден недорисованным.
+// Картинки города — WebP, уменьшенные под экран (фон 1800px по высоте ≈ 1.2 МБ, здания под ретину ≈ 30–160 КБ).
+// Ошибка загрузки не держит город невидимым
 const decoded = (img: HTMLImageElement | null) => img?.decode().catch(() => undefined) ?? Promise.resolve();
+
+// Экран загрузки: этапы — небо и фон (фон намного тяжелее, поэтому весит больше). Между этапами полоса ползет сама
+const loading = ref(true);
+const loadProgress = ref(0.08);
+const track = (img: HTMLImageElement | null, weight: number) =>
+  decoded(img).then(() => { loadProgress.value = Math.min(0.97, loadProgress.value + weight); });
 
 // Данные для Edge Scroll
 const mouseX = ref(-1);
@@ -271,6 +285,7 @@ const scrollToCenter = async () => {
     slider.value.scrollLeft = maxScroll / 2;
     handleScroll(); // Обновляем параллакс сразу после центрирования
     opacity.value = 1;
+    loading.value = false;
   }, 50);
 };
 
@@ -286,7 +301,7 @@ onMounted(() => {
     isNight.value = isNightNow();
   }, SKY_CHECK_INTERVAL_MS);
   // Центрируем один раз: смена неба (день/ночь) не сбрасывает скролл игрока
-  Promise.all([decoded(imageRef.value), decoded(skyRef.value)]).then(scrollToCenter);
+  Promise.all([track(imageRef.value, 0.65), track(skyRef.value, 0.2)]).then(scrollToCenter);
 });
 
 onUnmounted(() => {

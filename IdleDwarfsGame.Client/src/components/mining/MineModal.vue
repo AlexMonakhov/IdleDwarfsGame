@@ -133,8 +133,14 @@ let flushTimer = 0;
 interface FloatNumber { id: number; amount: number; x: number; y: number }
 const floats = ref<FloatNumber[]>([]);
 let floatId = 0;
-// Номер удара: новый ключ перезапускает анимацию жилы
-const hit = ref(0);
+// Удар по жиле — короткая анимация через Web Animations: перезапуск ключом пересоздавал бы кристалл,
+// и его заливка прыгала бы вместо плавного подъёма
+const oreArt = ref<HTMLElement | null>(null);
+const HIT_KEYFRAMES = [
+    { transform: 'scale(1)' },
+    { transform: 'scale(0.9) rotate(-3deg)', offset: 0.4 },
+    { transform: 'scale(1)' },
+];
 
 // Сила кирки сейчас, с учётом ещё не подтверждённых кликов
 const energy = computed(() => Math.max(0,
@@ -160,7 +166,7 @@ const dig = (event: MouseEvent) => {
         return;
     }
     pendingClicks.value++;
-    hit.value++;
+    oreArt.value?.animate(HIT_KEYFRAMES, { duration: 180, easing: 'ease-out' });
 
     const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
     const float = { id: ++floatId, amount: props.mine.perClick, x: event.clientX - rect.left, y: event.clientY - rect.top };
@@ -301,9 +307,10 @@ onBeforeUnmount(() => {
                 </div>
 
                 <button type="button" class="mine-ore" @click="dig">
-                    <span :key="hit" class="mine-ore-art" :class="{ 'mine-ore-hit': hit }">
+                    <span ref="oreArt" class="mine-ore-art">
                         <img v-if="ore" :src="ore" class="mine-ore-image" alt="" draggable="false" />
-                        <span v-else class="mine-ore-glyph"><MineResourceIcon :type="mine.type" /></span>
+                        <!-- Кристалл наливается цветом по мере добычи: заливка — доля следующего камня -->
+                        <span v-else class="mine-ore-glyph"><MineResourceIcon :type="mine.type" :progress="fractionalClick ? veinProgress : 1" /></span>
                     </span>
                     <span
                         v-for="float in floats"
@@ -559,16 +566,6 @@ onBeforeUnmount(() => {
 .mine-ore-art {
     display: flex;
     transition: filter 0.15s ease;
-}
-
-.mine-ore-hit {
-    animation: mine-ore-hit 0.18s ease-out;
-}
-
-@keyframes mine-ore-hit {
-    0% { transform: scale(1); }
-    40% { transform: scale(0.9) rotate(-3deg); }
-    100% { transform: scale(1); }
 }
 
 .mine-ore-image {

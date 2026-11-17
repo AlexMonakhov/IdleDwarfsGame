@@ -118,7 +118,7 @@
     <BattleStatsModal v-model="statsOpen" :result="result" />
 
     <!-- Экран загрузки: запрос боя, фон арены, спрайт-листы юнитов. Сцена под ним уже собирается и открывается готовой -->
-    <ArenaLoadingScreen
+    <SceneLoadingScreen
       :active="loading || state.preparing"
       :progress="loadProgress"
       :background="bgImage"
@@ -158,7 +158,7 @@ import ResultBanner from '@/components/interface/ResultBanner.vue';
 import ResultParticles from '@/components/interface/ResultParticles.vue';
 import BattleStatsModal from '@/components/interface/BattleStatsModal.vue';
 import GemButton from '@/components/common/GemButton.vue';
-import ArenaLoadingScreen from '@/components/loading/ArenaLoadingScreen.vue';
+import SceneLoadingScreen from '@/components/loading/SceneLoadingScreen.vue';
 import { IconPower } from '@/components/icons/stats';
 import { createBattleState, teamUnits } from '@/battle/BattleState';
 import { BattlePlayer } from '@/battle/BattlePlayer';

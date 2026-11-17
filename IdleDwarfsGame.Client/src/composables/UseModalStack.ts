@@ -1,6 +1,9 @@
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 
 const stack = ref<number[]>([])
+
+// z-index верхнего открытого окна; 0 — окон нет. По нему над окнами поднимается табличка ресурсов
+export const topModalZ = computed(() => (stack.value.length ? Math.max(...stack.value) : 0))
 
 export function useModalStack(initialZ = 1000) {
   const zIndex = ref(initialZ)

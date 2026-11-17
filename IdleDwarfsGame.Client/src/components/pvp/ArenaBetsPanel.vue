@@ -12,6 +12,7 @@ import type { ArenaBetMatchInfo, ArenaBetOverview } from '@/models/types/Social'
 import { formatLeft, formatNumber, openExternalFight, socialErrorText } from '@/components/social/socialShared';
 import { IconBloodCoin, IconTrophy } from '@/components/icons/ui';
 import StatIcon from '@/components/icons/stats/StatIcon.vue';
+import LoadingCrystal from '@/components/loading/LoadingCrystal.vue';
 
 // «Бой дня»: ставки кровавых монет на бой двух сильнейших отрядов (сервер: ArenaBetRules)
 const emit = defineEmits<{
@@ -108,7 +109,8 @@ const watch = (match: ArenaBetMatchInfo) => {
     <div class="bets">
         <p class="bets-hint">{{ t('social.bets.hint', { hours: 6, cut: Math.round((overview?.houseCut ?? 0.1) * 100) }) }}</p>
 
-        <div v-if="!overview" class="bets-hint">{{ loadError ? t('social.loadError') : t('common.loading') }}</div>
+        <div v-if="!overview && loadError" class="bets-hint">{{ t('social.loadError') }}</div>
+        <LoadingCrystal v-else-if="!overview" />
         <template v-else>
             <div class="bets-bar">
                 <span class="bets-coins"><IconBloodCoin /> {{ formatNumber(coins) }}</span>

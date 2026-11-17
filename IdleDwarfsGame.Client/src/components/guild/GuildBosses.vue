@@ -23,6 +23,7 @@ import { arenaPreview } from '@/battle/arenaBackgrounds';
 import StatIcon from '@/components/icons/stats/StatIcon.vue';
 import { IconPower } from '@/components/icons/stats';
 import { IconChest, IconCoin, IconExperience } from '@/components/icons/ui';
+import LoadingCrystal from '@/components/loading/LoadingCrystal.vue';
 
 // Боссы гильдии: общее на гильдию HP, удар раз в час, награда за убитого босса — раз в сутки на аккаунт
 const props = defineProps<{
@@ -168,7 +169,7 @@ const claim = async (boss: GuildBossInfo) => {
             <SquadRow :heroes="squad" readonly @slot-click="squadOpen = true" />
         </section>
 
-        <div v-if="loading && !overview" class="guild-hint">{{ t('common.loading') }}</div>
+        <LoadingCrystal v-if="loading && !overview" />
         <div v-else-if="loadError && !overview" class="guild-hint guild-error">{{ t('guild.bosses.loadError') }}</div>
 
         <div v-else class="boss-grid">

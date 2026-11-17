@@ -12,6 +12,7 @@ import { formatCountdown } from './eventShared';
 import { isBusy, type HeroInfo } from '@/models/types/Heroes';
 import type { WorldEventInfo } from '@/models/types/FixedShop';
 import type { CommunityMinesOverview, DepositInfo, DepositKind } from '@/models/types/WorldEvents';
+import LoadingCrystal from '@/components/loading/LoadingCrystal.vue';
 
 // Ивент «Общие шахты»: карта месторождений на весь сервер. Игрок ставит своих дворфов (до maxDwarvesPerPlayer
 // на месторождение) и улучшает скорость за золото — для всех. Выработанное месторождение закрывается,
@@ -183,7 +184,7 @@ const canAct = computed(() => !!overview.value?.open && !!selected.value && !sel
 <template>
     <div class="community-mines">
         <div v-if="message" class="cm-message" :class="{ 'cm-message-error': message.error }">{{ message.text }}</div>
-        <div v-if="loading && !overview" class="cm-hint">{{ t('common.loading') }}</div>
+        <LoadingCrystal v-if="loading && !overview" />
 
         <template v-else-if="overview">
             <p v-if="!overview.open && !overview.deposits.length" class="cm-hint">{{ t('communityMines.notThisWeek') }}</p>

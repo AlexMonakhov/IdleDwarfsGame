@@ -11,6 +11,7 @@ import { EVENT_CURRENCY_ICONS, formatCountdown } from '@/components/events/event
 import { chestLabel } from '@/i18n';
 import { IconCheck, IconCoin, IconElderSeal, IconExperience, IconRainbowCoin, IconRefresh, IconStar } from '@/components/icons/ui';
 import type { QuestBoard, QuestClaimResult, QuestInfo, QuestMilestoneInfo } from '@/models/types/Quests';
+import LoadingCrystal from '@/components/loading/LoadingCrystal.vue';
 
 // Доска ежедневных заданий: шкала очков с порогами наград и пять заданий. Прогресс копится от любых действий
 // в игре; выполненное задание забирается кнопкой — его очки идут в шкалу, пороги шкалы забираются отдельно
@@ -131,7 +132,7 @@ const questText = (quest: QuestInfo) => (te(`quests.templates.${quest.key}`)
     <div class="quest-board">
         <div v-if="message" class="quest-message" :class="{ 'quest-message-error': message.error }">{{ message.text }}</div>
 
-        <div v-if="loading && !board" class="quest-hint">{{ t('common.loading') }}</div>
+        <LoadingCrystal v-if="loading && !board" />
 
         <template v-else-if="board">
             <!-- ===== Шкала очков ===== -->

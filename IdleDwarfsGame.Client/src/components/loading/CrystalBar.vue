@@ -165,6 +165,7 @@ watch(complete, (done) => {
 <style scoped>
 .crystal-bar {
   --glass: rgba(255, 255, 255, 0.07);
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -360,8 +361,13 @@ watch(complete, (done) => {
   transition: left 0.35s ease;
 }
 
-/* Камень на конце: как маленький круглый GemButton цвета полосы */
+/* Камень на конце: как маленький круглый GemButton цвета полосы.
+   Висит сбоку и не входит в размер компонента — при центрировании по центру встает сама полоса */
 .bar-end-gem {
+  position: absolute;
+  left: calc(100% + 8px);
+  top: 50%;
+  translate: 0 -50%;
   flex: none;
   width: 58px;
   height: 58px;

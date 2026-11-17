@@ -9,6 +9,7 @@ import { useResources } from '@/composables/UseResources';
 import { itemName } from '@/components/equipment/equipmentText';
 import { IconBloodCoin, IconCoin, IconHonorBadge, IconRainbowCoin, IconRefresh } from '@/components/icons/ui';
 import type { ShopKind, ShopOfferInfo, ShopOfferKind, ShopOverview } from '@/models/types/Shop';
+import LoadingCrystal from '@/components/loading/LoadingCrystal.vue';
 
 // Полка одного магазина: кошелёк, таймер до ежедневного обновления, ручное обновление и товары.
 // sections — какие разделы показать: на рынке вкладки «Предметы» и «Герои» делят одну полку,
@@ -166,7 +167,7 @@ const canReroll = computed(() => !!overview.value && (overview.value.freeReroll 
 
         <div v-if="message" class="shop-message" :class="{ 'shop-message-error': message.error }">{{ message.text }}</div>
 
-        <div v-if="loading && !overview" class="shop-hint">{{ t('common.loading') }}</div>
+        <LoadingCrystal v-if="loading && !overview" />
 
         <!-- ===== Разделы ===== -->
         <template v-else-if="overview">

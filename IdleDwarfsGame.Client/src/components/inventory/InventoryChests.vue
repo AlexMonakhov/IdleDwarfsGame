@@ -15,6 +15,7 @@ import GemButton from '@/components/common/GemButton.vue';
 import { RARITY_ORDER } from '@/models/types/Forge';
 import type { Rarity } from '@/models/types/Inventory';
 import { emitTutorialEvent } from '@/tutorial/events';
+import LoadingCrystal from '@/components/loading/LoadingCrystal.vue';
 
 // Уровень сундука — как редкость: 1 — обычный … 5 — легендарный (цвет стекла и свечение)
 const chestRarity = (level: number): Rarity => RARITY_ORDER[Math.min(Math.max(level, 1), 5) - 1];
@@ -87,7 +88,7 @@ onMounted(load);
 
 <template>
     <div v-tutorial="'warehouse.chests'" class="inventory-chests">
-        <div v-if="loading" class="inventory-hint">{{ t('common.loading') }}</div>
+        <LoadingCrystal v-if="loading" />
         <template v-else>
             <div v-if="errorMessage" class="inventory-hint inventory-hint-error">{{ errorMessage }}</div>
 

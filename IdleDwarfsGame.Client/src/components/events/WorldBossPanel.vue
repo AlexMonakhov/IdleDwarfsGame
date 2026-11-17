@@ -12,6 +12,7 @@ import EventsApiService from '@/services/apiServices/EventsApiService';
 import { formatCountdown } from './eventShared';
 import type { WorldEventInfo } from '@/models/types/FixedShop';
 import type { WorldBossOverview } from '@/models/types/WorldEvents';
+import LoadingCrystal from '@/components/loading/LoadingCrystal.vue';
 
 // Ивент «Мировые боссы»: один босс на весь сервер. Удар — бой отрядом на арене (как босс гильдии),
 // за каждый удар — клыки, за убитого босса — награда всем, кто бил, по урону. Убили — сразу следующий, сильнее
@@ -110,7 +111,7 @@ const canAttack = computed(() => !!overview.value?.open && !!boss.value && !boss
 <template>
     <div class="world-boss">
         <div v-if="message" class="wb-message" :class="{ 'wb-message-error': message.error }">{{ message.text }}</div>
-        <div v-if="loading && !overview" class="wb-hint">{{ t('common.loading') }}</div>
+        <LoadingCrystal v-if="loading && !overview" />
 
         <template v-else-if="overview">
             <p v-if="!overview.open && !boss" class="wb-hint">{{ t('worldBoss.notThisWeek') }}</p>

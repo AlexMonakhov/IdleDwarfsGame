@@ -10,6 +10,7 @@ import type { GuildDepthOverview } from '@/models/types/Social';
 import { elementText as elementColor, formatLeft, formatNumber, socialErrorText } from '@/components/social/socialShared';
 import { IconCoin, IconHonorBadge, IconMinecart, IconPickaxe, IconTrophy } from '@/components/icons/ui';
 import { GuildRun } from './guildShared';
+import LoadingCrystal from '@/components/loading/LoadingCrystal.vue';
 
 // «Гонка глубины» — недельное соревнование гильдий (сервер: GuildDepthRules). Вкладка окна гильдии под боссами
 const props = defineProps<{
@@ -129,7 +130,8 @@ const rewardPlace = (index: number) => {
 
 <template>
     <div class="guild-page depth">
-        <div v-if="!overview" class="guild-hint">{{ loadError ? t('social.loadError') : t('common.loading') }}</div>
+        <div v-if="!overview && loadError" class="guild-hint">{{ t('social.loadError') }}</div>
+        <LoadingCrystal v-else-if="!overview" />
 
         <template v-else>
             <p class="guild-hint">{{ t('social.depth.intro') }}</p>

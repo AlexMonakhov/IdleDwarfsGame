@@ -9,6 +9,7 @@ import HeroesApiService from '@/services/apiServices/HeroesApiService';
 import { HeroInfo, SQUAD_SIZE, isBusy } from '@/models/types/Heroes';
 import { vDragScroll } from '@/directives/dragScroll';
 import StatIcon from '@/components/icons/stats/StatIcon.vue';
+import LoadingCrystal from '@/components/loading/LoadingCrystal.vue';
 
 const { t } = useI18n();
 
@@ -170,7 +171,7 @@ const statusText = computed(() => {
     <div class="main inventory-page">
         <!-- Ширина — под 5 слотов в один ряд: 5 × 148 + зазоры, поля секции и панели -->
         <PanelComponent :header-message="t('squad.header')" width="920px">
-            <div v-if="loading" class="inventory-hint">{{ t('common.loading') }}</div>
+            <LoadingCrystal v-if="loading" />
 
             <template v-else-if="heroes.length">
                 <section class="inventory-section">

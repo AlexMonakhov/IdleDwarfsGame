@@ -7,6 +7,7 @@ import { useResources } from '@/composables/UseResources';
 import type { FriendMineInfo, FriendMinesOverview } from '@/models/types/Social';
 import { formatNumber, socialErrorText } from '@/components/social/socialShared';
 import { IconPickaxe } from '@/components/icons/ui';
+import LoadingCrystal from '@/components/loading/LoadingCrystal.vue';
 
 // Шахты друга: «постучать киркой» — склад его шахты сразу пополняется (сервер: FriendHelpRules)
 const props = defineProps<{ friendId: string }>();
@@ -58,7 +59,8 @@ const help = async (mine: FriendMineInfo) => {
             <h4 v-if="overview">{{ t('social.help.title', { name: overview.friendName }) }}</h4>
         </div>
 
-        <div v-if="!overview" class="friend-mines-hint">{{ loadError ? t('social.loadError') : t('common.loading') }}</div>
+        <div v-if="!overview && loadError" class="friend-mines-hint">{{ t('social.loadError') }}</div>
+        <LoadingCrystal v-else-if="!overview" />
         <template v-else>
             <p class="friend-mines-hint">{{ t('social.help.hint', { hours: overview.helpHours }) }}</p>
             <p class="friend-mines-hint">
