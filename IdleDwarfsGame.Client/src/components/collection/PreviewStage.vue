@@ -41,8 +41,16 @@ const SLOTS: Record<number, Slot[]> = {
     4: [{ left: 13 }, { left: 47, raise: 6 }, { left: 67, raise: 22 }, { left: 87 }],
 };
 
-// В толпе юниты мельче, чтобы не наезжали друг на друга
+// В толпе юниты мельче, чтобы не наезжали друг на друга. Масштаб — от ширины сцены: на узкой (560px) 0.52,
+// на широкой (панель коллекции во всё окно) крупнее, но не больше одиночного юнита
 const CROWD_SCALE = 0.52;
+const CROWD_BASE_WIDTH = 560;
+const SINGLE_SCALE = 0.65;
+// Пустое поле под ногами в кадре спрайта при масштабе 0.65 — его опускаем за край сцены
+const FEET_OFFSET = 56;
+const stageRef = ref<HTMLElement | null>(null);
+const stageWidth = ref(CROWD_BASE_WIDTH);
+let resizeObserver: ResizeObserver | null = null;
 
 const layerRef = ref<InstanceType<typeof CanvasLayer> | null>(null);
 const state = createBattleState();
@@ -59,6 +67,10 @@ const placed = computed(() => {
 });
 
 const crowded = computed(() => placed.value.length > 2);
+const unitScale = computed(() => crowded.value
+    ? Math.min(SINGLE_SCALE, CROWD_SCALE * stageWidth.value / CROWD_BASE_WIDTH)
+    : SINGLE_SCALE);
+const feetOffset = computed(() => -FEET_OFFSET * unitScale.value / SINGLE_SCALE);
 
 const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -84,6 +96,12 @@ const pulse = (unit: BattleUnit) => {
 };
 
 onMounted(() => {
+    // offsetWidth — в логических пикселях, без масштаба интерфейса
+    if (stageRef.value) {
+        stageWidth.value = stageRef.value.offsetWidth || CROWD_BASE_WIDTH;
+        resizeObserver = new ResizeObserver(() => { if (stageRef.value?.offsetWidth) stageWidth.value = stageRef.value.offsetWidth; });
+        resizeObserver.observe(stageRef.value);
+    }
     if (!props.auraPulse) {
         loop();
         return;
@@ -93,6 +111,7 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
+    resizeObserver?.disconnect();
     active = false;
     player.stop();
     window.clearInterval(pulseTimer);
@@ -100,16 +119,15 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <div class="preview-stage" :style="{ backgroundImage: `url(${background})` }">
+    <div ref="stageRef" class="preview-stage" :style="{ backgroundImage: `url(${background})` }">
         <CanvasLayer ref="layerRef">
             <div
                 v-for="{ unit, slot } in placed"
                 :key="unit.id"
                 class="preview-unit"
-                :class="{ 'preview-unit-crowd': crowded }"
-                :style="{ left: `${slot.left}%`, marginBottom: `${slot.raise ?? 0}px`, zIndex: 100 - (slot.raise ?? 0) }"
+                :style="{ left: `${slot.left}%`, bottom: `${feetOffset}px`, marginBottom: `${slot.raise ?? 0}px`, zIndex: 100 - (slot.raise ?? 0) }"
             >
-                <CharacterComponent :unit="unit" :rotate="unit.team === 2" :scale="crowded ? CROWD_SCALE : undefined" />
+                <CharacterComponent :unit="unit" :rotate="unit.team === 2" :scale="unitScale" />
             </div>
         </CanvasLayer>
     </div>
@@ -140,15 +158,9 @@ onBeforeUnmount(() => {
     pointer-events: none;
 }
 
-/* Под ногами в кадре пустое поле — опускаем его за край, чтобы юнит стоял на полу */
+/* Под ногами в кадре пустое поле — опускаем его за край (bottom — feetOffset), чтобы юнит стоял на полу */
 .preview-unit {
     position: absolute;
-    bottom: -56px;
     transform: translateX(-50%);
-}
-
-/* Пустое поле под ногами мельче вместе со спрайтом */
-.preview-unit-crowd {
-    bottom: -45px;
 }
 </style>

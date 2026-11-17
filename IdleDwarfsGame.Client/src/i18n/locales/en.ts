@@ -20,6 +20,9 @@ const en = {
     logoutConfirm: 'Are you sure you want to log out?',
     quests: 'Quests',
     event: 'Event',
+    more: 'More',
+    rotateTitle: 'Rotate your phone',
+    rotateHint: 'The game is made for a horizontal screen. Turn your phone sideways to keep playing.',
   },
   account: {
     settingsTitle: 'Settings',

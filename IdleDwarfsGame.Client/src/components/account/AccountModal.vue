@@ -13,7 +13,8 @@ import { soundService } from '@/services/soundService/SoundService';
 import { LOCALE_NAMES, setLocale, SUPPORTED_LOCALES } from '@/i18n';
 
 const props = defineProps<{ modelValue: boolean }>();
-const emit = defineEmits<{ (e: 'update:modelValue', value: boolean): void }>();
+// logout — игрок нажал «Выйти»: подтверждение и сам выход — в InterfaceView, там же закрываются все окна
+const emit = defineEmits<{ (e: 'update:modelValue', value: boolean): void; (e: 'logout'): void }>();
 
 const { t, locale } = useI18n();
 const { user, level, frames, selectedFrame, selectFrame } = useAccount();
@@ -92,6 +93,8 @@ const restartTutorial = () => {
                     <span class="account-email">{{ user.email }}</span>
                     <span class="account-level">{{ t('account.level', { level }) }}</span>
                 </div>
+                <!-- Выход переехал сюда из верхнего меню: нажимают его редко, а место в меню дорогое -->
+                <GemButton class="account-logout" :color="'red'" @click="emit('logout')">{{ t('nav.logout') }}</GemButton>
             </section>
 
             <section class="account-section">
@@ -194,6 +197,11 @@ const restartTutorial = () => {
     padding: 6px;
     font-family: 'Arial', sans-serif;
     text-align: left;
+}
+
+.account-logout {
+    margin-left: auto;
+    align-self: flex-start;
 }
 
 .account-subtitle {

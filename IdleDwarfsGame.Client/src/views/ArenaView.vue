@@ -1,6 +1,6 @@
 <template>
   <!-- Клик в любом месте арены после боя открывает кнопки под баннером -->
-  <div class="arena" @click="openResult">
+  <div class="arena" :class="{ 'arena-compact': hudLayout === 'landscape' }" @click="openResult">
     <!-- Фон отдельным слоем: временные фоны арен перекрашиваются фильтром, юниты — нет -->
     <div class="arena-bg" :style="bgStyle"></div>
     <CanvasLayer ref="layerRef">
@@ -12,7 +12,7 @@
             style="position: absolute;"
           >
             <!-- Якорь обучения: обучающий бой подсвечивает бойца (tutorial/battle.ts) -->
-            <CharacterComponent v-tutorial="unitAnchor(unit.id)" :unit="unit" :scale="UNIT_SCALE" />
+            <CharacterComponent v-tutorial="unitAnchor(unit.id)" :unit="unit" :scale="unitScale" />
           </CanvasComponent>
         </template>
 
@@ -22,7 +22,7 @@
             :active="unit.alive"
             style="position: absolute;"
           >
-            <CharacterComponent v-tutorial="unitAnchor(unit.id)" :unit="unit" :scale="UNIT_SCALE" rotate />
+            <CharacterComponent v-tutorial="unitAnchor(unit.id)" :unit="unit" :scale="unitScale" rotate />
           </CanvasComponent>
         </template>
       </div>
@@ -130,6 +130,7 @@
 </template>
 
 <script lang="ts" setup>
+import { DESIGN_HEIGHT, DESIGN_WIDTH, hudLayout, stageSize } from '@/composables/UseUiScale';
 import { computed, onBeforeUnmount, onMounted, provide, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { arenaBackground } from '@/battle/arenaBackgrounds';
@@ -173,7 +174,10 @@ import { IconFlame, IconMute, IconRefresh, IconSound } from '@/components/icons/
 const { t, te } = useI18n();
 
 // Размер юнитов на арене (1 — кадр 409.6px; по умолчанию у юнитов 0.65)
+// Расстановка слотов — в процентах сцены, а бойцы — в пикселях. На телефоне сцена ниже дизайнерской (масштаб упёрся
+// в минимум, UseUiScale): бойцы уменьшаются вместе с ней, иначе нижний ряд уходил за край, а шапки налезали друг на друга
 const UNIT_SCALE = 0.8;
+const unitScale = computed(() => UNIT_SCALE * Math.min(1, stageSize.value.width / DESIGN_WIDTH, stageSize.value.height / DESIGN_HEIGHT));
 
 const bgImage = ref('lava');
 const layerRef = ref<InstanceType<typeof CanvasLayer> | null>(null);
@@ -745,6 +749,12 @@ onBeforeUnmount(() => {
 .sound-control input {
   width: 90px;
   accent-color: #ffd166;
+}
+
+/* Телефон: кнопки крупнее (по ним попадают пальцем) и у самого верха, над надписью раунда */
+.arena-compact .arena-controls {
+  top: 12px;
+  zoom: 1.5;
 }
 
 .round-banner {

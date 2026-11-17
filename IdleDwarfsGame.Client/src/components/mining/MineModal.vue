@@ -295,8 +295,8 @@ onBeforeUnmount(() => {
         v-model="open"
         tutorial-anchor="mine.detail"
         :header-message="name"
-        width="min(1100px, calc(94vw - 40px))"
-        height="min(880px, 94vh)"
+        width="min(1100px, calc(calc(94 * var(--vw)) - 40px))"
+        height="min(880px, calc(94 * var(--vh)))"
     >
         <div class="mine" :style="{ '--mine-color': color }">
             <!-- ===== Жила и дворф ===== -->

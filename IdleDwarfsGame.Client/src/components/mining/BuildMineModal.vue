@@ -63,8 +63,8 @@ const build = async () => {
         v-model="open"
         tutorial-anchor="mine.build"
         :header-message="t('mining.build.header')"
-        width="min(760px, 94vw)"
-        height="min(560px, 90vh)"
+        width="min(760px, calc(94 * var(--vw)))"
+        height="min(560px, calc(90 * var(--vh)))"
     >
         <div class="build-mine">
             <div class="build-mine-hint">{{ t('mining.build.hint', { plot }) }}</div>

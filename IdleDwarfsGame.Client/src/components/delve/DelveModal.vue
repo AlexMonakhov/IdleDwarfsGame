@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { hudLayout } from '@/composables/UseUiScale';
 import TimerBadge from '@/components/common/TimerBadge.vue';
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
@@ -321,7 +322,7 @@ const move = async (node: DelveNodeInfo) => {
         </div>
 
         <!-- ===== Забег ===== -->
-        <div v-else class="delve">
+        <div v-else class="delve" :class="{ 'delve-compact': hudLayout === 'landscape' }">
             <section class="delve-top">
                 <!-- Слева: выбор узла (идти дальше без него нельзя) или путь -->
                 <div class="delve-stage">
@@ -540,10 +541,20 @@ const move = async (node: DelveNodeInfo) => {
     gap: 12px;
 }
 
-@media (max-width: 820px) {
-    .delve-bottom {
-        grid-template-columns: 1fr;
-    }
+/* Телефон: окно ниже, чем на компьютере, и низ целиком не влезал (обрезались слоты и кнопка выхода).
+   Уменьшаем отряд как есть — раскладка та же, что на компьютере, карте остаётся больше места.
+   Панель забега не уменьшаем, чтобы читалась, и отдаём ей всю ширину рядом с отрядом */
+.delve-compact .delve-bottom {
+    grid-template-columns: auto minmax(0, 1fr);
+}
+
+.delve-compact .delve-squad {
+    zoom: 0.72;
+}
+
+/* Высоту ряда задаёт отряд: панель в расчёт не входит (contain: size), растягивается на ряд и прокручивается сама */
+.delve-compact .delve-side {
+    contain: size;
 }
 
 /* relative — точка отсчёта для значка «i» в правом верхнем углу */

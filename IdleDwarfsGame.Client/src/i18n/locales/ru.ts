@@ -20,6 +20,9 @@ const ru: LocaleMessages = {
     logoutConfirm: 'Вы точно хотите выйти из аккаунта?',
     quests: 'Задания',
     event: 'Ивент',
+    more: 'Ещё',
+    rotateTitle: 'Поверните телефон',
+    rotateHint: 'Игра рассчитана на горизонтальный экран. Поверните телефон, чтобы продолжить.',
   },
   account: {
     settingsTitle: 'Настройки',

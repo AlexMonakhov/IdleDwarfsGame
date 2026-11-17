@@ -19,6 +19,7 @@ import { vTutorial } from '@/tutorial/anchors';
 import { useTutorial } from '@/composables/UseTutorial';
 
 import type { TutorialModalId } from '@/tutorial/types';
+import { hudLayout } from '@/composables/UseUiScale';
 
 
 
@@ -204,18 +205,59 @@ onBeforeUnmount(() => resizeObserver?.disconnect())
 
 
 
+// Столбец вкладок должен уместиться в высоту окна: на низком экране (телефон, окно PvP с семью вкладками)
+// он уходил за нижний край. Тогда поднимаем его к верху рамки, сжимаем зазоры и сами вкладки.
+// Обычные размеры — как в .modal-window-tabs: отступ сверху 60, вкладка 96, зазор 12
+const TABS_TOP = 60
+const TAB_SIZE = 96
+const TAB_GAP = 12
+const TIGHT_TABS_TOP = 20
+const TIGHT_TAB_GAP = 6
+const MIN_TAB_SIZE = 44
+// Меньше этого подпись под иконкой не помещается — остаётся иконка, название — в подсказке
+const LABELLED_TAB_SIZE = 84
+const tabsLayout = computed(() => {
+  const count = props.tabs?.length ?? 0
+  const height = windowSize.value?.height
+  if (!count || !height) return null
+  if (TABS_TOP + count * TAB_SIZE + (count - 1) * TAB_GAP <= height) return null
+  const size = Math.floor((height - TIGHT_TABS_TOP - (count - 1) * TIGHT_TAB_GAP) / count)
+  return { size: Math.max(MIN_TAB_SIZE, Math.min(TAB_SIZE, size)) }
+})
+const iconOnlyTabs = computed(() => !!tabsLayout.value && tabsLayout.value.size < LABELLED_TAB_SIZE)
+
+// Телефон: окна с заголовком — во весь экран и одного размера, сколько бы ни просили на компьютере.
+// Слева — к краю (рамка 15px и зазор), справа — место под вкладки или крестик, сверху — под табличку заголовка.
+// Подтверждения (без заголовка) остаются маленькими
+const FILL_LEFT = 25
+const FILL_RIGHT_TABS = 125
+const FILL_RIGHT = 30
+const FILL_TOP = 50
+const FILL_BOTTOM = 22
+const fillScreen = computed(() => hudLayout.value === 'landscape' && !!props.headerMessage)
+const fillStyle = computed<CSSProperties | null>(() => {
+  if (!fillScreen.value) return null
+  const right = props.tabs?.length ? FILL_RIGHT_TABS : FILL_RIGHT
+  // Сумма ширины и полей — ровно ширина оверлея, поэтому окно встаёт вплотную к левому краю
+  return {
+    width: `calc(var(--stage-w) - ${FILL_LEFT + right}px)`,
+    height: `calc(var(--stage-h) - ${FILL_TOP + FILL_BOTTOM}px)`,
+    margin: `${FILL_TOP}px ${right}px ${FILL_BOTTOM}px ${FILL_LEFT}px`,
+  }
+})
+
 const modalStyle = computed<CSSProperties>(() => ({
-
   width: props.width,
-
   height: props.height,
-
+  ...fillStyle.value,
   ...(windowSize.value && {
-
     '--window-w': `${windowSize.value.width}px`,
-
     '--window-h': `${windowSize.value.height}px`,
-
+  }),
+  ...(tabsLayout.value && {
+    '--tabs-top': `${TIGHT_TABS_TOP}px`,
+    '--tab-gap': `${TIGHT_TAB_GAP}px`,
+    '--tab-size': `${tabsLayout.value.size}px`,
   }),
 
 //   backgroundImage: `url(${props.backgroundImage})`,
@@ -595,6 +637,11 @@ const modalStyle = computed<CSSProperties>(() => ({
   padding: 0 4px;
 }
 
+/* Сжатые вкладки (низкий экран): только иконка, название — в подсказке */
+.modal-window-tabs-icons .modal-tab-plate :deep(.glass-button-label) {
+  display: none;
+}
+
 /* Отблеск и белый текст — при наведении на всю вкладку, а не только на стекло */
 .modal-tab:hover .modal-tab-plate {
   color: #fff;
@@ -664,7 +711,7 @@ const modalStyle = computed<CSSProperties>(() => ({
           ref="windowEl"
           v-tutorial="anchorId"
           class="modal-window"
-          :class="{ 'modal-window-tabs': tabs?.length, 'modal-window-headless': !props.headerMessage }"
+          :class="{ 'modal-window-tabs': tabs?.length, 'modal-window-tabs-icons': iconOnlyTabs, 'modal-window-headless': !props.headerMessage }"
           @click.stop
           :style="modalStyle"
         >

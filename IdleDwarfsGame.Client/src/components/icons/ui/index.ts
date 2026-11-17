@@ -53,6 +53,12 @@ import IconTrophy from './IconTrophy.vue';
 import IconElderSeal from './IconElderSeal.vue';
 import IconNugget from './IconNugget.vue';
 import IconFang from './IconFang.vue';
+import IconHome from './IconHome.vue';
+import IconTown from './IconTown.vue';
+import IconFriends from './IconFriends.vue';
+import IconMail from './IconMail.vue';
+import IconMore from './IconMore.vue';
+import IconDoor from './IconDoor.vue';
 
 export {
   IconAmulet,
@@ -109,4 +115,10 @@ export {
   IconElderSeal,
   IconNugget,
   IconFang,
+  IconHome,
+  IconTown,
+  IconFriends,
+  IconMail,
+  IconMore,
+  IconDoor,
 };
