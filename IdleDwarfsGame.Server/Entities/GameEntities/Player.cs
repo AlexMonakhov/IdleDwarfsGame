@@ -9,7 +9,7 @@ public class Player
     public long Experience { get; set; }
 
     // Радужные монеты — редкая (донатная) валюта: пока ими платят за обновление магазинов сверх бесплатного.
-    // Новый игрок получает ShopRules.StarterRainbowCoins
+    // Новый игрок получает ShopRules.StarterRainbowCoins письмом (WelcomeMail)
     public long RainbowCoins { get; set; }
     // Кровавые монеты — валюта подпольного рынка, даются за бои на арене (ShopRules.BloodCoinsFor)
     public long BloodCoins { get; set; }

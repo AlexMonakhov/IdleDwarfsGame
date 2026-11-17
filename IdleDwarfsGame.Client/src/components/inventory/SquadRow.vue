@@ -11,6 +11,8 @@ const props = defineProps<{
     readonly?: boolean;
     hoverSlot?: number | null;
     draggingId?: string | null;
+    // Якоря обучения на слотах: slotAnchors[i] — для места i + 1 (с героем в нём или пустого)
+    slotAnchors?: (string | null)[];
 }>();
 
 const emit = defineEmits<{
@@ -39,6 +41,7 @@ const onDrop = (index: number) => {
         <div
             v-for="(hero, index) in heroes"
             :key="index"
+            v-tutorial="slotAnchors?.[index] ?? null"
             class="squad-slot"
             :class="{
                 'squad-slot-hover': hoverSlot === index,

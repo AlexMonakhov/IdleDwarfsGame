@@ -3,7 +3,7 @@ import type { TutorialScenario, TutorialStep } from '../types'
 
 // Стартовое обучение новичка (docs/tutorial-plan.md, «Стартовое обучение — порядок»; сервер — Onboarding.cs):
 // город → кампания → обучающий бой → награда → склад, стартовый сундук → герои → алтарь, улучшение → где взять
-// золото: экспедиция → шахта → алтарь, улучшение → слияние. За ним — обзор остальных зданий (tour.ts).
+// золото: экспедиция → шахта → алтарь, улучшение → слияние → новый дворф в отряд. За ним — обзор остальных зданий (tour.ts).
 // Обязательное: шаги блокирующие, Esc не закрывает, пропуск — с подтверждением (сервер выдаёт всё сразу).
 // Контрольные точки — только шаги «нажми здание в городе»: после перезагрузки до них всегда можно дойти.
 // Что игрок уже сделал до перезагрузки, пропускается (skipIf по прогрессу, skipWhen по появившемуся окну)
@@ -78,6 +78,13 @@ export const onboarding: TutorialScenario = {
     step('fusionFuse', { target: 'fusion.fuse', advance: { event: 'fusion:done' } }),
     say('fusionResult', 'fusion.result'),
     say('fusionMore', 'fusion.result'),
+    // Новый дворф — в отряд: вкладка «Отряд», освободить место (если отряд полон), поставить его, сохранить
+    click('squadTab', 'altar.tab.squad'),
+    // Освободить место: стрелка над последним в отряде; шаг кончается, когда место освободилось
+    click('squadRemove', 'squad.slot.remove', { pointer: true, skipWhen: ['squad.free', 'squad.ready'] }),
+    // Подсвечены и стрелками помечены оба: новый дворф в запасе и свободный слот — нажать или перетащить
+    step('squadAdd', { target: 'squad.place', pointer: true, advance: { event: 'squad:placed' }, skipWhen: 'squad.ready' }),
+    step('squadSave', { target: 'squad.save', advance: { event: 'squad:saved' }, skipWhen: 'squad.clean' }),
     click('closeAltarAgain', 'altar.close'),
     // Дальше — обзор остальных зданий, отдельным сценарием (tour.ts): его можно пропустить и пройти заново
   ],

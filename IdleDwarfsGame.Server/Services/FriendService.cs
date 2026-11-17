@@ -78,6 +78,15 @@ public class FriendService(
         if (await friends.AreFriendsAsync(userId, target.Id))
             throw new FriendException(FriendError.AlreadyFriends, "You are already friends");
 
+        // Брокку-наставнику заявку принимать некому: сразу друзья, его список друзей не ограничен
+        if (MentorAccount.Is(target.Id))
+        {
+            if (await friends.CountFriendsAsync(userId) >= MaxFriends)
+                throw new FriendException(FriendError.FriendLimit, $"You can't have more than {MaxFriends} friends");
+            await friends.AddFriendshipAsync(userId, target.Id, Now);
+            return new SendFriendRequestResult { Outcome = FriendRequestOutcome.Accepted };
+        }
+
         // Игрок сам уже звал нас в друзья — отправка встречной заявки равна согласию
         if (await friends.RequestExistsAsync(target.Id, userId))
         {

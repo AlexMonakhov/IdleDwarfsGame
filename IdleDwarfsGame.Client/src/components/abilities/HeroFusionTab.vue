@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { computed, ref, toRef, watch } from 'vue';
 import { emitTutorialEvent } from '@/tutorial/events';
+import { useTutorial } from '@/composables/UseTutorial';
 import HeroFilters from '@/components/inventory/HeroFilters.vue';
 import { useHeroFilters } from '@/composables/UseHeroFilters';
 import { useI18n } from 'vue-i18n';
@@ -54,15 +55,22 @@ const { element: elementFilter, rank: rankFilter, filtered } = useHeroFilters(to
 
 // Ранги по возрастанию: сливают обычно младших
 const sorted = computed(() => [...filtered.value]
-    .sort((a, b) => a.level - b.level || a.element.localeCompare(b.element) || a.name.localeCompare(b.name)));
+    .sort((a, b) => Number(lockedByTutorial(a)) - Number(lockedByTutorial(b)) || a.level - b.level || a.element.localeCompare(b.element) || a.name.localeCompare(b.name)));
+
+// В стартовом обучении сливаем только дворфов из запаса: иначе новый встал бы на место слитого в отряде,
+// и показать, как ставить дворфа в отряд, было бы не на ком
+const { onboardingActive } = useTutorial();
+const lockedByTutorial = (hero: HeroInfo) => onboardingActive.value && hero.placeInSquad != null;
 
 const unavailable = (hero: HeroInfo) =>
     isBusy(hero)
+    || lockedByTutorial(hero)
     || hero.level >= MAX_FUSION_RANK
     || (rank.value !== null && hero.level !== rank.value && !pickedIds.value.includes(hero.id));
 
 const reason = (hero: HeroInfo) => {
     if (isBusy(hero)) return t('abilities.busy');
+    if (lockedByTutorial(hero)) return t('tutorial.ui.fusionReserveOnly');
     if (hero.level >= MAX_FUSION_RANK) return t('abilities.fusion.maxRank', { rank: hero.level });
     if (rank.value !== null && hero.level !== rank.value) return t('abilities.errors.DifferentRanks');
     return null;

@@ -1,6 +1,6 @@
 using IdleDwarfsGame.Server.Enums;
 
-// Письмо игроку (пока пишет только админ — AdminController). Вложения выдаются один раз (MailService.ClaimAsync):
+// Письмо игроку (пишет админ — AdminController, и сервер — приветствие при регистрации, WelcomeMail). Вложения выдаются один раз (MailService.ClaimAsync):
 // ReadAt — игрок открыл письмо, ClaimedAt — забрал вложения; после этого письмо остаётся, а вложения показываются серыми
 public class PlayerMail
 {

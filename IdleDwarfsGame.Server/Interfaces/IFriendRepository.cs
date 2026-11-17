@@ -33,6 +33,10 @@ public interface IFriendRepository
     /// </summary>
     Task<bool> AcceptRequestAsync(Guid fromUserId, Guid toUserId, DateTime now);
     /// <summary>
+    /// Makes the users friends without a request (the mentor account). Returns false if they already were friends.
+    /// </summary>
+    Task<bool> AddFriendshipAsync(Guid userId, Guid friendId, DateTime now);
+    /// <summary>
     /// Returns false if the users were not friends.
     /// </summary>
     Task<bool> RemoveFriendAsync(Guid userId, Guid friendId);

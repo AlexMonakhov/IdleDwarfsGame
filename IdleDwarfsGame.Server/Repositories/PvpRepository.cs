@@ -12,7 +12,8 @@ public class PvpRepository(GameDbContext context) : IPvpRepository
     private IQueryable<PvpCandidate> QueryCandidates(IQueryable<User> users) => users
         .AsNoTracking()
         .Join(context.Players, u => u.PlayerId, p => p.Id, (u, p) => new { u.Id, u.Username, u.PlayerId, p.SquadPower })
-        .Where(x => x.SquadPower > 0)
+        // Брокк-наставник (MentorAccount) — друг каждого новичка, а не соперник на арене
+        .Where(x => x.SquadPower > 0 && x.Id != MentorAccount.UserId)
         .Select(x => new PvpCandidate(x.Id, x.Username, x.PlayerId, x.SquadPower));
 
     // Отряды одним запросом. Запасной отряд (HeroesRepository.GetSquadAsync) здесь не нужен:

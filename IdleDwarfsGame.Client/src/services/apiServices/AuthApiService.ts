@@ -1,6 +1,6 @@
 import { API_BASE_URL } from './apiConfig';
 import axios, { AxiosError } from 'axios';
-import { t } from '@/i18n';
+import { currentLocale, t } from '@/i18n';
 
 export interface AuthUser {
     id: string;
@@ -19,6 +19,8 @@ export interface RegisterRequest {
     username: string;
     email: string;
     password: string;
+    // Язык интерфейса — на нём придёт приветственное письмо
+    locale?: string;
 }
 
 export interface LoginRequest {
@@ -72,7 +74,7 @@ class AuthApiService {
 
     async register(request: RegisterRequest): Promise<AuthResponse> {
         try {
-            const response = await apiClient.post<AuthResponse>('/auth/register', request);
+            const response = await apiClient.post<AuthResponse>('/auth/register', { locale: currentLocale(), ...request });
             return response.data;
         } catch (error) {
             console.error('Ошибка при регистрации:', error);

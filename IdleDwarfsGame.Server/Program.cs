@@ -190,6 +190,8 @@ using (var scope = app.Services.CreateScope())
     // Боты арены — соперники для PvP. Локально под ними можно войти (общий пароль), на проде пароли случайные
     var hasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher<User>>();
     await TestAccountsSeed.SeedAsync(db, hasher, app.Environment.IsDevelopment() ? TestAccountsSeed.Password : null);
+    // Брокк-наставник: каждый новый игрок у него в друзьях
+    await MentorAccount.SeedAsync(db, hasher, scope.ServiceProvider.GetRequiredService<SquadPowerService>());
     if (app.Environment.IsDevelopment())
         await EquipmentDevSeed.SeedAsync(db);
 

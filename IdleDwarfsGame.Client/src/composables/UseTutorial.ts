@@ -237,10 +237,11 @@ watch(currentStep, async step => {
 
 // Шаг уже не нужен, как только появился его skipWhen
 watch(currentStep, (step, _, onCleanup) => {
-  const anchor = step?.skipWhen
-  if (!anchor) return
+  const skipWhen = step?.skipWhen
+  if (!skipWhen) return
+  const anchors = typeof skipWhen === 'string' ? [skipWhen] : skipWhen
   const timer = window.setInterval(() => {
-    if (currentStep.value === step && findAnchor(anchor)) next()
+    if (currentStep.value === step && anchors.some(anchor => findAnchor(anchor))) next()
   }, 200)
   onCleanup(() => window.clearInterval(timer))
 })
