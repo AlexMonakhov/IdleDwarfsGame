@@ -121,6 +121,32 @@ public class FriendRepository(GameDbContext context) : IFriendRepository
         return true;
     }
 
+    public async Task<bool> AddFriendshipAsync(Guid userId, Guid friendId, DateTime now)
+    {
+        if (await AreFriendsAsync(userId, friendId))
+            return false;
+
+        Friendship[] rows =
+        [
+            new Friendship { UserId = userId, FriendId = friendId, CreatedAt = now },
+            new Friendship { UserId = friendId, FriendId = userId, CreatedAt = now }
+        ];
+        await context.Friendships.AddRangeAsync(rows);
+        try
+        {
+            await context.SaveChangesAsync();
+            foreach (var row in rows)
+                context.Entry(row).State = EntityState.Detached;
+            return true;
+        }
+        catch (DbUpdateException)
+        {
+            // Одновременно подружились другим запросом
+            context.ChangeTracker.Clear();
+            return false;
+        }
+    }
+
     public async Task<bool> RemoveFriendAsync(Guid userId, Guid friendId)
     {
         int removed = await context.Friendships

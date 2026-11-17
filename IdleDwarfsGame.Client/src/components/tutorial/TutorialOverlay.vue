@@ -9,7 +9,7 @@ import { ELEMENT_COLORS } from '@/components/inventory/lootStyles';
 import { useTutorial } from '@/composables/UseTutorial';
 import { uiScale } from '@/composables/UseUiScale';
 import { loadingScreenVisible } from '@/composables/UseLoadingScreen';
-import { anchorRect, findAnchor, isClipped, isInAnchor, scrollAnchorIntoView } from '@/tutorial/anchors';
+import { anchorRect, findAnchor, findAnchors, isClipped, isInAnchor, scrollAnchorIntoView, visibleRect } from '@/tutorial/anchors';
 import type { TutorialPlacement } from '@/tutorial/types';
 
 // Шаг обучения поверх всего: затемнение с вырезом под подсвеченный элемент, рамка вокруг него и облачко
@@ -30,6 +30,8 @@ const hole = ref<Rect | null>(null);
 // Ресурсы аккаунта видны сквозь затемнение всегда (как и над окнами): второй вырез, без рамки и без кликов
 const RESOURCES_ANCHOR = 'resources';
 const resourcesHole = ref<Rect | null>(null);
+// Стрелки-указатели над каждым элементом якоря (шаг с pointer): куда нажать и куда перетащить
+const pointers = ref<Rect[]>([]);
 const anchorMissing = ref(false);
 const viewport = ref({ width: window.innerWidth, height: window.innerHeight });
 const bubbleEl = ref<HTMLElement | null>(null);
@@ -70,6 +72,7 @@ watch(currentStep, step => {
   scrollAttempts = 0;
   lastScrollAt = 0;
   hole.value = null;
+  pointers.value = [];
   anchorMissing.value = false;
   confirmSkip.value = false;
   window.clearTimeout(delayTimer);
@@ -115,6 +118,14 @@ const measure = () => {
   }
   if (!sameRect(hole.value, next)) hole.value = next;
 
+  const pointersNext: Rect[] = step.pointer && step.target
+    ? findAnchors(step.target).map(visibleRect).filter(r => r.width > 0 && r.height > 0)
+      .map(r => ({ left: Math.round(r.left), top: Math.round(r.top), width: Math.round(r.width), height: Math.round(r.height) }))
+    : [];
+  if (pointersNext.length !== pointers.value.length || pointersNext.some((r, i) => !sameRect(r, pointers.value[i]))) {
+    pointers.value = pointersNext;
+  }
+
   // Шаг сам подсвечивает ресурсы — второй вырез не нужен
   const resources = step.target === RESOURCES_ANCHOR ? null : anchorRect(RESOURCES_ANCHOR);
   const resourcesNext = resources && {
@@ -153,6 +164,15 @@ const shadePath = computed(() => {
   const resources = resourcesHole.value;
   if (resources && !(rect && overlaps(rect, resources))) path += ` ${roundedRect(resources, 10 * uiScale.value)}`;
   return path;
+});
+
+// Стрелка смотрит вниз, остриём в верхнюю часть элемента
+const POINTER_SIZE = 34;
+const pointerStyle = (rect: Rect) => ({
+  left: `${rect.left + rect.width / 2}px`,
+  top: `${rect.top + Math.min(rect.height * 0.3, 24 * uiScale.value)}px`,
+  width: `${POINTER_SIZE * uiScale.value}px`,
+  height: `${POINTER_SIZE * uiScale.value}px`,
 });
 
 const holeStyle = computed(() => hole.value && {
@@ -281,6 +301,9 @@ onBeforeUnmount(() => {
         <path :d="shadePath" fill-rule="evenodd" />
       </svg>
       <div v-if="holeStyle" class="tutorial-highlight" :style="holeStyle"></div>
+      <div v-for="(rect, index) in pointers" :key="index" class="tutorial-pointer" :style="pointerStyle(rect)">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 2h8v9h5l-9 11L3 11h5z" /></svg>
+      </div>
 
       <div :key="currentStep.id" ref="bubbleEl" class="tutorial-bubble" :data-step="currentStep.id" :style="bubbleStyle">
         <!-- Портрет как на карточке героя: огненная аура стихии вокруг (4-й ранг — с аурой) -->
@@ -348,6 +371,33 @@ onBeforeUnmount(() => {
   box-shadow: 0 0 12px 2px rgba(255, 209, 102, 0.8), inset 0 0 10px rgba(255, 209, 102, 0.5);
   animation: tutorial-pulse 1.4s ease-in-out infinite;
   pointer-events: none;
+}
+
+/* Указатель: золотая стрелка над элементом, покачивается вверх-вниз */
+.tutorial-pointer {
+  position: absolute;
+  pointer-events: none;
+  transform: translate(-50%, -100%);
+  animation: tutorial-pointer-bob 0.9s ease-in-out infinite;
+  filter: drop-shadow(0 0 6px rgba(255, 209, 102, 0.9)) drop-shadow(0 2px 2px rgba(0, 0, 0, 0.6));
+}
+
+.tutorial-pointer svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.tutorial-pointer path {
+  fill: #ffd166;
+  stroke: #7a4b00;
+  stroke-width: 1.2;
+  stroke-linejoin: round;
+}
+
+@keyframes tutorial-pointer-bob {
+  0%, 100% { transform: translate(-50%, -100%); }
+  50% { transform: translate(-50%, calc(-100% - 10px)); }
 }
 
 @keyframes tutorial-pulse {

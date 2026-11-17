@@ -15,6 +15,10 @@ public class RegisterRequest
     [Required(ErrorMessage = "Введите пароль")]
     [StringLength(128, MinimumLength = 6, ErrorMessage = "Пароль должен быть не короче 6 символов")]
     public string Password { get; set; } = string.Empty;
+
+    // Язык клиента ("ru", "en") — на нём придёт приветственное письмо (WelcomeMail)
+    [StringLength(16)]
+    public string? Locale { get; set; }
 }
 
 public class LoginRequest

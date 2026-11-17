@@ -18,6 +18,7 @@ export const tour: TutorialScenario = {
     say('tourArena', 'town.arena'),
     say('tourGuild', 'town.guild'),
     say('tourQuests', 'nav.quests'),
+    say('tourDelve', 'nav.delve'),
     say('done', undefined),
   ],
 }

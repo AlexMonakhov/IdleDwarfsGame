@@ -14,7 +14,7 @@ public static class ShopRules
 {
     public const int SlotCount = 8;
 
-    // Обновления сверх бесплатного — за радужные монеты; новый игрок получает несколько на пробу
+    // Обновления сверх бесплатного — за радужные монеты; новый игрок получает несколько на пробу (письмом, WelcomeMail)
     public const int RerollCost = 10;
     public const int StarterRainbowCoins = 50;
 

@@ -14,6 +14,7 @@ import { HeroInfo, SQUAD_SIZE, isBusy, squadSlotIds } from '@/models/types/Heroe
 import { vDragScroll } from '@/directives/dragScroll';
 import StatIcon from '@/components/icons/stats/StatIcon.vue';
 import LoadingCrystal from '@/components/loading/LoadingCrystal.vue';
+import { emitTutorialEvent } from '@/tutorial/events';
 
 // Состав отряда: 5 слотов сверху, все остальные герои — списком под ними, снизу — сохранение.
 // Живёт и в своём окне (SquadModal), и вкладкой в окне алтаря (HeroUpgradeModal)
@@ -45,6 +46,32 @@ const { element: elementFilter, rank: rankFilter, filtered: filteredReserve } = 
 
 const reserve = computed(() => [...filteredReserve.value]
     .sort((a, b) => Number(isBusy(a)) - Number(isBusy(b)) || b.level - a.level || a.name.localeCompare(b.name)));
+
+/* ===== Якоря обучения ===== */
+// После слияния обучение ставит нового дворфа (ранг 2+) из запаса в отряд: освободить место, если отряд полон,
+// нажать на него в запасе, сохранить. «Готово» — в отряде уже есть такой дворф или ставить некого
+const tutorialCandidate = computed(() => {
+    const first = reserve.value[0];
+    return first && !isBusy(first) && first.level > 1 ? first : null;
+});
+const tutorialReady = computed(() => !tutorialCandidate.value || slotHeroes.value.some(h => h && h.level > 1));
+const tutorialSquadAnchor = computed(() => {
+    if (tutorialReady.value) return 'squad.ready';
+    return slots.value.includes(null) ? 'squad.free' : null;
+});
+// Освободить место — последнего в полном отряде (первым стоит дворф, которого игрок прокачал).
+// Место есть — «squad.place» на первом свободном слоте и на новом дворфе в запасе: обучение ставит стрелки на оба,
+// а дворфа можно и нажать, и перетащить в слот
+const tutorialSlotAnchors = computed(() => {
+    if (tutorialReady.value) return slots.value.map(() => null);
+    const free = slots.value.indexOf(null);
+    return slots.value.map((_, index) => {
+        if (free === -1) return index === slots.value.length - 1 ? 'squad.slot.remove' : null;
+        return index === free ? 'squad.place' : null;
+    });
+});
+// Новый дворф встал в отряд (кликом или перетаскиванием) — шаг обучения идёт дальше
+watch(tutorialReady, (ready, wasReady) => { if (ready && !wasReady && !loading.value) emitTutorialEvent('squad:placed'); });
 
 const dirty = computed(() => slots.value.some((id, i) => id !== savedSlots.value[i]));
 const hasHero = computed(() => slots.value.some(id => id !== null));
@@ -170,6 +197,7 @@ const save = async (): Promise<boolean> => {
         applyHeroes(saved);
         notice.value = t('squad.saved');
         emit('saved', saved);
+        emitTutorialEvent('squad:saved');
         return true;
     } catch (error) {
         const message = (error as AxiosError<{ message?: string }>).response?.data?.message;
@@ -231,7 +259,7 @@ const statusText = computed(() => {
         <LoadingCrystal v-if="loading && !heroes.length" />
 
         <template v-else-if="heroes.length">
-            <section class="inventory-section">
+            <section v-tutorial="tutorialSquadAnchor" class="inventory-section">
                 <!-- Шапка одной строкой: заголовок, подсказка за значком «i», мощь справа -->
                 <div class="inventory-heading">
                     <h3 class="inventory-title">{{ t('squad.squad') }}</h3>
@@ -242,6 +270,7 @@ const statusText = computed(() => {
                     :heroes="slotHeroes"
                     :hover-slot="hoverSlot"
                     :dragging-id="drag?.heroId ?? null"
+                    :slot-anchors="tutorialSlotAnchors"
                     @slot-dragover="hoverSlot = $event"
                     @slot-dragleave="hoverSlot = null"
                     @slot-drop="dropOnSlot"
@@ -268,6 +297,7 @@ const statusText = computed(() => {
                     <HeroCard
                         v-for="hero in reserve"
                         :key="hero.id"
+                        v-tutorial="hero.id === tutorialCandidate?.id ? 'squad.place' : null"
                         :hero="hero"
                         :dragging="drag?.heroId === hero.id"
                         :disabled="isBusy(hero)"
@@ -283,7 +313,7 @@ const statusText = computed(() => {
         <div class="inventory-footer">
             <span class="inventory-status" :class="{ 'inventory-status-error': errorMessage || (!loading && !hasHero) }">{{ statusText }}</span>
             <GemButton :color="'blue'" :disabled="!dirty || saving" @click="reset">{{ t('squad.reset') }}</GemButton>
-            <GemButton :color="'green'" :disabled="!dirty || !hasHero || saving" @click="save">
+            <GemButton v-tutorial="dirty ? 'squad.save' : 'squad.clean'" :color="'green'" :disabled="!dirty || !hasHero || saving" @click="save">
                 {{ saving ? t('squad.saving') : t('squad.save') }}
             </GemButton>
         </div>

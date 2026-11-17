@@ -3,6 +3,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 [ApiController]
 [Route("auth")]
@@ -11,7 +12,9 @@ public class AuthController(
     IUserRepository userRepository,
     ITokenService tokenService,
     IPasswordHasher<User> passwordHasher,
-    SquadPowerService squadPower) : ControllerBase
+    SquadPowerService squadPower,
+    IFriendRepository friends,
+    MailService mail) : ControllerBase
 {
     [HttpPost("register")]
     public async Task<ActionResult<AuthResponse>> Register([FromBody] RegisterRequest request)
@@ -27,7 +30,8 @@ public class AuthController(
             return ValidationProblem(ModelState);
 
         // Каждому аккаунту — свой игрок, к которому потом привязываются герои, сундуки и т.д.
-        var player = new Player { Id = Guid.NewGuid(), Name = username, Rating = 0, RainbowCoins = ShopRules.StarterRainbowCoins };
+        // Стартовые радужные монеты приходят письмом (WelcomeMail), а не сразу на счёт
+        var player = new Player { Id = Guid.NewGuid(), Name = username, Rating = 0 };
         var user = new User
         {
             Id = Guid.NewGuid(),
@@ -47,6 +51,11 @@ public class AuthController(
         await context.PlayerTutorials.AddAsync(Onboarding.StartRow(player.Id, user.CreatedAt));
         // Сохраняется одной транзакцией вместе с игроком
         await userRepository.CreateAsync(user);
+
+        // Брокк-наставник — первый друг (его может не быть, если имя занял игрок до появления наставника)
+        if (await context.Users.AnyAsync(u => u.Id == MentorAccount.UserId))
+            await friends.AddFriendshipAsync(user.Id, MentorAccount.UserId, user.CreatedAt);
+        await mail.SendAsync(player.Id, WelcomeMail.Sender, WelcomeMail.Title(request.Locale), WelcomeMail.Body(request.Locale), WelcomeMail.Attachments());
 
         return Ok(BuildResponse(user));
     }
