@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import TimerBadge from '@/components/common/TimerBadge.vue';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { AxiosError } from 'axios';
@@ -143,9 +144,10 @@ const canAttack = computed(() => !!overview.value?.open && !!boss.value && !boss
                             <span v-if="boss.defeatedAt" class="wb-status">
                                 <IconSkull /> {{ boss.killedBy ? t('worldBoss.killedBy', { name: boss.killedBy }) : t('worldBoss.defeated') }}
                             </span>
-                            <span v-else-if="cooldownLeft > 0" class="wb-status">
-                                {{ t('worldBoss.nextAttack', { time: formatCountdown(cooldownLeft, t('fixedShop.day')) }) }}
-                            </span>
+                            <TimerBadge
+                                v-else-if="cooldownLeft > 0"
+                                :text="t('worldBoss.nextAttack', { time: formatCountdown(cooldownLeft, t('fixedShop.day')) })"
+                            />
                             <GemButton
                                 v-if="overview.open && !boss.defeatedAt"
                                 :color="'red'"

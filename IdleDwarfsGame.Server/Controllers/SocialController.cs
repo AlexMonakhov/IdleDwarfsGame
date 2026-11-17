@@ -36,7 +36,10 @@ public class SocialController(FriendHelpService friendHelp, ArenaBetService bets
     public Task<ActionResult<ArenaBetOverview>> ClaimBets() => Run(userId => bets.ClaimAsync(userId));
 
     [HttpGet("pvp/bets/{windowStart:datetime}/replay")]
-    public Task<ActionResult<ArenaBetReplay>> Replay(DateTime windowStart) => Run(_ => bets.ReplayAsync(windowStart.ToUniversalTime()));
+    // Время окна — всегда UTC. Строка с «Z» приходит из привязки уже переведённой в местное время (Kind = Local) —
+    // возвращаем в UTC; без «Z» (Unspecified) — это и есть UTC, ToUniversalTime сдвинул бы её на пояс сервера
+    public Task<ActionResult<ArenaBetReplay>> Replay(DateTime windowStart) =>
+        Run(_ => bets.ReplayAsync(windowStart.Kind == DateTimeKind.Local ? windowStart.ToUniversalTime() : windowStart));
 
     private async Task<ActionResult<T>> Run<T>(Func<Guid, Task<T>> action)
     {

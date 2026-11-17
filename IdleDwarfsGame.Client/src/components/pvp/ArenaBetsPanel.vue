@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import TimerBadge from '@/components/common/TimerBadge.vue';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
@@ -123,7 +124,7 @@ const watch = (match: ArenaBetMatchInfo) => {
             <section v-if="current" class="bets-match">
                 <div class="bets-match-head">
                     <h4>{{ t('social.bets.title') }}</h4>
-                    <span v-if="current.open" class="bets-muted">{{ t('social.bets.closesIn', { time: closesIn }) }}</span>
+                    <TimerBadge v-if="current.open" :text="t('social.bets.closesIn', { time: closesIn })" />
                 </div>
                 <div class="bets-sides">
                     <div v-for="side in ([1, 2] as const)" :key="side" class="bets-side" :class="{ 'bets-side-mine': current.myBet?.side === side }">

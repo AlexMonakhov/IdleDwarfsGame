@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import TimerBadge from '@/components/common/TimerBadge.vue';
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
@@ -6,6 +7,9 @@ import ModalComponent from '@/components/common/ModalComponent.vue';
 import ArenaBetsPanel from './ArenaBetsPanel.vue';
 import GemButton from '@/components/common/GemButton.vue';
 import UnitPortrait from '@/components/interface/UnitPortrait.vue';
+import SquadSummary from '@/components/inventory/SquadSummary.vue';
+import HeroesApiService from '@/services/apiServices/HeroesApiService';
+import { HeroInfo, squadSlotIds } from '@/models/types/Heroes';
 import PvpApiService from '@/services/apiServices/PvpApiService';
 import { PvpBattleInfo, PvpOpponentInfo, PvpOverview, PvpSeasonInfo, RankedOverview } from '@/models/types/Pvp';
 import type { BattleForecast } from '@/models/types/Campaign';
@@ -79,6 +83,8 @@ const confirmLock = ref(false);
 const now = ref(Date.now());
 let clockOffset = 0;
 let ticker = 0;
+// canChangeAt снимка, на котором уже перечитали обзор, когда смена открылась
+let reloadedForUnlock: string | null = null;
 const serverNow = computed(() => now.value + clockOffset);
 const msUntil = (iso: string) => new Date(iso).getTime() - serverNow.value;
 
@@ -87,8 +93,15 @@ const syncClock = (serverTime: string) => {
     now.value = Date.now();
 };
 
+// Герои аккаунта — для развёрнутого отряда (карточки по слотам); не загрузились — отряд просто не разворачивается
+const heroes = ref<HeroInfo[] | null>(null);
+const loadHeroes = () => HeroesApiService.getMyHeroes()
+    .then(list => { heroes.value = list; })
+    .catch(() => { heroes.value = null; });
+
 const load = async () => {
     loading.value = true;
+    loadHeroes();
     try {
         if (ranked.value) {
             const next = await PvpApiService.getRankedOverview();
@@ -118,6 +131,14 @@ watch(open, isOpen => {
         now.value = Date.now();
         // Наступили новые сутки — побеждённые вернулись, дневной сезон начался заново, отряд арены можно сменить
         if (current.value && !loading.value && msUntil(current.value.dayResetAt) <= 0) load();
+        // Снимок рейтинговой арены снова можно сменить — перечитываем, чтобы вернулся отряд аккаунта с кнопкой закрепления
+        const locked = ranked.value ? rankedOverview.value : null;
+        // (один раз на снимок: если сервер ещё не открыл смену, не дёргаем его каждую секунду)
+        if (locked?.squad && !locked.canLockSquad && !loading.value && reloadedForUnlock !== locked.squad.canChangeAt
+            && msUntil(locked.squad.canChangeAt) <= 0) {
+            reloadedForUnlock = locked.squad.canChangeAt;
+            load();
+        }
     }, 1000);
 }, { immediate: true });
 
@@ -190,6 +211,13 @@ const diffText = (opponent: PvpOpponentInfo) =>
 // Как на арене: передняя линия (позиция 1) у обеих команд ближе к центру
 const frontRight = (units: CombatUnitInfo[]) => [...units].sort((a, b) => b.position - a.position);
 const squadFrontRight = computed(() => frontRight(overview.value?.squad ?? []));
+// Отряд аккаунта по слотам; на арене по умолчанию свёрнут в портреты
+const squadHeroes = computed(() => {
+    if (!heroes.value) return null;
+    const byId = new Map(heroes.value.map(h => [h.id, h]));
+    return squadSlotIds(heroes.value).map(id => (id ? byId.get(id) ?? null : null));
+});
+const squadExpanded = ref(false);
 
 const fight = (opponent: PvpOpponentInfo) => {
     if (loading.value || noSquad.value) return;
@@ -245,9 +273,11 @@ const onBetsMessage = (text: string, isError: boolean) => {
 const footerText = computed(() => {
     if (errorMessage.value) return errorMessage.value;
     if (tab.value === 'bets') return betsNotice.value ?? '';
-    if (!current.value) return '';
-    return t('pvp.resetIn', { time: formatTime(msUntil(current.value.dayResetAt)) });
+    return '';
 });
+// Сброс дня — таймером в футере, когда там нет ошибки и это не вкладка ставок
+const footerTimer = computed(() =>
+    !errorMessage.value && tab.value !== 'bets' && current.value ? t('pvp.resetIn', { time: formatTime(msUntil(current.value.dayResetAt)) }) : '');
 </script>
 
 <template>
@@ -285,62 +315,76 @@ const footerText = computed(() => {
                 </section>
 
                 <!-- Обычная арена: в бой идёт текущий отряд аккаунта -->
-                <section v-if="!ranked && overview" class="pvp-squad">
-                    <div class="pvp-squad-heading">
-                        <span class="pvp-subtitle">{{ t('pvp.mySquad') }}</span>
+                <SquadSummary
+                    v-if="!ranked && overview"
+                    v-model:expanded="squadExpanded"
+                    :title="t('pvp.mySquad')"
+                    :heroes="squadHeroes"
+                    :units="squadFrontRight"
+                    @slot-click="squadOpen = true"
+                >
+                    <template #info>
                         <span v-if="noSquad" class="pvp-error">{{ t('pvp.noSquad') }}</span>
                         <span v-else class="pvp-power"><StatIcon stat="power" /> {{ t('power.squad', { power: format(overview.myPower) }) }}</span>
+                    </template>
+                    <template #actions>
                         <GemButton :color="'pink'" :disabled="loading" @click="squadOpen = true">{{ t('pvp.editSquad') }}</GemButton>
-                    </div>
-                    <div class="pvp-team">
-                        <UnitPortrait v-for="unit in squadFrontRight" :key="unit.entityId" :unit="unit" :size="44" />
-                    </div>
-                </section>
+                    </template>
+                </SquadSummary>
 
                 <!-- Рейтинговая арена: закреплённый снимок и отряд аккаунта, из которого делается новый снимок -->
                 <template v-if="ranked && rankedOverview">
-                    <section class="pvp-squad pvp-ranked-squad" :class="{ 'pvp-ranked-squad-empty': !rankedSquad }">
-                        <div class="pvp-squad-heading">
-                            <span class="pvp-subtitle">{{ t('pvp.ranked.lockedSquad') }}</span>
+                    <SquadSummary
+                        class="pvp-ranked-squad"
+                        :class="{ 'pvp-ranked-squad-empty': !rankedSquad }"
+                        :title="t('pvp.ranked.lockedSquad')"
+                        :units="rankedSquad ? lockedFrontRight : null"
+                    >
+                        <template #info>
                             <template v-if="rankedSquad">
                                 <span class="pvp-power"><StatIcon stat="power" /> {{ t('power.squad', { power: format(rankedSquad.power) }) }}</span>
                                 <span class="pvp-muted">{{ t('pvp.ranked.lockedAt', { time: lockedAt }) }}</span>
                             </template>
                             <span v-else class="pvp-error">{{ t('pvp.ranked.notLocked') }}</span>
-                            <span class="pvp-rating"><IconStar /> {{ t('pvp.ranked.myRating', { rating: format(rankedOverview.myRating) }) }}</span>
-                        </div>
-                        <div v-if="rankedSquad" class="pvp-team">
-                            <UnitPortrait v-for="unit in lockedFrontRight" :key="unit.entityId" :unit="unit" :size="44" />
-                        </div>
-                    </section>
+                        </template>
+                        <template #actions>
+                            <span class="pvp-rating pvp-rating-big"><IconStar /> {{ t('pvp.ranked.myRating', { rating: format(rankedOverview.myRating) }) }}</span>
+                        </template>
+                        <TimerBadge
+                            v-if="rankedSquad && !rankedOverview.canLockSquad"
+                            class="pvp-change-timer"
+                            :text="t('pvp.ranked.changeIn', { time: formatTime(msUntil(rankedSquad.canChangeAt)) })"
+                        />
+                    </SquadSummary>
 
-                    <section class="pvp-squad">
-                        <div class="pvp-squad-heading">
-                            <span class="pvp-subtitle">{{ t('pvp.ranked.accountSquad') }}</span>
+                    <!-- Отряд аккаунта нужен только чтобы закрепить новый снимок: пока снимок не сменить — прячем -->
+                    <SquadSummary
+                        v-if="!rankedSquad || rankedOverview.canLockSquad"
+                        v-model:expanded="squadExpanded"
+                        :title="t('pvp.ranked.accountSquad')"
+                        :heroes="squadHeroes"
+                        :units="accountFrontRight"
+                        @slot-click="squadOpen = true"
+                    >
+                        <template #info>
                             <span v-if="!rankedOverview.accountSquad.length" class="pvp-error">{{ t('pvp.noSquad') }}</span>
                             <span v-else class="pvp-power"><StatIcon stat="power" /> {{ t('power.squad', { power: format(rankedOverview.accountPower) }) }}</span>
-                            <div class="pvp-squad-actions">
-                                <GemButton :color="'pink'" :disabled="loading" @click="squadOpen = true">{{ t('pvp.editSquad') }}</GemButton>
-                                <template v-if="canLock">
-                                    <GemButton v-if="!confirmLock" :color="'green'" :disabled="loading" @click="confirmLock = true">
-                                        <IconLock /> {{ rankedSquad ? t('pvp.ranked.relock') : t('pvp.ranked.lock') }}
-                                    </GemButton>
-                                    <template v-else>
-                                        <GemButton :color="'green'" :disabled="loading" @click="lockSquad"><IconCheck /> {{ t('pvp.ranked.confirm') }}</GemButton>
-                                        <GemButton :color="'blue'" :disabled="loading" @click="confirmLock = false">{{ t('pvp.ranked.cancel') }}</GemButton>
-                                    </template>
+                        </template>
+                        <template #actions>
+                            <GemButton :color="'pink'" :disabled="loading" @click="squadOpen = true">{{ t('pvp.editSquad') }}</GemButton>
+                            <template v-if="canLock">
+                                <GemButton v-if="!confirmLock" :color="'green'" :disabled="loading" @click="confirmLock = true">
+                                    <IconLock /> {{ rankedSquad ? t('pvp.ranked.relock') : t('pvp.ranked.lock') }}
+                                </GemButton>
+                                <template v-else>
+                                    <GemButton :color="'green'" :disabled="loading" @click="lockSquad"><IconCheck /> {{ t('pvp.ranked.confirm') }}</GemButton>
+                                    <GemButton :color="'blue'" :disabled="loading" @click="confirmLock = false">{{ t('pvp.ranked.cancel') }}</GemButton>
                                 </template>
-                            </div>
-                        </div>
-                        <div class="pvp-team">
-                            <UnitPortrait v-for="unit in accountFrontRight" :key="unit.entityId" :unit="unit" :size="36" />
-                        </div>
+                            </template>
+                        </template>
                         <div v-if="confirmLock" class="pvp-hint pvp-warning">{{ t('pvp.ranked.confirmHint') }}</div>
-                        <div v-else-if="rankedSquad && !rankedOverview.canLockSquad" class="pvp-muted">
-                            {{ t('pvp.ranked.changeIn', { time: formatTime(msUntil(rankedSquad.canChangeAt)) }) }}
-                        </div>
                         <div v-else-if="!rankedSquad" class="pvp-muted">{{ t('pvp.ranked.lockHint') }}</div>
-                    </section>
+                    </SquadSummary>
                 </template>
 
                 <div v-if="!noSquad" class="pvp-hint">
@@ -420,7 +464,7 @@ const footerText = computed(() => {
                     <article v-for="season in seasons" :key="season.type" class="pvp-season">
                         <div class="pvp-season-heading">
                             <span class="pvp-subtitle">{{ t(`pvp.seasons.${season.type}`) }}</span>
-                            <span class="pvp-season-left">⏳ {{ seasonLeft(season) }}</span>
+                            <TimerBadge :text="seasonLeft(season)" />
                         </div>
                         <div class="pvp-season-me">
                             <span class="pvp-season-points">{{ format(season.points) }}</span>
@@ -468,7 +512,8 @@ const footerText = computed(() => {
 
         <template #modalFooter>
             <div class="pvp-footer">
-                <span class="pvp-footer-status" :class="{ 'pvp-error': errorMessage }">{{ footerText }}</span>
+                <TimerBadge v-if="footerTimer" :text="footerTimer" />
+                <span v-else class="pvp-footer-status" :class="{ 'pvp-error': errorMessage }">{{ footerText }}</span>
                 <GemButton :color="'blue'" :disabled="loading" @click="load">{{ loading ? t('pvp.searching') : t('pvp.refresh') }}</GemButton>
             </div>
         </template>
@@ -576,32 +621,6 @@ const footerText = computed(() => {
     text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.9);
 }
 
-.pvp-squad {
-    display: flex;
-    flex-direction: column;
-    row-gap: 8px;
-}
-
-.pvp-squad-heading {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    column-gap: 14px;
-    row-gap: 6px;
-}
-
-.pvp-squad-heading > .gem-button {
-    flex-shrink: 0;
-    margin-left: auto;
-}
-
-.pvp-squad-actions {
-    flex-shrink: 0;
-    display: flex;
-    column-gap: 8px;
-    margin-left: auto;
-}
-
 .pvp-rating {
     color: #c4b5fd;
     font-size: 13px;
@@ -610,8 +629,7 @@ const footerText = computed(() => {
     text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.8);
 }
 
-.pvp-squad-heading > .pvp-rating {
-    margin-left: auto;
+.pvp-rating-big {
     font-size: 15px;
 }
 
@@ -797,11 +815,9 @@ const footerText = computed(() => {
     align-items: baseline;
 }
 
-.pvp-season-left {
-    color: #fde68a;
-    font-size: 12px;
-    font-weight: bold;
-    font-variant-numeric: tabular-nums;
+/* В колонке блока отряда плашка не растягивается на всю ширину */
+.pvp-change-timer {
+    align-self: flex-start;
 }
 
 .pvp-season-me {

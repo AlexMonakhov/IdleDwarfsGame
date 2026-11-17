@@ -133,6 +133,12 @@ body {
   animation-play-state: paused !important;
 }
 
+/* Частицы аур (CssAuraEffect) вне экрана убираем совсем: каждая — своя прослойка видеокарты даже на паузе,
+   сотни карточек с аурой давали тысячи слоёв. Анимация с отрицательной задержкой продолжается с середины цикла */
+.pause-offscreen-hidden .aura-particles {
+  display: none;
+}
+
 /* v-drag-scroll (src/directives/dragScroll.ts): прокрутка без полосы — колесом и перетаскиванием мыши */
 .drag-scroll {
   scrollbar-width: none;

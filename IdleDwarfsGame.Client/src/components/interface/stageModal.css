@@ -9,22 +9,25 @@
     gap: 10px;
 }
 
-.stage-modal-header {
-    flex-shrink: 0;
-    display: flex;
-    flex-direction: column;
+/* Сведения в шапке: главный прогресс — золотом, как очки на доске заданий; остальное — светлым */
+.stage-progress {
+    display: inline-flex;
     align-items: center;
-    gap: 8px;
-    text-shadow: 0 1px 3px #000;
+    column-gap: 6px;
+    color: #fde68a;
+    font-size: 16px;
+    font-weight: bold;
+    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.8);
 }
 
-.stage-modal-status {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
+.stage-stat {
+    display: inline-flex;
     align-items: center;
-    gap: 6px 18px;
-    font-size: 14px;
+    column-gap: 6px;
+    color: #f1f5f9;
+    font-size: 13px;
+    font-weight: bold;
+    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.8);
 }
 
 /* Отступы — под рамку и ореол карточек: прокрутка обрезает всё, что вылезает за край */
@@ -91,20 +94,6 @@
 @keyframes stage-fight-glow {
     0%, 100% { box-shadow: 0 8px 15px rgba(0, 0, 0, 0.4), 0 0 6px 1px rgba(255, 80, 60, 0.35); }
     50% { box-shadow: 0 8px 15px rgba(0, 0, 0, 0.4), 0 0 18px 5px rgba(255, 80, 60, 0.85); }
-}
-
-.stage-button {
-    border: 1px solid #94a3b8;
-    border-radius: 8px;
-    padding: 4px 14px;
-    background: rgba(14, 19, 34, 0.7);
-    color: #f8fafc;
-    cursor: pointer;
-}
-
-.stage-button:disabled {
-    opacity: 0.5;
-    cursor: default;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -27,6 +27,8 @@ import type { ModalTab, TabIcon } from '@/models/types/Modal';
 import { vDragScroll } from '@/directives/dragScroll';
 import { IconBanner, IconDwarf, IconDwarfExtract, IconDwarfFusion, IconRune, IconShield } from '@/components/icons/ui';
 import LoadingCrystal from '@/components/loading/LoadingCrystal.vue';
+import { useProgressiveList } from '@/composables/UseProgressiveList';
+import { vPauseOffscreen } from '@/directives/pauseOffscreen';
 
 // Окно алтаря. Первая вкладка — состав отряда (SquadPanel, свои загрузка и сохранение).
 // Прокачка и снаряжение героев: справа список героев или предметов, по клику на героя слева выезжает его панель.
@@ -124,6 +126,9 @@ const { element: elementFilter, rank: rankFilter, filtered } = useHeroFilters(he
 
 const sorted = computed(() => [...filtered.value]
     .sort((a, b) => b.level - a.level || a.name.localeCompare(b.name)));
+
+// Сотни карточек не создаются разом: порция сразу, остальные — по кадрам (как на складе)
+const visibleHeroes = useProgressiveList(sorted);
 
 const selected = computed(() => heroes.value.find(h => h.id === selectedId.value) ?? null);
 
@@ -302,8 +307,9 @@ watch([tab, sorted], () => {
                     <HeroFilters v-model:element="elementFilter" v-model:rank="rankFilter" :heroes="heroes" />
                     <div class="hero-upgrade-grid">
                         <HeroCard
-                            v-for="hero in sorted"
+                            v-for="hero in visibleHeroes"
                             :key="hero.id"
+                            v-pause-offscreen
                             v-tutorial="hero.placeInSquad === 1 ? 'altar.hero.squad' : null"
                             :hero="hero"
                             selectable

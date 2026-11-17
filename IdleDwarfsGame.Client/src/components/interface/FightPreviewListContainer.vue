@@ -6,13 +6,13 @@ import ModalComponent from "@/components/common/ModalComponent.vue";
 import GemButton from "@/components/common/GemButton.vue";
 import FightPreviewList from "@/components/interface/FightPreviewList.vue";
 import ClearedStageRow from "@/components/interface/ClearedStageRow.vue";
-import StageRewardsFooter from "@/components/interface/StageRewardsFooter.vue";
+import StageModalHeader from "@/components/interface/StageModalHeader.vue";
 import CampaignApiService from "@/services/apiServices/CampaignApiService";
 import { CampaignOverview, CampaignStageInfo } from "@/models/types/Campaign";
 import { scrollToAnchor, useStageRewards } from "@/composables/UseStageRewards";
 import { useSquadModal } from "@/composables/UseSquadModal";
 import { vDragScroll } from "@/directives/dragScroll";
-import { IconBanner, IconLock } from '@/components/icons/ui';
+import { IconCrown, IconLock } from '@/components/icons/ui';
 import { IconPower } from '@/components/icons/stats';
 import LoadingCrystal from '@/components/loading/LoadingCrystal.vue';
 
@@ -99,12 +99,20 @@ const status = computed(() => campaign.value
     height="min(780px, calc(88 * var(--vh)))"
   >
     <div class="stage-modal">
-        <div v-if="campaign" class="stage-modal-header">
-            <div class="stage-modal-status">
-                <span>{{ status }}</span>
-                <button class="stage-button" v-tooltip="t('tower.squadHint')" @click="squadOpen = true"><IconBanner /> {{ t('tower.squad') }}</button>
-            </div>
-        </div>
+        <StageModalHeader
+          v-if="campaign"
+          :remaining="rewards.remaining.value"
+          :busy="rewards.busy.value === 'all'"
+          :notice="rewards.notice.value"
+          :error="rewards.error.value"
+          @claim-all="rewards.claimAll()"
+          @dismiss="rewards.dismiss()"
+          @squad="squadOpen = true"
+        >
+            <template #info>
+                <span class="stage-progress"><IconCrown /> {{ status }}</span>
+            </template>
+        </StageModalHeader>
 
         <!-- Пока список перезагружается, не прячем его за «Загрузка…» -->
         <LoadingCrystal v-if="loading && !campaign" />
@@ -165,17 +173,6 @@ const status = computed(() => campaign.value
             </div>
         </div>
     </div>
-
-    <template #modalFooter>
-        <StageRewardsFooter
-          :remaining="rewards.remaining.value"
-          :busy="rewards.busy.value === 'all'"
-          :notice="rewards.notice.value"
-          :error="rewards.error.value"
-          @claim-all="rewards.claimAll()"
-          @dismiss="rewards.dismiss()"
-        />
-    </template>
   </ModalComponent>
 </template>
 

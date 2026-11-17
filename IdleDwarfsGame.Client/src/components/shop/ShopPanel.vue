@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import TimerBadge from '@/components/common/TimerBadge.vue';
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { AxiosError } from 'axios';
 import { useI18n } from 'vue-i18n';
@@ -146,9 +147,12 @@ const canReroll = computed(() => !!overview.value && (overview.value.freeReroll 
                 </span>
             </div>
 
-            <span v-if="overview" class="shop-timer" v-tooltip="t('shop.refreshHint')">
-                {{ t('shop.refreshIn', { time: formatTime(msLeft) }) }}
-            </span>
+            <TimerBadge
+                v-if="overview"
+                class="shop-timer"
+                v-tooltip="t('shop.refreshHint')"
+                :text="t('shop.refreshIn', { time: formatTime(msLeft) })"
+            />
 
             <GemButton
                 class="shop-reroll"
@@ -237,13 +241,6 @@ const canReroll = computed(() => !!overview.value && (overview.value.freeReroll 
 
 .shop-timer {
     margin-left: auto;
-    padding: 3px 10px;
-    border-radius: 8px;
-    background: rgba(0, 0, 0, 0.55);
-    color: #fde68a;
-    font-size: 13px;
-    font-weight: bold;
-    font-variant-numeric: tabular-nums;
 }
 
 .shop-reroll :deep(.gem-text) {

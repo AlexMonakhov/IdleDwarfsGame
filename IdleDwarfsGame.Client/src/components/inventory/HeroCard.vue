@@ -99,6 +99,15 @@ const upgradeStars = computed<number[]>(() => {
     cursor: grab;
     user-select: none;
     transition: transform 0.2s cubic-bezier(0.34, 1.4, 0.64, 1), box-shadow 0.3s ease, opacity 0.15s ease;
+    /* Своя прослойка у каждой карточки заранее. Без неё анимация наведения (подъём, отблеск) перестраивала слои,
+       и браузер заново рисовал весь список — все стёкла с размытыми внутренними тенями: при сотне карточек
+       наведение роняло FPS до 20–30 */
+    will-change: transform;
+    /* Карточки за краем списка браузер не рисует и не раскладывает. Это включает обрезку по краю карточки —
+       запас overflow-clip-margin оставляет видимыми звёзды ранга над оправой и свечение вокруг */
+    content-visibility: auto;
+    contain-intrinsic-size: auto 136px auto 210px;
+    overflow-clip-margin: 28px;
 }
 
 .hero-card:hover {
@@ -192,8 +201,8 @@ const upgradeStars = computed<number[]>(() => {
 .hero-card-rank-star {
     color: #ffd166;
     font-size: 17px;
-    text-shadow: 0 0 6px rgba(255, 209, 102, 0.6);
-    filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.9)) drop-shadow(0 0 1px rgba(0, 0, 0, 0.9));
+    /* Обводка тенью текста, а не filter: drop-shadow — фильтр на каждой из сотен звёзд дорого перестраивает слои */
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.9), 0 0 1px rgba(0, 0, 0, 0.9), 0 0 6px rgba(255, 209, 102, 0.6);
 }
 
 /* Уровень прокачки — ряд звёзд над портретом */
@@ -205,7 +214,7 @@ const upgradeStars = computed<number[]>(() => {
 
 .hero-card-upgrade-star {
     font-size: 12px;
-    filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.9));
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.9);
 }
 
 /* Пустая — тёмное гнездо в стекле */
@@ -219,7 +228,7 @@ const upgradeStars = computed<number[]>(() => {
 .hero-card-upgrade-star-2,
 .hero-card-upgrade-star-3,
 .hero-card-upgrade-star-4 {
-    text-shadow: 0 0 6px currentColor;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.9), 0 0 6px currentColor;
 }
 
 .hero-card-busy {
@@ -323,6 +332,11 @@ const upgradeStars = computed<number[]>(() => {
 
 .hero-card-prestige.hero-card-purple::after {
     box-shadow: 0 0 16px 4px rgba(126, 34, 206, 0.75);
+}
+
+/* За краем списка (v-pause-offscreen) кольца нет совсем: на паузе оно всё равно держало свою прослойку */
+.hero-card.pause-offscreen-hidden .hero-card-prestige-ring {
+    display: none;
 }
 
 @keyframes hero-prestige-spin {

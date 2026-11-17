@@ -179,6 +179,8 @@ const ru: LocaleMessages = {
     squadFull: 'Отряд полон — сначала уберите кого-нибудь кликом',
     noReserve: 'Все герои в отряде',
     emptySlot: 'Пусто',
+    expand: 'Развернуть отряд',
+    collapse: 'Свернуть отряд',
     level: 'Ур. {level}',
     save: 'Сохранить',
     saving: 'Сохраняем...',

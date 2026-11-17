@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import TimerBadge from '@/components/common/TimerBadge.vue';
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
@@ -59,7 +60,6 @@ const SLOT_KINDS = ['spell', 'item', 'passive', 'aura'] as const;
 const overview = ref<DelveOverview | null>(null);
 const busy = ref(false);
 const errorMessage = ref<string | null>(null);
-const notice = ref<string | null>(null);
 const retreatConfirmOpen = ref(false);
 const now = ref(Date.now());
 // Награда, для которой выбирается дворф (индекс в run.rewards)
@@ -108,7 +108,6 @@ const squadPower = computed(() => dwarves.value.reduce((sum, d) => sum + (d.hero
 const relics = computed(() => groupRelics(run.value?.relics ?? []));
 
 const nextRunIn = computed(() => (overview.value ? formatLeft(new Date(overview.value.nextRunAt).getTime() - now.value - clockOffset) : ''));
-const relicName = (key: string) => t(`social.delve.relicNames.${key}`);
 const relicHint = (key: string) => t(`social.delve.relicHints.${key}`);
 // Редкость и предел копий реликвии — из каталога обзора; сколько уже есть — из забега
 const relicInfo = (key: string) => overview.value?.relics.find(r => r.key === key) ?? null;
@@ -145,14 +144,12 @@ const replaces = (dwarf: DelveDwarfInfo): string | null => {
 
 /* ===== Действия ===== */
 
-const act = async (action: () => Promise<DelveOverview>, done?: string) => {
+const act = async (action: () => Promise<DelveOverview>) => {
     if (busy.value) return;
     busy.value = true;
     errorMessage.value = null;
-    notice.value = null;
     try {
         apply(await action());
-        if (done) notice.value = done;
     } catch (error) {
         errorMessage.value = socialErrorText(error, 'delve');
     } finally {
@@ -162,7 +159,7 @@ const act = async (action: () => Promise<DelveOverview>, done?: string) => {
 
 const start = () => act(() => SocialApiService.startDelve());
 const retreat = () => act(() => SocialApiService.retreatDelve());
-const chooseRelic = (key: string) => act(() => SocialApiService.chooseRelic(key), relicName(key));
+const chooseRelic = (key: string) => act(() => SocialApiService.chooseRelic(key));
 const rest = () => act(() => SocialApiService.camp('rest'));
 const revive = (heroId: string) => act(() => SocialApiService.camp('revive', heroId));
 const reviveAll = async () => {
@@ -185,14 +182,14 @@ const chooseReward = (index: number) => {
         swapFrom.value = null;
         return;
     }
-    act(() => SocialApiService.chooseDelveReward(index), rewardLabel(reward));
+    act(() => SocialApiService.chooseDelveReward(index));
 };
 
 const giveTo = (dwarf: DelveDwarfInfo) => {
     const index = pickedReward.value;
     const reward = picked.value;
     if (index == null || !reward || !canTake(dwarf)) return;
-    act(() => SocialApiService.chooseDelveReward(index, dwarf.heroId), `${rewardLabel(reward)} → ${dwarf.name}`);
+    act(() => SocialApiService.chooseDelveReward(index, dwarf.heroId));
 };
 
 const decline = async () => {
@@ -202,7 +199,6 @@ const decline = async () => {
     try {
         const result = await SocialApiService.declineDelveReward();
         apply(result.overview);
-        notice.value = t('social.delve.declined', { gold: formatNumber(result.gold), experience: formatNumber(result.experience) });
         refreshResources();
     } catch (error) {
         errorMessage.value = socialErrorText(error, 'delve');
@@ -265,16 +261,10 @@ const move = async (node: DelveNodeInfo) => {
     if (busy.value || !canMove.value) return;
     busy.value = true;
     errorMessage.value = null;
-    notice.value = null;
     try {
         const result = await SocialApiService.moveDelve(node.column);
         apply(result.overview);
-        if (result.gold || result.experience || result.rainbowCoins) {
-            refreshResources();
-            notice.value = t('social.delve.fightReward', { gold: formatNumber(result.gold), experience: formatNumber(result.experience) })
-                + (result.rainbowCoins ? t('social.delve.fightRainbow', { coins: result.rainbowCoins }) : '')
-                + (result.heroChestLevel ? t('social.delve.fightChest', { level: result.heroChestLevel }) : '');
-        }
+        if (result.gold || result.experience || result.rainbowCoins) refreshResources();
         if (result.combat) {
             const combat = result.combat;
             const background = result.background ?? 'lava';
@@ -292,8 +282,6 @@ const move = async (node: DelveNodeInfo) => {
         busy.value = false;
     }
 };
-
-const footerText = computed(() => errorMessage.value ?? notice.value ?? '');
 </script>
 
 <template>
@@ -304,8 +292,10 @@ const footerText = computed(() => errorMessage.value ?? notice.value ?? '');
         :tabs="tabs"
         :header-message="t('social.delve.title')"
         width="min(1180px, calc(96 * var(--vw)))"
-        height="min(960px, calc(94 * var(--vh)))"
+        height="min(840px, calc(86 * var(--vh)))"
     >
+        <!-- Ошибка действия или загрузки — строкой над содержимым (футера у окна нет) -->
+        <div v-if="errorMessage" class="delve-error">{{ errorMessage }}</div>
         <LoadingCrystal v-if="!overview" />
 
         <!-- ===== Рейтинг ===== -->
@@ -313,7 +303,7 @@ const footerText = computed(() => errorMessage.value ?? notice.value ?? '');
             <article class="delve-rating-card">
                 <div class="delve-rating-heading">
                     <span class="delve-rating-title">{{ t('social.delve.leaderboard') }}</span>
-                    <span class="delve-rating-left">⏳ {{ t('social.delve.periodLeft', { time: nextRunIn }) }}</span>
+                    <TimerBadge :text="t('social.delve.periodLeft', { time: nextRunIn })" />
                 </div>
                 <div class="delve-rating-me">
                     <span class="delve-rating-floor">{{ overview.bestFloor }}</span>
@@ -500,11 +490,6 @@ const footerText = computed(() => errorMessage.value ?? notice.value ?? '');
             </div>
         </div>
 
-        <template #modalFooter>
-            <div class="delve-footer">
-                <span :class="{ 'delve-footer-error': errorMessage }">{{ footerText }}</span>
-            </div>
-        </template>
     </ModalComponent>
 
     <ConfirmModal
@@ -941,12 +926,6 @@ const footerText = computed(() => errorMessage.value ?? notice.value ?? '');
     letter-spacing: 1px;
 }
 
-.delve-rating-left {
-    color: #fde68a;
-    font-size: 12px;
-    font-weight: bold;
-    font-variant-numeric: tabular-nums;
-}
 
 .delve-rating-me {
     display: flex;
@@ -1010,17 +989,11 @@ const footerText = computed(() => errorMessage.value ?? notice.value ?? '');
     font-variant-numeric: tabular-nums;
 }
 
-.delve-footer {
-    flex: 1;
-    min-height: 24px;
-    color: #fff;
+.delve-error {
+    margin-bottom: 8px;
+    color: #ffb4b4;
     font-family: 'Arial', sans-serif;
     font-size: 14px;
     font-weight: bold;
-    text-align: left;
-}
-
-.delve-footer-error {
-    color: #ffb4b4;
 }
 </style>

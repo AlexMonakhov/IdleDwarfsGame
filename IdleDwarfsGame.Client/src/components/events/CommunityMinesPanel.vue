@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import TimerBadge from '@/components/common/TimerBadge.vue';
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { AxiosError } from 'axios';
 import { useI18n } from 'vue-i18n';
@@ -217,11 +218,14 @@ const canAct = computed(() => !!overview.value?.open && !!selected.value && !sel
                             <span v-if="deposit.dwarves && !deposit.closedAt" class="cm-spot-dwarves">{{ deposit.dwarves }}</span>
                         </button>
                     </div>
-                    <span v-if="overview.nextSpawnAt" class="cm-next">
-                        {{ until(overview.nextSpawnAt) > 0
-                            ? t('communityMines.nextSpawn', { time: formatCountdown(until(overview.nextSpawnAt), t('fixedShop.day')) })
-                            : t('communityMines.mapFull', { max: overview.maxOpen }) }}
-                    </span>
+                    <template v-if="overview.nextSpawnAt">
+                        <TimerBadge
+                            v-if="until(overview.nextSpawnAt) > 0"
+                            class="cm-next"
+                            :text="t('communityMines.nextSpawn', { time: formatCountdown(until(overview.nextSpawnAt), t('fixedShop.day')) })"
+                        />
+                        <span v-else class="cm-next cm-next-full">{{ t('communityMines.mapFull', { max: overview.maxOpen }) }}</span>
+                    </template>
                 </div>
 
                 <!-- ===== Месторождение ===== -->
@@ -244,7 +248,7 @@ const canAct = computed(() => !!overview.value?.open && !!selected.value && !sel
                             <span v-if="selected.closedAt">{{ selected.exhaustedAt ? t('communityMines.exhausted') : t('communityMines.closedByEnd') }}</span>
                             <template v-else>
                                 <span>{{ t('communityMines.rate', { rate: format(selected.rate) }) }}</span>
-                                <span v-if="selected.etaAt">{{ t('communityMines.eta', { time: formatCountdown(until(selected.etaAt), t('fixedShop.day')) }) }}</span>
+                                <TimerBadge v-if="selected.etaAt" :text="t('communityMines.eta', { time: formatCountdown(until(selected.etaAt), t('fixedShop.day')) })" />
                                 <span v-else>{{ t('communityMines.idle') }}</span>
                             </template>
                             <span>{{ t('communityMines.crew', { dwarves: selected.dwarves, players: selected.participants }) }}</span>
@@ -500,13 +504,16 @@ const canAct = computed(() => !!overview.value?.open && !!selected.value && !sel
 
 .cm-next {
     align-self: center;
-    padding: 3px 10px;
+}
+
+/* Карта заполнена — не таймер, но в той же плашке на месте таймера */
+.cm-next-full {
+    padding: 2px 8px;
     border-radius: 8px;
-    background: rgba(0, 0, 0, 0.55);
+    background: rgba(0, 0, 0, 0.65);
     color: #fde68a;
     font-size: 12px;
     font-weight: bold;
-    font-variant-numeric: tabular-nums;
 }
 
 /* ===== Карточки справа ===== */

@@ -179,6 +179,8 @@ const en = {
     squadFull: 'The squad is full — click a squad hero to remove them first',
     noReserve: 'All heroes are in the squad',
     emptySlot: 'Empty',
+    expand: 'Expand squad',
+    collapse: 'Collapse squad',
     level: 'Lvl {level}',
     save: 'Save',
     saving: 'Saving...',
