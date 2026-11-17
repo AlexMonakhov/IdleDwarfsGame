@@ -21,6 +21,7 @@ import IconDwarf from './IconDwarf.vue';
 import IconDwarfExtract from './IconDwarfExtract.vue';
 import IconDwarfFusion from './IconDwarfFusion.vue';
 import IconExperience from './IconExperience.vue';
+import IconExpand from './IconExpand.vue';
 import IconFlame from './IconFlame.vue';
 import IconFlask from './IconFlask.vue';
 import IconGear from './IconGear.vue';
@@ -75,6 +76,7 @@ export {
   IconDwarf,
   IconDwarfExtract,
   IconDwarfFusion,
+  IconExpand,
   IconExperience,
   IconFlame,
   IconFlask,

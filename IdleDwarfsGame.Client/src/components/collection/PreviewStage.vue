@@ -79,7 +79,7 @@ const pulse = (unit: BattleUnit) => {
     const visual = resolveAuraVisual(effect, unit.auraTarget);
     const view = getUnitView(unit.id);
     view?.aura?.(visual.color);
-    fx.auraBurst(view?.el?.(), visual);
+    fx.auraBurst(view?.el?.(), visual, effect);
     soundService.cast();
 };
 

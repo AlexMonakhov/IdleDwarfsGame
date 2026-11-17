@@ -1,6 +1,7 @@
 import type { InjectionKey } from 'vue';
 import { GlobalParticleService } from '@/services/particleService/ParticleSystem';
 import { Point } from '@/services/particleService/types/emitter';
+import { LOOK_ID_PREFIX, StatusLooks } from './StatusLooks';
 import {
   Anchor,
   AuraVisual,
@@ -56,6 +57,8 @@ const splitByDepth = (spec: FxSpec): FxSpec[] =>
 export class BattleFx {
   // Вспышки света при попаданиях (выключаются в нагрузочном тесте, чтобы сравнить FPS)
   flares = true;
+  // Статусы на обликах (StatusLooks.BATTLE_STATUS_LOOKS); без облика — прежние эмиттеры из STATUS_VISUALS
+  readonly statusLooks = new StatusLooks(() => this.scene(), (el, anchor) => this.point(el, anchor), () => this.rate());
 
   constructor(
     private readonly service: () => GlobalParticleService | null,
@@ -302,6 +305,7 @@ export class BattleFx {
 
   // Тик статуса (горение и т.п.). Если для статуса нет своего визуала — обычное попадание по типу урона.
   statusTick(target: UnitEl, statusName: string, damageType?: string) {
+    if (this.statusLooks.trigger(target, statusName)) return;
     const tick = STATUS_VISUALS[statusName]?.tick;
     if (tick) this.play(tick, target);
     else this.hit(target, damageType);
@@ -309,12 +313,27 @@ export class BattleFx {
 
   // Постоянные эффекты статуса, следующие за юнитом. Возвращает id эмиттеров для stopAura.
   startAura(el: UnitEl, statusName: string): string[] {
+    const look = this.statusLooks.start(el, statusName);
+    if (look) return [look];
     return this.attach(el, STATUS_VISUALS[statusName]?.aura, `aura-${statusName}`);
   }
 
+  // Срабатывание висящего статуса без урона (пропуск хода, лечение регенерацией): только облик
+  statusTrigger(el: UnitEl, statusName: string) {
+    this.statusLooks.trigger(el, statusName);
+  }
+
+  // Мгновенный статус (выжигание энергии): облик вспыхивает и сам снимается
+  instantStatus(el: UnitEl, statusName: string) {
+    this.statusLooks.instant(el, statusName);
+  }
+
   // Аура героя: пульсирующая сфера цвета его эффекта. Две половины — за юнитом и перед ним.
-  startHeroAura(el: UnitEl, visual: AuraVisual): string[] {
+  startHeroAura(el: UnitEl, visual: AuraVisual, effect?: string | null): string[] {
     if (!el) return [];
+    // Купол на облике (StatusLooks.BATTLE_AURA_LOOKS); без облика — прежняя сфера
+    const look = effect ? this.statusLooks.startAura(el, effect) : null;
+    if (look) return [look];
     const args = {
       ...this.auraArgs(el, visual),
       // Случайный сдвиг фазы, чтобы ауры разных героев не пульсировали в унисон
@@ -327,8 +346,9 @@ export class BattleFx {
   }
 
   // Срабатывание ауры: волна от носителя и круг по земле
-  auraBurst(el: UnitEl, visual: AuraVisual) {
+  auraBurst(el: UnitEl, visual: AuraVisual, effect?: string | null) {
     if (!el) return;
+    if (effect) this.statusLooks.triggerAura(el, effect);
     const args = this.auraArgs(el, visual);
     this.flare(el, visual.color, args.rx * 2.4, 0.75);
     this.play([
@@ -339,7 +359,7 @@ export class BattleFx {
 
   stopAura(ids: string[]) {
     const service = this.service();
-    ids.forEach(id => service?.removeEmitter(id, 300));
+    ids.forEach(id => (id.startsWith(LOOK_ID_PREFIX) ? this.statusLooks.stop(id) : service?.removeEmitter(id, 300)));
   }
 
   // Размеры сферы — от высоты кадра юнита (босс крупнее — и сфера больше)

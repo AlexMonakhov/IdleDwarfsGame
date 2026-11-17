@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import TimerBadge from '@/components/common/TimerBadge.vue';
 import { computed, nextTick, onBeforeUnmount, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
@@ -6,7 +7,7 @@ import ModalComponent from "@/components/common/ModalComponent.vue";
 import GemButton from "@/components/common/GemButton.vue";
 import FightPreviewList from "@/components/interface/FightPreviewList.vue";
 import ClearedStageRow from "@/components/interface/ClearedStageRow.vue";
-import StageRewardsFooter from "@/components/interface/StageRewardsFooter.vue";
+import StageModalHeader from "@/components/interface/StageModalHeader.vue";
 import TowerRewardLine from "./TowerRewardLine.vue";
 import TowerApiService from "@/services/apiServices/TowerApiService";
 import { ClearedFloorInfo, TowerFloorInfo, TowerOverview } from "@/models/types/Tower";
@@ -15,7 +16,7 @@ import { useResources } from "@/composables/UseResources";
 import { useSquadModal } from "@/composables/UseSquadModal";
 import { scrollToAnchor, useStageRewards } from "@/composables/UseStageRewards";
 import { vDragScroll } from "@/directives/dragScroll";
-import { IconBanner, IconLock, IconTrophy } from '@/components/icons/ui';
+import { IconLock, IconStar, IconTrophy } from '@/components/icons/ui';
 import { IconPower } from '@/components/icons/stats';
 import LoadingCrystal from '@/components/loading/LoadingCrystal.vue';
 
@@ -163,7 +164,22 @@ const lastClearedIndex = computed(() => (tower.value?.clearedFloors.length ?? 0)
     height="min(780px, calc(88 * var(--vh)))"
   >
     <div class="stage-modal">
-        <div v-if="tower" class="stage-modal-header">
+        <StageModalHeader
+          v-if="tower"
+          :remaining="rewards.remaining.value"
+          :busy="rewards.busy.value === 'all'"
+          :notice="rewards.notice.value"
+          :error="rewards.error.value"
+          @claim-all="rewards.claimAll()"
+          @dismiss="rewards.dismiss()"
+          @squad="squadOpen = true"
+        >
+            <template #info>
+                <span class="stage-progress"><IconStar /> {{ t('tower.cleared', { floor: tower.clearedFloor }) }}</span>
+                <span v-if="tower.bestFloor" class="stage-stat"><IconTrophy /> {{ t('tower.best', { floor: tower.bestFloor }) }}</span>
+                <TimerBadge :text="t('tower.weekEnds', { time: timeLeft })" />
+            </template>
+
             <div class="tower-rotation" v-tooltip="t('tower.rotationHint', { count: tower.floorsPerBlock })">
                 <span
                     v-for="(element, block) in tower.rotation"
@@ -178,13 +194,6 @@ const lastClearedIndex = computed(() => (tower.value?.clearedFloors.length ?? 0)
                 <span class="tower-rotation-more">…</span>
             </div>
 
-            <div class="stage-modal-status">
-                <span>⏳ {{ t('tower.weekEnds', { time: timeLeft }) }}</span>
-                <span>{{ t('tower.cleared', { floor: tower.clearedFloor }) }}</span>
-                <span v-if="tower.bestFloor"><IconTrophy /> {{ t('tower.best', { floor: tower.bestFloor }) }}</span>
-                <button class="stage-button" v-tooltip="t('tower.squadHint')" @click="squadOpen = true"><IconBanner /> {{ t('tower.squad') }}</button>
-            </div>
-
             <!-- Пропуск до рекорда прошлых недель: что он даст — видно сразу -->
             <div v-if="tower.skipToFloor && tower.skipReward" class="tower-skip">
                 <span class="tower-skip-hint">{{ t('tower.skipHint') }}</span>
@@ -194,7 +203,7 @@ const lastClearedIndex = computed(() => (tower.value?.clearedFloors.length ?? 0)
                 </GemButton>
             </div>
             <div v-if="skipError" class="stage-message error">{{ t('tower.skipError') }}</div>
-        </div>
+        </StageModalHeader>
 
         <!-- Пока список перезагружается после награды, не прячем его за «Загрузка…» -->
         <LoadingCrystal v-if="loading && !tower" />
@@ -260,17 +269,6 @@ const lastClearedIndex = computed(() => (tower.value?.clearedFloors.length ?? 0)
             </ul>
         </div>
     </div>
-
-    <template #modalFooter>
-        <StageRewardsFooter
-          :remaining="rewards.remaining.value"
-          :busy="rewards.busy.value === 'all'"
-          :notice="rewards.notice.value"
-          :error="rewards.error.value"
-          @claim-all="rewards.claimAll()"
-          @dismiss="rewards.dismiss()"
-        />
-    </template>
   </ModalComponent>
 </template>
 
@@ -286,33 +284,38 @@ const lastClearedIndex = computed(() => (tower.value?.clearedFloors.length ?? 0)
 }
 
 .tower-rotation-block {
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    gap: 4px;
-    padding: 2px 8px;
-    border: 1px solid color-mix(in srgb, var(--element-color) 55%, transparent);
-    border-radius: 10px;
-    background: rgba(14, 19, 34, 0.6);
-    font-size: 12px;
+    column-gap: 5px;
+    height: 28px;
+    padding: 0 10px;
+    box-sizing: border-box;
+    border: 1px solid rgba(157, 173, 175, 0.5);
+    border-radius: 8px;
+    background: rgba(14, 19, 34, 0.7);
     color: #cbd5e1;
-    opacity: 0.75;
+    font-family: 'Arial', sans-serif;
+    font-size: 12px;
+    font-weight: bold;
+    font-variant-numeric: tabular-nums;
 }
 
+/* Как выбранный фильтр стихии на алтаре: рамка и свечение цветом стихии */
 .tower-rotation-block.current {
-    border-color: var(--element-color);
-    box-shadow: 0 0 10px var(--element-color);
     color: #f8fafc;
-    font-weight: 700;
-    opacity: 1;
+    border-color: var(--element-color);
+    box-shadow: 0 0 8px 1px color-mix(in srgb, var(--element-color) 50%, transparent);
 }
 
 .tower-rotation-more {
     color: #cbd5e1;
+    font-family: 'Arial', sans-serif;
+    font-weight: bold;
 }
 
 .tower-element-icon {
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
 }
 
 .tower-skip {

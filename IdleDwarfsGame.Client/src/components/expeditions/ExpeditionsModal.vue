@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import TimerBadge from '@/components/common/TimerBadge.vue';
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { emitTutorialEvent } from '@/tutorial/events';
 import HeroFilters from '@/components/inventory/HeroFilters.vue';
@@ -246,9 +247,11 @@ const footerText = computed(() => {
     if (errorMessage.value) return errorMessage.value;
     if (notice.value) return notice.value;
     if (selectedStatus.value === 'Available' && !partyIds.value.length) return t('expeditions.needHero');
-    if (!selected.value && board.value) return t('expeditions.refreshIn', { time: formatTime(msUntil(board.value.refreshAt)) });
     return '';
 });
+// Обновление доски — таймером в футере, когда там нет сообщения
+const footerTimer = computed(() =>
+    !footerText.value && !selected.value && board.value ? t('expeditions.refreshIn', { time: formatTime(msUntil(board.value.refreshAt)) }) : '');
 </script>
 
 <template>
@@ -295,7 +298,7 @@ const footerText = computed(() => {
                             <span class="exp-progress-shine"></span>
                         </div>
                         <span class="exp-progress-text">
-                            <template v-if="statusOf(expedition) === 'InProgress'">{{ t('expeditions.timeLeft', { time: formatTime(msUntil(expedition.endsAt)) }) }}</template>
+                            <TimerBadge v-if="statusOf(expedition) === 'InProgress'" :text="t('expeditions.timeLeft', { time: formatTime(msUntil(expedition.endsAt)) })" />
                             <template v-else>{{ t('expeditions.status.Ready') }}</template>
                         </span>
                     </div>
@@ -391,7 +394,7 @@ const footerText = computed(() => {
                 >
                     <div class="scene-overlay">
                         <span class="scene-status">{{ t(`expeditions.status.${selectedStatus}`) }}</span>
-                        <span v-if="selectedStatus === 'InProgress'" class="scene-timer">{{ formatTime(msUntil(selected.endsAt)) }}</span>
+                        <TimerBadge v-if="selectedStatus === 'InProgress'" :text="formatTime(msUntil(selected.endsAt))" />
                     </div>
                 </ExpeditionScene>
             </div>
@@ -399,7 +402,8 @@ const footerText = computed(() => {
 
         <template #modalFooter>
             <div class="expeditions-footer">
-                <span class="expeditions-status" :class="{ 'expeditions-status-error': errorMessage }">{{ footerText }}</span>
+                <TimerBadge v-if="footerTimer" :text="footerTimer" />
+                <span v-else class="expeditions-status" :class="{ 'expeditions-status-error': errorMessage }">{{ footerText }}</span>
                 <GemButton v-if="selected" :color="'blue'" :disabled="busy" @click="back">{{ t('common.back') }}</GemButton>
                 <GemButton
                     v-if="selectedStatus === 'Available'"
@@ -910,13 +914,6 @@ const footerText = computed(() => {
     letter-spacing: 1px;
 }
 
-.scene-timer {
-    color: #ffd166;
-    font-size: 22px;
-    font-weight: bold;
-    font-variant-numeric: tabular-nums;
-    text-shadow: 0 1px 3px #000;
-}
 
 /* ===== Футер ===== */
 .expeditions-footer {

@@ -17,30 +17,65 @@
 
       <div class="lab-panel" :class="{ compact: panelHidden }">
         <div class="lab-head">
+          <div class="lab-controls lab-sections">
+            <button v-for="item in SECTIONS" :key="item.kind" :class="{ active: section === item.kind }" @click="section = item.kind">
+              {{ item.title }} <span class="lab-hint">{{ countOf(item.kind) }}</span>
+            </button>
+          </div>
           <div class="lab-title">
-            <span class="lab-number">{{ index + 1 }} / {{ CONCEPTS.length }}</span>
+            <span class="lab-number">{{ index + 1 }} / {{ list.length }}</span>
             <b>{{ current.name }}</b>
             <button class="lab-like" :class="{ on: liked.has(current.id) }" v-tooltip="'Нравится (клавиша L)'" @click="toggleLike(current.id)">★</button>
           </div>
           <div class="lab-spell">{{ current.group }} · задумано под {{ current.spell }}</div>
           <div class="lab-about">{{ current.about }}</div>
-          <div v-if="current.levels" class="lab-controls">
+          <div v-if="currentConcept?.levels || currentLook?.levels" class="lab-controls">
             <span class="lab-label">Уровень</span>
             <button v-for="value in LEVELS" :key="value" v-tooltip="`Клавиша ${value}`" :class="{ active: level === value }" @click="level = value">Ур. {{ value }}</button>
-            <span v-if="current.targets" class="lab-hint">целей: {{ targetsText }}</span>
-            <button v-if="current.extras" v-tooltip="'Отложенные добавки — потом из них сделаем отдельные заклинания (клавиша E)'" :class="{ active: extras }" @click="extras = !extras">Доп. эффекты</button>
+            <span v-if="currentConcept?.targets" class="lab-hint">целей: {{ targetsText }}</span>
+            <button v-if="currentConcept?.extras" v-tooltip="'Отложенные добавки — потом из них сделаем отдельные заклинания (клавиша E)'" :class="{ active: extras }" @click="extras = !extras">Доп. эффекты</button>
           </div>
-          <div v-if="current.artifacts?.length" class="lab-controls">
+          <div v-if="currentConcept?.artifacts?.length" class="lab-controls">
             <span class="lab-label">Артефакт</span>
             <button :class="{ active: !artifact }" @click="artifact = null">Нет</button>
-            <button v-for="item in current.artifacts" :key="item.key" v-tooltip="item.about" :class="{ active: artifact === item }" @click="artifact = item">{{ item.name }}</button>
+            <button v-for="item in currentConcept.artifacts" :key="item.key" v-tooltip="item.about" :class="{ active: artifact === item }" @click="artifact = item">{{ item.name }}</button>
           </div>
           <div v-if="artifact" class="lab-about">{{ artifact.about }}</div>
+
+          <template v-if="currentLook">
+            <div class="lab-controls">
+              <button v-tooltip="'Клавиша T или пробел: тик статуса / пульс ауры'" @click="triggerAll()">⚡ Сработать</button>
+              <button v-tooltip="'Срабатывать само каждые пару секунд'" :class="{ active: autoTrigger }" @click="autoTrigger = !autoTrigger">Авто</button>
+              <button v-tooltip="'Клавиша A: оставить висеть и наложить следующий'" :class="{ active: stack.includes(currentLook.id) }" @click="toggleStack(currentLook.id)">
+                {{ stack.includes(currentLook.id) ? '− Из набора' : '+ В набор' }}
+              </button>
+            </div>
+            <div v-if="section === 'status'" class="lab-controls">
+              <span class="lab-label">Целей</span>
+              <button v-for="value in TARGET_COUNTS" :key="value" :class="{ active: lookTargets === value }" @click="lookTargets = value">{{ value === 5 ? 'все' : value }}</button>
+            </div>
+            <div v-if="section === 'aura'" class="lab-controls">
+              <span class="lab-label">Носители</span>
+              <button :class="{ active: !allBearers }" @click="allBearers = false">Один</button>
+              <button :class="{ active: allBearers }" @click="allBearers = true">Весь отряд</button>
+            </div>
+            <div v-if="section === 'aura'" class="lab-controls">
+              <span class="lab-label">Волна</span>
+              <button :class="{ active: !auraWave }" @click="auraWave = null">Без волны</button>
+              <button v-for="wave in currentWaves" :key="wave.id" v-tooltip="wave.about" :class="{ active: auraWave === wave }" @click="auraWave = wave">{{ wave.name }}</button>
+            </div>
+          </template>
+          <div v-if="isLooks && stackLooks.length" class="lab-controls lab-stack">
+            <span class="lab-label">Набор</span>
+            <button v-for="look in stackLooks" :key="look.id" v-tooltip="'Снять'" @click="toggleStack(look.id)">{{ look.name }} ×</button>
+            <button v-tooltip="'Клавиша C'" @click="stack = []">Снять все</button>
+          </div>
+
           <div class="lab-controls">
             <button v-tooltip="'Стрелка влево или вверх'" @click="step(-1)">◀</button>
-            <button v-tooltip="'Пробел'" @click="replay()">↻ Ещё раз</button>
+            <button v-if="!isLooks" v-tooltip="'Пробел'" @click="replay()">↻ Ещё раз</button>
             <button v-tooltip="'Стрелка вправо или вниз'" @click="step(1)">▶</button>
-            <button :class="{ active: loop }" @click="loop = !loop">Повтор</button>
+            <button v-if="!isLooks" :class="{ active: loop }" @click="loop = !loop">Повтор</button>
             <button v-for="value in SPEEDS" :key="value" :class="{ active: speed === value }" @click="speed = value">x{{ value }}</button>
             <button v-tooltip="'Клавиша H'" @click="interfaceHidden = !interfaceHidden">{{ interfaceHidden ? 'Показать меню' : 'Скрыть меню' }}</button>
             <button v-tooltip="'Клавиша P'" @click="panelHidden = !panelHidden">{{ panelHidden ? 'Показать список' : 'Скрыть список' }}</button>
@@ -56,14 +91,15 @@
             <div class="lab-group">{{ group.title }}</div>
             <button
               v-for="item in group.items"
-              :key="item.concept.id"
+              :key="item.entry.id"
               class="lab-item"
               :class="{ active: item.index === index }"
               @click="select(item.index)"
             >
-              <span class="lab-item-star" :class="{ on: liked.has(item.concept.id) }">★</span>
-              <span class="lab-item-name">{{ item.concept.name }}</span>
-              <span class="lab-item-spell">{{ item.concept.spell }}</span>
+              <span class="lab-item-star" :class="{ on: liked.has(item.entry.id) }">★</span>
+              <span class="lab-item-name">{{ item.entry.name }}</span>
+              <span v-if="isLooks" class="lab-item-add" :class="{ on: stack.includes(item.entry.id) }" v-tooltip="'В набор: висеть вместе с другими'" @click.stop="toggleStack(item.entry.id)">+</span>
+              <span v-else class="lab-item-spell">{{ item.entry.spell }}</span>
             </button>
           </template>
         </div>
@@ -91,23 +127,38 @@ import { useInterface } from '@/composables/UseInterface';
 import { CombatUnitInfo, HeroElement } from '@/battle/types';
 import { PREVIEW_LOOK_RANK } from '@/components/collection/catalog';
 import {
-  CONCEPTS, conceptById, countFor, startConcept, stepConcept, stopConcept,
-  type ArtifactDemo, type Concept, type ConceptRun, type ConceptUnit, type SpellLevel, type StageUnits,
+  CONCEPTS, LOOKS, attachLook, conceptById, countFor, disposeLook, removeLook, startConcept, stepConcept, stepLook, stopConcept, triggerLook,
+  type ArtifactDemo, type Concept, type ConceptRun, type ConceptUnit, type Look, type LookInstance, type SpellLevel, type StageUnits,
 } from '@/services/pixiFx/concepts';
 import { tintOf } from '@/services/pixiFx/effect';
 import type { PixiScene } from '@/services/pixiFx/PixiScene';
 
 // Концепты анимаций: наброски эффектов на настоящей арене с юнитами. Листаются стрелками, понравившиеся
-// отмечаются звёздочкой (хранятся в браузере) — из них потом собираются эффекты заклинаний.
-// Сами концепты — services/pixiFx/concepts
+// отмечаются звёздочкой (хранятся в браузере) — из них потом собираются эффекты.
+// Заклинания — разовые сцены (концепты). Ауры и эффекты — облики: висят на юнитах, пока их не снимут, и срабатывают
+// по кнопке или сами; облики можно складывать в набор и смотреть, как несколько эффектов висят разом.
+// Сами концепты и облики — services/pixiFx/concepts
+
+type Section = 'spell' | 'aura' | 'status';
+type Entry = Concept | Look;
 
 const UNIT_SCALE = 0.8; // как на арене
 const SPEEDS = [1, 0.5, 0.25];
 const LEVELS: SpellLevel[] = [1, 2, 3];
+const TARGET_COUNTS = [1, 2, 5] as const;
 // Пауза между повторами, секунды
 const LOOP_GAP = 0.7;
+// Авто-срабатывание обликов: раз в столько секунд; статусы одного юнита тикают друг за другом через STAGGER
+const AUTO_PERIOD: Record<Section, number> = { spell: 0, aura: 3.4, status: 2.4 };
+const TRIGGER_STAGGER = 0.25;
 const SPRITE_WAIT_MS = 15000;
 const LIKED_KEY = 'fx-concepts-liked';
+const SECTION_KEY = 'fx-concepts-section';
+const SECTIONS: { kind: Section; title: string }[] = [
+  { kind: 'spell', title: 'Заклинания' },
+  { kind: 'aura', title: 'Ауры' },
+  { kind: 'status', title: 'Эффекты' },
+];
 // Реестр вьюх юнитов общий с ареной и нагрузочным тестом: id не должны пересекаться
 const FIRST_ID = 9301;
 
@@ -146,6 +197,7 @@ provide(BATTLE_FX_KEY, battleFx);
 
 const teamA = computed(() => teamUnits(state, 1));
 const teamB = computed(() => teamUnits(state, 2));
+const byPosition = (team: BattleUnit[]) => [...team].sort((a, b) => a.position - b.position);
 
 const arena = shallowRef(ARENAS.find(item => item.title === 'red') ?? ARENAS[0]);
 const bgStyle = computed(() => ({
@@ -153,32 +205,73 @@ const bgStyle = computed(() => ({
   backgroundRepeat: 'round',
 }));
 
+// ----- Разделы и список -----
+const SPELL_CONCEPTS = CONCEPTS.filter(c => (c.kind ?? 'spell') === 'spell');
+const AURA_WAVES = CONCEPTS.filter(c => c.kind === 'aura');
+const entriesOf = (kind: Section): Entry[] => (kind === 'spell' ? SPELL_CONCEPTS : LOOKS.filter(look => look.kind === kind));
+const countOf = (kind: Section) => entriesOf(kind).length;
+const isLook = (entry: Entry | null | undefined): entry is Look => !!entry && 'kind' in entry && (entry.kind === 'aura' || entry.kind === 'status') && !('duration' in entry);
+
+const readSection = (): Section => {
+  try {
+    const saved = localStorage.getItem(SECTION_KEY);
+    return SECTIONS.some(item => item.kind === saved) ? (saved as Section) : 'spell';
+  } catch {
+    return 'spell';
+  }
+};
 const loading = ref(true);
+const section = ref<Section>(readSection());
+const isLooks = computed(() => section.value !== 'spell');
+const list = computed(() => entriesOf(section.value));
 const index = ref(0);
 const loop = ref(true);
 const panelHidden = ref(false);
 const speed = ref(1);
-// Уровень заклинания для концептов с levels: true; по умолчанию максимальный
+// Уровень заклинания или ауры; по умолчанию максимальный
 const level = ref<SpellLevel>(3);
 // Доп. эффекты концепта (fx.extras) и выбранный артефакт заклинания
 const extras = ref(false);
 const artifact = shallowRef<ArtifactDemo | null>(null);
-const current = computed(() => CONCEPTS[index.value]);
-const targetsText = computed(() => current.value.targets?.map(v => (v === 'all' ? 'все' : v)).join(' / ') ?? '');
+const current = computed<Entry>(() => list.value[index.value] ?? list.value[0]);
+const currentConcept = computed(() => (isLook(current.value) ? null : current.value));
+const currentLook = computed(() => (isLook(current.value) ? current.value : null));
+const targetsText = computed(() => currentConcept.value?.targets?.map(v => (v === 'all' ? 'все' : v)).join(' / ') ?? '');
 const groups = computed(() => {
-  const result: { title: string; items: { concept: typeof CONCEPTS[number]; index: number }[] }[] = [];
-  CONCEPTS.forEach((concept, i) => {
-    let group = result.find(g => g.title === concept.group);
+  const result: { title: string; items: { entry: Entry; index: number }[] }[] = [];
+  list.value.forEach((entry, i) => {
+    let group = result.find(g => g.title === entry.group);
     if (!group) {
-      group = { title: concept.group, items: [] };
+      group = { title: entry.group, items: [] };
       result.push(group);
     }
-    group.items.push({ concept, index: i });
+    group.items.push({ entry, index: i });
   });
   return result;
 });
 
+// ----- Облики: набор, цели, волна ауры -----
+// Набор — облики, которые висят вместе с текущим (на одном юните может быть несколько статусов)
+const stack = ref<string[]>([]);
+const stackLooks = computed(() => stack.value.map(id => LOOKS.find(look => look.id === id)).filter((look): look is Look => !!look));
+const toggleStack = (id: string) => {
+  stack.value = stack.value.includes(id) ? stack.value.filter(item => item !== id) : [...stack.value, id];
+};
+const shownLooks = computed(() => {
+  const result = currentLook.value ? [currentLook.value] : [];
+  for (const look of stackLooks.value) if (!result.includes(look)) result.push(look);
+  return result;
+});
+const lookTargets = ref<typeof TARGET_COUNTS[number]>(1);
+const allBearers = ref(false);
+const autoTrigger = ref(true);
+const wavesFor = (look: Look) => AURA_WAVES.filter(wave => wave.spell === look.spell);
+const currentWaves = computed(() => (currentLook.value?.kind === 'aura' ? wavesFor(currentLook.value) : []));
+// Волна, которую аура пускает при срабатывании (концепт из auras.ts); null — только облик вздрагивает
+const auraWave = shallowRef<Concept | null>(null);
+
 // ----- Понравившиеся -----
+const ALL: Entry[] = [...CONCEPTS, ...LOOKS];
 const readLiked = (): string[] => {
   try {
     return JSON.parse(localStorage.getItem(LIKED_KEY) ?? '[]');
@@ -192,10 +285,10 @@ const toggleLike = (id: string) => {
   else liked.add(id);
   localStorage.setItem(LIKED_KEY, JSON.stringify([...liked]));
 };
-const likedNames = computed(() => CONCEPTS.filter(c => liked.has(c.id)).map(c => `${c.name} (${c.spell})`).join(', '));
+const likedNames = computed(() => ALL.filter(c => liked.has(c.id)).map(c => `${c.name} (${c.spell})`).join(', '));
 const copied = ref(false);
 const copyLiked = async () => {
-  await navigator.clipboard.writeText(CONCEPTS.filter(c => liked.has(c.id)).map(c => `${c.id} — ${c.name} (${c.spell})`).join('\n'));
+  await navigator.clipboard.writeText(ALL.filter(c => liked.has(c.id)).map(c => `${c.id} — ${c.name} (${c.spell})`).join('\n'));
   copied.value = true;
   setTimeout(() => (copied.value = false), 1500);
 };
@@ -223,25 +316,21 @@ const unitOf = (unit: BattleUnit): ConceptUnit => {
   };
 };
 
-// Сцена по механике: цели — передние враги (сколько бьёт заклинание на этом уровне), остальные — в стороне;
-// лечимые — самые первые союзники после кастера (или весь отряд)
-const makeStage = (target: PixiScene, concept: Concept, lvl: SpellLevel, demo: ArtifactDemo | null): StageUnits => {
-  const allies = [...teamA.value].sort((a, b) => a.position - b.position).map(unitOf);
-  const enemies = [...teamB.value].sort((a, b) => a.position - b.position).map(unitOf);
-  const hit = countFor(concept.targets, lvl, enemies.length);
-  const healRule = demo?.heals ?? concept.heals?.[lvl - 1] ?? 0;
-  const healCount = healRule === 'all' ? allies.length : healRule;
-  // Лечение одного — самый раненый, не кастер
-  const healed = healCount >= allies.length ? allies : allies.slice(1, 1 + healCount);
+const castFor = (id: number, color?: string) => getUnitView(id)?.cast?.(color);
+
+// Вся арена: все враги — цели, кастер — первый союзник
+const baseStage = (target: PixiScene): StageUnits => {
+  const allies = byPosition(teamA.value).map(unitOf);
+  const enemies = byPosition(teamB.value).map(unitOf);
   return {
     caster: allies[0],
-    enemies: enemies.slice(0, hit),
-    bystanders: enemies.slice(hit),
+    enemies,
+    bystanders: [],
     allies,
-    healed,
+    healed: [],
     width: target.size.width,
     height: target.size.height,
-    cast: color => getUnitView(teamA.value.find(u => u.position === 1)?.id ?? -1)?.cast?.(color),
+    cast: color => castFor(teamA.value.find(u => u.position === 1)?.id ?? -1, color),
     shake: (power, seconds = 0.3) => (shakeState = { power, left: seconds, total: seconds }),
     flash: (css, alpha = 0.5, seconds = 0.3) => {
       flashLayer.clear().rect(0, 0, target.size.width, target.size.height).fill(tintOf(css));
@@ -250,8 +339,20 @@ const makeStage = (target: PixiScene, concept: Concept, lvl: SpellLevel, demo: A
   };
 };
 
+// Сцена по механике: цели — передние враги (сколько бьёт заклинание на этом уровне), остальные — в стороне;
+// лечимые — самые первые союзники после кастера (или весь отряд)
+const makeStage = (target: PixiScene, concept: Concept, lvl: SpellLevel, demo: ArtifactDemo | null): StageUnits => {
+  const base = baseStage(target);
+  const hit = countFor(concept.targets, lvl, base.enemies.length);
+  const healRule = demo?.heals ?? concept.heals?.[lvl - 1] ?? 0;
+  const healCount = healRule === 'all' ? base.allies.length : healRule;
+  // Лечение одного — самый раненый, не кастер
+  const healed = healCount >= base.allies.length ? base.allies : base.allies.slice(1, 1 + healCount);
+  return { ...base, enemies: base.enemies.slice(0, hit), bystanders: base.enemies.slice(hit), healed };
+};
+
 // Срабатывание артефакта отдельным кастом: свой концепт, свои цели (те же, соседи главной цели, случайная…)
-const followUp = (target: PixiScene, main: StageUnits, demo: ArtifactDemo): { concept: Concept; stage: StageUnits; at: number; level: SpellLevel; origin: ConceptUnit | null } | null => {
+const followUp = (main: StageUnits, demo: ArtifactDemo): { concept: Concept; stage: StageUnits; at: number; level: SpellLevel; origin: ConceptUnit | null } | null => {
   const then = demo.then;
   if (!then) return null;
   const ids = Array.isArray(then.concept) ? then.concept : [then.concept];
@@ -273,14 +374,14 @@ const followUp = (target: PixiScene, main: StageUnits, demo: ArtifactDemo): { co
   return { concept, stage, at: then.after ?? 0.8, level: then.level, origin };
 };
 
-// ----- Проигрывание -----
-// Основной каст и, если выбран артефакт со срабатыванием, его отдельный каст следом
+// ----- Проигрывание концептов -----
+// Основной каст и, если выбран артефакт со срабатыванием, его отдельный каст следом; здесь же волны аур
 let runs: ConceptRun[] = [];
 let pending: { at: number; launch: () => ConceptRun } | null = null;
 let elapsed = 0;
 let gap = 0;
 
-const stop = () => {
+const stopRuns = () => {
   runs.forEach(stopConcept);
   runs = [];
   pending = null;
@@ -290,11 +391,82 @@ const stop = () => {
   scene?.app.stage.position.set(0, 0);
 };
 
-const start = () => {
-  stop();
+// ----- Облики на юнитах -----
+interface LookEntry {
+  key: string;
+  look: Look;
+  unit: BattleUnit;
+  inst: LookInstance;
+}
+let looks: LookEntry[] = [];
+let queued: { at: number; entry: LookEntry }[] = [];
+let lookClock = 0;
+let nextAuto = 0;
+
+// На ком висит облик: аура — на носителе (первый союзник или весь отряд), статус — на передних врагах
+// или, если это лечение, на союзниках после первого
+const unitsFor = (look: Look): BattleUnit[] => {
+  const allies = byPosition(teamA.value);
+  if (look.kind === 'aura') return allBearers.value ? allies : allies.slice(0, 1);
+  const n = lookTargets.value;
+  if (look.side === 'allies') return n >= allies.length ? allies : allies.slice(1, 1 + n);
+  return byPosition(teamB.value).slice(0, n);
+};
+const lookKey = (look: Look, unit: BattleUnit) => `${look.id}|${unit.id}|${look.levels ? level.value : 0}`;
+const alive = (entry: LookEntry) => entry.inst.removedAt === null;
+
+// Привести облики на сцене к нужным: лишние плавно гаснут, новые появляются (уже висящие не трогаем)
+const syncLooks = () => {
   if (!scene || loading.value) return;
+  const want = new Map<string, { look: Look; unit: BattleUnit }>();
+  if (isLooks.value) for (const look of shownLooks.value) for (const unit of unitsFor(look)) want.set(lookKey(look, unit), { look, unit });
+  looks.filter(entry => alive(entry) && !want.has(entry.key)).forEach(entry => removeLook(entry.inst));
+  const base = baseStage(scene);
+  let added = false;
+  for (const [key, item] of want) {
+    if (looks.some(entry => entry.key === key && alive(entry))) continue;
+    looks.push({ key, ...item, inst: attachLook(item.look, unitOf(item.unit), base, { back, front }, level.value) });
+    added = true;
+  }
+  // Новый облик сначала просто висит, срабатывание — чуть позже
+  if (added) nextAuto = lookClock + 1.2;
+};
+
+const clearLooks = () => {
+  looks.forEach(entry => disposeLook(entry.inst));
+  looks = [];
+  queued = [];
+};
+
+// Сработать: статусы одного юнита — друг за другом, как пачка тиков в начале его хода; носители аур — с разбегом
+const triggerAll = () => {
+  const byUnit = new Map<number, LookEntry[]>();
+  for (const entry of looks.filter(alive)) byUnit.set(entry.unit.id, [...(byUnit.get(entry.unit.id) ?? []), entry]);
+  [...byUnit.values()].forEach((group, u) => group.forEach((entry, i) => queued.push({ at: lookClock + i * TRIGGER_STAGGER + (entry.look.kind === 'aura' ? u * 0.12 : 0), entry })));
+  nextAuto = lookClock + AUTO_PERIOD[section.value];
+};
+
+const fire = (entry: LookEntry) => {
+  if (!alive(entry)) return;
+  triggerLook(entry.inst);
+  if (entry.look.kind !== 'aura' || !scene) return;
+  const wave = entry.look === currentLook.value ? auraWave.value : wavesFor(entry.look)[0];
+  if (!wave) return;
+  const base = baseStage(scene);
+  const stage: StageUnits = { ...base, caster: unitOf(entry.unit), healed: wave.heals ? base.allies : [], cast: color => castFor(entry.unit.id, color) };
+  runs.push(startConcept(wave, stage, { back, front }, { level: level.value }));
+};
+
+const start = () => {
+  stopRuns();
+  if (!scene || loading.value) return;
+  if (isLooks.value) {
+    syncLooks();
+    return;
+  }
   const target = scene;
-  const concept = current.value;
+  const concept = currentConcept.value;
+  if (!concept) return;
   const lvl = concept.levels ? level.value : 3;
   const demo = artifact.value && concept.artifacts?.includes(artifact.value) ? artifact.value : null;
   const stage = makeStage(target, concept, lvl, demo);
@@ -305,7 +477,7 @@ const start = () => {
   });
   runs = [main];
   elapsed = 0;
-  const next = demo ? followUp(target, stage, demo) : null;
+  const next = demo ? followUp(stage, demo) : null;
   if (demo && next) {
     pending = {
       at: main.duration * next.at,
@@ -316,6 +488,15 @@ const start = () => {
       }),
     };
   }
+};
+
+const tickLooks = (dt: number) => {
+  lookClock += dt;
+  const due = queued.filter(item => item.at <= lookClock);
+  queued = queued.filter(item => item.at > lookClock);
+  due.forEach(item => fire(item.entry));
+  if (isLooks.value && autoTrigger.value && lookClock >= nextAuto) triggerAll();
+  looks = looks.filter(entry => !stepLook(entry.inst, dt));
 };
 
 const tick = (frame: number) => {
@@ -335,6 +516,12 @@ const tick = (frame: number) => {
       scene.app.stage.position.set(0, 0);
     }
   }
+  const dt = frame * speed.value;
+  tickLooks(dt);
+  if (isLooks.value) {
+    runs = runs.filter(run => !stepConcept(run, dt));
+    return;
+  }
   if (!runs.length && !pending) {
     if (loop.value && !loading.value && gap > 0) {
       gap -= frame;
@@ -342,7 +529,6 @@ const tick = (frame: number) => {
     }
     return;
   }
-  const dt = frame * speed.value;
   elapsed += dt;
   if (pending && elapsed >= pending.at) {
     runs.push(pending.launch());
@@ -350,29 +536,44 @@ const tick = (frame: number) => {
   }
   runs = runs.filter(run => !stepConcept(run, dt));
   if (!runs.length && !pending) {
-    stop();
+    stopRuns();
     gap = LOOP_GAP;
   }
 };
 
-const replay = () => start();
+const replay = () => (isLooks.value ? triggerAll() : start());
 const select = (value: number) => {
-  index.value = (value + CONCEPTS.length) % CONCEPTS.length;
+  index.value = (value + list.value.length) % list.value.length;
   start();
 };
 const step = (delta: number) => select(index.value + delta);
-// Сменили уровень — показать концепт заново на нём
+// Сменили уровень — концепт заново, облики аур пересоздаются на новом уровне
 watch(level, () => {
-  if (current.value.levels) replay();
+  if (isLooks.value) syncLooks();
+  else if (currentConcept.value?.levels) replay();
 });
-watch([extras, artifact], () => replay());
-// Другой концепт — артефакт сбрасывается, если у нового его нет
-watch(index, () => {
-  if (artifact.value && !current.value.artifacts?.includes(artifact.value)) artifact.value = null;
+watch([extras, artifact], () => {
+  if (!isLooks.value) replay();
 });
+watch([stack, lookTargets, allBearers], () => syncLooks());
+// Другой раздел — с первого; в заклинаниях облики не висят
+watch(section, value => {
+  try {
+    localStorage.setItem(SECTION_KEY, value);
+  } catch {
+    // без сохранения раздела
+  }
+  if (value === 'spell') clearLooks();
+  select(0);
+});
+// Другой концепт — артефакт сбрасывается, если у нового его нет; у ауры — её первая волна
+watch(current, () => {
+  if (artifact.value && !currentConcept.value?.artifacts?.includes(artifact.value)) artifact.value = null;
+  auraWave.value = currentWaves.value[0] ?? null;
+}, { immediate: true });
 
 watch(loop, on => {
-  if (on && !runs.length) start();
+  if (on && !runs.length && !isLooks.value) start();
 });
 
 const { interfaceHidden } = useInterface();
@@ -384,6 +585,9 @@ const onKey = (event: KeyboardEvent) => {
     ArrowLeft: () => step(-1),
     ArrowUp: () => step(-1),
     Space: () => replay(),
+    KeyT: () => triggerAll(),
+    KeyA: () => currentLook.value && toggleStack(currentLook.value.id),
+    KeyC: () => (stack.value = []),
     KeyL: () => toggleLike(current.value.id),
     KeyH: () => (interfaceHidden.value = !interfaceHidden.value),
     KeyP: () => (panelHidden.value = !panelHidden.value),
@@ -426,7 +630,8 @@ onMounted(async () => {
 onBeforeUnmount(() => {
   active = false;
   window.removeEventListener('keydown', onKey);
-  stop();
+  stopRuns();
+  clearLooks();
   scene?.removeTicker(tick);
   // Сцену удаляет слой; свои контейнеры убираем сами, если она ещё жива
   for (const node of [back, front, flashLayer]) {
@@ -527,6 +732,9 @@ onBeforeUnmount(() => {
   gap: 4px;
   margin-top: 4px;
 }
+.lab-sections {
+  margin: 0 0 8px;
+}
 .lab-label {
   color: #94a3b8;
   margin-right: 4px;
@@ -602,6 +810,23 @@ onBeforeUnmount(() => {
 }
 .lab-item-name {
   flex: 1;
+}
+.lab-item-add {
+  color: #64748b;
+  font-weight: bold;
+  padding: 0 4px;
+  border-radius: 4px;
+}
+.lab-item-add:hover {
+  color: #e2e8f0;
+  background: rgba(255, 255, 255, 0.12);
+}
+.lab-item-add.on {
+  color: #0e1322;
+  background: #fbbf24;
+}
+.lab-stack button {
+  border-color: rgba(251, 191, 36, 0.5);
 }
 .lab-item-spell {
   color: #94a3b8;

@@ -148,7 +148,7 @@ const syncHeroAura = () => {
   fx.stopAura(heroAuraIds);
   heroAuraIds = [];
   if (heroAuraKey.value && spriteRef.value) {
-    heroAuraIds = fx.startHeroAura(spriteRef.value, resolveAuraVisual(auraEffect.value, props.unit.auraTarget));
+    heroAuraIds = fx.startHeroAura(spriteRef.value, resolveAuraVisual(auraEffect.value, props.unit.auraTarget), auraEffect.value);
   }
 };
 

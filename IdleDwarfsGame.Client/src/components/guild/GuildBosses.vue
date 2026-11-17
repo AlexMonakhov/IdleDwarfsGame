@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import TimerBadge from '@/components/common/TimerBadge.vue';
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
@@ -10,7 +11,7 @@ import { type AuraEffect, elementAura } from '@/components/effects/elementAura';
 import { STATUS_ICONS } from '@/components/icons/status';
 import { elementColor } from '@/battle/sprites';
 import { statusLabel } from '@/i18n';
-import SquadRow from '@/components/inventory/SquadRow.vue';
+import SquadSummary from '@/components/inventory/SquadSummary.vue';
 import GuildApiService from '@/services/apiServices/GuildApiService';
 import HeroesApiService from '@/services/apiServices/HeroesApiService';
 import { HeroInfo, squadSlotIds } from '@/models/types/Heroes';
@@ -86,6 +87,8 @@ const bosses = computed(() => overview.value?.bosses ?? []);
 /* ===== Отряд ===== */
 // Окно отряда открывается поверх гильдии; когда его закрыли — перечитываем боссов вместе с новым отрядом
 const { squadOpen } = useSquadModal();
+// В гильдии отряд по умолчанию развёрнут карточками; кнопкой сворачивается в портреты
+const squadExpanded = ref(true);
 
 watch(squadOpen, (isOpen, wasOpen) => {
     if (!isOpen && wasOpen) load();
@@ -152,22 +155,26 @@ const claim = async (boss: GuildBossInfo) => {
     <div class="guild-page">
         <div class="guild-bosses-heading">
             <span class="guild-hint">{{ t('guild.bosses.hint', { minutes: overview?.attackCooldownMinutes ?? 60 }) }}</span>
-            <span v-if="overview" class="guild-bosses-reset">
-                ⏳ {{ t('guild.bosses.resetIn', { time: formatTime(msUntil(overview.resetAt)) }) }}
-            </span>
+            <TimerBadge v-if="overview" :text="t('guild.bosses.resetIn', { time: formatTime(msUntil(overview.resetAt)) })" />
         </div>
 
         <!-- ===== Отряд, которым бьём боссов ===== -->
-        <section v-if="overview" class="boss-squad">
-            <div class="boss-squad-heading">
-                <span class="boss-squad-title">{{ t('guild.bosses.squad') }}</span>
+        <SquadSummary
+            v-if="overview"
+            v-model:expanded="squadExpanded"
+            class="boss-squad"
+            :title="t('guild.bosses.squad')"
+            :heroes="squad"
+            @slot-click="squadOpen = true"
+        >
+            <template #info>
                 <span v-if="noSquad" class="boss-squad-empty">{{ t('guild.bosses.noSquad') }}</span>
                 <span v-else class="boss-squad-power"><StatIcon stat="power" /> {{ t('power.squad', { power: squadPower }) }}</span>
+            </template>
+            <template #actions>
                 <GemButton :color="'pink'" :disabled="!!busy" @click="squadOpen = true">{{ t('guild.bosses.editSquad') }}</GemButton>
-            </div>
-            <!-- Тот же ряд слотов, что в окне отряда; клик по слоту открывает окно отряда -->
-            <SquadRow :heroes="squad" readonly @slot-click="squadOpen = true" />
-        </section>
+            </template>
+        </SquadSummary>
 
         <LoadingCrystal v-if="loading && !overview" />
         <div v-else-if="loadError && !overview" class="guild-hint guild-error">{{ t('guild.bosses.loadError') }}</div>
@@ -248,9 +255,7 @@ const claim = async (boss: GuildBossInfo) => {
                         >{{ busy === `claim-${boss.tier}` ? t('guild.bosses.claiming') : t('guild.bosses.claim') }}</GemButton>
                     </template>
                     <template v-else>
-                        <span v-if="cooldownLeft(boss) > 0" class="boss-status">
-                            {{ t('guild.bosses.nextAttack', { time: formatTime(cooldownLeft(boss)) }) }}
-                        </span>
+                        <TimerBadge v-if="cooldownLeft(boss) > 0" :text="t('guild.bosses.nextAttack', { time: formatTime(cooldownLeft(boss)) })" />
                         <GemButton
                             v-else
                             :color="'red'"
@@ -275,16 +280,6 @@ const claim = async (boss: GuildBossInfo) => {
     column-gap: 12px;
 }
 
-.guild-bosses-reset {
-    flex-shrink: 0;
-    padding: 2px 8px;
-    border-radius: 8px;
-    background: rgba(0, 0, 0, 0.65);
-    color: #fde68a;
-    font-size: 12px;
-    font-weight: bold;
-    font-variant-numeric: tabular-nums;
-}
 
 .guild-error {
     color: #ffb4b4;
@@ -294,23 +289,6 @@ const claim = async (boss: GuildBossInfo) => {
 .boss-squad {
     margin: 4px 0 6px;
     padding: 8px;
-}
-
-.boss-squad-heading {
-    display: flex;
-    align-items: center;
-    column-gap: 14px;
-    /* Под номерами слотов, которые выступают над рядом */
-    margin-bottom: 18px;
-}
-
-.boss-squad-title {
-    color: #f8fafc;
-    font-size: 14px;
-    font-weight: bold;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.8);
 }
 
 .boss-squad-power {
@@ -324,11 +302,6 @@ const claim = async (boss: GuildBossInfo) => {
     color: #ffb4b4;
     font-size: 13px;
     font-weight: bold;
-}
-
-.boss-squad-heading > .gem-button {
-    flex-shrink: 0;
-    margin-left: auto;
 }
 
 .boss-grid {

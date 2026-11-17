@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import TimerBadge from '@/components/common/TimerBadge.vue';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import ModalComponent from '@/components/common/ModalComponent.vue';
@@ -99,7 +100,7 @@ const format = (value: number) => value.toLocaleString(locale.value);
                     <p class="event-tagline">{{ t(`${kindKey}.tagline`) }}</p>
                 </div>
                 <div class="event-banner-side">
-                    <span class="event-timer" :class="{ 'event-timer-shop': !event.active }">{{ timerText }}</span>
+                    <TimerBadge :text="timerText" :danger="!event.active" />
                     <span class="event-earned" v-tooltip="t(`${kindKey}.currency`)">
                         <component :is="currencyIcon" /> {{ t('events.balance', { amount: format(event.currency) }) }}
                     </span>
@@ -191,19 +192,7 @@ const format = (value: number) => value.toLocaleString(locale.value);
     row-gap: 6px;
 }
 
-.event-timer {
-    padding: 3px 10px;
-    border-radius: 8px;
-    background: rgba(0, 0, 0, 0.55);
-    color: #fde68a;
-    font-size: 13px;
-    font-weight: bold;
-    font-variant-numeric: tabular-nums;
-}
 
-.event-timer-shop {
-    color: #fca5a5;
-}
 
 .event-earned {
     display: inline-flex;

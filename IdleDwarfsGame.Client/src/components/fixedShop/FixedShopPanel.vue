@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import TimerBadge from '@/components/common/TimerBadge.vue';
 import { computed, onBeforeUnmount, onMounted, ref, type Component } from 'vue';
 import { AxiosError } from 'axios';
 import { useI18n } from 'vue-i18n';
@@ -109,9 +110,12 @@ defineExpose({ reload: load });
             <span class="fixed-shop-wallet" v-tooltip="currencyLabel">
                 <component :is="currencyIcon" /> {{ format(overview?.currency ?? 0) }}
             </span>
-            <span v-if="overview" class="fixed-shop-timer" v-tooltip="t(`fixedShop.resetHint.${shop}`)">
-                {{ t(`fixedShop.resetIn.${shop}`, { time: formatCountdown(msLeft, t('fixedShop.day')) }) }}
-            </span>
+            <TimerBadge
+                v-if="overview"
+                class="fixed-shop-timer"
+                v-tooltip="t(`fixedShop.resetHint.${shop}`)"
+                :text="t(`fixedShop.resetIn.${shop}`, { time: formatCountdown(msLeft, t('fixedShop.day')) })"
+            />
         </div>
 
         <div v-if="message" class="fixed-shop-message" :class="{ 'fixed-shop-message-error': message.error }">{{ message.text }}</div>
@@ -170,13 +174,6 @@ defineExpose({ reload: load });
 
 .fixed-shop-timer {
     margin-left: auto;
-    padding: 3px 10px;
-    border-radius: 8px;
-    background: rgba(0, 0, 0, 0.55);
-    color: #fde68a;
-    font-size: 13px;
-    font-weight: bold;
-    font-variant-numeric: tabular-nums;
 }
 
 .fixed-shop-message {

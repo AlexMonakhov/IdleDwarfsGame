@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import TimerBadge from '@/components/common/TimerBadge.vue';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import GemButton from '@/components/common/GemButton.vue';
@@ -143,7 +144,7 @@ const rewardPlace = (index: number) => {
                     <span class="depth-muted">
                         {{ overview.guildPlace ? t('social.depth.guildPlace', { place: overview.guildPlace, count: overview.guildCount }) : t('social.depth.notRanked') }}
                     </span>
-                    <span class="depth-muted">{{ timeText }}</span>
+                    <TimerBadge :text="timeText" />
                 </div>
                 <GemButton
                     v-if="overview.pending"

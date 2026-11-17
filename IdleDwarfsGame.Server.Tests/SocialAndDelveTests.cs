@@ -229,6 +229,9 @@ public class SocialAndDelveTests : IDisposable
         overview = await _bets.GetAsync(_carol.Id);
         var resolved = overview.Previous!;
         Assert.NotNull(resolved.Winner);
+        // Время окна уходит клиенту в UTC (с «Z»): иначе браузер прочитает его как местное
+        Assert.Equal(DateTimeKind.Utc, resolved.WindowStart.Kind);
+        Assert.Equal(DateTimeKind.Utc, resolved.ClosesAt.Kind);
 
         var replay = await _bets.ReplayAsync(resolved.WindowStart);
         Assert.Equal(resolved.Winner, replay.Combat.WinningTeam);

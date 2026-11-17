@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import TimerBadge from '@/components/common/TimerBadge.vue';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { AxiosError } from 'axios';
 import { useI18n } from 'vue-i18n';
@@ -142,9 +143,11 @@ const questText = (quest: QuestInfo) => (te(`quests.templates.${quest.key}`)
                     <span v-if="board.event" class="quest-event-note">
                         <component :is="eventIcon" /> {{ t('quests.eventNote', { event: t(`events.kinds.${board.event.kind}.name`) }) }}
                     </span>
-                    <span class="quest-timer" v-tooltip="t('quests.resetHint')">
-                        {{ t('quests.resetIn', { time: formatCountdown(msLeft, t('fixedShop.day')) }) }}
-                    </span>
+                    <TimerBadge
+                        class="quest-timer"
+                        v-tooltip="t('quests.resetHint')"
+                        :text="t('quests.resetIn', { time: formatCountdown(msLeft, t('fixedShop.day')) })"
+                    />
                 </div>
 
                 <div class="quest-bar">
@@ -299,13 +302,6 @@ const questText = (quest: QuestInfo) => (te(`quests.templates.${quest.key}`)
 
 .quest-timer {
     margin-left: auto;
-    padding: 3px 10px;
-    border-radius: 8px;
-    background: rgba(0, 0, 0, 0.55);
-    color: #fde68a;
-    font-size: 13px;
-    font-weight: bold;
-    font-variant-numeric: tabular-nums;
 }
 
 .quest-bar {

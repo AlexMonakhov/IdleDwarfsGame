@@ -169,6 +169,13 @@ interface Tween {
 
 export type Layer = 'front' | 'back';
 
+// Оставить в массиве только подходящие элементы, не создавая новый
+const compact = <T>(items: T[], keep: (item: T) => boolean) => {
+  let n = 0;
+  for (const item of items) if (keep(item)) items[n++] = item;
+  items.length = n;
+};
+
 // Сборщик одного проигрывания концепта: создаёт детали на сцене, ведёт твины и события, убирает всё за собой
 export class Fx {
   private readonly sims: ParticleSim[] = [];
@@ -177,6 +184,10 @@ export class Fx {
 
   // Шаг текущего кадра, секунды
   dt = 1 / 60;
+  // Время последнего шага, секунды: от него разовые всплески облика (looks.ts) ставят свои твины
+  now = 0;
+  // Облик живёт бесконечно: отыгравшие твины и события убираются, их спрайты из hide уничтожаются
+  reclaim = false;
 
   private readonly children: { fx: Fx; offset: number; update: Frame | void }[] = [];
 
@@ -311,6 +322,7 @@ export class Fx {
 
   step(t: number, dt: number) {
     this.dt = dt;
+    this.now = t;
     for (const event of this.events) {
       if (event.done || t < event.time) continue;
       event.done = true;
@@ -323,8 +335,12 @@ export class Fx {
       tween.state = 'run';
       if (p >= 1) {
         tween.state = 'done';
-        tween.hide.forEach(dot => dot.hide());
+        tween.hide.forEach(dot => (this.reclaim ? dot.s.destroy() : dot.hide()));
       }
+    }
+    if (this.reclaim) {
+      compact(this.tweens, tween => tween.state !== 'done');
+      compact(this.events, event => !event.done);
     }
     for (const sim of this.sims) sim.step(dt);
     for (const child of this.children) {
@@ -774,9 +790,14 @@ export interface ArtifactDemo {
   heals?: TargetCount;
 }
 
+// Заклинание или срабатывание ауры (волна в начале раунда; облик самой ауры — looks.ts)
+export type ConceptKind = 'spell' | 'aura';
+
 export interface Concept {
   id: string;
   name: string;
+  // По умолчанию — заклинание
+  kind?: ConceptKind;
   // Концепт меняется по уровню (fx.level): на странице показывается переключатель уровней
   levels?: boolean;
   // Число целей и лечимых по уровням — как в механике заклинания (страница концептов собирает по нему сцену)

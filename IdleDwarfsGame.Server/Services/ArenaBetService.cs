@@ -307,11 +307,14 @@ public class ArenaBetService(
         entityFactory.CreateSquad(world, SquadOf(match.BSquadJson), teamId: 2);
         var units = CombatSnapshot.Units(world);
 
+        // Из базы время приходит без пояса (Kind = Unspecified) и ушло бы клиенту без «Z» —
+        // браузер прочитал бы его как местное: таймер закрытия и пересмотр боя съехали бы на пояс игрока
+        var windowStart = DateTime.SpecifyKind(match.WindowStart, DateTimeKind.Utc);
         return new ArenaBetMatchInfo
         {
-            WindowStart = match.WindowStart,
-            ClosesAt = match.WindowStart + ArenaBetRules.Window,
-            Open = match.Winner == null && now < match.WindowStart + ArenaBetRules.Window,
+            WindowStart = windowStart,
+            ClosesAt = windowStart + ArenaBetRules.Window,
+            Open = match.Winner == null && now < windowStart + ArenaBetRules.Window,
             A = new ArenaBetSideInfo
             {
                 UserId = match.AUserId, Name = match.AName, Power = match.APower, Pool = poolA,
