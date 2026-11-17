@@ -7,7 +7,7 @@ import { BattleState, BattleUnit, FloatingText, FloatingTextDetails, TURN_COLOR,
 import { DAMAGE_COLORS, STATUS_VISUALS, resolveAuraVisual, resolveSpellVisual } from './FxRegistry';
 import { CombatLogEntry, CombatResult, StatusEffectLogData } from './types';
 import { getUnitView } from './UnitRegistry';
-import { ConceptSpells, type ConceptCast } from './ConceptSpells';
+import { BATTLE_AURA_WAVES, ConceptSpells, type ConceptCast } from './ConceptSpells';
 
 // Аура тьмы (EnergyBurnEffect на сервере)
 const ENERGY_BURN = 'EnergyBurn';
@@ -271,6 +271,7 @@ export class BattlePlayer {
 
       case 'Stunned':
         this.float(log.attackerId, t('arena.float.stunned'), 'status');
+        this.statusTrigger(log.attackerId, ['Stun', 'Freeze']);
         this.sound(s => s.stun());
         await this.delay(TIMING.stunned);
         this.endTurn();
@@ -446,16 +447,35 @@ export class BattlePlayer {
     }
   }
 
-  // Срабатывание ауры: носитель вспыхивает, от него расходится волна, статусы ложатся на цели вслед за ней
+  // Срабатывание ауры: носитель вспыхивает, от него расходятся круги и одновременно идёт волна наложения (концепт из
+  // BATTLE_AURA_WAVES) — статус ложится на цель, когда волна до неё дошла. Без концепта — прежние искры на целях
   private async playAura(bearerId: number, group: CombatLogEntry[]) {
     const bearer = this.unit(bearerId);
-    const visual = resolveAuraVisual(bearer ? auraEffectOf(bearer) : null, bearer?.auraTarget);
+    const effect = bearer ? auraEffectOf(bearer) : null;
+    const visual = resolveAuraVisual(effect, bearer?.auraTarget);
 
     this.animate(bearerId, v => v.aura?.(visual.color));
     this.sound(s => s.cast());
-    if (!this.skipping) this.fx.auraBurst(getUnitView(bearerId)?.el?.(), visual);
-    await this.delay(TIMING.auraWave);
+    if (!this.skipping) this.fx.auraBurst(getUnitView(bearerId)?.el?.(), visual, effect);
 
+    // Волна наложения стартует вместе со вспышкой
+    const wave = bearer && effect && !this.skipping ? this.auraWaveCast(bearer, effect, group) : null;
+    if (wave && this.concepts.canPlay(wave)) {
+      const { hits, settled } = this.concepts.play(wave, FX_OVERLAP);
+      await Promise.all(group.map(async entry => {
+        await hits.get(entry.targetId);
+        this.show(entry);
+        if (entry.eventType === 'Immune') this.applyImmune(entry);
+        else this.applyStatus(entry);
+      }));
+      await Promise.race([
+        Promise.all([settled, this.delay(TIMING.castRecoverMin)]),
+        this.delay(TIMING.castRecoverMax),
+      ]);
+      return;
+    }
+
+    await this.delay(TIMING.auraWave);
     for (const entry of group) {
       this.show(entry);
       if (entry.eventType === 'Immune') {
@@ -466,6 +486,32 @@ export class BattlePlayer {
       if (!this.skipping) this.fx.play(visual.hit, getUnitView(entry.targetId)?.el?.());
     }
     await this.delay(TIMING.auraRecover);
+  }
+
+  // Волна ауры как каст концепта: носитель — кастер, цели статусов — враги (или лечимые, если аура на союзников)
+  private auraWaveCast(bearer: BattleUnit, effect: string, group: CombatLogEntry[]): ConceptCast | null {
+    const conceptId = BATTLE_AURA_WAVES[effect];
+    if (!conceptId) return null;
+    const targets = [...new Set(group.map(entry => entry.targetId))];
+    const support = bearer.auraTarget === 'Allies';
+    const allies = Object.values(this.state.units).filter(u => u.team === bearer.team && u.alive).map(u => u.id);
+    return {
+      skillName: `aura:${effect}`,
+      conceptId,
+      // Уровня ауры клиент не знает — волна на 3-м
+      level: 3,
+      damageType: 'Magical',
+      casterId: bearer.id,
+      enemyIds: support ? [] : targets,
+      healIds: support ? targets : [],
+      entryIds: targets,
+      procIds: new Set(),
+      allyIds: allies,
+      bystanderIds: [],
+      artifacts: [],
+      trigger: null,
+      originId: null,
+    };
   }
 
   // Запись тиков начала хода: урон или лечение от статуса и истечение статуса
@@ -483,7 +529,10 @@ export class BattlePlayer {
       this.show(entry);
       if (STATUS_TICK_EVENTS.has(entry.eventType)) this.syncStatus(entry);
       if (entry.eventType === 'StatusExpired') this.removeStatus(entry);
-      else if (entry.eventType === 'Heal') this.applyHeal(entry);
+      else if (entry.eventType === 'Heal') {
+        this.applyHeal(entry);
+        this.statusTrigger(entry.targetId, ['Regen']);
+      }
       else if (visible) this.applyDamage(entry, { status: entry.activeEffects[0]?.name ?? entry.actionType });
     }
     if (shown) await this.delay(TIMING.tick);
@@ -564,6 +613,7 @@ export class BattlePlayer {
     // Выжигание энергии мгновенное и статусом не висит: только полоска энергии и всплывающая цифра
     if (data?.name === ENERGY_BURN) {
       if (log.targetEnergy != null) target.energy = log.targetEnergy;
+      if (!this.skipping && (data.power ?? 0) > 0) this.fx.instantStatus(getUnitView(target.id)?.el?.(), ENERGY_BURN);
       if ((data.power ?? 0) > 0) this.float(target.id, t('arena.float.energyBurn', { value: data.power }), 'status');
       return;
     }
@@ -589,6 +639,14 @@ export class BattlePlayer {
       power: data?.power ?? 0,
       stacks: data?.stacks ?? 1,
     };
+  }
+
+  // Облик висящего статуса срабатывает (пропуск хода, лечение регенерацией) — для тех статусов, что есть на юните
+  private statusTrigger(unitId: number, names: string[]) {
+    const unit = this.unit(unitId);
+    if (!unit || this.skipping) return;
+    const el = getUnitView(unitId)?.el?.();
+    names.filter(name => unit.statuses[name]).forEach(name => this.fx.statusTrigger(el, name));
   }
 
   private removeStatus(log: CombatLogEntry) {

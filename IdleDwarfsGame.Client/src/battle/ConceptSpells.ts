@@ -34,6 +34,18 @@ export const BATTLE_CONCEPTS: Record<string, string> = {
   Dawnlight: 'dawn',
 };
 
+// Срабатывание ауры: после прежних расходящихся кругов (BattleFx.auraBurst) волна наложения статуса — концепт
+// из auras.ts по эффекту ауры (выбраны на странице /fx-concepts)
+export const BATTLE_AURA_WAVES: Record<string, string> = {
+  Burn: 'aura-burn-ring',
+  Frost: 'aura-frost-ring',
+  Shock: 'aura-shock-field',
+  Poison: 'aura-poison-cloud',
+  EnergyBurn: 'aura-void-eyes',
+  Bleed: 'aura-blood-heart',
+  Regen: 'aura-regen-sunbeams',
+};
+
 // Тряска в бою слабее, чем на странице концептов: полоски здоровья — в DOM и не трясутся вместе со сценой
 const SHAKE_SCALE = 0.6;
 // Дольше концепт не ждём, даже если он длиннее (зависшая вкладка, ошибка в концепте), с
@@ -41,6 +53,8 @@ const MAX_RUN = 6;
 
 export interface ConceptCast {
   skillName: string;
+  // Концепт напрямую (волна ауры); без него — по заклинанию из BATTLE_CONCEPTS
+  conceptId?: string;
   level: number;
   damageType: string;
   casterId: number;
@@ -84,21 +98,21 @@ export class ConceptSpells {
 
   constructor(private readonly fx: BattleFx, private readonly speed: () => number) {}
 
-  conceptFor(skillName: string): Concept | undefined {
-    const id = BATTLE_CONCEPTS[skillName];
+  conceptFor(skillName: string, conceptId?: string): Concept | undefined {
+    const id = conceptId ?? BATTLE_CONCEPTS[skillName];
     return id ? conceptById(id) : undefined;
   }
 
   // Сцена есть и заклинанию есть концепт с подходящими целями
-  canPlay(cast: Pick<ConceptCast, 'skillName' | 'enemyIds' | 'healIds'>) {
-    const concept = this.conceptFor(cast.skillName);
+  canPlay(cast: Pick<ConceptCast, 'skillName' | 'conceptId' | 'enemyIds' | 'healIds'>) {
+    const concept = this.conceptFor(cast.skillName, cast.conceptId);
     if (!concept || !this.attach()) return false;
     // Концепту лечения нужны лечимые, остальным — хотя бы одна цель среди врагов
     return concept.heals && !concept.targets ? cast.healIds.length > 0 : cast.enemyIds.length > 0;
   }
 
   play(cast: ConceptCast, lead = 0): ConceptPlayback {
-    const concept = this.conceptFor(cast.skillName);
+    const concept = this.conceptFor(cast.skillName, cast.conceptId);
     const scene = this.attach();
     const pending = new Map<number, () => void>();
     const hits = new Map<number, Promise<void>>();

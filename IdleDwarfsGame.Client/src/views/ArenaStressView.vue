@@ -145,6 +145,7 @@ import CanvasLayer from '@/components/canvas/CanvasLayer.vue';
 import CharacterComponent from '@/components/character-component.vue';
 import { BattleUnit, TURN_COLOR, addFloatingText, auraEffectOf, createBattleState, resetBattleState, teamUnits } from '@/battle/BattleState';
 import { BATTLE_FX_KEY, BattleFx } from '@/battle/BattleFx';
+import { BATTLE_AURA_WAVES, ConceptSpells, type ConceptCast } from '@/battle/ConceptSpells';
 import { STATUS_VISUALS, resolveAuraVisual, resolveSpellVisual } from '@/battle/FxRegistry';
 import { SpriteAnimation, SpritePose } from '@/battle/sprites';
 import { getUnitView } from '@/battle/UnitRegistry';
@@ -343,6 +344,8 @@ const onKey = (event: KeyboardEvent) => {
 const state = createBattleState();
 resetBattleState(state, { units, logs: [], winningTeam: 0, rounds: 0 });
 const fx = new BattleFx(() => layerRef.value?.particleService ?? null, () => speed.value);
+// Волны аур на концептах, как в BattlePlayer.playAura
+const concepts = new ConceptSpells(fx, () => speed.value);
 const flaresOn = ref(true);
 watch(flaresOn, on => (fx.flares = on));
 provide(BATTLE_FX_KEY, fx);
@@ -474,9 +477,37 @@ const pulseAura = async (bearer: BattleUnit) => {
   if (!effect) return;
   const visual = resolveAuraVisual(effect, bearer.auraTarget);
   view(bearer)?.aura?.(visual.color);
-  fx.auraBurst(el(bearer), visual);
+  fx.auraBurst(el(bearer), visual, effect);
+  // Волна наложения вместе со вспышкой: статус ложится на цель, когда волна до неё дошла
+  const targets = auraTargets(bearer).filter(u => u.alive);
+  const support = bearer.auraTarget === 'Allies';
+  const ids = targets.map(u => u.id);
+  const wave: ConceptCast = {
+    skillName: `aura:${effect}`,
+    conceptId: BATTLE_AURA_WAVES[effect],
+    level: 3,
+    damageType: 'Magical',
+    casterId: bearer.id,
+    enemyIds: support ? [] : ids,
+    healIds: support ? ids : [],
+    entryIds: ids,
+    procIds: new Set(),
+    allyIds: teamUnits(state, bearer.team).map(u => u.id),
+    bystanderIds: [],
+    artifacts: [],
+    trigger: null,
+    originId: null,
+  };
+  if (wave.conceptId && concepts.canPlay(wave)) {
+    const { hits } = concepts.play(wave);
+    await Promise.all(targets.map(async target => {
+      await hits.get(target.id);
+      if (STATUS_VISUALS[effect]) applyStatus(target, effect);
+    }));
+    return;
+  }
   await wait(AURA_WAVE);
-  for (const target of auraTargets(bearer)) {
+  for (const target of targets) {
     if (STATUS_VISUALS[effect]) applyStatus(target, effect);
     fx.play(visual.hit, el(target));
   }
@@ -606,6 +637,7 @@ onBeforeUnmount(() => {
   active = false;
   cancelAnimationFrame(fpsFrame);
   window.removeEventListener('keydown', onKey);
+  concepts.clear();
   // На других страницах панель игры нужна
   interfaceHidden.value = false;
 });
