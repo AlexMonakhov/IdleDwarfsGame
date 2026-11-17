@@ -14,6 +14,7 @@ import { useSquadModal } from "@/composables/UseSquadModal";
 import { vDragScroll } from "@/directives/dragScroll";
 import { IconBanner, IconLock } from '@/components/icons/ui';
 import { IconPower } from '@/components/icons/stats';
+import LoadingCrystal from '@/components/loading/LoadingCrystal.vue';
 
 // Окно кампании. Список: пройденные уровни с незабранной наградой и последний пройденный (без врагов и прогноза),
 // дальше текущий и несколько заблокированных. При открытии список прокручен к последнему пройденному —
@@ -106,7 +107,7 @@ const status = computed(() => campaign.value
         </div>
 
         <!-- Пока список перезагружается, не прячем его за «Загрузка…» -->
-        <div v-if="loading && !campaign" class="stage-message">{{ t('common.loading') }}</div>
+        <LoadingCrystal v-if="loading && !campaign" />
         <div v-else-if="error && !campaign" class="stage-message error">{{ t('campaign.loadError') }}</div>
         <div v-else-if="campaign" ref="scroller" v-drag-scroll class="stage-scroll">
             <ul class="stage-list">

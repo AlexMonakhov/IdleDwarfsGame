@@ -6,6 +6,7 @@ import GemFilters from './GemFilters.vue';
 import type { Rarity } from '@/models/types/Inventory';
 import InventoryApiService from '@/services/apiServices/InventoryApiService';
 import { ItemInfo } from '@/models/types/Inventory';
+import LoadingCrystal from '@/components/loading/LoadingCrystal.vue';
 
 // refreshToken меняется, когда во вкладке сундуков что-то открыли — тогда перечитываем гемы
 const props = defineProps<{ refreshToken?: number }>();
@@ -41,7 +42,7 @@ watch(() => props.refreshToken, load);
 
 <template>
     <div class="inventory-gems">
-        <div v-if="loading" class="inventory-hint">{{ t('common.loading') }}</div>
+        <LoadingCrystal v-if="loading" />
         <div v-else-if="errorMessage" class="inventory-hint inventory-hint-error">{{ errorMessage }}</div>
         <div v-else-if="!gems.length" class="inventory-hint">{{ t('inventory.noGems') }}</div>
         <template v-else>

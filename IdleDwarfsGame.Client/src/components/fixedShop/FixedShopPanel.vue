@@ -9,6 +9,7 @@ import { itemName } from '@/components/equipment/equipmentText';
 import { formatCountdown } from '@/components/events/eventShared';
 import { chestLabel } from '@/i18n';
 import type { FixedOfferInfo, FixedShopBuyResult, FixedShopKind, FixedShopOverview } from '@/models/types/FixedShop';
+import LoadingCrystal from '@/components/loading/LoadingCrystal.vue';
 
 // Лавка с постоянным ассортиментом: кошелёк её валюты, таймер до сброса лимитов и товары.
 // Обзор лавки ивента несёт и сам ивент — окно ивента берёт его через событие loaded
@@ -115,7 +116,7 @@ defineExpose({ reload: load });
 
         <div v-if="message" class="fixed-shop-message" :class="{ 'fixed-shop-message-error': message.error }">{{ message.text }}</div>
 
-        <div v-if="loading && !overview" class="fixed-shop-hint">{{ t('common.loading') }}</div>
+        <LoadingCrystal v-if="loading && !overview" />
 
         <div v-else-if="overview" class="fixed-shop-grid">
             <FixedOfferCard

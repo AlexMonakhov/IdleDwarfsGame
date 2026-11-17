@@ -12,6 +12,7 @@ import { GuildOverview } from '@/models/types/Guild';
 import type { ModalTab, TabIcon } from '@/models/types/Modal';
 import { IconGuild, IconMinecart, IconPouch, IconSkull } from '@/components/icons/ui';
 import { GuildRun, guildErrorText } from './guildShared';
+import LoadingCrystal from '@/components/loading/LoadingCrystal.vue';
 
 const props = defineProps<{ modelValue: boolean }>();
 const emit = defineEmits<{ (e: 'update:modelValue', value: boolean): void }>();
@@ -146,7 +147,7 @@ const footerText = computed(() => errorMessage.value ?? notice.value ?? '');
         :width="guild ? 'min(900px, calc(calc(94 * var(--vw)) - 140px))' : 'min(680px, calc(94 * var(--vw)))'"
         height="min(940px, calc(92 * var(--vh)))"
     >
-        <div v-if="loading && !overview" class="guild-loading">{{ t('common.loading') }}</div>
+        <LoadingCrystal v-if="loading && !overview" />
 
         <GuildJoin
             v-else-if="overview && !guild"

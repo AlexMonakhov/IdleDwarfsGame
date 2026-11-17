@@ -2,12 +2,15 @@
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { arenaPreview } from '@/battle/arenaBackgrounds';
+import { useLoadingScreen } from '@/composables/UseLoadingScreen';
 import CrystalBar from './CrystalBar.vue';
 import { gemColorVar, type GemColor } from './gemPalette';
 
-// Экран загрузки арены: пещера этой арены в дымке, свет и кристальная пыль ее цвета,
-// по центру — полоса-кристалл из осколков (CrystalBar shards) и подсказки
+// Полноэкранная загрузка сцены. Арена: пещера этой арены в дымке, свет и кристальная пыль ее цвета.
+// Город: вместо пещеры — переливающийся градиент неба. По центру — полоса-кристалл из осколков (CrystalBar shards) и подсказки
 interface Props {
+  // Чья загрузка: от нее фон (пещера арены или градиент) и цвета
+  scene?: 'arena' | 'town'
   // Идет загрузка (запрос боя, фон, спрайт-листы)
   active: boolean
   // Реальный прогресс по этапам 0..1; между этапами полоса сама медленно ползет вперед
@@ -18,7 +21,7 @@ interface Props {
   failed?: boolean
 }
 
-const props = withDefaults(defineProps<Props>(), { background: null, failed: false });
+const props = withDefaults(defineProps<Props>(), { scene: 'arena', background: null, failed: false });
 // open — экран появился; closed — полностью исчез (досборка, вспышка и затухание позади): можно начинать бой
 const emit = defineEmits<{ open: []; closed: [] }>();
 
@@ -35,8 +38,12 @@ const ARENA_COLORS: Record<string, [GemColor, GemColor]> = {
   altar: ['purple', 'pink'],
   colosseum: ['purple', 'pink'],
 };
-const colors = computed(() => ARENA_COLORS[props.background ?? ''] ?? ARENA_COLORS.lava);
-const cave = computed(() => arenaPreview(props.background));
+// Город: дневное небо — синий, переходящий в солнечный
+const TOWN_COLORS: [GemColor, GemColor] = ['blue', 'yellow'];
+const colors = computed(() => props.scene === 'town'
+  ? TOWN_COLORS
+  : ARENA_COLORS[props.background ?? ''] ?? ARENA_COLORS.lava);
+const cave = computed(() => (props.scene === 'arena' ? arenaPreview(props.background) : null));
 
 // ---- Видимость и плавный прогресс ----
 const visible = ref(props.active);
@@ -86,6 +93,15 @@ onBeforeUnmount(stop);
 
 watch(visible, (v) => { if (v) emit('open'); }, { immediate: true });
 
+// Пока экран виден (включая затухание), обучение и ресурсы поверх окон не показываются
+const screen = useLoadingScreen();
+watch(visible, (v) => { if (v) screen.set(true); }, { immediate: true });
+const onClosed = () => {
+  screen.set(false);
+  emit('closed');
+};
+onBeforeUnmount(() => screen.set(false));
+
 // ---- Подсказки: меняются по кругу, первая — случайная ----
 const tips = computed(() => (tm('arena.loadingTips') as unknown[]).map(tip => rt(tip as never)));
 const tipIndex = ref(0);
@@ -116,10 +132,12 @@ const rootStyle = computed(() => ({
 </script>
 
 <template>
-  <Transition name="arena-loading" @after-leave="emit('closed')">
-    <div v-if="visible" class="arena-loading-screen" :style="rootStyle">
+  <Transition name="arena-loading" @after-leave="onClosed">
+    <div v-if="visible" class="arena-loading-screen" :class="`scene-${scene}`" :style="rootStyle">
+      <!-- Город: градиент неба, медленно переливается -->
+      <div v-if="!cave" class="loading-gradient" />
       <!-- Пещера арены в дымке; при смене арены — плавная смена картинки -->
-      <TransitionGroup name="cave-fade" tag="div" class="loading-cave-wrap">
+      <TransitionGroup v-else name="cave-fade" tag="div" class="loading-cave-wrap">
         <div :key="cave" class="loading-cave" :style="{ backgroundImage: `url(${cave})` }" />
       </TransitionGroup>
       <div class="loading-glow" />
@@ -173,6 +191,22 @@ const rootStyle = computed(() => ({
   background-position: center;
   filter: blur(6px) brightness(0.42) saturate(1.2);
   animation: cave-drift 24s ease-in-out infinite alternate;
+}
+
+/* Градиент вместо пещеры: темное небо и два пятна света цветов сцены, плывут навстречу друг другу */
+.loading-gradient {
+  position: absolute;
+  inset: -20%;
+  background:
+    radial-gradient(ellipse 45% 40% at 30% 35%, color-mix(in srgb, var(--arena-a) 38%, transparent) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 35% at 70% 65%, color-mix(in srgb, var(--arena-b) 26%, transparent) 0%, transparent 70%),
+    linear-gradient(165deg, #0d1b33 0%, #12304a 45%, #1a2a3c 70%, #0a0f1a 100%);
+  animation: gradient-drift 18s ease-in-out infinite alternate;
+}
+
+@keyframes gradient-drift {
+  from { transform: translate(-4%, 2%) rotate(-3deg) scale(1); }
+  to { transform: translate(4%, -2%) rotate(3deg) scale(1.08); }
 }
 
 @keyframes cave-drift {

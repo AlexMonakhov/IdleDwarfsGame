@@ -32,6 +32,17 @@ export const GEM_COLORS: Record<string, string> = {
     Garnet: '#e91e63',
 };
 
+// Огранка камня в CrystalIcon: рубин, алмаз и гранат — бриллиантовая, остальные — кристалл
+export const GEM_SHAPES: Record<string, 'brilliant' | 'crystal'> = {
+    Ruby: 'brilliant',
+    Diamond: 'brilliant',
+    Garnet: 'brilliant',
+    Sapphire: 'crystal',
+    Topaz: 'crystal',
+    Emerald: 'crystal',
+    Amethyst: 'crystal',
+};
+
 export const RARITY_COLORS: Record<Rarity, string> = {
     Common: '#94a3b8',
     Uncommon: '#4ade80',

@@ -26,6 +26,7 @@ import { EquipmentChangeResult, EquipmentError, EquipmentInfo, EquipmentSlot, Eq
 import type { ModalTab, TabIcon } from '@/models/types/Modal';
 import { vDragScroll } from '@/directives/dragScroll';
 import { IconBanner, IconDwarf, IconDwarfExtract, IconDwarfFusion, IconRune, IconShield } from '@/components/icons/ui';
+import LoadingCrystal from '@/components/loading/LoadingCrystal.vue';
 
 // Окно алтаря. Первая вкладка — состав отряда (SquadPanel, свои загрузка и сохранение).
 // Прокачка и снаряжение героев: справа список героев или предметов, по клику на героя слева выезжает его панель.
@@ -253,7 +254,7 @@ watch([tab, sorted], () => {
         <!-- Панель монтируется при каждом переходе на вкладку и сама загружает свежий состав -->
         <SquadPanel v-if="tab === 'squad'" ref="squadPanel" @saved="onSquadSaved" />
         <div v-else-if="isForgeTab" class="hero-upgrade">
-            <div v-if="loading && !heroes.length" class="hero-upgrade-hint hero-upgrade-hint-wide">{{ t('common.loading') }}</div>
+            <LoadingCrystal v-if="loading && !heroes.length" />
             <div v-else-if="errorMessage" class="hero-upgrade-hint hero-upgrade-hint-wide hero-upgrade-hint-error">{{ errorMessage }}</div>
             <AbilityExtractTab v-else-if="tab === 'extract'" :heroes="heroes" @extracted="onDissolved" @stale="load" />
             <AbilityInventoryTab
@@ -281,7 +282,7 @@ watch([tab, sorted], () => {
             </Transition>
 
             <section v-drag-scroll class="hero-upgrade-list" @dragover.prevent @drop.prevent="onDropOnList">
-                <div v-if="loading && !heroes.length" class="hero-upgrade-hint">{{ t('common.loading') }}</div>
+                <LoadingCrystal v-if="loading && !heroes.length" />
                 <div v-else-if="errorMessage" class="hero-upgrade-hint hero-upgrade-hint-error">{{ errorMessage }}</div>
                 <template v-else-if="tab === 'items'">
                     <div class="hero-upgrade-hint" :class="{ 'hero-upgrade-hint-error': itemMessage?.error }">

@@ -12,6 +12,7 @@ import { FriendInfo, FriendRequestInfo, FriendsOverview } from '@/models/types/F
 import FriendMinesPanel from './FriendMinesPanel.vue';
 import MercenaryPanel from './MercenaryPanel.vue';
 import { useSocial } from '@/composables/UseSocial';
+import LoadingCrystal from '@/components/loading/LoadingCrystal.vue';
 
 const props = defineProps<{ modelValue: boolean }>();
 const emit = defineEmits<{ (e: 'update:modelValue', value: boolean): void }>();
@@ -235,7 +236,7 @@ const footerText = computed(() => errorMessage.value ?? notice.value ?? '');
                 >{{ t('social.mercenary.tab') }}</button>
             </div>
 
-            <div v-if="loading && !overview" class="friends-hint">{{ t('common.loading') }}</div>
+            <LoadingCrystal v-if="loading && !overview" />
 
             <!-- ===== Наёмники: герой друга на бой кампании ===== -->
             <MercenaryPanel v-else-if="tab === 'mercenaries'" @navigate="open = false" @message="showMessage" />

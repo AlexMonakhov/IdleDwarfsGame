@@ -8,7 +8,8 @@ import { elementAura } from '@/components/effects/elementAura';
 import { ELEMENT_COLORS } from '@/components/inventory/lootStyles';
 import { useTutorial } from '@/composables/UseTutorial';
 import { uiScale } from '@/composables/UseUiScale';
-import { anchorRect, findAnchor, isClipped, isInAnchor } from '@/tutorial/anchors';
+import { loadingScreenVisible } from '@/composables/UseLoadingScreen';
+import { anchorRect, findAnchor, isClipped, isInAnchor, scrollAnchorIntoView } from '@/tutorial/anchors';
 import type { TutorialPlacement } from '@/tutorial/types';
 
 // Шаг обучения поверх всего: затемнение с вырезом под подсвеченный элемент, рамка вокруг него и облачко
@@ -26,6 +27,9 @@ const MARGIN = 12;
 interface Rect { left: number, top: number, width: number, height: number }
 
 const hole = ref<Rect | null>(null);
+// Ресурсы аккаунта видны сквозь затемнение всегда (как и над окнами): второй вырез, без рамки и без кликов
+const RESOURCES_ANCHOR = 'resources';
+const resourcesHole = ref<Rect | null>(null);
 const anchorMissing = ref(false);
 const viewport = ref({ width: window.innerWidth, height: window.innerHeight });
 const bubbleEl = ref<HTMLElement | null>(null);
@@ -49,7 +53,8 @@ const blocking = computed(() => currentStep.value?.block ?? true);
 const delayPassed = ref(true);
 const ready = computed(() => {
   const step = currentStep.value;
-  if (!step || step.hidden || !delayPassed.value) return false;
+  // Полноэкранная загрузка (город, арена) — шаг дождётся, пока она сойдёт: облачко поверх загрузки не к месту
+  if (!step || step.hidden || !delayPassed.value || loadingScreenVisible.value) return false;
   return !step.target || !!hole.value || (anchorMissing.value && !step.wait);
 });
 
@@ -94,7 +99,7 @@ const measure = () => {
   if (el && scrollAttempts < SCROLL_ATTEMPTS && now - lastScrollAt > SCROLL_RETRY_MS && isClipped(el)) {
     scrollAttempts++;
     lastScrollAt = now;
-    el.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    scrollAnchorIntoView(el);
   }
   const rect = step.target ? anchorRect(step.target) : null;
   if (rect) {
@@ -110,6 +115,16 @@ const measure = () => {
   }
   if (!sameRect(hole.value, next)) hole.value = next;
 
+  // Шаг сам подсвечивает ресурсы — второй вырез не нужен
+  const resources = step.target === RESOURCES_ANCHOR ? null : anchorRect(RESOURCES_ANCHOR);
+  const resourcesNext = resources && {
+    left: Math.round(resources.left),
+    top: Math.round(resources.top),
+    width: Math.round(resources.width),
+    height: Math.round(resources.height),
+  };
+  if (!sameRect(resourcesHole.value, resourcesNext)) resourcesHole.value = resourcesNext;
+
   const bubble = bubbleEl.value;
   if (bubble) {
     const width = bubble.offsetWidth * bubbleScale.value;
@@ -119,15 +134,25 @@ const measure = () => {
 };
 
 // Затемнение — один путь: весь экран минус скруглённый вырез (evenodd). Клики в вырезе проходят к элементу
+const roundedRect = (rect: Rect, radius: number) => {
+  const r = Math.min(radius, rect.width / 2, rect.height / 2);
+  const { left: x, top: y, width: w, height: h } = rect;
+  return `M${x + r} ${y}H${x + w - r}A${r} ${r} 0 0 1 ${x + w} ${y + r}V${y + h - r}`
+    + `A${r} ${r} 0 0 1 ${x + w - r} ${y + h}H${x + r}A${r} ${r} 0 0 1 ${x} ${y + h - r}V${y + r}A${r} ${r} 0 0 1 ${x + r} ${y}Z`;
+};
+
+// Вырезы не должны пересекаться (evenodd снова закрасил бы пересечение) — ресурсы внутри подсветки пропускаем
+const overlaps = (a: Rect, b: Rect) =>
+  a.left < b.left + b.width && b.left < a.left + a.width && a.top < b.top + b.height && b.top < a.top + a.height;
+
 const shadePath = computed(() => {
   const { width, height } = viewport.value;
-  const outer = `M0 0H${width}V${height}H0Z`;
+  let path = `M0 0H${width}V${height}H0Z`;
   const rect = hole.value;
-  if (!rect) return outer;
-  const r = Math.min(12 * uiScale.value, rect.width / 2, rect.height / 2);
-  const { left: x, top: y, width: w, height: h } = rect;
-  return `${outer} M${x + r} ${y}H${x + w - r}A${r} ${r} 0 0 1 ${x + w} ${y + r}V${y + h - r}`
-    + `A${r} ${r} 0 0 1 ${x + w - r} ${y + h}H${x + r}A${r} ${r} 0 0 1 ${x} ${y + h - r}V${y + r}A${r} ${r} 0 0 1 ${x + r} ${y}Z`;
+  if (rect) path += ` ${roundedRect(rect, 12 * uiScale.value)}`;
+  const resources = resourcesHole.value;
+  if (resources && !(rect && overlaps(rect, resources))) path += ` ${roundedRect(resources, 10 * uiScale.value)}`;
+  return path;
 });
 
 const holeStyle = computed(() => hole.value && {

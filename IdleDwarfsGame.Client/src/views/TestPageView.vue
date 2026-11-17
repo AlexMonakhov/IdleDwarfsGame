@@ -235,12 +235,13 @@
         <span class="loader-lab-value">{{ loaderPercent }}%</span>
         <GemButton color="green" @click="runLoaderSim">Симуляция</GemButton>
         <GemButton color="blue" @click="loaderSeed++">Новый раскол</GemButton>
-        <GemButton color="yellow" @click="runArenaPreview">Экран арены</GemButton>
+        <GemButton color="yellow" @click="runArenaPreview('arena')">Экран арены</GemButton>
+        <GemButton color="blue" @click="runArenaPreview('town')">Экран города</GemButton>
       </div>
 
       <!-- Превью экрана загрузки арены: те же этапы, что в ArenaView (запрос → фон → спрайты) -->
       <div v-if="arenaPreview.mounted" class="arena-preview" @click="arenaPreview.active = false">
-        <ArenaLoadingScreen :active="arenaPreview.active" :progress="arenaPreview.progress" :background="arenaPreview.background" />
+        <SceneLoadingScreen :scene="arenaPreview.scene" :active="arenaPreview.active" :progress="arenaPreview.progress" :background="arenaPreview.background" />
       </div>
       <div class="card-lab">
         <div v-for="(sample, i) in loaderSamples" :key="`${loaderSeed}-${i}`" class="card-lab-item">
@@ -285,6 +286,19 @@
           <span>{{ gem.name }}</span>
         </div>
       </div>
+
+      <!-- Иконки шахт (MineResourceIcon): кристалл наливается по ползунку — так он показывает долю добычи -->
+      <div class="icon-lab">
+        <div v-for="gem in iconSamples" :key="`mine-${gem.name}`" class="icon-lab-item">
+          <MineResourceIcon :type="gem.name" :progress="loaderPercent / 100" size="64px" />
+          <span>{{ gem.name }} · шахта</span>
+        </div>
+      </div>
+
+      <!-- Загрузка в окнах (LoadingCrystal): A2 без процентов, собирается сам, пока ждет ответа -->
+      <div class="icon-lab">
+        <LoadingCrystal :key="`modal-loader-${loaderSeed}`" />
+      </div>
     </div>
   </div>
 </template>
@@ -312,8 +326,10 @@ import HeroCard from '@/components/inventory/HeroCard.vue';
 import CrystalLoader from '@/components/loading/CrystalLoader.vue';
 import CrystalBar from '@/components/loading/CrystalBar.vue';
 import CrystalIcon from '@/components/loading/CrystalIcon.vue';
-import ArenaLoadingScreen from '@/components/loading/ArenaLoadingScreen.vue';
-import { GEM_COLORS, RARITY_COLORS } from '@/components/inventory/lootStyles';
+import SceneLoadingScreen from '@/components/loading/SceneLoadingScreen.vue';
+import LoadingCrystal from '@/components/loading/LoadingCrystal.vue';
+import MineResourceIcon from '@/components/mining/MineResourceIcon.vue';
+import { GEM_COLORS, GEM_SHAPES, RARITY_COLORS } from '@/components/inventory/lootStyles';
 import { AURA_MIN_RANK } from '@/components/effects/elementAura';
 import type { HeroElement } from '@/battle/types';
 import type { HeroInfo } from '@/models/types/Heroes';
@@ -483,10 +499,11 @@ onUnmounted(stopLoaderSim);
 
 // Превью экрана загрузки арены: каждый запуск — следующая арена. Клик по экрану — «загрузка закончилась»
 const PREVIEW_ARENAS = ['lava', 'ice', 'storm', 'marsh', 'crypt', 'sanctum', 'altar'];
-const arenaPreview = reactive({ mounted: false, active: false, progress: 0, background: 'lava', index: -1 });
+const arenaPreview = reactive({ mounted: false, active: false, progress: 0, background: 'lava', index: -1, scene: 'arena' as 'arena' | 'town' });
 let arenaPreviewTimers: number[] = [];
-const runArenaPreview = () => {
+const runArenaPreview = (scene: 'arena' | 'town') => {
   arenaPreviewTimers.forEach(clearTimeout);
+  arenaPreview.scene = scene;
   arenaPreview.index = (arenaPreview.index + 1) % PREVIEW_ARENAS.length;
   arenaPreview.background = PREVIEW_ARENAS[arenaPreview.index];
   arenaPreview.mounted = true;
@@ -533,7 +550,7 @@ const barSamples: BarSample[] = [
 const iconSamples = (['Ruby', 'Sapphire', 'Topaz', 'Emerald', 'Diamond', 'Amethyst', 'Garnet'] as const).map(name => ({
   name,
   color: GEM_COLORS[name],
-  shape: (['Ruby', 'Diamond', 'Garnet'] as string[]).includes(name) ? 'brilliant' as const : 'crystal' as const,
+  shape: GEM_SHAPES[name],
 }));
 </script>
 

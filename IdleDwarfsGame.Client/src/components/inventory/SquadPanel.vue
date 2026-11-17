@@ -13,6 +13,7 @@ import HeroesApiService from '@/services/apiServices/HeroesApiService';
 import { HeroInfo, SQUAD_SIZE, isBusy, squadSlotIds } from '@/models/types/Heroes';
 import { vDragScroll } from '@/directives/dragScroll';
 import StatIcon from '@/components/icons/stats/StatIcon.vue';
+import LoadingCrystal from '@/components/loading/LoadingCrystal.vue';
 
 // Состав отряда: 5 слотов сверху, все остальные герои — списком под ними, снизу — сохранение.
 // Живёт и в своём окне (SquadModal), и вкладкой в окне алтаря (HeroUpgradeModal)
@@ -227,7 +228,7 @@ const statusText = computed(() => {
 
 <template>
     <div class="squad">
-        <div v-if="loading && !heroes.length" class="inventory-hint">{{ t('common.loading') }}</div>
+        <LoadingCrystal v-if="loading && !heroes.length" />
 
         <template v-else-if="heroes.length">
             <section class="inventory-section">

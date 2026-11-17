@@ -9,10 +9,10 @@ import { GEM_COLORS } from '@/components/inventory/lootStyles';
 import MiningApiService from '@/services/apiServices/MiningApiService';
 import { useResources } from '@/composables/UseResources';
 import { GemType, MineInfo, MiningActionResult, MiningBoard, MiningWallet, formatPerClick, storedNow } from '@/models/types/Mining';
-import GemIcon from '@/components/icons/GemIcon.vue';
 import MineResourceIcon from '@/components/mining/MineResourceIcon.vue';
 import PickaxePanel from '@/components/mining/PickaxePanel.vue';
 import { IconPickaxe } from '@/components/icons/ui';
+import LoadingCrystal from '@/components/loading/LoadingCrystal.vue';
 
 // Шахты: места под шахты, по клику на свободное — постройка, на шахту — её окно (поверх этого)
 const props = defineProps<{ modelValue: boolean }>();
@@ -152,10 +152,10 @@ const onBuilt = async (result: MiningActionResult) => {
                     class="mining-crystal"
                     :style="{ color: GEM_COLORS[crystal.gem] }"
                     v-tooltip="t(`gems.${crystal.gem}`)"
-                ><GemIcon :gem="crystal.gem" /> {{ format(crystal.quantity) }}</span>
+                ><MineResourceIcon :type="crystal.gem" /> {{ format(crystal.quantity) }}</span>
             </div>
 
-            <div v-if="loading && !board" class="mining-hint">{{ t('common.loading') }}</div>
+            <LoadingCrystal v-if="loading && !board" />
             <div v-else-if="errorMessage" class="mining-hint mining-hint-error">{{ errorMessage }}</div>
 
             <!-- Одним блоком после загрузки: кирка (общая на все шахты) и места под шахты.
@@ -178,7 +178,8 @@ const onBuilt = async (result: MiningActionResult) => {
                             <div class="mining-plot-art">
                                 <img v-if="mineImage(mine.type)" :src="mineImage(mine.type)!" class="mining-plot-image" alt="" />
                                 <span v-else class="mining-plot-glyph"><IconPickaxe /></span>
-                                <span class="mining-plot-resource"><MineResourceIcon :type="mine.type" /></span>
+                                <!-- Кристалл налит на долю, набранную кликами до следующего камня -->
+                                <span class="mining-plot-resource"><MineResourceIcon :type="mine.type" :progress="mine.perClick < 1 ? mine.digProgress % 1 : 1" /></span>
                                 <span class="mining-plot-level">{{ t('mining.level', { level: mine.level }) }}</span>
                             </div>
                             <div class="mining-plot-name">{{ t(`mining.types.${mine.type}`) }}</div>

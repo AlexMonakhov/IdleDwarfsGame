@@ -17,6 +17,7 @@ import { scrollToAnchor, useStageRewards } from "@/composables/UseStageRewards";
 import { vDragScroll } from "@/directives/dragScroll";
 import { IconBanner, IconLock, IconTrophy } from '@/components/icons/ui';
 import { IconPower } from '@/components/icons/stats';
+import LoadingCrystal from '@/components/loading/LoadingCrystal.vue';
 
 // Окно бесконечной башни. Шапка (круг стихий, неделя, отряд, пропуск) стоит на месте, прокручивается список:
 // пройденные этажи с незабранной наградой (и прошлых недель) и последний пройденный, дальше текущий и заблокированные.
@@ -196,7 +197,7 @@ const lastClearedIndex = computed(() => (tower.value?.clearedFloors.length ?? 0)
         </div>
 
         <!-- Пока список перезагружается после награды, не прячем его за «Загрузка…» -->
-        <div v-if="loading && !tower" class="stage-message">{{ t('common.loading') }}</div>
+        <LoadingCrystal v-if="loading && !tower" />
         <div v-else-if="error && !tower" class="stage-message error">{{ t('tower.loadError') }}</div>
         <div v-else-if="tower" ref="scroller" v-drag-scroll class="stage-scroll">
             <ul class="stage-list">

@@ -57,6 +57,40 @@ export const isClipped = (el: HTMLElement) => {
   return shown.width * shown.height < full.width * full.height - 1
 }
 
+// Докрутить якорь в видимую зону: по горизонтали — к центру, по вертикали — ровно настолько, чтобы влез.
+// Двигаем только настоящие прокрутки (overflow auto/scroll) — scrollIntoView докручивал и контейнеры с overflow: hidden:
+// башня у правого края города не может встать по центру, и остаток уходил в .ui-stage — вся сцена уезжала влево.
+// scrollTo сам упирается в границы прокрутки
+const isScroller = (style: CSSStyleDeclaration, axis: 'x' | 'y') =>
+  /(auto|scroll)/.test(axis === 'x' ? style.overflowX : style.overflowY)
+
+// Каждую ось двигает только ближайшая прокрутка: внешняя считала бы по старому положению, пока внутренняя ещё едет
+export const scrollAnchorIntoView = (el: HTMLElement) => {
+  let doneX = false
+  let doneY = false
+  for (let parent = el.parentElement; parent && parent !== document.body; parent = parent.parentElement) {
+    const style = getComputedStyle(parent)
+    const canX: boolean = !doneX && isScroller(style, 'x') && parent.scrollWidth > parent.clientWidth
+    const canY: boolean = !doneY && isScroller(style, 'y') && parent.scrollHeight > parent.clientHeight
+    if (!canX && !canY) continue
+    doneX ||= canX
+    doneY ||= canY
+    const box = parent.getBoundingClientRect()
+    const rect = el.getBoundingClientRect()
+    // Прокрутка в пикселях контейнера, а rect — в пикселях окна: учитываем масштаб интерфейса
+    const scale = box.width / (parent.offsetWidth || box.width) || 1
+    let left = parent.scrollLeft
+    let top = parent.scrollTop
+    if (canX) left += (rect.left + rect.width / 2 - (box.left + box.width / 2)) / scale
+    if (canY) {
+      if (rect.top < box.top) top -= (box.top - rect.top) / scale
+      else if (rect.bottom > box.bottom) top += (rect.bottom - box.bottom) / scale
+    }
+    parent.scrollTo({ left, top, behavior: 'smooth' })
+    if (doneX && doneY) return
+  }
+}
+
 // Общая рамка видимых частей всех элементов якоря (в пикселях окна); null — якоря на экране нет
 export const anchorRect = (id: string): DOMRect | null => {
   const rects = findAnchors(id).map(visibleRect).filter(r => r.width > 0 && r.height > 0)

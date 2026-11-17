@@ -18,6 +18,7 @@ import caveBackground from '@/assets/red_crystal_arena.png';
 import crystalsBackground from '@/assets/arenas/arena_blue.png';
 import StatIcon from '@/components/icons/stats/StatIcon.vue';
 import { IconCoin, IconExperience, IconHourglass } from '@/components/icons/ui';
+import LoadingCrystal from '@/components/loading/LoadingCrystal.vue';
 
 const props = defineProps<{ modelValue: boolean }>();
 const emit = defineEmits<{ (e: 'update:modelValue', value: boolean): void }>();
@@ -259,7 +260,7 @@ const footerText = computed(() => {
         height="min(780px, calc(90 * var(--vh)))"
     >
         <div class="expeditions">
-            <div v-if="loading && !board" class="expeditions-hint">{{ t('common.loading') }}</div>
+            <LoadingCrystal v-if="loading && !board" />
 
             <!-- ===== Список заданий ===== -->
             <div v-else-if="!selected" class="expedition-list">
