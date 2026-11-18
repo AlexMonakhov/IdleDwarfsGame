@@ -304,7 +304,9 @@ public class GuildService(
 
         var scenario = new GuildBossScenario(entityFactory, template, definition, boss.CurrentHp);
         var combat = await combatService.StartGuildBossFight(user.PlayerId, scenario, arena);
-        var result = await guilds.ApplyDamageAsync(boss.Id, userId, boss.CurrentHp - scenario.BossHpLeft, now);
+        // Засчитывается урон отряда из статистики боя (то, что игрок видит в деталях боя), а не потеря HP босса:
+        // лечение босса и урон арены не должны менять счёт. Сверх остатка HP срежет ApplyDamageAsync
+        var result = await guilds.ApplyDamageAsync(boss.Id, userId, combat.DamageDealtBy(1), now);
 
         // Значки почёта лавки гильдии — за каждый удар
         int badges = ShopRules.HonorBadgesForAttack(tier);

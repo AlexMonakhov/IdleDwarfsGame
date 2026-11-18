@@ -160,6 +160,9 @@ public class CombatResult
     public RewardEntity? Rewards { get; set; }
     // Итоги по каждому бойцу: урон по источникам, лечение, полученный урон (CombatStatsTracker)
     public List<CombatUnitStats> Stats { get; set; } = new();
+
+    // Урон команды по врагам — то же число, что итог команды в деталях боя. Урон арены и лечение врагов сюда не входят
+    public int DamageDealtBy(int team) => Stats.Where(s => s.Team == team).Sum(s => s.DamageDealt);
 }
 
 public interface ICombatSystem
@@ -244,6 +247,12 @@ public class HealthComponent
 {
     public int Current;
     public int Max;
+    // Макс. HP бойца по его статам, если Max задан вручную (запас HP боссов гильдии и мирового босса).
+    // От него, а не от Max, считаются эффекты арены в % HP: иначе 3% от запаса в миллионы HP лечили бы босса
+    // быстрее, чем его бьёт отряд, а урон арены снимал бы с него сотни тысяч за раунд. null — как Max
+    public int? NominalMax;
+
+    public int PercentBase => NominalMax ?? Max;
 }
 
 public class AttackComponent

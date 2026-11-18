@@ -28,10 +28,10 @@ public class ArenaStatusEffect : IGlobalEffect
             ? null
             : new ArenaStatusEffect(arena.Name, arena.EffectName, arena.EffectPower, arena.EffectDuration);
 
-    // Сила статуса на конкретном бойце
+    // Сила статуса на конкретном бойце: процент от его макс. HP по статам (у боссов с запасом HP — не от запаса)
     public int PowerFor(World world, int entityId) =>
         AuraBook.PowerIsPercentOfAttack(EffectName)
-            ? Math.Max(1, (int)Math.Round(world.Health[entityId].Max * Power / 100.0, MidpointRounding.AwayFromZero))
+            ? Math.Max(1, (int)Math.Round(world.Health[entityId].PercentBase * Power / 100.0, MidpointRounding.AwayFromZero))
             : Power;
 
     public void Apply(World world, CombatContext context)

@@ -136,6 +136,8 @@ public class GuildTests : IDisposable
 
         var result = await _service.AttackAsync(_alice.Id, GuildBossTier.Easy);
         Assert.True(result.Damage > 0);
+        // Засчитан урон отряда из статистики боя — тот, что игрок видит в деталях боя
+        Assert.Equal(result.Combat.DamageDealtBy(1), result.Damage);
         Assert.False(result.Killed);
         Assert.Equal(result.MaxHp - result.Damage, result.BossHp);
         Assert.Equal(_clock.UtcNow + GuildBosses.AttackCooldown, result.NextAttackAt);

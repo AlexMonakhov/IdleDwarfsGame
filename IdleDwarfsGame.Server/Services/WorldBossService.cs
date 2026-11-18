@@ -67,7 +67,8 @@ public class WorldBossService(
 
         var scenario = new WorldBossScenario(entityFactory, template, WorldBossRules.LevelOf(boss.Stage), boss.MaxHp, boss.CurrentHp);
         var combat = await combatService.StartWorldBossFight(playerId, scenario, arena);
-        var result = await bosses.ApplyDamageAsync(boss, playerId, boss.CurrentHp - scenario.BossHpLeft, WorldBossRules.AttackCurrency, now);
+        // Как у босса гильдии: засчитывается урон отряда из статистики боя, а не потеря HP босса
+        var result = await bosses.ApplyDamageAsync(boss, playerId, combat.DamageDealtBy(1), WorldBossRules.AttackCurrency, now);
 
         return new WorldBossAttackResult
         {
