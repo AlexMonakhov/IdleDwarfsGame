@@ -6,6 +6,8 @@ import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import GemButton from '@/components/common/GemButton.vue';
 import UnitPortrait from '@/components/interface/UnitPortrait.vue';
+import SquadBonusBadge from '@/components/squadBonus/SquadBonusBadge.vue';
+import { unitsSquadBonus } from '@/battle/squadBonuses';
 import SocialApiService from '@/services/apiServices/SocialApiService';
 import { useResources } from '@/composables/UseResources';
 import { usePvp } from '@/composables/UsePvp';
@@ -134,6 +136,7 @@ const watch = (match: ArenaBetMatchInfo) => {
                             <span class="bets-muted"><StatIcon stat="power" /> {{ t('social.bets.power', { power: formatNumber(info.power) }) }}</span>
                             <div class="bets-units">
                                 <UnitPortrait v-for="unit in info.units" :key="unit.entityId" :unit="unit" :size="40" />
+                                <SquadBonusBadge :bonus="unitsSquadBonus(info.units)" size="40px" />
                             </div>
                             <span class="bets-muted">
                                 {{ t('social.bets.pool', { pool: formatNumber(info.pool), bettors: info.bettors, multiplier: info.multiplier ? info.multiplier.toFixed(2) : '—' }) }}
@@ -270,6 +273,7 @@ const watch = (match: ArenaBetMatchInfo) => {
 .bets-units {
     display: flex;
     flex-wrap: wrap;
+    align-items: center;
     gap: 4px;
 }
 

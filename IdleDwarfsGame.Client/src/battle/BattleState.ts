@@ -88,6 +88,8 @@ export interface BattleState {
   prepareProgress: number;
   finished: boolean;
   shownLogs: CombatLogEntry[];
+  // Счётчик срабатываний бонуса стихий по командам: значок бонуса пускает импульс, когда число растёт
+  bonusPulses: Record<number, number>;
 }
 
 export function toBattleUnit(info: CombatUnitInfo): BattleUnit {
@@ -130,6 +132,7 @@ export function createBattleState(): BattleState {
     prepareProgress: 0,
     finished: false,
     shownLogs: [],
+    bonusPulses: {},
   });
 }
 
@@ -143,6 +146,7 @@ export function resetBattleState(state: BattleState, result: CombatResult) {
   state.prepareProgress = 0;
   state.finished = false;
   state.shownLogs = [];
+  state.bonusPulses = {};
 }
 
 let floatingTextId = 0;

@@ -2,22 +2,27 @@
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import TooltipComponent from '@/components/common/TooltipComponent.vue';
-import SquadBonusIcon from './SquadBonusIcon.vue';
+import SquadBonusFigure from './SquadBonusFigure.vue';
 import { SquadBonus } from '@/battle/squadBonuses';
 import { bonusColor, bonusDescription, bonusName } from './squadBonusText';
 import { bonusComposition } from './squadBonusComposition';
 
-// Иконка бонуса отряда с подсказкой: имя, состав и что бонус делает. Без бонуса — ничего или приглушённая «пустая» плашка (showEmpty)
+// Иконка бонуса отряда с подсказкой: имя, состав и что бонус делает. Без бонуса — ничего или приглушённая «пустая» плашка (showEmpty).
+// animated и pulse — живой значок арены (SquadBonusFigure)
 const props = withDefaults(defineProps<{
     bonus: SquadBonus | null;
     size?: string;
     // Имя бонуса рядом с иконкой
     label?: boolean;
     showEmpty?: boolean;
+    animated?: boolean;
+    pulse?: number;
 }>(), {
     size: '40px',
     label: false,
     showEmpty: false,
+    animated: false,
+    pulse: 0,
 });
 
 const { t } = useI18n();
@@ -28,7 +33,7 @@ const color = computed(() => (props.bonus ? bonusColor(props.bonus) : '#64748b')
 <template>
     <TooltipComponent v-if="bonus" class="squad-bonus-badge" :accent="color">
         <span class="squad-bonus-badge-body">
-            <SquadBonusIcon :bonus="bonus" :size="size" />
+            <SquadBonusFigure :bonus="bonus" :size="size" :animated="animated" :pulse="pulse" />
             <span v-if="label" class="squad-bonus-badge-name" :style="{ color }">{{ bonusName(bonus) }}</span>
         </span>
         <template #title>{{ bonusName(bonus) }}</template>

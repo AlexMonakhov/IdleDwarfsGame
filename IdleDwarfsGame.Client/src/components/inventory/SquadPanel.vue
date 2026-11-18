@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { squadPowerOf } from '@/battle/squadBonuses';
+import { squadPowerHint } from '@/components/squadBonus/squadBonusText';
 import { soundService } from '@/services/soundService/SoundService';
 import { computed, onMounted, ref, watch } from 'vue';
 import HeroFilters from '@/components/inventory/HeroFilters.vue';
@@ -42,7 +44,8 @@ const slotHeroes = computed(() => slots.value.map(id => (id ? heroById.value.get
 // Стихии по местам — для бонуса отряда и подсказок к нему
 const slotElements = computed(() => slotHeroes.value.map(hero => hero?.element ?? null));
 // Мощь отряда — сумма мощи героев в слотах, меняется сразу при перетаскивании
-const squadPower = computed(() => slotHeroes.value.reduce((sum, hero) => sum + (hero?.power.total ?? 0), 0));
+// с бонусом стихий отряда, как на сервере (CombatPower.OfSquad)
+const squadPower = computed(() => squadPowerOf(slotHeroes.value));
 // Все, кто не в отряде: сильные сверху, ушедшие в экспедицию — в конце
 // Фильтры по стихии и рангу — поверх героев вне отряда
 const outsideSquad = computed(() => heroes.value.filter(h => !slots.value.includes(h.id)));
@@ -271,7 +274,7 @@ const statusText = computed(() => {
                 <div class="inventory-heading">
                     <h3 class="inventory-title">{{ t('squad.squad') }}</h3>
                     <InfoComponent inline :title="t('squad.squad')" :text="t('squad.squadHint')" />
-                    <span class="squad-power"><StatIcon stat="power" /> {{ t('power.squad', { power: squadPower }) }}</span>
+                    <span class="squad-power" v-tooltip="squadPowerHint(squadPower)"><StatIcon stat="power" /> {{ t('power.squad', { power: squadPower.total }) }}</span>
                 </div>
                 <SquadRow
                     :heroes="slotHeroes"

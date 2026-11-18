@@ -77,7 +77,7 @@ export const unitsSquadBonus = (units: { unitType?: string | null; element: Hero
 export const bonusPower = (bonus: SquadBonus): number => {
     if (bonus.shape === 'Prism') return 14;
     if (bonus.shape === 'Pair') return 29;
-    return [20, 39, 61][bonus.tier - 1];
+    return [20, 40, 61][bonus.tier - 1];
 };
 
 /* ===== Мощь отряда с бонусом ===== */
@@ -99,13 +99,17 @@ export interface SquadPower {
     bonusPower: number;
 }
 
+// Бонус отряда героев (инвентарь, отряд): стихия героя 1-го ранга не считается (HeroLevels.NormalizeElement), монстр — тоже
+export const heroesSquadBonus = (heroes: (Pick<SquadPowerHero, 'element' | 'level' | 'unitType'> | null | undefined)[]): SquadBonus | null =>
+    resolveSquadBonus(heroes.map(hero =>
+        (hero && hero.level > 1 && (hero.unitType ?? 'Dwarf') === 'Dwarf' ? hero.element : 'Basic')));
+
 // Мощь героя с сервера (power.total) посчитана для героя в одиночку — без бонуса отряда.
 // Сервер прибавляет бонус каждому дворфу отряда отдельно с округлением (CombatPower.Of), здесь — так же.
 // Стихия героя 1-го ранга не считается (HeroLevels.NormalizeElement), монстр — тоже
 export const squadPowerOf = (heroes: (SquadPowerHero | null | undefined)[]): SquadPower => {
     const squad = heroes.filter((hero): hero is SquadPowerHero => !!hero);
-    const bonus = resolveSquadBonus(squad.map(hero =>
-        (hero.level > 1 && (hero.unitType ?? 'Dwarf') === 'Dwarf' ? hero.element : 'Basic')));
+    const bonus = heroesSquadBonus(squad);
     const percent = bonus ? bonusPower(bonus) : 0;
     const base = squad.reduce((sum, hero) => sum + hero.power.total, 0);
     const bonusPart = squad.reduce((sum, hero) => sum + Math.round((hero.power.total * percent) / 100), 0);

@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { squadPowerOf } from '@/battle/squadBonuses';
+import { squadPowerHint } from '@/components/squadBonus/squadBonusText';
 import { computed, onMounted, ref } from 'vue';
 import { AxiosError } from 'axios';
 import { useI18n } from 'vue-i18n';
@@ -29,7 +31,8 @@ const notice = ref<string | null>(null);
 const heroById = computed(() => new Map(heroes.value.map(h => [h.id, h])));
 const slotHeroes = computed(() => slots.value.map(id => (id ? heroById.value.get(id) ?? null : null)));
 // Мощь отряда — сумма мощи героев в слотах, меняется сразу при перетаскивании
-const squadPower = computed(() => slotHeroes.value.reduce((sum, hero) => sum + (hero?.power.total ?? 0), 0));
+// с бонусом стихий отряда, как на сервере (CombatPower.OfSquad)
+const squadPower = computed(() => squadPowerOf(slotHeroes.value));
 // Все, кто не в отряде: сильные сверху, ушедшие в экспедицию — в конце
 const reserve = computed(() => heroes.value
     .filter(h => !slots.value.includes(h.id))
@@ -177,7 +180,7 @@ const statusText = computed(() => {
                 <section class="inventory-section">
                     <div class="inventory-heading">
                         <h3 class="inventory-title">{{ t('squad.squad') }}</h3>
-                        <span class="squad-power"><StatIcon stat="power" /> {{ t('power.squad', { power: squadPower }) }}</span>
+                        <span class="squad-power" v-tooltip="squadPowerHint(squadPower)"><StatIcon stat="power" /> {{ t('power.squad', { power: squadPower.total }) }}</span>
                     </div>
                     <div class="inventory-hint">{{ t('squad.squadHint') }}</div>
                     <div class="squad-row">

@@ -1,6 +1,6 @@
 import { t } from '@/i18n';
 import { SPELL_COLORS } from '@/components/icons/spells/spellColors';
-import { BonusElement, MONO_VALUES, SquadBonus, tierNumeral } from '@/battle/squadBonuses';
+import { BonusElement, MONO_VALUES, SquadBonus, SquadPower, bonusPower, tierNumeral } from '@/battle/squadBonuses';
 
 // Тексты и цвета бонусов стихий отряда: имя, описание с числами уровня, цвет стихии
 
@@ -50,3 +50,8 @@ export const bonusDescription = (bonus: SquadBonus, allTiers = false): string =>
     }
     return t(key, params);
 };
+
+// Подсказка к мощи отряда: сколько в ней от бонуса стихий; без бонуса — null (подсказки нет)
+export const squadPowerHint = (power: SquadPower): string | null => (power.bonus
+    ? t('power.squadBonusHint', { name: bonusName(power.bonus), value: power.bonusPower, percent: bonusPower(power.bonus) })
+    : null);

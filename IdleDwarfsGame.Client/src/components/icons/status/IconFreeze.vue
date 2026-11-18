@@ -1,26 +1,15 @@
 <script lang="ts" setup>
-import { useId } from 'vue';
+import StatusIconBase from './StatusIconBase.vue';
 
+// Заморозка: юнит в ледяной глыбе — кубик льда с гранями разной яркости
 withDefaults(defineProps<{ size?: string }>(), { size: '16px' });
-
-const bgId = `freeze-bg-${useId()}`;
 </script>
 
 <template>
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" :width="size" :height="size">
-    <defs>
-      <radialGradient :id="bgId" cx="50%" cy="50%" r="50%">
-        <stop offset="0%" stop-color="#ffffff" />
-        <stop offset="60%" stop-color="#7dd3fc" />
-        <stop offset="100%" stop-color="#0c4a6e" />
-      </radialGradient>
-    </defs>
-
-    <circle cx="50" cy="50" r="45" :fill="`url(#${bgId})`" stroke="#e0f6ff" stroke-width="3" />
-
-    <!-- Ледяная глыба -->
-    <polygon points="50,16 74,32 74,64 50,84 26,64 26,32" fill="#e0f6ff" fill-opacity="0.85" stroke="#ffffff" stroke-width="2" />
-    <!-- Грани -->
-    <path d="M50 16 L50 50 L74 64 M50 50 L26 64" fill="none" stroke="#38bdf8" stroke-width="2" />
-  </svg>
+  <StatusIconBase :size="size" light="#d6f6ff" mid="#3d9fd6" dark="#082c47" rim="#e6fbff" outline="rgba(4, 30, 55, 0.65)">
+    <path d="M50 17 L79 32 L79 66 L50 83 L21 66 L21 32 Z" fill="#a8e6ff" />
+    <path d="M50 17 L79 32 L50 47 L21 32 Z" fill="#f0fcff" stroke="none" />
+    <path d="M79 32 L79 66 L50 83 L50 47 Z" fill="#5fc4f2" stroke="none" />
+    <path d="M29 41 L29 55 M35 44 L35 50" stroke="#ffffff" stroke-width="3" fill="none" paint-order="normal" />
+  </StatusIconBase>
 </template>

@@ -1,40 +1,21 @@
 <script lang="ts" setup>
-import { useId } from 'vue';
+import StatusIconBase from './StatusIconBase.vue';
 
+// Мороз: снежинка — три перекладины с галочками на концах
 withDefaults(defineProps<{ size?: string }>(), { size: '16px' });
-
-const uid = useId();
-const bgId = `freeze-bg-${uid}`;
-const glowId = `freeze-glow-${uid}`;
 </script>
 
 <template>
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" :width="size" :height="size">
-    <defs>
-      <radialGradient :id="bgId" cx="50%" cy="50%" r="50%">
-        <stop offset="0%" stop-color="#00f0ff" />
-        <stop offset="60%" stop-color="#0077ff" />
-        <stop offset="100%" stop-color="#002b66" />
-      </radialGradient>
-      <filter :id="glowId" x="-20%" y="-20%" width="140%" height="140%">
-        <feGaussianBlur stdDeviation="2.5" result="blur" />
-        <feComposite in="SourceGraphic" in2="blur" operator="over" />
-      </filter>
-    </defs>
-
-    <circle cx="50" cy="50" r="45" :fill="`url(#${bgId})`" stroke="#a5f3fc" stroke-width="3" />
-
-    <!-- Снежинка -->
-    <g stroke="#ffffff" stroke-width="4" stroke-linecap="round" :filter="`url(#${glowId})`">
-      <line x1="50" y1="20" x2="50" y2="80" />
-      <line x1="24" y1="35" x2="76" y2="65" />
-      <line x1="24" y1="65" x2="76" y2="35" />
-      <path d="M 42 28 L 50 20 L 58 28" fill="none" />
-      <path d="M 42 72 L 50 80 L 58 72" fill="none" />
-      <path d="M 68 33 L 76 35 L 70 45" fill="none" />
-      <path d="M 32 67 L 24 65 L 30 55" fill="none" />
-      <path d="M 32 33 L 24 35 L 30 45" fill="none" />
-      <path d="M 68 67 L 76 65 L 70 55" fill="none" />
-    </g>
-  </svg>
+  <StatusIconBase :size="size" light="#b9f6ff" mid="#1d8fd6" dark="#06284a" rim="#d4fbff" outline="rgba(4, 30, 60, 0.65)">
+    <path d="M46.5 18 H53.5 V82 H46.5 Z" />
+    <path d="M46.5 18 H53.5 V82 H46.5 Z" transform="rotate(60 50 50)" />
+    <path d="M46.5 18 H53.5 V82 H46.5 Z" transform="rotate(120 50 50)" />
+    <path d="M50 34 L39 23 L43.5 18.5 L50 25 L56.5 18.5 L61 23 Z" />
+    <path d="M50 34 L39 23 L43.5 18.5 L50 25 L56.5 18.5 L61 23 Z" transform="rotate(60 50 50)" />
+    <path d="M50 34 L39 23 L43.5 18.5 L50 25 L56.5 18.5 L61 23 Z" transform="rotate(120 50 50)" />
+    <path d="M50 34 L39 23 L43.5 18.5 L50 25 L56.5 18.5 L61 23 Z" transform="rotate(180 50 50)" />
+    <path d="M50 34 L39 23 L43.5 18.5 L50 25 L56.5 18.5 L61 23 Z" transform="rotate(240 50 50)" />
+    <path d="M50 34 L39 23 L43.5 18.5 L50 25 L56.5 18.5 L61 23 Z" transform="rotate(300 50 50)" />
+    <circle cx="50" cy="50" r="7" />
+  </StatusIconBase>
 </template>

@@ -17,7 +17,9 @@ export type CombatEventType =
   | 'Death'
   | 'CombatEnd'
   // Арена изменила бой целиком: новая прибавка ко всему урону (damageBonusPercent)
-  | 'ArenaBuff';
+  | 'ArenaBuff'
+  // Бонус стихий отряда attackerTeam сработал в этом действии — только импульс значка на арене
+  | 'SquadBonus';
 
 export type DamageType =
   | 'Physical'

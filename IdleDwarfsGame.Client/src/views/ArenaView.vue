@@ -59,12 +59,13 @@
         <span v-if="state.damageBonus" :key="state.damageBonus" class="fury-badge" v-tooltip="t('arena.furyHint')"><IconFlame /> +{{ state.damageBonus }}%</span>
       </div>
 
-      <!-- Бонусы стихий отряда: свой — слева внизу, у соперника (PvP) — справа. Подсказка — что бонус делает -->
+      <!-- Бонусы стихий отряда: свой — слева внизу, у соперника (PvP) — справа. Подсказка — что бонус делает,
+           импульс — когда бонус срабатывает (BattleState.bonusPulses) -->
       <div v-if="squadBonusA" class="arena-squad-bonus arena-squad-bonus-left" @click.stop>
-        <SquadBonusBadge :bonus="squadBonusA" size="56px" />
+        <SquadBonusBadge :bonus="squadBonusA" size="84px" animated :pulse="state.bonusPulses[1] ?? 0" />
       </div>
       <div v-if="squadBonusB" class="arena-squad-bonus arena-squad-bonus-right" @click.stop>
-        <SquadBonusBadge :bonus="squadBonusB" size="56px" />
+        <SquadBonusBadge :bonus="squadBonusB" size="84px" animated :pulse="state.bonusPulses[2] ?? 0" />
       </div>
 
       <div v-if="error !== null" class="arena-message error">
@@ -778,19 +779,19 @@ onBeforeUnmount(() => {
   zoom: 1.5;
 }
 
-/* Значок бонуса стихий отряда в нижнем углу своей стороны */
+/* Значок бонуса стихий отряда в нижнем углу своей стороны; отступ — с запасом под свечение и орбиту искр */
 .arena-squad-bonus {
   position: absolute;
-  bottom: 18px;
+  bottom: 56px;
   z-index: 12;
 }
 
 .arena-squad-bonus-left {
-  left: 18px;
+  left: 64px;
 }
 
 .arena-squad-bonus-right {
-  right: 18px;
+  right: 64px;
 }
 
 .round-banner {

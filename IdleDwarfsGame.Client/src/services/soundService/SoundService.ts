@@ -132,6 +132,8 @@ class SoundService {
     };
     window.addEventListener('pointerdown', unlock, { once: true });
     window.addEventListener('keydown', unlock, { once: true });
+    // Игрок уже трогал страницу (новый экземпляр после горячей замены модуля при разработке) — звук можно сразу
+    if ((navigator as Navigator & { userActivation?: { hasBeenActive: boolean } }).userActivation?.hasBeenActive) unlock();
 
     // Закрытие и перезагрузка вкладки обрывают звук посреди волны — это слышно как щелчок. Пока страница
     // выгружается, успеваем плавно увести общую громкость в ноль (pagehide — запасной, если beforeunload не пришёл)
@@ -251,6 +253,17 @@ class SoundService {
     if (this.ctx) this.startMusic();
   }
 
+  // Заглушить и закрыть звук насовсем (горячая замена модуля при разработке)
+  private disposed = false;
+
+  dispose() {
+    this.disposed = true;
+    this.music.track?.source.stop();
+    this.music = { key: null, url: null, track: null };
+    void this.ctx?.close();
+    this.ctx = null;
+  }
+
   // ===== Внутреннее =====
 
   // Быстро и плавно в тишину: постоянная времени 8 мс — за ~40 мс громкость падает на 40 дБ
@@ -330,13 +343,30 @@ class SoundService {
     }
   }
 
+  // Трек сцены: у ключа может быть несколько вариантов (music_battle, music_battle-2…). Вариант выбирается случайно
+  // при входе в сцену и держится, пока сцена не сменится; следующий заход — другой трек, если их больше одного
+  private musicPick: { key: string; url: string } | null = null;
+  private lastMusicVariant = new Map<string, string>();
+
+  private musicVariant(fileKey: string): string | null {
+    if (this.musicPick?.key === fileKey) return this.musicPick.url;
+    const urls = this.files.get(fileKey) ?? [];
+    if (!urls.length) return null;
+    const last = this.lastMusicVariant.get(fileKey);
+    const choices = urls.length > 1 ? urls.filter(url => url !== last) : urls;
+    const url = choices[Math.floor(Math.random() * choices.length)];
+    this.musicPick = { key: fileKey, url };
+    this.lastMusicVariant.set(fileKey, url);
+    return url;
+  }
+
   // Запустить трек текущей сцены (если он ещё не играет), прежний — плавно увести
   private startMusic() {
     const ctx = this.context();
     if (!ctx || !this.musicBus) return;
     const key = this.music.key;
     const fileKey = key ? this.chain(key).find(k => this.files.has(k)) : undefined;
-    const url = fileKey ? this.files.get(fileKey)?.[0] ?? null : null;
+    const url = fileKey ? this.musicVariant(fileKey) : null;
     if (url === this.music.url) return;
     this.music.url = url;
 
@@ -367,6 +397,7 @@ class SoundService {
 
   private context() {
     if (this.ctx) return this.ctx;
+    if (this.disposed) return null;
     if (typeof AudioContext === 'undefined') return null;
 
     const ctx = new AudioContext();
@@ -415,3 +446,8 @@ class SoundService {
 const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
 
 export const soundService = new SoundService();
+
+// Разработка: горячая замена этого модуля создаёт новый soundService, а старый продолжал бы играть музыку своим
+// AudioContext (в бою — городская музыка поверх боя, а звуки боя шли в новый, ещё не разблокированный контекст).
+// Старый экземпляр закрываем
+if (module.hot) module.hot.dispose(() => soundService.dispose());

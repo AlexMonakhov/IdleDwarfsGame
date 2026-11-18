@@ -1,25 +1,13 @@
 <script lang="ts" setup>
-import { useId } from 'vue';
+import StatusIconBase from './StatusIconBase.vue';
 
+// Прилив энергии: молния и плюс — энергия вернулась
 withDefaults(defineProps<{ size?: string }>(), { size: '16px' });
-
-const bgId = `energy-gain-bg-${useId()}`;
 </script>
 
 <template>
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" :width="size" :height="size">
-    <defs>
-      <radialGradient :id="bgId" cx="50%" cy="50%" r="50%">
-        <stop offset="0%" stop-color="#7dd3fc" />
-        <stop offset="65%" stop-color="#0369a1" />
-        <stop offset="100%" stop-color="#082f49" />
-      </radialGradient>
-    </defs>
-
-    <circle cx="50" cy="50" r="45" :fill="`url(#${bgId})`" stroke="#e0f2fe" stroke-width="3" />
-
-    <!-- Молния энергии и плюс: энергия вернулась -->
-    <path d="M50 14 L24 56 H42 L36 86 L66 42 H48 Z" fill="#fde68a" stroke="#f59e0b" stroke-width="2" stroke-linejoin="round" />
-    <path d="M74 22 V42 M64 32 H84" stroke="#ecfeff" stroke-width="6" stroke-linecap="round" />
-  </svg>
+  <StatusIconBase :size="size" light="#9fe0ff" mid="#0a6fad" dark="#06233d" rim="#e0f4ff" outline="rgba(3, 25, 45, 0.7)">
+    <path d="M50 14 L24 56 H42 L36 86 L67 42 H49 Z" fill="#ffe89a" />
+    <path d="M70 20 H78 V30 H88 V38 H78 V48 H70 V38 H60 V30 H70 Z" fill="#f0fbff" />
+  </StatusIconBase>
 </template>

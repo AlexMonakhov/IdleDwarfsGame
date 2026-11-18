@@ -1,43 +1,13 @@
 <script lang="ts" setup>
-import { useId } from 'vue';
+import StatusIconBase from './StatusIconBase.vue';
 
+// Горение: язык пламени с горячей сердцевиной
 withDefaults(defineProps<{ size?: string }>(), { size: '16px' });
-
-// id внутри svg должны быть уникальны, иначе несколько иконок на странице делят один градиент
-const uid = useId();
-const bgId = `burn-bg-${uid}`;
-const innerId = `flame-inner-${uid}`;
 </script>
 
 <template>
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" :width="size" :height="size">
-    <defs>
-      <radialGradient :id="bgId" cx="50%" cy="50%" r="50%">
-        <stop offset="0%" stop-color="#ff9900" />
-        <stop offset="65%" stop-color="#cc0000" />
-        <stop offset="100%" stop-color="#4a0000" />
-      </radialGradient>
-      <linearGradient :id="innerId" x1="0%" y1="100%" x2="0%" y2="0%">
-        <stop offset="0%" stop-color="#ffe600" />
-        <stop offset="100%" stop-color="#ffffff" />
-      </linearGradient>
-    </defs>
-
-    <circle cx="50" cy="50" r="45" :fill="`url(#${bgId})`" stroke="#ffcc00" stroke-width="3" />
-
-    <g>
-      <path d="M 50 18
-               C 55 30, 65 35, 72 48
-               C 80 62, 73 78, 58 82
-               C 55 83, 45 83, 42 82
-               C 27 78, 20 62, 28 48
-               C 33 39, 36 38, 38 30
-               C 40 25, 48 20, 50 18 Z" fill="#ff5500" />
-      <path d="M 50 35
-               C 53 43, 60 47, 63 56
-               C 67 66, 61 76, 50 78
-               C 39 76, 33 66, 37 56
-               C 40 50, 47 42, 50 35 Z" :fill="`url(#${innerId})`" />
-    </g>
-  </svg>
+  <StatusIconBase :size="size" light="#ffc46b" mid="#e8430c" dark="#4a0b00" rim="#ffd98a" outline="rgba(60, 10, 0, 0.65)">
+    <path d="M50 15 C57 30 73 38 73 59 C73 75 62 85 50 85 C38 85 27 75 27 59 C27 47 33 41 39 32 C41 42 44 46 47 48 C46 37 45 26 50 15 Z" fill="#ffeaa6" />
+    <path d="M50 50 C55 57 61 62 61 70 C61 77 56 81 50 81 C44 81 39 77 39 70 C39 62 45 57 50 50 Z" fill="#ff7417" stroke="none" />
+  </StatusIconBase>
 </template>

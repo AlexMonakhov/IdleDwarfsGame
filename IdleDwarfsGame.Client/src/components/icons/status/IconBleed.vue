@@ -1,38 +1,14 @@
 <script lang="ts" setup>
-import { useId } from 'vue';
+import StatusIconBase from './StatusIconBase.vue';
 
+// Кровотечение: крупная капля и капля поменьше
 withDefaults(defineProps<{ size?: string }>(), { size: '16px' });
-
-const bgId = `bleed-bg-${useId()}`;
 </script>
 
 <template>
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" :width="size" :height="size">
-    <defs>
-      <radialGradient :id="bgId" cx="50%" cy="50%" r="50%">
-        <stop offset="0%" stop-color="#ff1a40" />
-        <stop offset="65%" stop-color="#800014" />
-        <stop offset="100%" stop-color="#2a0007" />
-      </radialGradient>
-    </defs>
-
-    <circle cx="50" cy="50" r="45" :fill="`url(#${bgId})`" stroke="#ff8093" stroke-width="3" />
-
-    <!-- Главная капля -->
-    <path d="M 50 20
-             C 50 20, 70 50, 70 63
-             C 70 74, 61 82, 50 82
-             C 39 82, 30 74, 30 63
-             C 30 50, 50 20, 50 20 Z" fill="#e60026" />
-    <!-- Блик -->
-    <path d="M 42 50
-             C 40 55, 38 62, 40 68
-             C 37 66, 36 60, 38 52 Z" fill="#ffffff" opacity="0.7" />
-    <!-- Малая капля -->
-    <path d="M 68 28
-             C 68 28, 78 43, 78 49
-             C 78 54, 73 58, 68 58
-             C 63 58, 58 54, 58 49
-             C 58 43, 68 28, 68 28 Z" fill="#ff3352" transform="rotate(15 68 43)" />
-  </svg>
+  <StatusIconBase :size="size" light="#ff8fa3" mid="#c8133f" dark="#3d0414" rim="#ffd0d9" outline="rgba(50, 0, 12, 0.7)">
+    <path d="M43 16 C53 33 65 44 65 59 A22 22 0 0 1 21 59 C21 44 33 33 43 16 Z" fill="#ffe0e6" />
+    <path d="M71 45 C75 53 80 58 80 65 A9 9 0 0 1 62 65 C62 58 67 53 71 45 Z" fill="#ffe0e6" />
+    <path d="M32 58 C32 66 36 71 42 73" fill="none" stroke="#ff8fa3" stroke-width="3.5" paint-order="normal" />
+  </StatusIconBase>
 </template>

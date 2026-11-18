@@ -7,6 +7,8 @@ import SquadRow from '@/components/inventory/SquadRow.vue';
 import { IconExpand } from '@/components/icons/ui';
 import type { PortraitUnit } from '@/battle/types';
 import { HeroInfo } from '@/models/types/Heroes';
+import SquadBonusBadge from '@/components/squadBonus/SquadBonusBadge.vue';
+import { heroesSquadBonus, unitsSquadBonus } from '@/battle/squadBonuses';
 
 // Блок отряда в окнах (гильдия, арена): заголовок, справа действия, под ним сам отряд.
 // expanded — слоты с карточками героев, как в окне отряда; свёрнутый — ряд портретов, передняя линия справа.
@@ -49,6 +51,9 @@ const portraits = computed<PortraitUnit[]>(() => {
         .filter((hero): hero is HeroInfo => !!hero)
         .sort((a, b) => (b.placeInSquad ?? 0) - (a.placeInSquad ?? 0));
 });
+
+// Бонус стихий отряда — значком сразу за портретами
+const squadBonus = computed(() => (props.units ? unitsSquadBonus(props.units) : heroesSquadBonus(props.heroes ?? [])));
 </script>
 
 <template>
@@ -78,6 +83,7 @@ const portraits = computed<PortraitUnit[]>(() => {
         <SquadRow v-if="showExpanded" :heroes="heroes ?? []" readonly @slot-click="emit('slot-click', $event)" />
         <div v-else-if="portraits.length" class="squad-summary-team">
             <UnitPortrait v-for="(unit, index) in portraits" :key="index" :unit="unit" :size="portraitSize" />
+            <SquadBonusBadge :bonus="squadBonus" :size="`${portraitSize}px`" class="squad-summary-bonus" />
         </div>
 
         <slot />
@@ -136,6 +142,11 @@ const portraits = computed<PortraitUnit[]>(() => {
 .squad-summary-team {
     display: flex;
     flex-wrap: wrap;
+    align-items: center;
     gap: 6px;
+}
+
+.squad-summary-bonus {
+    margin-left: 4px;
 }
 </style>

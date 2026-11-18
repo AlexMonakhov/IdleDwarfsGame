@@ -1,14 +1,25 @@
 <script lang="ts" setup>
+import { reactive, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import SquadBonusIcon from '@/components/squadBonus/SquadBonusIcon.vue';
+import SquadBonusFigure from '@/components/squadBonus/SquadBonusFigure.vue';
+import { soundService } from '@/services/soundService/SoundService';
 import { ALL_MONO, ALL_PAIRS, PRISM, SquadBonus, monoBonus } from '@/battle/squadBonuses';
 import { bonusColor, bonusDescription, bonusElementColor, bonusName, elementLabel } from '@/components/squadBonus/squadBonusText';
 import { bonusComposition } from '@/components/squadBonus/squadBonusComposition';
 import { vDragScroll } from '@/directives/dragScroll';
 
 // Справочник бонусов стихий отряда: как отряд получает бонус и что делает каждый — моно, пары и призма.
-// Числа моно-бонусов — сразу для всех трёх уровней
+// Числа моно-бонусов — сразу для всех трёх уровней. Наведение на карточку оживляет значок, как на арене,
+// клик — импульс, как при срабатывании бонуса в бою
 const { t } = useI18n();
+
+const hovered = ref<string | null>(null);
+const pulses = reactive<Record<string, number>>({});
+const pulse = (bonus: SquadBonus) => {
+    pulses[bonus.id] = (pulses[bonus.id] ?? 0) + 1;
+    soundService.play('battle_aura');
+};
 
 // Лесенка составов сверху вниз — по силе бонуса
 const RULES: { key: string; bonus: SquadBonus | null }[] = [
@@ -58,9 +69,20 @@ const compositionOf = (bonus: SquadBonus) => (bonus.shape === 'Mono'
                     v-for="bonus in section.bonuses"
                     :key="bonus.id"
                     class="squads-card"
+                    :class="{ 'squads-card-active': hovered === bonus.id }"
                     :style="{ '--bonus-color': bonusColor(bonus), '--bonus-second': bonus.elements[1] ? bonusElementColor(bonus.elements[1]) : bonusColor(bonus) }"
+                    @mouseenter="hovered = bonus.id"
+                    @mouseleave="hovered = hovered === bonus.id ? null : hovered"
+                    @click="pulse(bonus)"
                 >
-                    <SquadBonusIcon :bonus="section.key === 'mono' ? monoBonus(bonus.elements[0], 3) : bonus" :show-tier="false" size="52px" />
+                    <SquadBonusFigure
+                        class="squads-card-figure"
+                        :bonus="section.key === 'mono' ? monoBonus(bonus.elements[0], 3) : bonus"
+                        :show-tier="false"
+                        size="52px"
+                        :animated="hovered === bonus.id"
+                        :pulse="pulses[bonus.id] ?? 0"
+                    />
                     <div class="squads-card-text">
                         <div class="squads-card-name">{{ bonusName(bonus, false) }}</div>
                         <div class="squads-card-composition">{{ compositionOf(bonus) }}</div>
@@ -156,6 +178,9 @@ const compositionOf = (bonus: SquadBonus) => (bonus.shape === 'Mono'
 
 /* Карточка бонуса: полоса слева — цвета его стихий */
 .squads-card {
+    position: relative;
+    cursor: pointer;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
     display: flex;
     align-items: flex-start;
     column-gap: 12px;
@@ -169,7 +194,20 @@ const compositionOf = (bonus: SquadBonus) => (bonus.shape === 'Mono'
         rgba(10, 16, 22, 0.75);
 }
 
+.squads-card-active {
+    border-color: color-mix(in srgb, var(--bonus-color) 70%, transparent);
+    border-left-color: var(--bonus-color);
+    box-shadow: 0 0 14px color-mix(in srgb, var(--bonus-color) 35%, transparent);
+}
+
+/* Свечение и волны значка выходят за карточку — карточка их не обрезает, текст лежит поверх волн */
+.squads-card-figure {
+    margin: 4px;
+}
+
 .squads-card-text {
+    position: relative;
+    z-index: 3;
     min-width: 0;
     display: flex;
     flex-direction: column;

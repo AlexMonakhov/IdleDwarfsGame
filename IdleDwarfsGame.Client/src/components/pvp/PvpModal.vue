@@ -9,6 +9,8 @@ import ArenaBetsPanel from './ArenaBetsPanel.vue';
 import GemButton from '@/components/common/GemButton.vue';
 import UnitPortrait from '@/components/interface/UnitPortrait.vue';
 import SquadSummary from '@/components/inventory/SquadSummary.vue';
+import SquadBonusBadge from '@/components/squadBonus/SquadBonusBadge.vue';
+import { unitsSquadBonus } from '@/battle/squadBonuses';
 import HeroesApiService from '@/services/apiServices/HeroesApiService';
 import { HeroInfo, squadSlotIds } from '@/models/types/Heroes';
 import PvpApiService from '@/services/apiServices/PvpApiService';
@@ -421,6 +423,7 @@ const footerTimer = computed(() =>
 
                         <div class="pvp-team pvp-team-enemy">
                             <UnitPortrait v-for="unit in opponent.squad" :key="unit.entityId" :unit="unit" :size="40" />
+                            <SquadBonusBadge :bonus="unitsSquadBonus(opponent.squad)" size="40px" class="pvp-squad-bonus" />
                         </div>
 
                         <div class="pvp-opponent-forecast">
@@ -665,7 +668,13 @@ const footerTimer = computed(() =>
 .pvp-team {
     display: flex;
     flex-wrap: wrap;
+    align-items: center;
     gap: 6px;
+}
+
+/* Значок бонуса стихий — сразу за портретами, чуть отступив */
+.pvp-squad-bonus {
+    margin-left: 4px;
 }
 
 .pvp-list {

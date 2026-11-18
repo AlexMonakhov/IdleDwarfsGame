@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { squadPowerOf } from '@/battle/squadBonuses';
+import { squadPowerHint } from '@/components/squadBonus/squadBonusText';
 import { soundService } from '@/services/soundService/SoundService';
 import TimerBadge from '@/components/common/TimerBadge.vue';
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
@@ -99,7 +101,8 @@ const squad = computed(() => {
     const byId = new Map(heroes.value.map(h => [h.id, h]));
     return squadSlotIds(heroes.value).map(id => (id ? byId.get(id) ?? null : null));
 });
-const squadPower = computed(() => squad.value.reduce((sum, hero) => sum + (hero?.power.total ?? 0), 0));
+// С бонусом стихий отряда, как на сервере (CombatPower.OfSquad)
+const squadPower = computed(() => squadPowerOf(squad.value));
 const noSquad = computed(() => !!overview.value && squad.value.every(hero => !hero));
 
 /* ===== Карточка ===== */
@@ -174,7 +177,7 @@ const claim = async (boss: GuildBossInfo) => {
         >
             <template #info>
                 <span v-if="noSquad" class="boss-squad-empty">{{ t('guild.bosses.noSquad') }}</span>
-                <span v-else class="boss-squad-power"><StatIcon stat="power" /> {{ t('power.squad', { power: squadPower }) }}</span>
+                <span v-else class="boss-squad-power" v-tooltip="squadPowerHint(squadPower)"><StatIcon stat="power" /> {{ t('power.squad', { power: squadPower.total }) }}</span>
             </template>
             <template #actions>
                 <GemButton :color="'pink'" :disabled="!!busy" @click="squadOpen = true">{{ t('guild.bosses.editSquad') }}</GemButton>
