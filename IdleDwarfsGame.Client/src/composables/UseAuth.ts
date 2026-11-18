@@ -1,3 +1,4 @@
+import { soundService } from '@/services/soundService/SoundService';
 import { computed, ref } from 'vue'
 import AuthApiService, { AuthResponse, AuthUser, LoginRequest, RegisterRequest } from '@/services/apiServices/AuthApiService'
 
@@ -44,10 +45,12 @@ export function useAuth() {
 
   const login = async (request: LoginRequest) => {
     save(await AuthApiService.login(request))
+    soundService.play('login_success')
   }
 
   const register = async (request: RegisterRequest) => {
     save(await AuthApiService.register(request))
+    soundService.play('login_success')
   }
 
   const logout = () => {

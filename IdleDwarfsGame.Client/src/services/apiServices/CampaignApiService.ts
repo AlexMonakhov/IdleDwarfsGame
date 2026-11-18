@@ -1,4 +1,4 @@
-import { API_BASE_URL } from './apiConfig';
+import { API_BASE_URL, attachErrorSound } from './apiConfig';
 import axios from 'axios';
 import { useAuth } from '@/composables/UseAuth';
 import { CampaignFightResult, CampaignOverview } from '@/models/types/Campaign';
@@ -11,6 +11,7 @@ const apiClient = axios.create({
         'Content-Type': 'application/json'
     }
 });
+attachErrorSound(apiClient);
 
 // Прогресс кампании привязан к игроку из токена; без токена сервер берёт демо-игрока
 apiClient.interceptors.request.use(config => {

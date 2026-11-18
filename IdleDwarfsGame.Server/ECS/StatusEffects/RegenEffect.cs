@@ -24,5 +24,6 @@ public class RegenEffect : LayeredStatusEffect
             log.Shares = CombatStatsTracker.Split(healed, weights);
         }
         context.AddLog(log);
+        if (world.SquadBonuses.Count > 0) SquadBonuses.RegenTicked(world, targetId, this);
     }
 }

@@ -22,6 +22,10 @@ public class World
     public Dictionary<int, PassiveComponent> Passives = new();
     public Dictionary<int, GearComponent> Gear = new();
 
+    // Бонусы стихий отряда по командам (SquadBonuses) и щиты юнитов: щит принимает урон раньше HP
+    public Dictionary<int, SquadBonusState> SquadBonuses = new();
+    public Dictionary<int, int> Shields = new();
+
     public Entity CreateEntity()
     {
         var entity = new Entity(_nextId++);
@@ -74,6 +78,8 @@ public class World
     public int ResolveHit(int attackerId, int targetId, int amount)
     {
         int damage = ScaleDamage(amount);
+        if (SquadBonuses.Count > 0 && global::SquadBonuses.HitPercent(this, attackerId, targetId) is var squad and not 0)
+            damage = Percent(damage, Math.Max(0, 100 + squad));
         if (GetPassive(attackerId, HeroPassive.Executioner) is { } executioner
             && Health[targetId].Current * 100 < Health[targetId].Max * PassiveBook.ExecuteThreshold)
         {
@@ -97,10 +103,20 @@ public class World
 
     // Наносит урон и возвращает фактический остаток HP (не ниже 0).
     // Смертельный урон по герою с неиспользованным LastStand оставляет ему 1 HP
+    // Щит (бонусы отряда) принимает урон раньше HP
     public int ApplyDamage(int targetId, int amount)
     {
         var hp = Health[targetId];
-        hp.Current = Math.Max(0, hp.Current - Math.Max(0, amount));
+        amount = Math.Max(0, amount);
+        if (Shields.Count > 0 && Shields.TryGetValue(targetId, out int shield) && shield > 0)
+        {
+            int absorbed = Math.Min(shield, amount);
+            Shields[targetId] = shield - absorbed;
+            amount -= absorbed;
+        }
+
+        int before = hp.Current;
+        hp.Current = Math.Max(0, hp.Current - amount);
         if (hp.Current == 0 && Passives.TryGetValue(targetId, out var passives) && !passives.LastStandUsed
             && passives.Active.ContainsKey(HeroPassive.LastStand))
         {
@@ -108,6 +124,13 @@ public class World
             hp.Current = 1;
             PendingLastStands.Add(targetId);
         }
+        else if (hp.Current == 0 && before > 0 && SquadBonuses.Count > 0)
+        {
+            global::SquadBonuses.TryRevive(this, targetId);
+        }
+
+        if (SquadBonuses.Count > 0 && before > hp.Current)
+            global::SquadBonuses.Damaged(this, targetId, before - hp.Current);
         return hp.Current;
     }
 
@@ -117,6 +140,10 @@ public class World
         var hp = Health[targetId];
         int before = hp.Current;
         hp.Current = Math.Min(hp.Max, hp.Current + Math.Max(0, amount));
-        return hp.Current - before;
+        int healed = hp.Current - before;
+        // Лечение сверх максимума — бонусам отряда (щит «Ореола», «Благодатная почва»)
+        if (SquadBonuses.Count > 0 && amount > healed && before > 0)
+            global::SquadBonuses.Overhealed(this, targetId, amount - healed);
+        return healed;
     }
 }

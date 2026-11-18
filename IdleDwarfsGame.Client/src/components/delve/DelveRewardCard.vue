@@ -56,6 +56,7 @@ const hint = computed(() => {
 <template>
     <div
         class="delve-reward"
+        data-sound-hover="ui_hover_card"
         :class="{ 'delve-reward-selected': selected, 'delve-reward-disabled': disabled }"
         @click="!disabled && emit('pick')"
     >

@@ -200,7 +200,9 @@ public class AbilityTests : IDisposable
         Assert.Equal(3, stored.PassiveLevel);
         Assert.Equal("Regen", stored.AuraEffect);
         Assert.Equal(AuraTarget.Allies, stored.AuraTarget);
-        Assert.Equal(15, stored.AuraPower);
+        Assert.Equal(20, stored.AuraPower);
+        Assert.Equal(3, stored.AuraDuration);
+        Assert.Equal(AuraBook.DefaultInterval, stored.AuraInterval);
         Assert.Equal(2, stored.AuraLevel);
 
         // В ответе герой уже с новыми способностями

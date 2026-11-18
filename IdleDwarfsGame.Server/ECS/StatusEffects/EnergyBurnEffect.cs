@@ -44,6 +44,7 @@ public class EnergyBurnEffect(int amount) : IStatusEffect
         }
         log.AppliedEffects.Add(ToLogData());
         context.AddLog(log);
+        SquadBonuses.EnergyBurned(world, targetId, sourceId, _burned);
     }
 
     public void OnTurnStart(World world, int targetId, CombatContext context)

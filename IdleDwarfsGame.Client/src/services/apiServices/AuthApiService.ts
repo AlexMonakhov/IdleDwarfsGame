@@ -1,4 +1,4 @@
-import { API_BASE_URL } from './apiConfig';
+import { API_BASE_URL, attachErrorSound } from './apiConfig';
 import axios, { AxiosError } from 'axios';
 import { currentLocale, t } from '@/i18n';
 
@@ -43,6 +43,7 @@ const apiClient = axios.create({
         'Content-Type': 'application/json'
     }
 });
+attachErrorSound(apiClient);
 
 // Ключи ModelState приходят как "Username" — приводим к полям формы ("username")
 const toFieldName = (key: string): string => key.charAt(0).toLowerCase() + key.slice(1);

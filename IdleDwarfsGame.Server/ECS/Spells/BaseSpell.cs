@@ -187,6 +187,9 @@ public abstract class BaseSpell : ISpell
         if (MarkEffect.Find(world, targetId) is { } mark)
             amount = amount * (100 + mark.Power) / 100;
 
+        // Бонус стихий отряда к урону заклинаний (тьма, свет, молния по замороженным…)
+        amount = SquadBonuses.SpellDamage(world, casterId, targetId, DamageType, amount);
+
         // 2. Считаем и наносим урон
         int damage = world.ResolveHit(casterId, targetId, amount);
         int hpLeft = world.ApplyDamage(targetId, damage);
@@ -225,6 +228,9 @@ public abstract class BaseSpell : ISpell
                     scope.RecordApplied(targetId, log.ActionType);
             }
         }
+
+        // Бонус отряда на попадание (плазма, чёрная молния, резонанс призмы) — по живой цели, после статусов спелла
+        if (damage > 0) SquadBonuses.SpellHit(world, context, casterId, targetId, DamageType);
 
         // 5. То, что зависит от нанесённого урона и срабатывает даже по убитой цели (вампиризм)
         AfterHit(world, casterId, targetId, damage, context);

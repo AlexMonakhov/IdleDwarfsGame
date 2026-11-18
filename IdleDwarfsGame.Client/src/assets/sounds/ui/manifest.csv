@@ -1,0 +1,101 @@
+id,duration_seconds,section
+ui_hover,0.045,Базовые элементы
+ui_click,0.075,Базовые элементы
+ui_click_primary,0.15,Базовые элементы
+ui_click_disabled,0.115,Базовые элементы
+ui_tab,0.075,Базовые элементы
+ui_toggle_on,0.09,Базовые элементы
+ui_toggle_off,0.09,Базовые элементы
+ui_slider,0.03,Базовые элементы
+ui_modal_open,0.3,Базовые элементы
+ui_modal_close,0.225,Базовые элементы
+ui_confirm_open,0.275,Базовые элементы
+ui_error,0.3,Базовые элементы
+ui_notify,0.35,Базовые элементы
+coin_gain_small,0.225,Ресурсы и экономика
+coin_gain_big,1.15,Ресурсы и экономика
+gem_gain,0.45,Ресурсы и экономика
+currency_gain,0.3,Ресурсы и экономика
+purchase_success,0.6,Ресурсы и экономика
+reroll,0.45,Ресурсы и экономика
+collect,0.75,Ресурсы и экономика
+reward_claim,0.45,Ресурсы и экономика
+chest_appear,0.45,Сундуки
+chest_open_common,0.8,Сундуки
+chest_open_uncommon,1.0,Сундуки
+chest_open_rare,1.25,Сундуки
+chest_open_mythic,1.75,Сундуки
+chest_open_legendary,2.5,Сундуки
+card_deal,0.225,Сундуки
+card_hit,0.15,Сундуки
+card_reveal,0.225,Сундуки
+card_reveal_rare,0.85,Сундуки
+card_reveal_legendary,1.5,Сундуки
+chest_skip,0.3,Сундуки
+hero_upgrade,0.9,"Герои, кузница, способности"
+hero_fusion,2.25,"Герои, кузница, способности"
+hero_rename,0.225,"Герои, кузница, способности"
+ability_combine,1.15,"Герои, кузница, способности"
+ability_insert,0.225,"Герои, кузница, способности"
+ability_extract,1.15,"Герои, кузница, способности"
+forge_fuse_items,1.15,"Герои, кузница, способности"
+forge_fuse_gems,0.9,"Герои, кузница, способности"
+equip_item,0.25,"Герои, кузница, способности"
+unequip_item,0.225,"Герои, кузница, способности"
+drag_pick,0.105,"Герои, кузница, способности"
+drag_drop,0.115,"Герои, кузница, способности"
+squad_save,0.3,"Герои, кузница, способности"
+mine_dig,0.25,"Шахты, экспедиции, гильдия"
+mine_build,1.5,"Шахты, экспедиции, гильдия"
+building_upgrade,1.15,"Шахты, экспедиции, гильдия"
+dwarf_assign,0.3,"Шахты, экспедиции, гильдия"
+dwarf_recall,0.3,"Шахты, экспедиции, гильдия"
+expedition_start,0.75,"Шахты, экспедиции, гильдия"
+achievement_claim,2.0,Прогресс и награды
+calendar_claim,0.75,Прогресс и награды
+calendar_claim_big,2.0,Прогресс и награды
+delve_start,1.15,Прогресс и награды
+delve_move,0.5,Прогресс и награды
+delve_relic,1.15,Прогресс и награды
+delve_camp,1.15,Прогресс и награды
+delve_revive,1.25,Прогресс и награды
+delve_retreat,0.75,Прогресс и награды
+arena_bet,0.4,Прогресс и награды
+social_action,0.45,Прогресс и награды
+tutorial_step,0.3,Системное
+login_success,1.5,Системное
+battle_start,1.5,Бой (канал `sfx`)
+battle_round,0.5,Бой (канал `sfx`)
+battle_arena_buff,1.15,Бой (канал `sfx`)
+battle_swing,0.2,Бой (канал `sfx`)
+battle_hit_physical,0.175,Бой (канал `sfx`)
+battle_hit_magical,0.275,Бой (канал `sfx`)
+battle_hit_fire,0.4,Бой (канал `sfx`)
+battle_hit_frost,0.3,Бой (канал `sfx`)
+battle_hit_lightning,0.225,Бой (канал `sfx`)
+battle_hit_poison,0.225,Бой (канал `sfx`)
+battle_hit_bleed,0.2,Бой (канал `sfx`)
+battle_hit_true,0.175,Бой (канал `sfx`)
+battle_hit_dark,0.325,Бой (канал `sfx`)
+battle_hit_radiant,0.4,Бой (канал `sfx`)
+battle_crit,0.45,Бой (канал `sfx`)
+battle_cast,0.375,Бой (канал `sfx`)
+battle_cast_physical,0.375,Бой (канал `sfx`)
+battle_cast_magical,0.375,Бой (канал `sfx`)
+battle_cast_fire,0.375,Бой (канал `sfx`)
+battle_cast_frost,0.375,Бой (канал `sfx`)
+battle_cast_lightning,0.375,Бой (канал `sfx`)
+battle_cast_poison,0.375,Бой (канал `sfx`)
+battle_cast_bleed,0.375,Бой (канал `sfx`)
+battle_cast_true,0.375,Бой (канал `sfx`)
+battle_cast_dark,0.375,Бой (канал `sfx`)
+battle_cast_radiant,0.375,Бой (канал `sfx`)
+battle_aura,0.75,Бой (канал `sfx`)
+battle_heal,0.4,Бой (канал `sfx`)
+battle_status,0.225,Бой (канал `sfx`)
+battle_stun,0.325,Бой (канал `sfx`)
+battle_immune,0.2,Бой (канал `sfx`)
+battle_death,0.65,Бой (канал `sfx`)
+battle_dialogue,0.175,Бой (канал `sfx`)
+battle_victory,3.0,Бой (канал `sfx`)
+battle_defeat,2.25,Бой (канал `sfx`)

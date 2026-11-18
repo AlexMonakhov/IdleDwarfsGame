@@ -1,4 +1,4 @@
-import { API_BASE_URL } from './apiConfig';
+import { API_BASE_URL, attachErrorSound } from './apiConfig';
 import axios from 'axios';
 import { useAuth } from '@/composables/UseAuth';
 import type { Rarity } from '@/models/types/Inventory';
@@ -11,6 +11,7 @@ const apiClient = axios.create({
         'Content-Type': 'application/json'
     }
 });
+attachErrorSound(apiClient);
 
 // Предметы и камни — у залогиненного игрока, он берётся из токена
 apiClient.interceptors.request.use(config => {

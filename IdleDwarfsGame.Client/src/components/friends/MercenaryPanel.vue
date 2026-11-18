@@ -120,7 +120,7 @@ const fight = () => {
                     :class="{ 'merc-slot-active': slot === value }"
                     @click="slot = value"
                 >{{ value }}</button>
-                <GemButton :color="'red'" :disabled="!canFight" @click="fight">
+                <GemButton data-sound="ui_click_primary" :color="'red'" :disabled="!canFight" @click="fight">
                     <IconSword /> {{ t('social.mercenary.fight', { name: pickedName }) }}
                 </GemButton>
                 <span class="merc-hint"><IconElderSeal /> +{{ overview.lenderElderSeals }} → {{ picked.friend.username }}</span>

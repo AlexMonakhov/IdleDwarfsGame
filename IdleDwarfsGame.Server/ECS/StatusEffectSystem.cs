@@ -34,6 +34,9 @@ public class StatusEffectSystem : ICombatSystem
                 ItemReactions.StatusTicked(world, context, actorId, effect);
         }
 
+        // Бонус отряда в конце хода (выжигание энергии морозом «Полярной ночи»)
+        if (Phase == EffectPhase.End) SquadBonuses.TurnEnded(world, context, actorId);
+
         var expired = effects.Where(e => e.RemainingTurns <= 0).ToList();
         if (expired.Count == 0) return;
 

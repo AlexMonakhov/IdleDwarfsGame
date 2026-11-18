@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { soundService } from '@/services/soundService/SoundService';
 import { computed, ref, toRef, watch } from 'vue';
 import { emitTutorialEvent } from '@/tutorial/events';
 import { useTutorial } from '@/composables/UseTutorial';
@@ -120,6 +121,7 @@ const fuse = async () => {
     busy.value = true;
     try {
         const result = await AbilitiesApiService.fuse(pickedIds.value);
+        soundService.play('hero_fusion');
         const hero = result.hero;
         const returned = result.refund && (result.refund.gold > 0 || result.refund.experience > 0)
             ? ' ' + t('abilities.fusion.refunded', { gold: result.refund.gold, experience: result.refund.experience })

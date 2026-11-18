@@ -4140,7 +4140,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Id = 430,
                             ArenaId = 2,
                             Description = "Kryssa the Winter Drake guards the peak.",
-                            EnemyLevel = 91,
+                            EnemyLevel = 90,
                             Name = "Peak of Winter VI",
                             Type = 1
                         },
@@ -4230,7 +4230,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Id = 440,
                             ArenaId = 3,
                             Description = "Voltaris rides the storm above the summit.",
-                            EnemyLevel = 92,
+                            EnemyLevel = 91,
                             Name = "Eye of the Storm VII",
                             Type = 1
                         },
@@ -4239,7 +4239,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Id = 441,
                             ArenaId = 4,
                             Description = "Poison drips from every branch of the marsh.",
-                            EnemyLevel = 92,
+                            EnemyLevel = 91,
                             Name = "Rotting Shallows VII",
                             Type = 0
                         },
@@ -4311,7 +4311,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Id = 449,
                             ArenaId = 4,
                             Description = "Poison drips from every branch of the marsh.",
-                            EnemyLevel = 93,
+                            EnemyLevel = 92,
                             Name = "Witchlight Bog VII",
                             Type = 0
                         },
@@ -4320,7 +4320,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Id = 450,
                             ArenaId = 4,
                             Description = "Mirefang waits where the bog runs deepest.",
-                            EnemyLevel = 93,
+                            EnemyLevel = 92,
                             Name = "Heart of the Mire VII",
                             Type = 1
                         },
@@ -4329,7 +4329,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Id = 451,
                             ArenaId = 5,
                             Description = "The dead of the crypt rise against the intruders.",
-                            EnemyLevel = 93,
+                            EnemyLevel = 92,
                             Name = "Silent Ossuary VII",
                             Type = 0
                         },
@@ -4392,7 +4392,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Id = 458,
                             ArenaId = 5,
                             Description = "The dead of the crypt rise against the intruders.",
-                            EnemyLevel = 94,
+                            EnemyLevel = 93,
                             Name = "Sunless Depths VII",
                             Type = 0
                         },
@@ -4401,7 +4401,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Id = 459,
                             ArenaId = 5,
                             Description = "The dead of the crypt rise against the intruders.",
-                            EnemyLevel = 94,
+                            EnemyLevel = 93,
                             Name = "Sealed Reliquary VII",
                             Type = 0
                         },
@@ -4410,7 +4410,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Id = 460,
                             ArenaId = 5,
                             Description = "Morvath the Hollow rules the deepest vault.",
-                            EnemyLevel = 94,
+                            EnemyLevel = 93,
                             Name = "Throne of Night VII",
                             Type = 1
                         },
@@ -4419,7 +4419,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Id = 461,
                             ArenaId = 6,
                             Description = "Crystal guardians shine with blinding light.",
-                            EnemyLevel = 94,
+                            EnemyLevel = 93,
                             Name = "Prism Gate VII",
                             Type = 0
                         },
@@ -4428,7 +4428,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Id = 462,
                             ArenaId = 6,
                             Description = "Crystal guardians shine with blinding light.",
-                            EnemyLevel = 94,
+                            EnemyLevel = 93,
                             Name = "Shimmering Hall VII",
                             Type = 0
                         },
@@ -4482,7 +4482,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Id = 468,
                             ArenaId = 6,
                             Description = "Crystal guardians shine with blinding light.",
-                            EnemyLevel = 95,
+                            EnemyLevel = 94,
                             Name = "Gleaming Spire VII",
                             Type = 0
                         },
@@ -4491,7 +4491,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Id = 469,
                             ArenaId = 6,
                             Description = "Crystal guardians shine with blinding light.",
-                            EnemyLevel = 95,
+                            EnemyLevel = 94,
                             Name = "Starlit Archive VII",
                             Type = 0
                         },
@@ -4500,7 +4500,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Id = 470,
                             ArenaId = 6,
                             Description = "Aurelion the Shining blazes at the heart of the sanctum.",
-                            EnemyLevel = 95,
+                            EnemyLevel = 94,
                             Name = "Crown of Dawn VII",
                             Type = 1
                         },
@@ -4509,7 +4509,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Id = 471,
                             ArenaId = 7,
                             Description = "Garnet cultists thirst for fresh blood.",
-                            EnemyLevel = 95,
+                            EnemyLevel = 94,
                             Name = "Crimson Steps VII",
                             Type = 0
                         },
@@ -4518,7 +4518,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Id = 472,
                             ArenaId = 7,
                             Description = "Garnet cultists thirst for fresh blood.",
-                            EnemyLevel = 95,
+                            EnemyLevel = 94,
                             Name = "Bleeding Stones VII",
                             Type = 0
                         },
@@ -4527,7 +4527,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Id = 473,
                             ArenaId = 7,
                             Description = "Garnet cultists thirst for fresh blood.",
-                            EnemyLevel = 95,
+                            EnemyLevel = 94,
                             Name = "Hall of Offerings VII",
                             Type = 0
                         },
@@ -4563,7 +4563,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Id = 477,
                             ArenaId = 7,
                             Description = "Garnet cultists thirst for fresh blood.",
-                            EnemyLevel = 96,
+                            EnemyLevel = 95,
                             Name = "Vein Tunnels VII",
                             Type = 0
                         },
@@ -4572,7 +4572,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Id = 478,
                             ArenaId = 7,
                             Description = "Garnet cultists thirst for fresh blood.",
-                            EnemyLevel = 96,
+                            EnemyLevel = 95,
                             Name = "Garnet Court VII",
                             Type = 0
                         },
@@ -4581,7 +4581,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Id = 479,
                             ArenaId = 7,
                             Description = "Garnet cultists thirst for fresh blood.",
-                            EnemyLevel = 96,
+                            EnemyLevel = 95,
                             Name = "Sacrificial Ring VII",
                             Type = 0
                         },
@@ -4590,7 +4590,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Id = 480,
                             ArenaId = 7,
                             Description = "Vargul the Bloodbound stands over the great altar.",
-                            EnemyLevel = 96,
+                            EnemyLevel = 95,
                             Name = "The Great Altar VII",
                             Type = 1
                         },
@@ -4599,7 +4599,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Id = 481,
                             ArenaId = 1,
                             Description = "Fire tribes guard the forges deeper under the mountain.",
-                            EnemyLevel = 96,
+                            EnemyLevel = 95,
                             Name = "Ashen Road VII",
                             Type = 0
                         },
@@ -4608,7 +4608,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Id = 482,
                             ArenaId = 1,
                             Description = "Fire tribes guard the forges deeper under the mountain.",
-                            EnemyLevel = 96,
+                            EnemyLevel = 95,
                             Name = "Magma Falls VII",
                             Type = 0
                         },
@@ -4617,7 +4617,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Id = 483,
                             ArenaId = 1,
                             Description = "Fire tribes guard the forges deeper under the mountain.",
-                            EnemyLevel = 96,
+                            EnemyLevel = 95,
                             Name = "Burning Bridge VII",
                             Type = 0
                         },
@@ -4644,7 +4644,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Id = 486,
                             ArenaId = 1,
                             Description = "Fire tribes guard the forges deeper under the mountain.",
-                            EnemyLevel = 97,
+                            EnemyLevel = 96,
                             Name = "Ember Wastes VII",
                             Type = 0
                         },
@@ -4653,7 +4653,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Id = 487,
                             ArenaId = 1,
                             Description = "Fire tribes guard the forges deeper under the mountain.",
-                            EnemyLevel = 97,
+                            EnemyLevel = 96,
                             Name = "Firebrand Camp VII",
                             Type = 0
                         },
@@ -4662,7 +4662,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Id = 488,
                             ArenaId = 1,
                             Description = "Fire tribes guard the forges deeper under the mountain.",
-                            EnemyLevel = 97,
+                            EnemyLevel = 96,
                             Name = "Molten Vault VII",
                             Type = 0
                         },
@@ -4671,7 +4671,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Id = 489,
                             ArenaId = 1,
                             Description = "Fire tribes guard the forges deeper under the mountain.",
-                            EnemyLevel = 97,
+                            EnemyLevel = 96,
                             Name = "Smelter's Hold VII",
                             Type = 0
                         },
@@ -4680,7 +4680,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Id = 490,
                             ArenaId = 1,
                             Description = "Ignar the Ashborn rises from the caldera.",
-                            EnemyLevel = 97,
+                            EnemyLevel = 96,
                             Name = "Caldera Throne VII",
                             Type = 1
                         },
@@ -4689,7 +4689,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Id = 491,
                             ArenaId = 2,
                             Description = "Frozen hunters stalk the white wastes.",
-                            EnemyLevel = 97,
+                            EnemyLevel = 96,
                             Name = "Snowblind Path VII",
                             Type = 0
                         },
@@ -4698,7 +4698,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Id = 492,
                             ArenaId = 2,
                             Description = "Frozen hunters stalk the white wastes.",
-                            EnemyLevel = 97,
+                            EnemyLevel = 96,
                             Name = "Frostfang Gorge VII",
                             Type = 0
                         },
@@ -4707,7 +4707,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Id = 493,
                             ArenaId = 2,
                             Description = "Frozen hunters stalk the white wastes.",
-                            EnemyLevel = 97,
+                            EnemyLevel = 96,
                             Name = "Frozen Lake VII",
                             Type = 0
                         },
@@ -4716,7 +4716,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Id = 494,
                             ArenaId = 2,
                             Description = "Frozen hunters stalk the white wastes.",
-                            EnemyLevel = 97,
+                            EnemyLevel = 96,
                             Name = "Icicle Cave VII",
                             Type = 0
                         },
@@ -4734,7 +4734,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Id = 496,
                             ArenaId = 2,
                             Description = "Frozen hunters stalk the white wastes.",
-                            EnemyLevel = 98,
+                            EnemyLevel = 97,
                             Name = "Glacier Heart VII",
                             Type = 0
                         },
@@ -4743,7 +4743,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Id = 497,
                             ArenaId = 2,
                             Description = "Frozen hunters stalk the white wastes.",
-                            EnemyLevel = 98,
+                            EnemyLevel = 97,
                             Name = "Whiteout Plains VII",
                             Type = 0
                         },
@@ -4752,7 +4752,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Id = 498,
                             ArenaId = 2,
                             Description = "Frozen hunters stalk the white wastes.",
-                            EnemyLevel = 98,
+                            EnemyLevel = 97,
                             Name = "Rimehold Keep VII",
                             Type = 0
                         },
@@ -4761,7 +4761,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Id = 499,
                             ArenaId = 2,
                             Description = "Frozen hunters stalk the white wastes.",
-                            EnemyLevel = 98,
+                            EnemyLevel = 97,
                             Name = "Avalanche Pass VII",
                             Type = 0
                         },
@@ -4770,7 +4770,7 @@ namespace IdleDwarfsGame.Server.Migrations
                             Id = 500,
                             ArenaId = 2,
                             Description = "Kryssa the Winter Drake guards the peak.",
-                            EnemyLevel = 98,
+                            EnemyLevel = 97,
                             Name = "Peak of Winter VII",
                             Type = 1
                         });
@@ -25706,6 +25706,26 @@ namespace IdleDwarfsGame.Server.Migrations
                     b.ToTable("PlayerAbilities");
                 });
 
+            modelBuilder.Entity("PlayerAchievement", b =>
+                {
+                    b.Property<string>("PlayerId")
+                        .HasColumnType("nvarchar(36)");
+
+                    b.Property<string>("Key")
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<int>("ClaimedTiers")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("PlayerId", "Key");
+
+                    b.ToTable("PlayerAchievements");
+                });
+
             modelBuilder.Entity("PlayerCampaignProgress", b =>
                 {
                     b.Property<string>("PlayerId")
@@ -25833,6 +25853,54 @@ namespace IdleDwarfsGame.Server.Migrations
                         .IsUnique();
 
                     b.ToTable("PlayerItems");
+                });
+
+            modelBuilder.Entity("PlayerLifetimeActivity", b =>
+                {
+                    b.Property<string>("PlayerId")
+                        .HasColumnType("nvarchar(36)");
+
+                    b.Property<string>("Kind")
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<long>("Count")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("PlayerId", "Kind");
+
+                    b.ToTable("PlayerLifetimeActivities");
+                });
+
+            modelBuilder.Entity("PlayerLoginCalendar", b =>
+                {
+                    b.Property<string>("PlayerId")
+                        .HasColumnType("nvarchar(36)");
+
+                    b.Property<int>("BestStreak")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Cycle")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Day")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("LastClaimDay")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Streak")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TotalDays")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("int");
+
+                    b.HasKey("PlayerId");
+
+                    b.ToTable("PlayerLoginCalendars");
                 });
 
             modelBuilder.Entity("PlayerMail", b =>
@@ -37599,6 +37667,15 @@ namespace IdleDwarfsGame.Server.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("PlayerAchievement", b =>
+                {
+                    b.HasOne("Player", null)
+                        .WithMany()
+                        .HasForeignKey("PlayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("PlayerCampaignProgress", b =>
                 {
                     b.HasOne("Player", null)
@@ -37647,6 +37724,24 @@ namespace IdleDwarfsGame.Server.Migrations
                 });
 
             modelBuilder.Entity("PlayerItem", b =>
+                {
+                    b.HasOne("Player", null)
+                        .WithMany()
+                        .HasForeignKey("PlayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("PlayerLifetimeActivity", b =>
+                {
+                    b.HasOne("Player", null)
+                        .WithMany()
+                        .HasForeignKey("PlayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("PlayerLoginCalendar", b =>
                 {
                     b.HasOne("Player", null)
                         .WithMany()

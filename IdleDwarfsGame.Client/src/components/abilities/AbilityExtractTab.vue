@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { soundService } from '@/services/soundService/SoundService';
 import { computed, ref, toRef, watch } from 'vue';
 import HeroFilters from '@/components/inventory/HeroFilters.vue';
 import { useHeroFilters } from '@/composables/UseHeroFilters';
@@ -70,6 +71,7 @@ const extract = async () => {
     busy.value = true;
     try {
         const result = await AbilitiesApiService.extract(target.id, ability.kind, ability.key);
+        soundService.play('ability_extract');
         message.value = { text: t('abilities.extract.done', { ability: abilityName(ability) }), error: false };
         heroId.value = null;
         emit('extracted', result);

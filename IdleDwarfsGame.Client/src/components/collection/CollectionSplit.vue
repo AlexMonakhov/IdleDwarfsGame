@@ -4,7 +4,7 @@ import { CollectionPreview } from './previewScenes';
 import { vDragScroll } from '@/directives/dragScroll';
 
 // Раскладка вкладки «Коллекции», как в окне прокачки: справа список, по клику слева выезжает панель
-// со сценой превью и описанием выбранного
+// со сценой превью и описанием выбранного. С панелью список — одна колонка с прокруткой, панель забирает остальное место
 defineProps<{
     hint: string;
     preview: CollectionPreview | null;
@@ -55,7 +55,7 @@ defineProps<{
 }
 
 .collection-panel {
-    flex: 0 1 560px;
+    flex: 1 1 560px;
     min-width: 0;
     display: flex;
     flex-direction: column;
@@ -116,9 +116,19 @@ defineProps<{
     overflow-y: auto;
 }
 
-/* С открытой панелью список не уже одной колонки карточек */
+/* С открытой панелью список — ровно одна колонка карточек (ширина по карточке, подсказка переносится под неё),
+   прокручивается сам — колесом, перетаскиванием и пальцем */
 .collection-split-open .collection-list {
-    min-width: 290px;
+    flex: 0 0 auto;
+    width: min-content;
+    min-height: 0;
+    padding-right: 4px;
+}
+
+.collection-split-open .collection-grid {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: center;
 }
 
 .collection-hint {

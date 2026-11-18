@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { soundService } from '@/services/soundService/SoundService';
 import TimerBadge from '@/components/common/TimerBadge.vue';
 import { computed, nextTick, onBeforeUnmount, ref, watch } from "vue";
 import { useRouter } from "vue-router";
@@ -89,6 +90,7 @@ const skip = async () => {
     skipError.value = false;
     try {
         const result = await TowerApiService.skip();
+        soundService.play('reward_claim');
         setResources(result.resources);
         rewards.show(result.reward, result.skippedTo);
     } catch {
@@ -260,6 +262,7 @@ const lastClearedIndex = computed(() => (tower.value?.clearedFloors.length ?? 0)
                               v-if="floor.status === 'Available'"
                               :color="'red'"
                               class="stage-fight stage-fight-ready"
+                              data-sound="ui_click_primary"
                               @click="startFloor(floor)"
                             ><IconPower /> {{ t('tower.fight') }}</GemButton>
                             <span v-else class="stage-lock" v-tooltip="t('tower.locked')"><IconLock /></span>

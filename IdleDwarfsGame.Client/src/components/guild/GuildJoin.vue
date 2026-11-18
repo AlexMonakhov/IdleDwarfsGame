@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { soundService } from '@/services/soundService/SoundService';
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import GemButton from '@/components/common/GemButton.vue';
@@ -58,6 +59,7 @@ const markRequested = (guildId: string, requested: boolean) => {
 const sendRequest = async (guild: GuildSearchResult) => {
     const ok = await props.run(guild.guildId, async () => {
         await GuildApiService.sendRequest(guild.guildId);
+        soundService.play('social_action');
         return t('guild.requestSent', { name: guild.name });
     });
     if (ok) markRequested(guild.guildId, true);
@@ -81,6 +83,7 @@ const create = () => {
     if (!value) return;
     props.run('create', async () => {
         await GuildApiService.create(value);
+        soundService.play('social_action');
         name.value = '';
         return t('guild.created', { name: value });
     });

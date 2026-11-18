@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { soundService } from '@/services/soundService/SoundService';
 import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import GemButton from '@/components/common/GemButton.vue';
@@ -92,6 +93,7 @@ const fuse = async () => {
     busy.value = true;
     try {
         const result = await ForgeApiService.fuseItems(pickedIds.value);
+        soundService.play('forge_fuse_items');
         forged.value = result.item;
         message.value = { text: t('forge.items.done'), error: false };
         pickedIds.value = [];

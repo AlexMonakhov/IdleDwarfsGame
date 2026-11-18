@@ -283,26 +283,28 @@ public class StatusStackingTests
     {
         Assert.Equal(EnergyBurnEffect.Name, AuraBook.EffectFor(HeroElement.Dark));
         var definition = AuraBook.Find(EnergyBurnEffect.Name)!;
-        Assert.Equal(new[] { 3, 4, 5 }, new[] { 1, 2, 3 }.Select(level => AuraBook.Power(definition, level)));
+        Assert.Equal(new[] { 10, 16, 24 }, new[] { 1, 2, 3 }.Select(level => AuraBook.Power(definition, level)));
 
         var world = new World();
         var bearer = MakeHero("Dark");
         AuraBook.Apply(bearer, definition, 3);
+        // Аура срабатывает раз в 3 раунда — здесь проверяем само выжигание, срабатывания подряд
+        bearer.AuraInterval = 1;
         int bearerId = Factory.CreateUnit(world, bearer, 1, 1);
         var target = MakeHero("Target");
-        target.StartEnergy = 12;
+        target.StartEnergy = 31;
         int targetId = Factory.CreateUnit(world, target, 2, 1);
 
         var context = new CombatContext { CurrentActor = bearerId, IsNewRound = true };
         new AuraSystem().Execute(world, context);
 
-        // Сила — единицы энергии, а не процент атаки: 12 - 5
+        // Сила — единицы энергии, а не процент атаки: 31 - 24
         Assert.Equal(7, world.Energy[targetId].Current);
         Assert.False(world.StatusEffects.TryGetValue(targetId, out var statuses) && statuses.ActiveEffects.Count > 0);
         var log = Assert.Single(context.Logs, l => l.TargetId == targetId);
         Assert.Equal(CombatEventType.StatusApplied, log.EventType);
         Assert.Equal(EnergyBurnEffect.Name, log.AppliedEffects[0].Name);
-        Assert.Equal(5, log.AppliedEffects[0].Power);
+        Assert.Equal(24, log.AppliedEffects[0].Power);
         Assert.Equal(7, log.TargetEnergy);
 
         // Энергии меньше силы — сгорает сколько есть, ниже нуля не уходит

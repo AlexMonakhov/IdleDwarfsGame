@@ -4,13 +4,16 @@ import AvatarFrame from './AvatarFrame.vue';
 import { useAccount } from '@/composables/UseAccount';
 import { IconGear } from '@/components/icons/ui';
 
+// size — диаметр рамки; на телефоне аватар уменьшен до полоски ресурсов
+const props = withDefaults(defineProps<{ size?: number }>(), { size: 124 });
+
 const { t } = useI18n();
 const { user, level, selectedFrame } = useAccount();
 </script>
 
 <template>
     <button type="button" class="account-button" v-tooltip="user ? user.username : t('account.settingsTitle')">
-        <AvatarFrame :effect="selectedFrame" :size="124">
+        <AvatarFrame :effect="selectedFrame" :size="props.size" :class="{ 'account-small': props.size < 80 }">
             <span v-if="user" class="account-level" v-tooltip="t('account.level', { level })">{{ level }}</span>
             <span v-else class="account-level account-level-guest"><IconGear /></span>
         </AvatarFrame>
@@ -53,6 +56,16 @@ const { user, level, selectedFrame } = useAccount();
     font: bold 14px/24px 'Arial', sans-serif;
     text-align: center;
     text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.8);
+}
+
+/* Маленький аватар: табличка уровня ниже и тоньше, чтобы не закрывать лицо */
+.account-small .account-level {
+    bottom: -6px;
+    min-width: 22px;
+    height: 16px;
+    padding: 0 4px;
+    font-size: 11px;
+    line-height: 16px;
 }
 
 .account-level-guest {

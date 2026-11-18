@@ -1,17 +1,19 @@
 <template>
-  <!-- Всё приложение — в логическом экране ~1920×1000, масштабированном под окно (composables/UseUiScale.ts) -->
+  <!-- Меню — вне сцены: масштабируется само и на телефоне остаётся в настоящих пикселях (composables/UseUiScale.ts) -->
+  <InterfaceView></InterfaceView>
+  <!-- Сцена — в логическом экране ~1920×1000, масштабированном под окно (composables/UseUiScale.ts) -->
   <!-- Сцена не прокручивается никогда: overflow: hidden не мешает браузеру сдвинуть её программно (scrollIntoView,
        фокус поля у края) — тогда весь интерфейс уезжал. Такой сдвиг сразу возвращаем -->
   <div class="ui-stage" @scroll="resetStageScroll">
-    <InterfaceView></InterfaceView>
     <router-view></router-view>
   </div>
+  <!-- Телефон вертикально — просим повернуть: под вертикальный экран игра не рассчитана -->
+  <RotateDevicePrompt />
 </template>
 
 <script lang="ts" setup>
-import GemButton from './components/common/GemButton.vue';
-import router from './router';
 import InterfaceView from './views/InterfaceView.vue';
+import RotateDevicePrompt from './components/interface/RotateDevicePrompt.vue';
 
 const resetStageScroll = (event: Event) => {
   const stage = event.currentTarget as HTMLElement;
@@ -38,7 +40,9 @@ const resetStageScroll = (event: Event) => {
 
 :root{
     /* Масштаб интерфейса и размеры логического экрана (UseUiScale.ts). Внутри .ui-stage вместо vw/vh — --vw/--vh */
+    /* Значения по умолчанию до первого замера */
     --ui-scale: 1;
+    --hud-scale: 1;
     --stage-w: calc(100vw / var(--ui-scale));
     --stage-h: calc(100vh / var(--ui-scale));
     --vw: calc(var(--stage-w) / 100);

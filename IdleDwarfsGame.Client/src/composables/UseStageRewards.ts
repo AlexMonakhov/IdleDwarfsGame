@@ -1,3 +1,4 @@
+import { soundService } from '@/services/soundService/SoundService';
 import { computed, ref } from 'vue';
 import { RewardClaimAllResult, RewardClaimResult, RewardInfo } from '@/models/types/Inventory';
 import { useResources } from './UseResources';
@@ -80,6 +81,7 @@ export function useStageRewards(options: Options) {
         if (!rewardId || stateOf(rewardId) !== 'pending') return Promise.resolve();
         return run(rewardId, async () => {
             const result = await options.claimOne(rewardId);
+            soundService.play('reward_claim');
             setResources(result.resources);
             claimedIds.value.add(rewardId);
             show(result.reward);
@@ -90,6 +92,7 @@ export function useStageRewards(options: Options) {
         if (!remaining.value) return Promise.resolve();
         return run('all', async () => {
             const result = await options.claimAll();
+            soundService.play('reward_claim');
             setResources(result.resources);
             result.rewardIds.forEach(id => claimedIds.value.add(id));
             // Забраны все до одной, даже те, которых нет в списке

@@ -16,6 +16,9 @@ public class BleedEffect : StatusEffectBase
     // Прибавка каждого стака к урону за ход и чья она, в порядке наложения
     private readonly List<(int Power, StatOrigin Origin)> _stacks = new();
 
+    // Наложение в полную силу, без затухания по стакам (бонус отряда «Кровавый лёд»). Стак всё равно один
+    public bool FullStrength { get; set; }
+
     public BleedEffect(int damagePerTurn = 5) : base(1, damagePerTurn)
     {
         _stacks.Add((damagePerTurn, StatOrigin.Environment));
@@ -25,7 +28,7 @@ public class BleedEffect : StatusEffectBase
     {
         if (Stacks >= MaxStacks) return;
         // (10 - стаки) × урон × 10 / 100
-        int extra = (MaxStacks - Stacks) * added.Power / MaxStacks;
+        int extra = added is BleedEffect { FullStrength: true } ? added.Power : (MaxStacks - Stacks) * added.Power / MaxStacks;
         _stacks.Add((extra, added.Origin));
         Sync();
     }

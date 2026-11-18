@@ -145,6 +145,10 @@ builder.Services.AddScoped<TutorialService>();
 builder.Services.AddScoped<OnboardingService>();
 builder.Services.AddScoped<IQuestRepository, QuestRepository>();
 builder.Services.AddScoped<QuestService>();
+builder.Services.AddScoped<IAchievementRepository, AchievementRepository>();
+builder.Services.AddScoped<AchievementService>();
+builder.Services.AddScoped<ILoginCalendarRepository, LoginCalendarRepository>();
+builder.Services.AddScoped<LoginCalendarService>();
 // Лавка старейшин и лавка ивента недели (WorldEvents)
 builder.Services.AddScoped<IFixedShopRepository, FixedShopRepository>();
 builder.Services.AddScoped<FixedShopService>();

@@ -28,6 +28,7 @@ const colors = computed(() => relicColors(props.relicKey));
     <button
         type="button"
         class="relic-card"
+        data-sound-hover="ui_hover_card"
         :class="{ 'relic-card-rare': rare }"
         :style="{ '--relic-accent': accent }"
         :disabled="disabled"

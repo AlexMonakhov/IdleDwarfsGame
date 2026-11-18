@@ -5,6 +5,7 @@ public class HealthSystem : ICombatSystem
     public void Execute(World world, CombatContext context)
     {
         ResolveLastStands(world, context);
+        if (world.SquadBonuses.Count > 0) SquadBonuses.ResolvePending(world, context);
 
         // Фиксируем смерти (один раз на юнита). Реакция предмета на смерть (раскол, перенос яда) может добить
         // кого-то ещё — повторяем, пока смерти не кончатся
@@ -41,6 +42,7 @@ public class HealthSystem : ICombatSystem
 
                     Avenge(world, entity.Id);
                     ItemReactions.Died(world, context, entity.Id, lastStatuses);
+                    SquadBonuses.Died(world, context, entity.Id, lastStatuses);
                 }
             }
         } while (died);

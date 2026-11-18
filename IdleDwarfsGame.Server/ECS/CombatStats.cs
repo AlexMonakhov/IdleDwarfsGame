@@ -8,6 +8,8 @@ public enum CombatStatKind
     Skill,
     Aura,
     Passive,
+    // Бонус стихий отряда (SquadBonuses)
+    Bonus,
     Environment
 }
 
@@ -31,11 +33,13 @@ public class CombatUnitStats
     public int SkillDamage { get; set; }
     public int AuraDamage { get; set; }
     public int PassiveDamage { get; set; }
+    public int BonusDamage { get; set; }
 
     public int HealingDone { get; set; }
     public int SkillHealing { get; set; }
     public int AuraHealing { get; set; }
     public int PassiveHealing { get; set; }
+    public int BonusHealing { get; set; }
 
     public int DamageTaken { get; set; }
     public int HealingReceived { get; set; }
@@ -50,6 +54,7 @@ public class CombatUnitStats
             case CombatStatKind.Skill: SkillDamage += amount; break;
             case CombatStatKind.Aura: AuraDamage += amount; break;
             case CombatStatKind.Passive: PassiveDamage += amount; break;
+            case CombatStatKind.Bonus: BonusDamage += amount; break;
         }
     }
 
@@ -61,6 +66,7 @@ public class CombatUnitStats
             case CombatStatKind.Skill: SkillHealing += amount; break;
             case CombatStatKind.Aura: AuraHealing += amount; break;
             case CombatStatKind.Passive: PassiveHealing += amount; break;
+            case CombatStatKind.Bonus: BonusHealing += amount; break;
         }
     }
 }
@@ -121,7 +127,12 @@ public class CombatStatsTracker
     {
         if (entry.Shares != null) return entry.Shares;
         if (entry.AttackerId <= 0) return new();
-        var resolved = kind ?? (entry.Phase == "Passive" ? CombatStatKind.Passive : CombatStatKind.Skill);
+        var resolved = kind ?? entry.Phase switch
+        {
+            "Passive" => CombatStatKind.Passive,
+            SquadBonuses.Phase => CombatStatKind.Bonus,
+            _ => CombatStatKind.Skill
+        };
         return new() { new StatShare(new StatOrigin(entry.AttackerId, resolved), amount) };
     }
 

@@ -44,5 +44,6 @@ public class SpellSystem : ICombatSystem
         energy.Current -= spellToCast.EnergyCost;
         spellToCast.Execute(world, attacker, context);
         state.ActionCompleted = true;
+        SquadBonuses.SpellCast(world, context, attacker);
     }
 }

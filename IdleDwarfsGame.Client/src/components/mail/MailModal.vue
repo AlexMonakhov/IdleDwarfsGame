@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { soundService } from '@/services/soundService/SoundService';
 import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { AxiosError } from 'axios';
@@ -56,6 +57,7 @@ const claim = async (mail: MailInfo) => {
     errorMessage.value = null;
     try {
         const result = await MailApiService.claim(mail.id);
+        soundService.play('reward_claim');
         update(result.mail);
         if (result.resources) setResources(result.resources);
         // Новые дворфы — в общий список героев (алтарь, отряд)

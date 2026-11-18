@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { soundService } from '@/services/soundService/SoundService';
 import { emitTutorialEvent } from '@/tutorial/events';
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue';
 import { AxiosError } from 'axios';
@@ -170,12 +171,14 @@ const saveName = async () => {
     }
     if (!name || name.length > HERO_NAME_MAX) {
         nameError.value = t('heroUpgrade.renameErrors.InvalidName', { max: HERO_NAME_MAX });
+        soundService.play('ui_error');
         return;
     }
     renaming.value = true;
     nameError.value = null;
     try {
         emit('renamed', await HeroesApiService.rename(props.hero.id, name));
+        soundService.play('hero_rename');
         editingName.value = false;
     } catch (error) {
         nameError.value = renameErrorText(error);
@@ -215,6 +218,7 @@ const upgradeHero = async () => {
     message.value = null;
     try {
         const result = await HeroesApiService.upgrade(props.hero.id);
+        soundService.play('hero_upgrade');
         setResources(result.resources);
         emit('upgraded', result);
         emitTutorialEvent('hero:upgraded');

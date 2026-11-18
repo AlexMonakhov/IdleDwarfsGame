@@ -31,6 +31,8 @@
           <!-- Обычная и hover-картинка лежат друг на друге, при наведении меняется только прозрачность.
                Если менять src, браузер заново декодирует большую картинку и здание мигает -->
           <div
+            data-sound-hover="ui_hover_town"
+            :data-hover-id="`town-${b.key}`"
             v-tutorial="`town.${b.key}`"
             :class="['building', `building-${b.key}`, { 'is-hovered': hoveredBuilding === b.key, 'is-active': !!b.onClick }]"
             :style="{ left: `${b.left}%`, top: `${b.top}%`, width: `${b.width}%` }"
@@ -44,6 +46,8 @@
           <!-- Плашка с названием: стоит у нижнего края здания, наведение и клик — как у самого здания -->
           <!-- Плашка — якорь обучения (town.<здание>); «!» — с активностью здания игрок ещё не знаком -->
           <div
+            data-sound-hover="ui_hover_town"
+            :data-hover-id="`town-${b.key}`"
             v-tutorial="`town.${b.key}`"
             :class="['building-plaque', { 'is-hovered': hoveredBuilding === b.key, 'is-active': !!b.onClick }]"
             :style="{ left: `${b.left}%`, top: `${b.top}%` }"

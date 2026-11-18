@@ -1,4 +1,4 @@
-import { API_BASE_URL } from './apiConfig';
+import { API_BASE_URL, attachErrorSound } from './apiConfig';
 import axios from 'axios';
 import { useAuth } from '@/composables/UseAuth';
 import { FixedShopBuyResult, FixedShopKind, FixedShopOverview } from '@/models/types/FixedShop';
@@ -10,6 +10,7 @@ const apiClient = axios.create({
         'Content-Type': 'application/json'
     }
 });
+attachErrorSound(apiClient);
 
 // Лимиты покупок и валюта у каждого игрока свои — он берётся из токена
 apiClient.interceptors.request.use(config => {

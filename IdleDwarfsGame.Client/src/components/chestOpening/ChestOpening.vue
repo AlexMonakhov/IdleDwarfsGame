@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { soundService } from '@/services/soundService/SoundService';
+import type { SoundKey } from '@/services/soundService/soundCatalog';
 import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import CardComponent from '@/components/card/CardComponent.vue';
@@ -126,6 +128,16 @@ const SPARKS = Array.from({ length: 16 }, (_, id) => {
     };
 });
 
+// Звук открытия — по уровню сундука (1–5 → обычный…легендарный)
+const CHEST_OPEN_SOUNDS: SoundKey[] = ['chest_open_common', 'chest_open_uncommon', 'chest_open_rare', 'chest_open_mythic', 'chest_open_legendary'];
+
+const revealSound = (i: number): SoundKey => {
+    const rank = rarityRank(props.rewards[i]?.rarity ?? 'Common');
+    if (rank >= RARITY_ORDER.indexOf('Legendary')) return 'card_reveal_legendary';
+    if (rank >= RARITY_ORDER.indexOf('Mythic')) return 'card_reveal_rare';
+    return 'card_reveal';
+};
+
 const chestColor = computed(() => RARITY_COLORS[RARITY_ORDER[Math.min(Math.max(props.chestLevel, 1), 5) - 1]]);
 
 // ---------- Ход открытия ----------
@@ -152,19 +164,28 @@ const openChest = async () => {
     if (stage.value !== 'chest') return;
     veinOrder.value = [...Array(CHEST_CARD_COUNT).keys()].sort(() => Math.random() - 0.5);
     stage.value = 'opening';
+    soundService.play(CHEST_OPEN_SOUNDS[Math.min(Math.max(props.chestLevel, 1), 5) - 1]);
     // Слоты уже в разметке (невидимые) — меряем, откуда им лететь
     await nextTick();
     measure();
     later(activeVariant === 'vein' ? 650 : 480, () => {
         stage.value = 'dealing';
+        // Каждая карта вылетает со своей задержкой — у каждой свой звук
+        const { stagger } = DEAL_TIMING[activeVariant];
+        for (let order = 0; order < CHEST_CARD_COUNT; order++) later(order * stagger, () => soundService.play('card_deal'));
         later(dealTotal.value + 60, () => (stage.value = 'reveal'));
     });
 };
 
-const onHit = (i: number) => hits.value[i]++;
+// Первые два удара — по руде, третий раскалывает карту (раскрытие звучит поверх, в onRevealed)
+const onHit = (i: number, phase: number) => {
+    hits.value[i]++;
+    soundService.play(phase < 3 ? 'card_hit' : 'ui_click_ore_card_crack');
+};
 
 const onRevealed = (i: number) => {
     revealed.value[i] = true;
+    soundService.play(revealSound(i));
     if (revealed.value.every(Boolean)) later(skipped.value ? 0 : 700, () => (stage.value = 'done'));
 };
 
@@ -173,6 +194,7 @@ const hitAll = () => cards.value.forEach((card, i) => !revealed.value[i] && card
 const skip = async () => {
     if (stage.value === 'done') return;
     clearTimers();
+    soundService.play('chest_skip');
     skipped.value = true;
     stage.value = 'reveal';
     await nextTick();
@@ -208,6 +230,7 @@ const onKeydown = (event: KeyboardEvent) => {
 onMounted(() => {
     // Кнопка, открывшая окно, держит фокус — иначе пробел/Enter нажимали бы её снова
     (document.activeElement as HTMLElement | null)?.blur();
+    soundService.play('chest_appear');
     window.addEventListener('keydown', onKeydown, true);
     window.addEventListener('resize', onResize);
 });
@@ -232,11 +255,12 @@ const hint = computed(() => {
             <div class="chest-opening-backdrop"></div>
             <div class="chest-opening-flash"></div>
 
-            <button v-if="stage !== 'done'" class="chest-opening-skip" type="button" @click="skip">
+            <button v-if="stage !== 'done'" class="chest-opening-skip" type="button" data-sound="none" @click="skip">
                 {{ t('chests.reveal.skip') }} <kbd>Esc</kbd>
             </button>
 
-            <div class="chest-opening-stage">
+            <!-- Сундук и карты звучат сами (открытие, удары, раскрытие) — без общего звука клика -->
+            <div class="chest-opening-stage" data-sound="none">
                 <!-- Сундук: виден, пока не открыт -->
                 <div
                     v-if="stage === 'chest' || stage === 'opening'"
@@ -284,7 +308,7 @@ const hint = computed(() => {
                                     :frame="frame"
                                     :glass="glass"
                                     :locked="stage !== 'reveal'"
-                                    @hit="onHit(i)"
+                                    @hit="onHit(i, $event)"
                                     @revealed="onRevealed(i)"
                                 >
                                     <!-- Фон окна карты: глубже иконки, при наклоне сдвигается сильнее неё -->
@@ -304,10 +328,10 @@ const hint = computed(() => {
             <div class="chest-opening-footer">
                 <div v-if="hint" class="chest-opening-hint">{{ hint }}</div>
                 <!-- То же, что пробел: кнопка для сенсорных экранов, оформлена как «Пропустить» -->
-                <button v-if="stage === 'chest' || stage === 'reveal'" class="chest-opening-button" type="button" @click="pressSpace">
+                <button v-if="stage === 'chest' || stage === 'reveal'" class="chest-opening-button" type="button" data-sound="none" @click="pressSpace">
                     {{ stage === 'chest' ? t('chests.reveal.openChest') : t('chests.reveal.hitAll') }} <kbd>{{ t('chests.reveal.space') }}</kbd>
                 </button>
-                <GemButton v-if="stage === 'done'" color="green" width="180px" height="48px" @click="emit('close')">
+                <GemButton v-if="stage === 'done'" color="green" width="180px" height="48px" data-sound="ui_click_primary" @click="emit('close')">
                     {{ t('chests.reveal.collect') }}
                 </GemButton>
             </div>

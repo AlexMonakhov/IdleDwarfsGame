@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { soundService } from '@/services/soundService/SoundService';
 import TimerBadge from '@/components/common/TimerBadge.vue';
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
@@ -131,8 +132,11 @@ const cardState = (boss: GuildBossInfo) => {
 };
 
 /* ===== Действия ===== */
+// Бить можно: босс жив, удар не на перезарядке, отряд есть. Иначе карточка и звука наведения не даёт
+const canAttack = (boss: GuildBossInfo) => !props.busy && !noSquad.value && !isDefeated(boss) && cooldownLeft(boss) <= 0;
+
 const attack = (boss: GuildBossInfo) => {
-    if (props.busy || noSquad.value || isDefeated(boss) || cooldownLeft(boss) > 0) return;
+    if (!canAttack(boss)) return;
     emit('navigate');
     // attack — разовая метка: повторный удар по тому же боссу, не уходя с арены, тоже запускает бой
     router.push({ name: 'arena', query: { guildBoss: boss.tier, attack: Date.now() } });
@@ -141,6 +145,7 @@ const attack = (boss: GuildBossInfo) => {
 const claim = async (boss: GuildBossInfo) => {
     await props.run(`claim-${boss.tier}`, async () => {
         const result = await GuildApiService.claimReward(boss.tier);
+        soundService.play('reward_claim');
         setResources(result.resources);
         const parts = [`🪙 ${format(result.reward.gold)}`, `✦ ${format(result.reward.experience)}`];
         const chests = chestsText(result.reward);
@@ -184,6 +189,7 @@ const claim = async (boss: GuildBossInfo) => {
                 v-for="boss in bosses"
                 :key="boss.tier"
                 class="boss-card"
+                :data-sound-hover="canAttack(boss) ? 'ui_hover_town' : 'none'"
                 :class="[`boss-card-${arenaColor(boss)}`, cardState(boss), { 'boss-card-defeated': isDefeated(boss) }]"
             >
                 <!-- Фон — арена, на которой будет бой с этим боссом -->

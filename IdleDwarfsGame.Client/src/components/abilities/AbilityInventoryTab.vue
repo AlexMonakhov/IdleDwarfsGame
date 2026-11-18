@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { soundService } from '@/services/soundService/SoundService';
 import { computed, ref, toRef, watch } from 'vue';
 import HeroFilters from '@/components/inventory/HeroFilters.vue';
 import { useHeroFilters } from '@/composables/UseHeroFilters';
@@ -126,6 +127,7 @@ const combine = async () => {
         () => AbilitiesApiService.combine(firstId, secondId),
         () => t('abilities.inventory.combined', { ability: abilityName(first), level }),
     );
+    if (result) soundService.play('ability_combine');
     // Сразу выбираем получившуюся: её можно тут же слить ещё раз или вставить
     const combined = result?.abilities.find(a => !before.has(a.id) && sameAbility(a, first));
     if (combined) selectedId.value = combined.id;
@@ -141,7 +143,10 @@ const insert = async () => {
         () => AbilitiesApiService.insert(abilityId, target.id),
         () => t('abilities.inventory.inserted', { name: target.name, ability: abilityName(ability) }),
     );
-    if (result) selectedId.value = null;
+    if (result) {
+        soundService.play('ability_insert');
+        selectedId.value = null;
+    }
 };
 </script>
 

@@ -19,6 +19,7 @@ const { t } = useI18n();
 <template>
     <span
         class="node"
+        :data-sound-hover="reachable ? 'ui_hover_town' : undefined"
         :class="[type ? `node-type-${type.toLowerCase()}` : 'node-unknown', { 'node-small': small, 'node-reachable': reachable, 'node-far': far }]"
         :style="type ? nodeStyle(type) : undefined"
     >

@@ -54,6 +54,9 @@ public class GameDbContext : DbContext
     public DbSet<PlayerTutorial> PlayerTutorials => Set<PlayerTutorial>();
     public DbSet<DailyQuestState> DailyQuestStates => Set<DailyQuestState>();
     public DbSet<PlayerQuest> PlayerQuests => Set<PlayerQuest>();
+    public DbSet<PlayerLifetimeActivity> PlayerLifetimeActivities => Set<PlayerLifetimeActivity>();
+    public DbSet<PlayerAchievement> PlayerAchievements => Set<PlayerAchievement>();
+    public DbSet<PlayerLoginCalendar> PlayerLoginCalendars => Set<PlayerLoginCalendar>();
     public DbSet<PlayerEventWallet> PlayerEventWallets => Set<PlayerEventWallet>();
     public DbSet<FixedShopPurchase> FixedShopPurchases => Set<FixedShopPurchase>();
     public DbSet<WorldBoss> WorldBosses => Set<WorldBoss>();
@@ -1204,6 +1207,55 @@ public class GameDbContext : DbContext
         modelBuilder.Entity<PlayerQuest>()
             .HasIndex(q => new { q.PlayerId, q.Day, q.Slot })
             .IsUnique();
+
+        // ===== Достижения и календарь входов =====
+        modelBuilder.Entity<PlayerLifetimeActivity>()
+            .HasKey(a => new { a.PlayerId, a.Kind });
+
+        modelBuilder.Entity<PlayerLifetimeActivity>()
+            .Property(a => a.PlayerId)
+            .HasConversion<string>();
+
+        modelBuilder.Entity<PlayerLifetimeActivity>()
+            .Property(a => a.Kind)
+            .HasConversion<string>()
+            .HasMaxLength(32);
+
+        modelBuilder.Entity<PlayerLifetimeActivity>()
+            .HasOne<Player>()
+            .WithMany()
+            .HasForeignKey(a => a.PlayerId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<PlayerAchievement>()
+            .HasKey(a => new { a.PlayerId, a.Key });
+
+        modelBuilder.Entity<PlayerAchievement>()
+            .Property(a => a.PlayerId)
+            .HasConversion<string>();
+
+        modelBuilder.Entity<PlayerAchievement>()
+            .Property(a => a.Key)
+            .HasMaxLength(32);
+
+        modelBuilder.Entity<PlayerAchievement>()
+            .HasOne<Player>()
+            .WithMany()
+            .HasForeignKey(a => a.PlayerId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<PlayerLoginCalendar>()
+            .HasKey(c => c.PlayerId);
+
+        modelBuilder.Entity<PlayerLoginCalendar>()
+            .Property(c => c.PlayerId)
+            .HasConversion<string>();
+
+        modelBuilder.Entity<PlayerLoginCalendar>()
+            .HasOne<Player>()
+            .WithMany()
+            .HasForeignKey(c => c.PlayerId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         // ===== Ивенты =====
         modelBuilder.Entity<PlayerEventWallet>()

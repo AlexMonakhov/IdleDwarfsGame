@@ -24,7 +24,7 @@ const name = computed(() => te(`gems.${props.item.subType}`) ? t(`gems.${props.i
 </script>
 
 <template>
-    <div class="loot-tile gem-tile" :class="`loot-tile-${item.rarity}`" :style="{ '--rarity-color': RARITY_COLORS[item.rarity] }">
+    <div class="loot-tile gem-tile" data-sound-hover="ui_hover_card" :class="`loot-tile-${item.rarity}`" :style="{ '--rarity-color': RARITY_COLORS[item.rarity] }">
         <GlassButton tag="div" class="loot-tile-glass">
             <span class="loot-tile-picture"><CrystalIcon :color="gemColor" :shape="gemShape" size="52px" /></span>
             <span class="loot-tile-name">{{ name }}</span>

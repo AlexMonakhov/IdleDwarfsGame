@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { soundService } from '@/services/soundService/SoundService';
 import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import GemButton from '@/components/common/GemButton.vue';
@@ -76,6 +77,7 @@ const fuse = async () => {
     try {
         const { gem, rarity } = selected.value;
         const result = await ForgeApiService.fuseGems(gem, rarity, times.value);
+        soundService.play('forge_fuse_gems');
         message.value = {
             text: t('forge.gems.done', { count: result.created, rarity: t(`rarity.${result.rarity}`), gem: t(`gems.${result.gem}`) }),
             error: false,

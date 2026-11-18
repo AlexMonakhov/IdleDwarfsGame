@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { soundService } from '@/services/soundService/SoundService';
 import TimerBadge from '@/components/common/TimerBadge.vue';
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { emitTutorialEvent } from '@/tutorial/events';
@@ -215,6 +216,7 @@ const start = async () => {
     errorMessage.value = null;
     try {
         await ExpeditionsApiService.start(selected.value.id, partyIds.value);
+        soundService.play('expedition_start');
     } catch (error) {
         errorMessage.value = errorText(error, t('expeditions.startError'));
     } finally {
@@ -231,6 +233,7 @@ const claim = async (expedition: ExpeditionInfo | null = selected.value) => {
     errorMessage.value = null;
     try {
         const result = await ExpeditionsApiService.claim(expedition.id);
+        soundService.play('collect');
         setResources(result.resources);
         notice.value = t('expeditions.claimed', { gold: result.reward.gold, experience: result.reward.experience });
         emitTutorialEvent('expedition:claimed');

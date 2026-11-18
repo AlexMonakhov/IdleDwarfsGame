@@ -263,7 +263,10 @@ public class EquipmentTests : IDisposable
         var plain = MakeHero(items: "EmberCrown");
         var granted = Arena(plain).World.Auras.Values.Single();
         Assert.Equal("Burn", granted.EffectName);
-        Assert.Equal(10, granted.Power); // 8% от 100 атаки × 120% с округлением
+        Assert.Equal(14, granted.Power); // 12% от 100 атаки × 120% с округлением
+        // Аура шлема живёт по правилам книги аур 1-го уровня: наложение на 2 хода раз в 3 раунда
+        Assert.Equal(2, granted.Duration);
+        Assert.Equal(AuraBook.DefaultInterval, granted.Interval);
 
         var own = MakeHero(items: "WarlordHelm");
         own.AuraEffect = "Regen";

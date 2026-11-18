@@ -18,9 +18,10 @@ public static class CampaignGenerator
     // Каждый уровень врагов — +4.5% к их статам (BalanceCalculator). Ориентиры по симуляции (BalanceSimulation):
     // босса 50-го уровня проходит отряд 2-го ранга 20-го уровня, 150-го — 3-го ранга 50-го,
     // 250 / 350 / 500-го — 4-го ранга 25 / 50 / 100-го. Между рангами — скачок: слияние даёт новые способности
+    // (500-й — 97, а не 98: после перевода аур дворфов на «раз в 3 раунда» эталонный отряд без бонуса стихий проседал)
     private static readonly (int Stage, int EnemyLevel)[] LevelCurve =
     [
-        (10, 13), (15, 15), (30, 17), (50, 22), (60, 27), (100, 44), (150, 54), (165, 58), (250, 70), (350, 82), (425, 90), (500, 98)
+        (10, 13), (15, 15), (30, 17), (50, 22), (60, 27), (100, 44), (150, 54), (165, 58), (250, 70), (350, 82), (425, 90), (500, 97)
     ];
 
     public static int EnemyLevelFor(int stageId)
@@ -143,14 +144,9 @@ public static class CampaignGenerator
             MaxEnergy = 100, StartEnergy = startEnergy, EnergyPerAttack = 20,
             SpellIds = spells, Immunities = immunities
         };
+        // Аура босса — аура монстра: каждый раунд, как прежние ауры 1-го уровня (AuraBook.ApplyMonster)
         if (aura != null && AuraBook.Find(aura) is { } definition)
-        {
-            hero.AuraEffect = definition.Effect;
-            hero.AuraTarget = definition.Target;
-            hero.AuraTrigger = TriggerPhase.OnRoundStart;
-            hero.AuraPower = AuraBook.Power(definition, AuraBook.MinLevel);
-            hero.AuraDuration = 1;
-        }
+            AuraBook.ApplyMonster(hero, definition, AuraBook.MinLevel);
         return hero;
     }
 

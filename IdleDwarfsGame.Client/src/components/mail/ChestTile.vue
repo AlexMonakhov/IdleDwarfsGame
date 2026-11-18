@@ -18,7 +18,7 @@ const color = computed(() => (props.chest.element !== 'Basic' ? ELEMENT_COLORS[p
 </script>
 
 <template>
-    <div class="loot-tile chest-tile" :class="`loot-tile-${rarity}`" :style="{ '--rarity-color': color }">
+    <div class="loot-tile chest-tile" data-sound-hover="ui_hover_card" :class="`loot-tile-${rarity}`" :style="{ '--rarity-color': color }">
         <GlassButton tag="div" class="loot-tile-glass">
             <span class="loot-tile-picture"><component :is="CHEST_ICONS[chest.type]" size="52px" /></span>
             <span class="loot-tile-name">{{ t(`chests.types.${chest.type}`) }}</span>

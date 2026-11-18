@@ -2,7 +2,7 @@ public interface IActivityRepository
 {
     /// <summary>
     /// Adds <paramref name="amount"/> to the player's counter of <paramref name="kind"/> for <paramref name="day"/>,
-    /// creating the counter on the first action of the day.
+    /// creating the counter on the first action of the day, and to the lifetime counter (achievements).
     /// </summary>
     Task AddAsync(Guid playerId, DateTime day, ActivityKind kind, int amount);
 

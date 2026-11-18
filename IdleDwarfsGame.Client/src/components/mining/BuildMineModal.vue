@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { soundService } from '@/services/soundService/SoundService';
 import { computed, ref, watch } from 'vue';
 import { AxiosError } from 'axios';
 import { useI18n } from 'vue-i18n';
@@ -48,6 +49,7 @@ const build = async () => {
     errorMessage.value = null;
     try {
         const result = await MiningApiService.build(props.plot, type.value);
+        soundService.play('mine_build');
         emit('built', result);
     } catch (error) {
         const code = (error as AxiosError<{ code?: MiningError }>).response?.data?.code;
@@ -63,8 +65,8 @@ const build = async () => {
         v-model="open"
         tutorial-anchor="mine.build"
         :header-message="t('mining.build.header')"
-        width="min(760px, 94vw)"
-        height="min(560px, 90vh)"
+        width="min(760px, calc(94 * var(--vw)))"
+        height="min(560px, calc(90 * var(--vh)))"
     >
         <div class="build-mine">
             <div class="build-mine-hint">{{ t('mining.build.hint', { plot }) }}</div>

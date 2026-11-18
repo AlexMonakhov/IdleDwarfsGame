@@ -58,6 +58,9 @@ public abstract class StatusEffectBase : IStatusEffect
         if (EffectDamageType != null && sourceId > 0 && world.GetPassive(sourceId, HeroPassive.ElementMastery) is { } mastery)
             Empower(mastery.Percent, mastery.Turns);
 
+        // Бонус стихий отряда может усилить наложение своего отряда (SquadBonuses)
+        if (sourceId > 0) SquadBonuses.BeforeApply(world, targetId, sourceId, this);
+
         // Аура и пассивки помечают свои наложения (CombatContext.StatusKind); без пометки боец — значит спелл, без бойца — арена
         SetOrigin(sourceId > 0
             ? new StatOrigin(sourceId, context.StatusKind ?? CombatStatKind.Skill)
@@ -90,7 +93,20 @@ public abstract class StatusEffectBase : IStatusEffect
             TargetRemainingHp = world.Health[targetId].Current,
             AppliedEffects = { (existing ?? this).ToLogData() }
         });
+
+        // Реакции бонуса отряда на сочетания статусов (взрыв «Льда и пламени», вмерзание)
+        if (sourceId > 0) SquadBonuses.StatusApplied(world, context, targetId, EffectName, sourceId);
     }
+
+    // Боец, наложивший большую часть статуса; -1 — арена или никто
+    public int MainSource() => OriginWeights()
+        .Where(o => o.Origin.SourceId > 0)
+        .OrderByDescending(o => o.Weight)
+        .Select(o => o.Origin.SourceId)
+        .FirstOrDefault(-1);
+
+    // Наложение сильнее на percent (бонусы отряда) — как «Мастер стихии», но без лишних ходов
+    public void Strengthen(int percent) => Empower(percent, 0);
 
     // Новое наложение того же статуса (added) поверх висящего (this)
     protected abstract void Absorb(StatusEffectBase added);
@@ -164,7 +180,7 @@ public abstract class StatusEffectBase : IStatusEffect
     protected void DealTickDamage(World world, int targetId, CombatContext context, int damage, DamageType damageType,
         List<(StatOrigin Origin, int Weight)>? weights = null)
     {
-        damage = world.ScaleDamage(damage);
+        damage = world.ScaleDamage(SquadBonuses.TickDamage(world, targetId, this, damage));
         int hpLeft = world.ApplyDamage(targetId, damage);
         var log = TickLog(world, targetId);
         log.Damage = damage;
@@ -172,6 +188,9 @@ public abstract class StatusEffectBase : IStatusEffect
         log.TargetRemainingHp = hpLeft;
         log.Shares = CombatStatsTracker.Split(damage, weights ?? OriginWeights());
         context.AddLog(log);
+
+        // Реакции бонуса отряда на тик (лечение от тиков, перекидывание, плазма)
+        SquadBonuses.Ticked(world, context, targetId, this, damage);
     }
 }
 
@@ -185,6 +204,8 @@ public abstract class LayeredStatusEffect : StatusEffectBase
         public int Power;
         public int Turns;
         public StatOrigin Origin = StatOrigin.Environment;
+        // Сколько ходов слой уже простоял без убывания (бонус отряда «Гниль»)
+        public int Held;
     }
 
     private readonly List<Layer> _layers = new();
@@ -225,10 +246,15 @@ public abstract class LayeredStatusEffect : StatusEffectBase
         Sync();
     }
 
-    // Прошёл ход: каждый слой теряет ход, истёкшие снимаются
-    protected void PassTurn()
+    // Прошёл ход: каждый слой теряет ход, истёкшие снимаются.
+    // hold — сколько раз за жизнь слой может не потерять ход (бонус отряда «Гниль»)
+    protected void PassTurn(int hold = 0)
     {
-        foreach (var layer in _layers) layer.Turns--;
+        foreach (var layer in _layers)
+        {
+            if (layer.Held < hold) layer.Held++;
+            else layer.Turns--;
+        }
         _layers.RemoveAll(l => l.Turns <= 0);
         Sync();
     }
@@ -272,7 +298,7 @@ public abstract class DamageOverTimeEffect : LayeredStatusEffect
         int damage = Power;
         // Источники — до снятия истёкших слоёв: этот тик ещё их
         var weights = OriginWeights();
-        PassTurn();
+        PassTurn(SquadBonuses.HeldTurns(world, targetId, this));
         if (!world.IsAlive(targetId)) return;
         DealTickDamage(world, targetId, context, damage, TickDamageType, weights);
     }

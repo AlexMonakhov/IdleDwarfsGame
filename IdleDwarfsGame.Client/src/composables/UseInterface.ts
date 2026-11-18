@@ -18,6 +18,10 @@ const questsOpen = ref(false)
 const eventOpen = ref(false)
 const mailOpen = ref(false)
 const collectionOpen = ref(false)
+// Награды (календарь входов и достижения) и открытая в них вкладка: календарь открывается сам при первом входе за сутки
+export type RewardsTab = 'calendar' | 'achievements'
+const rewardsOpen = ref(false)
+const rewardsTab = ref<RewardsTab>('calendar')
 // Кампания и башня живут в городе (TownView), но флаги общие: их открывает и обучение
 const campaignOpen = ref(false)
 const towerOpen = ref(false)
@@ -36,6 +40,8 @@ export function useInterface() {
     eventOpen,
     mailOpen,
     collectionOpen,
+    rewardsOpen,
+    rewardsTab,
     campaignOpen,
     towerOpen
   }

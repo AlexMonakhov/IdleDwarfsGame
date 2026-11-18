@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { soundService } from '@/services/soundService/SoundService';
 import TimerBadge from '@/components/common/TimerBadge.vue';
 import { computed, onBeforeUnmount, onMounted, ref, type Component } from 'vue';
 import { AxiosError } from 'axios';
@@ -80,6 +81,7 @@ const buy = async (offer: FixedOfferInfo) => {
     message.value = null;
     try {
         const result = await FixedShopsApiService.buy(props.shop, offer.key);
+        soundService.play('purchase_success');
         apply(result.shop);
         message.value = { text: t('fixedShop.bought', { name: boughtName(result, offer) }), error: false };
     } catch (error) {

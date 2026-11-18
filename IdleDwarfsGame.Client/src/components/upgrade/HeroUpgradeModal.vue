@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { soundService } from '@/services/soundService/SoundService';
+import type { SoundKey } from '@/services/soundService/soundCatalog';
 import { computed, ref, watch } from 'vue';
 import HeroFilters from '@/components/inventory/HeroFilters.vue';
 import { useHeroFilters } from '@/composables/UseHeroFilters';
@@ -163,11 +165,12 @@ const changeErrorText = (error: unknown) => {
     return code && te(`equipment.errors.${code}`) ? t(`equipment.errors.${code}`) : t('equipment.changeError');
 };
 
-const change = async (request: () => Promise<EquipmentChangeResult>, successText: string) => {
+const change = async (request: () => Promise<EquipmentChangeResult>, successText: string, sound: SoundKey) => {
     if (changing.value) return;
     changing.value = true;
     try {
         applyChange(await request());
+        soundService.play(sound);
         itemMessage.value = { text: successText, error: false };
     } catch (error) {
         itemMessage.value = { text: changeErrorText(error), error: true };
@@ -183,22 +186,25 @@ const equip = (item: EquipmentInfo, slot?: EquipmentSlot) => {
     if (!hero) return;
     if (!canWear(item, hero.element)) {
         itemMessage.value = { text: t('equipment.errors.ElementRestricted'), error: true };
+        soundService.play('ui_error');
         return;
     }
     change(
         () => EquipmentApiService.equip(item.id, hero.id, slot),
         t('equipment.equipped', { item: itemName(item), name: hero.name }),
+        'equip_item',
     );
 };
 
 const unequip = (item: EquipmentInfo) => {
-    change(() => EquipmentApiService.unequip(item.id), t('equipment.removed', { item: itemName(item) }));
+    change(() => EquipmentApiService.unequip(item.id), t('equipment.removed', { item: itemName(item) }), 'unequip_item');
 };
 
 // Клик по предмету в списке: надетый на этого героя снимается, остальные надеваются на него
 const onPickItem = (item: EquipmentInfo) => {
     if (!selected.value) {
         itemMessage.value = { text: t('equipment.hintChooseHero'), error: true };
+        soundService.play('ui_error');
         return;
     }
     if (item.heroId === selected.value.id) unequip(item);

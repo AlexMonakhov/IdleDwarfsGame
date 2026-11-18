@@ -1,4 +1,4 @@
-import { API_BASE_URL } from './apiConfig';
+import { API_BASE_URL, attachErrorSound } from './apiConfig';
 import axios from 'axios';
 import { useAuth } from '@/composables/UseAuth';
 import type {
@@ -19,6 +19,7 @@ const apiClient = axios.create({
     timeout: 5000,
     headers: { 'Content-Type': 'application/json' }
 });
+attachErrorSound(apiClient);
 
 apiClient.interceptors.request.use(config => {
     const token = useAuth().token.value;

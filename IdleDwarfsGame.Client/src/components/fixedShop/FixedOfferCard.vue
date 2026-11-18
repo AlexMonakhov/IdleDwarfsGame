@@ -69,6 +69,7 @@ const caption = computed(() => {
             :color="'green'"
             :disabled="soldOut || busy || !affordable"
             v-tooltip="!soldOut && !affordable ? t('fixedShop.notEnough') : undefined"
+            data-sound="ui_click_primary"
             @click="emit('buy')"
         >{{ soldOut ? t('fixedShop.soldOut') : t('fixedShop.buy') }}</GemButton>
     </div>

@@ -115,8 +115,13 @@ public class CombatPowerTests
         var squad = DemoSquad();
         var forecast = CombatPower.Forecast(() => TowerWorld(squad, floor: 2));
 
-        int expected = squad.Sum(hero => CombatPower.OfHero(Factory, hero).Total);
-        Assert.Equal(expected, forecast.PlayerPower);
+        // Сумма мощи героев и бонус стихий отряда, если состав его даёт (SquadBonusBook.PowerPercent)
+        int heroes = squad.Sum(hero => CombatPower.OfHero(Factory, hero).Total);
+        int percent = SquadBonusBook.Resolve(squad.Select(h => HeroLevels.NormalizeElement(h.Level, h.Element))) is { } bonus
+            ? SquadBonusBook.PowerPercent(bonus)
+            : 0;
+        Assert.Equal(heroes * (100 + percent) / 100.0, forecast.PlayerPower, heroes * 0.01 + 5);
+        Assert.Equal(CombatPower.OfSquad(Factory, squad), forecast.PlayerPower);
         Assert.InRange(forecast.WinChance, 0, 1);
     }
 

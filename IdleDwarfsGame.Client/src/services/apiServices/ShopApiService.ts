@@ -1,4 +1,4 @@
-import { API_BASE_URL } from './apiConfig';
+import { API_BASE_URL, attachErrorSound } from './apiConfig';
 import axios from 'axios';
 import { useAuth } from '@/composables/UseAuth';
 import { ShopBuyResult, ShopKind, ShopOverview } from '@/models/types/Shop';
@@ -10,6 +10,7 @@ const apiClient = axios.create({
         'Content-Type': 'application/json'
     }
 });
+attachErrorSound(apiClient);
 
 // Полка у каждого игрока своя — он берётся из токена
 apiClient.interceptors.request.use(config => {

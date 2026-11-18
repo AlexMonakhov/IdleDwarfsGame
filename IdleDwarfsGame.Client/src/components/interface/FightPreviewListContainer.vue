@@ -160,6 +160,7 @@ const status = computed(() => campaign.value
                               v-tutorial="'campaign.fight'"
                               class="stage-fight stage-fight-ready"
                               v-tooltip="stage.description"
+                              data-sound="ui_click_primary"
                               @click="startStage(stage)"
                             ><IconPower /> {{ t('campaign.fight') }}</GemButton>
                             <span v-else class="stage-lock" v-tooltip="t('campaign.locked')"><IconLock /></span>

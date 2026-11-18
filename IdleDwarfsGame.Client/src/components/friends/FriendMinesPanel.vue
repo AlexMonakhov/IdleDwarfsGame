@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { soundService } from '@/services/soundService/SoundService';
 import { onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import GemButton from '@/components/common/GemButton.vue';
@@ -41,6 +42,7 @@ const help = async (mine: FriendMineInfo) => {
     busy.value = true;
     try {
         const result = await SocialApiService.helpFriendMine(props.friendId, mine.mineId);
+        soundService.play('social_action');
         overview.value = result.mines;
         setResources(result.resources);
         emit('message', t('social.help.done', { amount: formatNumber(result.added), gold: formatNumber(result.gold) }), false);

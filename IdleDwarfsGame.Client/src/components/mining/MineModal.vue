@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { soundService } from '@/services/soundService/SoundService';
 import { computed, onBeforeUnmount, ref, watch, type Component } from 'vue';
 import { emitTutorialEvent } from '@/tutorial/events';
 import { useTutorial } from '@/composables/UseTutorial';
@@ -163,9 +164,11 @@ const dig = (event: MouseEvent) => {
     // Кирка устала — клик не засчитается, и анимации удара нет
     if (tired.value) {
         message.value = { text: t('mining.dig.tired', { minutes: tiredMinutes.value }), error: true };
+        soundService.play('ui_click_disabled');
         return;
     }
     pendingClicks.value++;
+    soundService.play('mine_dig');
     oreArt.value?.animate(HIT_KEYFRAMES, { duration: 180, easing: 'ease-out' });
 
     const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
@@ -218,19 +221,28 @@ async function act<T extends MiningActionResult>(key: string, request: () => Pro
 const upgrade = (info: MineUpgradeInfo) => act(
     info.upgrade,
     () => MiningApiService.upgrade(props.mine.id, info.upgrade),
-    result => t('mining.upgrades.upgraded', {
-        name: t(`mining.upgrades.names.${info.upgrade}`),
-        level: result.mine.upgrades.find(u => u.upgrade === info.upgrade)?.level ?? info.level + 1,
-    }),
+    result => {
+        soundService.play('building_upgrade');
+        return t('mining.upgrades.upgraded', {
+            name: t(`mining.upgrades.names.${info.upgrade}`),
+            level: result.mine.upgrades.find(u => u.upgrade === info.upgrade)?.level ?? info.level + 1,
+        });
+    },
 );
 
 const assign = async (hero: HeroInfo) => {
-    await act('dwarf', () => MiningApiService.assignDwarf(props.mine.id, hero.id), () => t('mining.dwarf.assigned', { name: hero.name }));
+    await act('dwarf', () => MiningApiService.assignDwarf(props.mine.id, hero.id), () => {
+        soundService.play('dwarf_assign');
+        return t('mining.dwarf.assigned', { name: hero.name });
+    });
     loadHeroes();
 };
 
 const remove = async (heroId: string) => {
-    await act('dwarf', () => MiningApiService.removeDwarf(props.mine.id, heroId), () => t('mining.dwarf.removed'));
+    await act('dwarf', () => MiningApiService.removeDwarf(props.mine.id, heroId), () => {
+        soundService.play('dwarf_recall');
+        return t('mining.dwarf.removed');
+    });
     loadHeroes();
 };
 
@@ -238,6 +250,7 @@ const collect = () => act(
     'collect',
     () => MiningApiService.collect(props.mine.id),
     result => {
+        soundService.play('collect');
         emitTutorialEvent('mine:collected');
         return t('mining.dwarf.collected', { amount: format(result.collected) });
     },
@@ -295,8 +308,8 @@ onBeforeUnmount(() => {
         v-model="open"
         tutorial-anchor="mine.detail"
         :header-message="name"
-        width="min(1100px, calc(94vw - 40px))"
-        height="min(880px, 94vh)"
+        width="min(1100px, calc(calc(94 * var(--vw)) - 40px))"
+        height="min(880px, calc(94 * var(--vh)))"
     >
         <div class="mine" :style="{ '--mine-color': color }">
             <!-- ===== Жила и дворф ===== -->
@@ -306,7 +319,7 @@ onBeforeUnmount(() => {
                     <span class="mine-per-click">{{ t('mining.dig.perClick', { amount: formatClick(mine.perClick) }) }}</span>
                 </div>
 
-                <button type="button" class="mine-ore" @click="dig">
+                <button type="button" class="mine-ore" data-sound="none" @click="dig">
                     <span ref="oreArt" class="mine-ore-art">
                         <img v-if="ore" :src="ore" class="mine-ore-image" alt="" draggable="false" />
                         <!-- Кристалл наливается цветом по мере добычи: заливка — доля следующего камня -->

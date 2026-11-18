@@ -1,4 +1,4 @@
-import { API_BASE_URL } from './apiConfig';
+import { API_BASE_URL, attachErrorSound } from './apiConfig';
 import axios from 'axios';
 import type { AdminHeroPreview, AdminMailCatalog, AdminPlayerInfo, HeroPreviewRequest, MailInfo, SendMailRequest } from '@/models/types/Mail';
 
@@ -10,6 +10,7 @@ const apiClient = axios.create({
         'Content-Type': 'application/json'
     }
 });
+attachErrorSound(apiClient);
 
 class AdminApiService {
     async findPlayers(query: string): Promise<AdminPlayerInfo[]> {

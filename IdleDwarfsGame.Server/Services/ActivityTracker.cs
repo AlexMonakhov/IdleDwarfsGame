@@ -5,7 +5,8 @@ public interface IActivityTracker
     Task RecordAsync(Guid playerId, ActivityKind kind, int amount = 1);
 }
 
-// Счётчики за сутки (PlayerDailyActivity) и отметка обучения «активность попробована» (PlayerTutorial.DoneAt).
+// Счётчики за сутки (PlayerDailyActivity) и за всё время (PlayerLifetimeActivity — достижения),
+// а также отметка обучения «активность попробована» (PlayerTutorial.DoneAt).
 // Счётчик — не деньги: если записать его не удалось, действие игрока уже прошло, поэтому ошибку только логируем,
 // а не роняем ответ
 public class ActivityTracker(
