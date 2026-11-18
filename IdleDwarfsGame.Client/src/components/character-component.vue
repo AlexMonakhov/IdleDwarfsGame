@@ -138,10 +138,10 @@ const clearAuras = () => {
 
 watch(() => statusNames.value.join('|'), syncAuras, { flush: 'post' });
 
-// Аура героя: пульсирующая сфера цвета её эффекта, пока носитель жив
+// Аура героя: купол (или сфера) цвета её эффекта, пока носитель жив; в бою — только пока аура срабатывает (auraShown)
 const auraEffect = computed(() => auraEffectOf(props.unit));
 const heroAuraKey = computed(() =>
-  props.unit.alive && auraEffect.value ? `${props.unit.id}|${auraEffect.value}|${props.unit.auraTarget}` : '');
+  props.unit.alive && auraEffect.value && props.unit.auraShown !== false ? `${props.unit.id}|${auraEffect.value}|${props.unit.auraTarget}` : '');
 let heroAuraIds: string[] = [];
 const syncHeroAura = () => {
   if (!fx) return;
@@ -327,6 +327,11 @@ const view: UnitView = {
     skeletonRef.value?.flash(color, 0.5, 550);
   },
   victory: () => (pixiUnit ? pixiUnit.playAnimation('victory') : skeletonRef.value?.playAnimation('victory')),
+  rest: () => {
+    if (!props.unit.alive) return;
+    if (pixiUnit) pixiUnit.setPose(props.pose ?? null);
+    else skeletonRef.value?.playAnimation(props.pose?.animation ?? 'idle', props.pose?.variant);
+  },
   ready: () => (pixiBody.value ? unitCreated.then(unit => unit.ready()) : skeletonRef.value?.ready() ?? Promise.resolve()),
 };
 
@@ -413,8 +418,9 @@ defineExpose(view);
             >{{ text.text }}</div>
         </div>
 
-        <!-- data-face, data-size и data-head читает BattleFx.point: куда смотрит юнит (то же, что --face), во сколько раз он крупнее и где его голова -->
-        <div ref="spriteRef" class="sprite-box" :class="fxClass" :data-face="props.rotate ? -1 : 1" :data-size="unitSize" :data-head="getUnitHead(unit.unitType)">
+        <!-- data-face, data-size и data-head читает BattleFx.point: куда смотрит юнит (то же, что --face), во сколько раз он крупнее и где его голова;
+             data-grow — во сколько раз выросла рамка босса (по нему BattleFx растягивает облики аур и статусов) -->
+        <div ref="spriteRef" class="sprite-box" :class="fxClass" :data-face="props.rotate ? -1 : 1" :data-size="unitSize" :data-head="getUnitHead(unit.unitType)" :data-grow="bossScale">
           <!-- В Pixi-сцене тень и тело рисует PixiUnit, здесь — только рамка нужного размера -->
           <div v-if="pixiBody" class="unit-box" :style="boxStyle"></div>
           <div v-if="!pixiBody" class="unit-shadow"></div>

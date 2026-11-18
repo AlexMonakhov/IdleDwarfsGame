@@ -58,7 +58,7 @@ export class BattleFx {
   // Вспышки света при попаданиях (выключаются в нагрузочном тесте, чтобы сравнить FPS)
   flares = true;
   // Статусы на обликах (StatusLooks.BATTLE_STATUS_LOOKS); без облика — прежние эмиттеры из STATUS_VISUALS
-  readonly statusLooks = new StatusLooks(() => this.scene(), (el, anchor) => this.point(el, anchor), () => this.rate());
+  readonly statusLooks = new StatusLooks(() => this.scene(), (el, anchor) => this.point(el, anchor), () => this.rate(), el => this.lookScale(el));
 
   constructor(
     private readonly service: () => GlobalParticleService | null,
@@ -107,6 +107,11 @@ export class BattleFx {
   // Во сколько раз юнит крупнее обычного (data-size на его рамке)
   private unitSize(el: UnitEl) {
     return Number(el?.dataset.size) || 1;
+  }
+
+  // Во сколько раз облик (купол ауры, статус) крупнее, чем на обычном юните: крупный тип и рамка босса (data-grow)
+  private lookScale(el: UnitEl) {
+    return this.unitSize(el) * (Number(el?.dataset.grow) || 1);
   }
 
   // Запустить одноразовый эффект от from к to (для неподвижных эффектов to = from)

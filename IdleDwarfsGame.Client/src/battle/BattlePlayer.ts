@@ -57,6 +57,8 @@ const TIMING = {
   speech: 2400,
   auraWave: 300,
   auraRecover: 450,
+  // Купол ауры проявляется (облик гаснет-появляется за 0.3 с) — потом сквад кастует
+  auraAppear: 320,
 };
 
 // Следующий ход начинается за столько мс до конца эффекта каста — хвост гаснет уже под него
@@ -122,6 +124,8 @@ export class BattlePlayer {
     this.lastDeathId = null;
     this.lastHealedId = null;
     resetBattleState(this.state, result);
+    // Купола аур в бою видны только на срабатывание (playAuraRound)
+    Object.values(this.state.units).forEach(u => (u.auraShown = false));
     this.state.playing = true;
     // Сцена под экраном загрузки, пока у юнитов не готовы спрайт-листы:
     // иначе их загрузка и распаковка приходится на первые удары, а юниты появляются уже на глазах
@@ -131,6 +135,8 @@ export class BattlePlayer {
     await nextFrame();
 
     const units = Object.values(this.state.units);
+    // Компоненты юнитов переиспользуются между боями (те же entityId): снять победную позу прошлого боя
+    units.forEach(u => getUnitView(u.id)?.rest?.());
     let readyCount = 0;
     await Promise.race([
       Promise.all(units.map(async u => {
@@ -176,14 +182,14 @@ export class BattlePlayer {
         continue;
       }
 
-      // Аура накладывает статус на всех целей подряд — проигрываем это одним всплеском
+      // Ауры в начале раунда накладывают статусы подряд, носитель за носителем — проигрываем сквадами
       if (this.isAuraTrigger(log)) {
         const group = [log];
         let j = i + 1;
-        while (j < logs.length && logs[j].attackerId === log.attackerId && this.isAuraTrigger(logs[j])) {
+        while (j < logs.length && this.isAuraTrigger(logs[j])) {
           group.push(logs[j++]);
         }
-        await this.playAura(log.attackerId, group);
+        await this.playAuraRound(group);
         i = j;
         continue;
       }
@@ -449,6 +455,26 @@ export class BattlePlayer {
     }
   }
 
+  // Срабатывания аур: сквад за сквадом (в порядке лога), у сквада все ауры разом. Купола проявляются на носителях,
+  // сквад кастует, купола гаснут до следующего срабатывания
+  private async playAuraRound(entries: CombatLogEntry[]) {
+    const teams = [...new Set(entries.map(e => this.unit(e.attackerId)?.team ?? 0))];
+    for (const team of teams) {
+      const squad = entries.filter(e => (this.unit(e.attackerId)?.team ?? 0) === team);
+      const bearers = [...new Set(squad.map(e => e.attackerId))];
+      bearers.forEach(id => this.setAuraShown(id, true));
+      await this.delay(TIMING.auraAppear);
+      this.sound(s => s.play('battle_aura'));
+      await Promise.all(bearers.map(id => this.playAura(id, squad.filter(e => e.attackerId === id))));
+      bearers.forEach(id => this.setAuraShown(id, false));
+    }
+  }
+
+  private setAuraShown(id: number, shown: boolean) {
+    const unit = this.unit(id);
+    if (unit) unit.auraShown = shown && !this.skipping;
+  }
+
   // Срабатывание ауры: носитель вспыхивает, от него расходятся круги и одновременно идёт волна наложения (концепт из
   // BATTLE_AURA_WAVES) — статус ложится на цель, когда волна до неё дошла. Без концепта — прежние искры на целях
   private async playAura(bearerId: number, group: CombatLogEntry[]) {
@@ -457,7 +483,6 @@ export class BattlePlayer {
     const visual = resolveAuraVisual(effect, bearer?.auraTarget);
 
     this.animate(bearerId, v => v.aura?.(visual.color));
-    this.sound(s => s.play('battle_aura'));
     if (!this.skipping) this.fx.auraBurst(getUnitView(bearerId)?.el?.(), visual, effect);
 
     // Волна наложения стартует вместе со вспышкой
