@@ -26,7 +26,9 @@ public class CurseEffect : StatusEffectBase
 
         if (world.Energy.TryGetValue(targetId, out var energy))
         {
-            energy.Current = Math.Max(0, energy.Current - EnergyDrain);
+            int drained = Math.Min(EnergyDrain, energy.Current);
+            energy.Current -= drained;
+            SquadBonuses.EnergyBurned(world, targetId, MainSource(), drained);
         }
         DealTickDamage(world, targetId, context, Power, DamageType.Dark);
     }

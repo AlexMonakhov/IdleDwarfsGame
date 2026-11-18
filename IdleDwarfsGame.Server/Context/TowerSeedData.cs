@@ -106,12 +106,12 @@ public static class TowerSeedData
                 hero.SpellIds = [SpellRegistry.IdOf(theme.CasterSpell, spellLevel)];
                 break;
             case Role.Mystic:
-                AuraBook.Apply(hero, aura, MysticAuraLevel);
+                AuraBook.ApplyMonster(hero, aura, MysticAuraLevel);
                 break;
             case Role.Boss:
                 hero.SpellIds = [SpellRegistry.IdOf(theme.BossSpell, spellLevel + 1)];
                 hero.Immunities = [.. immunity, "Stun"];
-                AuraBook.Apply(hero, aura, BossAuraLevel);
+                AuraBook.ApplyMonster(hero, aura, BossAuraLevel);
                 break;
         }
         return hero;

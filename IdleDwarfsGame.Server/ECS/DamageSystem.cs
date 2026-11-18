@@ -87,6 +87,7 @@ public class DamageSystem : ICombatSystem
 
         PassiveReactions.Vampirism(world, context, attacker, damage);
         ApplySharpTongue(world, context, attacker, targetId);
+        SquadBonuses.BasicHit(world, context, attacker, targetId);
         Thorns(world, context, attacker, targetId);
     }
 

@@ -16,6 +16,8 @@ import QuestsModal from '@/components/quests/QuestsModal.vue';
 import EventModal from '@/components/events/EventModal.vue';
 import DelveModal from '@/components/delve/DelveModal.vue';
 import MailModal from '@/components/mail/MailModal.vue';
+import RewardsModal from '@/components/rewards/RewardsModal.vue';
+import { useRewards } from '@/composables/UseRewards';
 import { useMail } from '@/composables/UseMail';
 import { useSocial } from '@/composables/UseSocial';
 import AccountButton from '@/components/account/AccountButton.vue';
@@ -34,7 +36,7 @@ import { useInterface } from '@/composables/UseInterface';
 import { useQuests } from '@/composables/UseQuests';
 import { soundService } from '@/services/soundService/SoundService';
 import { useI18n } from 'vue-i18n';
-import { IconBook, IconCoin, IconDoor, IconDwarf, IconExperience, IconFriends, IconHome, IconMail, IconMore, IconPickaxe, IconRainbowCoin, IconScroll, IconStar, IconTown } from '@/components/icons/ui';
+import { IconBook, IconCoin, IconDoor, IconDwarf, IconExperience, IconFriends, IconHome, IconMail, IconMore, IconPickaxe, IconRainbowCoin, IconScroll, IconStar, IconTown, IconTrophy } from '@/components/icons/ui';
 import ConfirmModal from '@/components/common/ConfirmModal.vue';
 import TutorialOverlay from '@/components/tutorial/TutorialOverlay.vue';
 import { useTutorial } from '@/composables/UseTutorial';
@@ -68,11 +70,13 @@ const { guildOpen } = useGuild();
 const { pvpOpen } = usePvp();
 const { squadOpen } = useSquadModal();
 // Экспедиции, склад (инвентарь), алтарь (прокачка) и шахты открываются кликом по зданиям города
-const { interfaceHidden, expeditionsOpen, inventoryOpen, upgradeOpen, miningOpen, shopOpen, forgeOpen, questsOpen, eventOpen, mailOpen, collectionOpen } = useInterface();
+const { interfaceHidden, expeditionsOpen, inventoryOpen, upgradeOpen, miningOpen, shopOpen, forgeOpen, questsOpen, eventOpen, mailOpen, collectionOpen, rewardsOpen, rewardsTab } = useInterface();
 const { claimable: questsClaimable, start: startQuests, clear: clearQuests } = useQuests();
 const accountOpen = ref(false);
 // Почта: значок — непрочитанные письма и незабранные вложения
 const { badge: mailBadge, refresh: refreshMail, clear: clearMail } = useMail();
+// Награды: значок — сегодняшняя награда календаря и готовые ступени достижений
+const { claimable: rewardsClaimable, calendar: loginCalendar, start: startRewards, clear: clearRewards } = useRewards();
 
 // Ресурсы аккаунта подтягиваем при входе и сбрасываем при выходе; там же открываем и закрываем сессию вкладки
 // и следим за доской заданий (значок готовых наград на кнопке)
@@ -82,14 +86,31 @@ watch(isAuthenticated, authenticated => {
         startPresence();
         startQuests();
         refreshMail();
+        startRewards();
     } else {
         clearResources();
         clearHeroes();
         stopPresence();
         clearQuests();
         clearMail();
+        clearRewards();
     }
 }, { immediate: true });
+
+// Первый вход за сутки: сегодняшняя награда календаря не забрана — открываем календарь сам, один раз за сутки
+// на вкладку. Не во время стартового обучения и не поверх уже открытого окна или арены
+const AUTO_OPEN_KEY = 'idle-dwarfs-calendar-shown'
+const calendarShownFor = (): string | null => {
+    try { return sessionStorage.getItem(AUTO_OPEN_KEY); } catch { return null; }
+};
+watch([loginCalendar, () => tutorial.onboardingActive.value || !!tutorial.active.value, topModalZ, onArena, loadingScreenVisible], ([calendar, tutorialBusy, modalZ, arena, loadingScreen]) => {
+    if (!calendar || calendar.claimedToday || tutorialBusy || modalZ > 0 || arena || loadingScreen) return;
+    const day = calendar.resetAt;
+    if (calendarShownFor() === day) return;
+    try { sessionStorage.setItem(AUTO_OPEN_KEY, day); } catch { /* покажем ещё раз после перезагрузки */ }
+    rewardsTab.value = 'calendar';
+    rewardsOpen.value = true;
+});
 
 const onLogout = () => {
     expeditionsOpen.value = false;
@@ -108,6 +129,7 @@ const onLogout = () => {
     squadOpen.value = false;
     accountOpen.value = false;
     mailOpen.value = false;
+    rewardsOpen.value = false;
     // Пока токен ещё есть — им закрывается сессия
     stopPresence();
     logout();
@@ -148,6 +170,7 @@ const navItems = computed<NavItem[]>(() => {
         { key: 'collection', label: t('nav.collection'), icon: IconBook, color: 'yellow', anchor: 'nav.collection', badgeText: badge('collection'), action: () => (collectionOpen.value = true) },
         { key: 'friends', label: t('nav.friends'), icon: IconFriends, color: 'green', anchor: 'nav.friends', badgeText: badge('friends'), badgeCount: incomingFriendRequests.value, action: () => (friendsOpen.value = true) },
         { key: 'quests', label: t('nav.quests'), icon: IconScroll, color: 'yellow', anchor: 'nav.quests', badgeText: badge('quests'), badgeCount: questsClaimable.value, action: () => (questsOpen.value = true) },
+        { key: 'rewards', label: t('nav.rewards'), icon: IconTrophy, color: 'green', badgeCount: rewardsClaimable.value, action: () => (rewardsOpen.value = true) },
         { key: 'mail', label: t('nav.mail'), icon: IconMail, color: 'blue', anchor: 'nav.mail', badgeText: badge('mail'), badgeCount: mailBadge.value, action: () => (mailOpen.value = true) },
         { key: 'event', label: t('nav.event'), icon: IconStar, color: 'red', anchor: 'nav.event', badgeText: badge('event'), action: () => (eventOpen.value = true) },
         { key: 'delve', label: t('social.delve.nav'), icon: IconPickaxe, color: 'pink', anchor: 'nav.delve', badgeText: badge('delve'), action: () => (delveOpen.value = true) },
@@ -372,6 +395,7 @@ watchEffect(() => {
     <BlacksmithModal v-if="isAuthenticated" v-model="forgeOpen" />
     <QuestsModal v-if="isAuthenticated" v-model="questsOpen" />
     <MailModal v-if="isAuthenticated" v-model="mailOpen" />
+    <RewardsModal v-if="isAuthenticated" v-model="rewardsOpen" />
     <EventModal v-if="isAuthenticated" v-model="eventOpen" />
     <DelveModal v-if="isAuthenticated" v-model="delveOpen" />
     <ConfirmModal

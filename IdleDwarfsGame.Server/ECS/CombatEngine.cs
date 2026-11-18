@@ -19,6 +19,7 @@ public class CombatEngine : ICombatEngine
             new RoundStartSystem(),
             new GlobalEffectSystem(),
             new AuraSystem(),
+            new SquadBonusSystem(),
             new StatusEffectSystem(EffectPhase.Start),
             new SpellSystem(SpellRegistry.All, random),
             new DamageSystem(),

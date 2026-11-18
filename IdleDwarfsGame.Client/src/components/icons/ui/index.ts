@@ -59,6 +59,7 @@ import IconFriends from './IconFriends.vue';
 import IconMail from './IconMail.vue';
 import IconMore from './IconMore.vue';
 import IconDoor from './IconDoor.vue';
+import IconCalendar from './IconCalendar.vue';
 
 export {
   IconAmulet,
@@ -121,4 +122,5 @@ export {
   IconMail,
   IconMore,
   IconDoor,
+  IconCalendar,
 };

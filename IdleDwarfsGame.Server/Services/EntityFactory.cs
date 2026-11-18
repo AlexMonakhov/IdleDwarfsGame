@@ -119,14 +119,16 @@ public class EntityFactory : IEntityFactory
     {
         if (aura == null && gear.AuraGrant is { } grant)
         {
+            // Аура шлема живёт по правилам книги аур 1-го уровня: тот же интервал и длительность наложения
+            var definition = AuraBook.Find(grant.Effect);
             aura = new AuraComponent
             {
                 EffectName = grant.Effect,
                 TargetType = grant.Target,
                 Trigger = TriggerPhase.OnRoundStart,
                 Power = AuraBook.Resolve(grant.Effect, grant.Power, attack),
-                Duration = grant.Duration,
-                Interval = grant.Interval
+                Duration = definition != null ? AuraBook.Duration(definition, AuraBook.MinLevel) : grant.Duration,
+                Interval = definition?.Interval ?? grant.Interval
             };
         }
         if (aura == null) return null;
@@ -143,10 +145,14 @@ public class EntityFactory : IEntityFactory
         };
     }
 
+    // Отряд игрока: дворфы и бонус стихий отряда по их составу (SquadBonusBook)
     public List<int> CreateSquad(World world, IEnumerable<Hero> heroes, int teamId, int level = 1)
     {
-        return heroes
+        var squad = heroes.ToList();
+        var ids = squad
             .Select((hero, index) => CreateUnit(world, hero, teamId, hero.PlaceInSquad ?? index + 1, level))
             .ToList();
+        SquadBonuses.Attach(world, teamId, squad);
+        return ids;
     }
 }

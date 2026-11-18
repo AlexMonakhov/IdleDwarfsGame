@@ -78,16 +78,21 @@ public static class CombatPower
         int withLevel = Power(noSkills);
         int withSkills = Power(noPassives);
         int withPassives = Power(noGear);
-        int total = Power(full);
+        int withGear = Power(full);
+        // Бонус стихий отряда: прибавка к мощи каждого дворфа отряда по прогонам (SquadBonusBook.PowerPercent)
+        int squadBonus = SquadBonuses.Of(world, entityId) is { } bonus
+            ? (int)Math.Round(withGear * SquadBonusBook.PowerPercent(bonus.Bonus) / 100.0)
+            : 0;
 
         return new CombatPowerBreakdown
         {
-            Total = total,
+            Total = withGear + squadBonus,
             Stats = stats,
             Level = withLevel - stats,
             Skills = withSkills - withLevel,
             Passives = withPassives - withSkills,
-            Equipment = total - withPassives
+            Equipment = withGear - withPassives,
+            SquadBonus = squadBonus
         };
     }
 
@@ -331,6 +336,8 @@ public class CombatPowerBreakdown
     public int Passives { get; set; }
     // Надетые предметы: их статы и всё, что они усилили
     public int Equipment { get; set; }
+    // Бонус стихий отряда (только в отряде: у одиночного героя 0)
+    public int SquadBonus { get; set; }
 }
 
 public class BattleForecast
