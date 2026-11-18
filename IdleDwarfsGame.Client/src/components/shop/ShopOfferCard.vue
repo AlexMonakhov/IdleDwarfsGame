@@ -84,6 +84,7 @@ const gemHint = computed(() => props.offer.price.gem
                 :color="'green'"
                 :disabled="offer.sold || busy || !affordable"
                 v-tooltip="!offer.sold && !affordable ? t('shop.notEnough') : undefined"
+                data-sound="ui_click_primary"
                 @click="emit('buy')"
             >{{ offer.sold ? t('shop.sold') : t('shop.buy') }}</GemButton>
             <!-- Закреплённый товар не трогают обновления полки; закрепить можно один предмет и одного дворфа -->

@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { soundService } from '@/services/soundService/SoundService';
 import { hudLayout } from '@/composables/UseUiScale';
 import TimerBadge from '@/components/common/TimerBadge.vue';
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
@@ -158,13 +159,13 @@ const act = async (action: () => Promise<DelveOverview>) => {
     }
 };
 
-const start = () => act(() => SocialApiService.startDelve());
-const retreat = () => act(() => SocialApiService.retreatDelve());
-const chooseRelic = (key: string) => act(() => SocialApiService.chooseRelic(key));
-const rest = () => act(() => SocialApiService.camp('rest'));
-const revive = (heroId: string) => act(() => SocialApiService.camp('revive', heroId));
+const start = () => act(() => SocialApiService.startDelve().then(soundService.played('delve_start')));
+const retreat = () => act(() => SocialApiService.retreatDelve().then(soundService.played('delve_retreat')));
+const chooseRelic = (key: string) => act(() => SocialApiService.chooseRelic(key).then(soundService.played('delve_relic')));
+const rest = () => act(() => SocialApiService.camp('rest').then(soundService.played('delve_camp')));
+const revive = (heroId: string) => act(() => SocialApiService.camp('revive', heroId).then(soundService.played('delve_revive')));
 const reviveAll = async () => {
-    await act(() => SocialApiService.reviveDelve());
+    await act(() => SocialApiService.reviveDelve().then(soundService.played('delve_revive')));
     refreshResources();
 };
 
@@ -172,7 +173,7 @@ const reviveAll = async () => {
 const reroll = () => {
     pickedReward.value = null;
     swapFrom.value = null;
-    act(() => SocialApiService.rerollDelveRewards());
+    act(() => SocialApiService.rerollDelveRewards().then(soundService.played('reroll')));
 };
 
 const chooseReward = (index: number) => {
@@ -183,14 +184,14 @@ const chooseReward = (index: number) => {
         swapFrom.value = null;
         return;
     }
-    act(() => SocialApiService.chooseDelveReward(index));
+    act(() => SocialApiService.chooseDelveReward(index).then(soundService.played('reward_claim')));
 };
 
 const giveTo = (dwarf: DelveDwarfInfo) => {
     const index = pickedReward.value;
     const reward = picked.value;
     if (index == null || !reward || !canTake(dwarf)) return;
-    act(() => SocialApiService.chooseDelveReward(index, dwarf.heroId));
+    act(() => SocialApiService.chooseDelveReward(index, dwarf.heroId).then(soundService.played('reward_claim')));
 };
 
 const decline = async () => {
@@ -217,7 +218,7 @@ const swap = (fromId: string, toId: string) => {
     const to = ids.indexOf(toId);
     if (from < 0 || to < 0) return;
     [ids[from], ids[to]] = [ids[to], ids[from]];
-    act(() => SocialApiService.orderDelve(ids));
+    act(() => SocialApiService.orderDelve(ids).then(soundService.played('drag_drop')));
 };
 
 const onDwarfClick = (dwarf: DelveDwarfInfo) => {
@@ -264,6 +265,7 @@ const move = async (node: DelveNodeInfo) => {
     errorMessage.value = null;
     try {
         const result = await SocialApiService.moveDelve(node.column);
+        soundService.play('delve_move');
         apply(result.overview);
         if (result.gold || result.experience || result.rainbowCoins) refreshResources();
         if (result.combat) {
@@ -396,7 +398,7 @@ const move = async (node: DelveNodeInfo) => {
                         <h4>{{ t('social.delve.title') }}</h4>
                         <p class="delve-hint">{{ t('social.delve.intro') }}</p>
                         <div class="delve-buttons">
-                            <GemButton v-if="overview.canStart" :color="'green'" :disabled="busy" @click="start">{{ t('social.delve.start') }}</GemButton>
+                            <GemButton data-sound="ui_click_primary" v-if="overview.canStart" :color="'green'" :disabled="busy" @click="start">{{ t('social.delve.start') }}</GemButton>
                             <span v-else class="delve-hint">{{ t('social.delve.nextRun', { time: nextRunIn }) }}</span>
                         </div>
                     </div>

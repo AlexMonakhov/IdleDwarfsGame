@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { soundService } from '@/services/soundService/SoundService';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { AxiosError } from 'axios';
 import { useI18n } from 'vue-i18n';
@@ -60,6 +61,8 @@ const claim = async () => {
     message.value = null;
     try {
         const result = await AchievementsApiService.claimCalendar();
+        const big = result.calendar.days.find(day => day.day === result.calendar.day)?.big;
+        soundService.play(big ? 'calendar_claim_big' : 'calendar_claim');
         apply(result.calendar);
         message.value = { text: t('achievements.claimed', { reward: grantedText(result.granted) }), error: false };
         // Дни входа и серия — тоже достижения

@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { soundService } from '@/services/soundService/SoundService';
 import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import GemButton from '@/components/common/GemButton.vue';
@@ -58,6 +59,7 @@ const statusText = (member: GuildMemberInfo) => {
 /* ===== Действия ===== */
 const accept = (request: GuildJoinRequestInfo) => props.run(request.userId, async () => {
     await GuildApiService.accept(request.userId);
+    soundService.play('social_action');
     return t('guild.accepted', { name: request.username });
 });
 

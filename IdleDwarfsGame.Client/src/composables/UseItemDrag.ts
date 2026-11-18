@@ -1,3 +1,4 @@
+import { soundService } from '@/services/soundService/SoundService';
 import { ref } from 'vue';
 import { EquipmentInfo } from '@/models/types/Equipment';
 
@@ -10,6 +11,7 @@ export function useItemDrag() {
     const start = (event: DragEvent, item: EquipmentInfo, isFromSlot: boolean) => {
         dragged.value = item;
         fromSlot.value = isFromSlot;
+        soundService.play('drag_pick');
         if (event.dataTransfer) {
             event.dataTransfer.effectAllowed = 'move';
             // Без данных Firefox не начинает перетаскивание

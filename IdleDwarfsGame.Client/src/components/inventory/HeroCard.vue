@@ -44,6 +44,7 @@ const upgradeStars = computed<number[]>(() => {
 <template>
     <div
         class="hero-card"
+        data-sound-hover="ui_hover_card"
         :class="[`hero-card-${color}`, {
             'hero-card-dragging': dragging,
             'hero-card-disabled': disabled,

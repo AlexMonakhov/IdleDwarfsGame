@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { soundService } from '@/services/soundService/SoundService';
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import GemButton from '@/components/common/GemButton.vue';
@@ -68,6 +69,7 @@ let scrollAttempts = 0;
 let lastScrollAt = 0;
 let delayTimer = 0;
 watch(currentStep, step => {
+  if (step) soundService.play('tutorial_step');
   stepStartedAt = performance.now();
   scrollAttempts = 0;
   lastScrollAt = 0;

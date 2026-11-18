@@ -11,6 +11,7 @@
     "atlas": "node tools/sprite-atlas.js",
     "portraits": "node tools/portraits.js",
     "caves": "node tools/cave-backgrounds.js",
+    "sounds:loop": "node tools/sound-loop.js",
     "perf": "node tools/perf/arena-bench.js",
     "perf:build": "vue-cli-service build --dest dist-perf"
   },

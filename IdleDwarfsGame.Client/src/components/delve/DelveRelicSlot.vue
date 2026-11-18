@@ -21,7 +21,7 @@ const colors = computed(() => relicColors(props.relicKey));
 <template>
     <div class="relic-slot-cell">
         <TooltipComponent :accent="accent">
-            <div class="relic-slot" :class="{ 'relic-slot-rare': rare }" :style="{ '--relic-accent': accent }">
+            <div class="relic-slot" data-sound-hover="ui_hover_card" :class="{ 'relic-slot-rare': rare }" :style="{ '--relic-accent': accent }">
                 <component :is="icon" v-if="icon" size="30px" :primary-color="colors.light" :secondary-color="colors.dark" />
                 <span v-else>💠</span>
                 <span v-if="count > 1" class="relic-slot-count">×{{ count }}</span>

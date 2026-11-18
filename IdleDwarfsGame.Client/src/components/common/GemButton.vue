@@ -266,7 +266,7 @@ const buttonClasses = computed<string[]>(() => {
 </style>
 
 <template>
-    <button class="gem-button" :class="buttonClasses" :style="{'width': width ?? '', 'height': height ?? ''}">
+    <button class="gem-button" data-sound-hover="ui_hover_button" :class="buttonClasses" :style="{'width': width ?? '', 'height': height ?? ''}">
         <span :class="['gem-inner', `${props.color.toString()}-gem`]">
             <span class="gem-inner-top"><span class="gem-text"><slot></slot></span></span>
             <span class="sparkle sparkle-top"></span>

@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { soundService } from '@/services/soundService/SoundService';
 import TimerBadge from '@/components/common/TimerBadge.vue';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
@@ -83,10 +84,10 @@ const run = async (action: () => Promise<ArenaBetOverview>, done: (next: ArenaBe
     }
 };
 
-const bet = (side: 1 | 2) => run(() => SocialApiService.placeBet(side, amount.value), () => t('social.bets.placed'));
+const bet = (side: 1 | 2) => run(() => SocialApiService.placeBet(side, amount.value).then(soundService.played('arena_bet')), () => t('social.bets.placed'));
 const claim = () => {
     const claimable = overview.value?.claimable ?? 0;
-    return run(() => SocialApiService.claimBets(), () => t('social.bets.claimed', { coins: claimable }));
+    return run(() => SocialApiService.claimBets().then(soundService.played('reward_claim')), () => t('social.bets.claimed', { coins: claimable }));
 };
 
 const watch = (match: ArenaBetMatchInfo) => {

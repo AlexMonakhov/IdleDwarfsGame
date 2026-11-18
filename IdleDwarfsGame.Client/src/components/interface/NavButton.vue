@@ -22,7 +22,7 @@ const props = withDefaults(defineProps<Props>(), {
 </script>
 
 <template>
-  <button type="button" class="nav-button" :class="{ 'nav-button-active': props.active }" :aria-label="props.label">
+  <button type="button" data-sound-hover="ui_hover_button" class="nav-button" :class="{ 'nav-button-active': props.active }" :aria-label="props.label">
     <span class="nav-stone">
       <span :class="['nav-core', `nav-core-${props.color}`]">
         <span class="nav-icon"><slot /></span>

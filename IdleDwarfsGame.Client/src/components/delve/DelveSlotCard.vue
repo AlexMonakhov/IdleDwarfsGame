@@ -63,13 +63,13 @@ const icon = computed(() => {
 <template>
     <div class="delve-slot-cell">
         <ItemTooltip v-if="item" :item="item" :hero="hero">
-            <div class="delve-slot" :style="{ '--slot-accent': accent }">
+            <div class="delve-slot" data-sound-hover="ui_hover_card" :style="{ '--slot-accent': accent }">
                 <img class="delve-slot-image" :src="getItemImage(item.key)" alt="" draggable="false" />
             </div>
         </ItemTooltip>
 
         <TooltipComponent v-else-if="ability" :accent="accent">
-            <div class="delve-slot" :style="{ '--slot-accent': accent }">
+            <div class="delve-slot" data-sound-hover="ui_hover_card" :style="{ '--slot-accent': accent }">
                 <component :is="icon" v-if="icon" size="26px" />
                 <span v-else class="delve-slot-fallback">⚙</span>
                 <span class="delve-slot-level">{{ ability.level }}</span>

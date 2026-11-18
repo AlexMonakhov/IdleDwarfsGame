@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { soundService } from '@/services/soundService/SoundService';
 import TimerBadge from '@/components/common/TimerBadge.vue';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { AxiosError } from 'axios';
@@ -85,18 +86,21 @@ const rewardText = (result: QuestClaimResult) => {
 
 const claim = (quest: QuestInfo) => run(async () => {
     const result = await QuestsApiService.claim(quest.id);
+    soundService.play('reward_claim');
     apply(result.board);
     message.value = { text: t('quests.claimed', { reward: rewardText(result) }), error: false };
 });
 
 const claimMilestone = (milestone: QuestMilestoneInfo) => run(async () => {
     const result = await QuestsApiService.claimMilestone(milestone.index);
+    soundService.play('reward_claim');
     apply(result.board);
     message.value = { text: t('quests.claimed', { reward: rewardText(result) }), error: false };
 });
 
 const reroll = (quest: QuestInfo) => run(async () => {
     apply(await QuestsApiService.reroll(quest.id));
+    soundService.play('reroll');
     message.value = { text: t('quests.rerolled'), error: false };
 });
 

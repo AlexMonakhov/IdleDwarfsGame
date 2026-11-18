@@ -102,10 +102,10 @@
               <GemButton v-else-if="externalMode" :color="'blue'" @click="goBackExternal()">{{ pendingFight?.backLabel ?? t('social.toTown') }}</GemButton>
               <template v-else>
                 <GemButton v-if="stageId" v-tutorial="'arena.toCampaign'" :color="'blue'" @click="goToCampaign()">{{ t('arena.toCampaign') }}</GemButton>
-                <GemButton v-if="nextStageId" :color="'green'" @click="goToNextStage()"><IconPower /> {{ t('arena.nextStage') }}</GemButton>
+                <GemButton data-sound="ui_click_primary" v-if="nextStageId" :color="'green'" @click="goToNextStage()"><IconPower /> {{ t('arena.nextStage') }}</GemButton>
                 <!-- Башня: после победы — дальше или в окно за наградой, после поражения — сменить отряд и попробовать снова -->
                 <GemButton v-if="towerFloor" :color="'blue'" @click="goToTower()">{{ t('arena.toTower') }}</GemButton>
-                <GemButton v-if="nextTowerFloor" :color="'green'" @click="goToNextFloor()"><IconPower /> {{ t('arena.nextFloor') }}</GemButton>
+                <GemButton data-sound="ui_click_primary" v-if="nextTowerFloor" :color="'green'" @click="goToNextFloor()"><IconPower /> {{ t('arena.nextFloor') }}</GemButton>
               </template>
             </div>
           </Transition>
@@ -216,6 +216,14 @@ const { guildOpen } = useGuild();
 const worldBossMode = computed(() => route.query.worldBoss === '1');
 const worldBossResult = ref<WorldBossAttackResult | null>(null);
 const { eventOpen } = useInterface();
+
+// Боссы гильдии и мировой — со своей музыкой (InterfaceView выбирает трек по сцене)
+watch([guildBossTier, worldBossMode], ([tier, worldBoss]) => {
+  soundService.scene.bossFight = !!tier || worldBoss;
+}, { immediate: true });
+onBeforeUnmount(() => {
+  soundService.scene.bossFight = false;
+});
 const worldBossErrorText = (e: unknown) => {
   const code = (e as { response?: { data?: { code?: string } } }).response?.data?.code;
   return code && te(`worldBoss.errors.${code}`) ? t(`worldBoss.errors.${code}`) : '';

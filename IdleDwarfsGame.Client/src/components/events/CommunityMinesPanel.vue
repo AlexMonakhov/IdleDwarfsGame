@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { soundService } from '@/services/soundService/SoundService';
 import TimerBadge from '@/components/common/TimerBadge.vue';
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { AxiosError } from 'axios';
@@ -97,22 +98,23 @@ const run = async (action: () => Promise<void>, heroesChanged = false) => {
 };
 
 const send = (deposit: DepositInfo) => run(async () => {
-    apply(await EventsApiService.sendDwarves(deposit.id, picked.value));
+    apply(await EventsApiService.sendDwarves(deposit.id, picked.value).then(soundService.played('dwarf_assign')));
     message.value = { text: t('communityMines.sent', { count: picked.value.length }), error: false };
     picked.value = [];
 }, true);
 
 const recall = (deposit: DepositInfo, heroId: string) => run(async () => {
-    apply(await EventsApiService.recallDwarf(deposit.id, heroId));
+    apply(await EventsApiService.recallDwarf(deposit.id, heroId).then(soundService.played('dwarf_recall')));
 }, true);
 
 const upgrade = (deposit: DepositInfo) => run(async () => {
-    apply(await EventsApiService.upgradeDeposit(deposit.id));
+    apply(await EventsApiService.upgradeDeposit(deposit.id).then(soundService.played('building_upgrade')));
     message.value = { text: t('communityMines.upgraded'), error: false };
 });
 
 const claim = () => run(async () => {
     const result = await EventsApiService.claimCommunityMines();
+    soundService.play('reward_claim');
     apply(result.overview);
     message.value = { text: t('communityMines.claimed', { amount: format(result.currency) }), error: false };
 });

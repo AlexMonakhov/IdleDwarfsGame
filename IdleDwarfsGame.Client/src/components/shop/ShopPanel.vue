@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { soundService } from '@/services/soundService/SoundService';
 import TimerBadge from '@/components/common/TimerBadge.vue';
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { AxiosError } from 'axios';
@@ -90,6 +91,7 @@ const run = async (action: () => Promise<void>) => {
 
 const reroll = () => run(async () => {
     apply(await ShopApiService.reroll(props.shop));
+    soundService.play('reroll');
     message.value = { text: t('shop.rerolled'), error: false };
 });
 
@@ -99,6 +101,7 @@ const toggleLock = (offer: ShopOfferInfo) => run(async () => {
 
 const buy = (offer: ShopOfferInfo) => run(async () => {
     const result = await ShopApiService.buy(offer.id);
+    soundService.play('purchase_success');
     apply(result.shop);
     const name = result.hero?.name ?? (result.item ? itemName(result.item) : '');
     message.value = { text: t('shop.bought', { name }), error: false };

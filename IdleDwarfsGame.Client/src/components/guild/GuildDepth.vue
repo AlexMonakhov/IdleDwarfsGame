@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { soundService } from '@/services/soundService/SoundService';
 import TimerBadge from '@/components/common/TimerBadge.vue';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
@@ -108,16 +109,16 @@ const act = (key: string, action: () => Promise<GuildDepthOverview>, done?: (nex
         }
     });
 
-const place = (hero: HeroInfo) => act(`depth-place-${hero.id}`, () => SocialApiService.placeDepthDwarf(hero.id), () => {
+const place = (hero: HeroInfo) => act(`depth-place-${hero.id}`, () => SocialApiService.placeDepthDwarf(hero.id).then(soundService.played('dwarf_assign')), () => {
     choosing.value = false;
 });
-const recall = () => act('depth-recall', () => SocialApiService.recallDepthDwarf());
-const collect = () => act('depth-collect', () => SocialApiService.collectDepth(), () => t('social.depth.collected'));
-const upgradePick = () => act('depth-pick', () => SocialApiService.upgradeDepthPick());
-const upgradeShaft = () => act('depth-shaft', () => SocialApiService.upgradeDepthShaft());
+const recall = () => act('depth-recall', () => SocialApiService.recallDepthDwarf().then(soundService.played('dwarf_recall')));
+const collect = () => act('depth-collect', () => SocialApiService.collectDepth().then(soundService.played('collect')), () => t('social.depth.collected'));
+const upgradePick = () => act('depth-pick', () => SocialApiService.upgradeDepthPick().then(soundService.played('building_upgrade')));
+const upgradeShaft = () => act('depth-shaft', () => SocialApiService.upgradeDepthShaft().then(soundService.played('building_upgrade')));
 const claim = () => {
     const badges = overview.value?.pending?.honorBadges ?? 0;
-    return act('depth-claim', () => SocialApiService.claimDepth(), () => t('social.depth.claimed', { badges }));
+    return act('depth-claim', () => SocialApiService.claimDepth().then(soundService.played('reward_claim')), () => t('social.depth.claimed', { badges }));
 };
 
 const rewardPlace = (index: number) => {

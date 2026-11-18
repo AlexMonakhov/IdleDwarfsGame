@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { soundService } from '@/services/soundService/SoundService';
 import { computed, ref, type Component } from 'vue';
 import { AxiosError } from 'axios';
 import { useI18n } from 'vue-i18n';
@@ -39,6 +40,7 @@ const upgrade = async (info: PickaxeUpgradeInfo) => {
     message.value = null;
     try {
         const board = await MiningApiService.upgradePickaxe(info.upgrade);
+        soundService.play('building_upgrade');
         emit('upgraded', board);
         message.value = { text: t('mining.pickaxe.upgraded', { name: t(`mining.pickaxe.names.${info.upgrade}`), level: info.level + 1 }), error: false };
     } catch (error) {

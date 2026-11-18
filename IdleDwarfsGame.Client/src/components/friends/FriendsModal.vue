@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { soundService } from '@/services/soundService/SoundService';
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { AxiosError } from 'axios';
 import { useI18n } from 'vue-i18n';
@@ -154,11 +155,13 @@ const addFriend = () => {
     const name = username.value.trim();
     if (!name) {
         errorMessage.value = t('friends.enterName');
+        soundService.play('ui_error');
         notice.value = null;
         return;
     }
     run('add', async () => {
         const result = await FriendsApiService.sendRequest(name);
+        soundService.play('social_action');
         username.value = '';
         if (result.outcome === 'Accepted') {
             tab.value = 'friends';
@@ -170,6 +173,7 @@ const addFriend = () => {
 
 const accept = (request: FriendRequestInfo) => run(request.userId, async () => {
     await FriendsApiService.accept(request.userId);
+    soundService.play('social_action');
     return t('friends.accepted', { name: request.username });
 });
 

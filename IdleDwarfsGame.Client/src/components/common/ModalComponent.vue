@@ -20,6 +20,8 @@ import { useTutorial } from '@/composables/UseTutorial';
 
 import type { TutorialModalId } from '@/tutorial/types';
 import { hudLayout } from '@/composables/UseUiScale';
+import { soundService } from '@/services/soundService/SoundService';
+import type { SoundKey } from '@/services/soundService/soundCatalog';
 
 
 
@@ -51,6 +53,9 @@ interface Props {
   // Только якоря обучения, без триггеров: вложенные окна (шахта внутри окна шахт). Окно — `<anchor>`, крестик — `<anchor>.close`
   tutorialAnchor?: string
 
+  // Звук появления окна (окно подтверждения звучит иначе)
+  openSound?: SoundKey
+
 }
 
 
@@ -65,7 +70,9 @@ const props = withDefaults(defineProps<Props>(), {
 
   closeOnOverlay: true,
 
-  showClose: true
+  showClose: true,
+
+  openSound: 'ui_modal_open'
 
 })
 
@@ -156,6 +163,8 @@ watch(
 
       push()
 
+      soundService.play(props.openSound)
+
     }
 
 
@@ -163,6 +172,8 @@ watch(
     if (!isOpen && wasOpen) {
 
       pop()
+
+      soundService.play('ui_modal_close')
 
     }
 
@@ -720,7 +731,7 @@ const modalStyle = computed<CSSProperties>(() => ({
             v-if="showClose"
             class="close-btn"
           >
-            <GemButton v-if="showClose" v-tutorial="anchorId && `${anchorId}.close`" round @click="close" :color="'red'">X</GemButton>
+            <GemButton v-if="showClose" v-tutorial="anchorId && `${anchorId}.close`" round data-sound="none" @click="close" :color="'red'">X</GemButton>
           </div>
 
           <div v-if="props.headerMessage" class="modal-header"><div class="modal-header-text">{{ props.headerMessage }}</div></div>

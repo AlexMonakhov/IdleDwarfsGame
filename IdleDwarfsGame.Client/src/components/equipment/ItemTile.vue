@@ -45,6 +45,7 @@ const onDragStart = (event: DragEvent) => {
     >
         <div
             class="item-tile"
+            data-sound-hover="ui_hover_card"
             :class="[`item-tile-${item.rarity}`, {
                 'item-tile-compact': compact,
                 'item-tile-locked': locked,

@@ -1,4 +1,4 @@
-import { API_BASE_URL } from './apiConfig';
+import { API_BASE_URL, attachErrorSound } from './apiConfig';
 import axios from 'axios';
 import { CombatResult } from '@/battle/types';
 
@@ -16,6 +16,7 @@ const apiClient = axios.create({
         'Content-Type': 'application/json'
     }
 });
+attachErrorSound(apiClient);
 
 class CombatApiService {
 

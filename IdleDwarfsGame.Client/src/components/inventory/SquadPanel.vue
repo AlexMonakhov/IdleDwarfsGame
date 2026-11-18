@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { soundService } from '@/services/soundService/SoundService';
 import { computed, onMounted, ref, watch } from 'vue';
 import HeroFilters from '@/components/inventory/HeroFilters.vue';
 import InfoComponent from '@/components/common/InfoComponent.vue';
@@ -164,11 +165,13 @@ const removeFromSquad = (index: number) => {
 
 // Герой из списка встаёт в первый свободный слот
 const addToSquad = (hero: HeroInfo) => {
+    // Занятый дворф (в шахте, экспедиции) показан недоступной карточкой — звук отказа даёт uiSounds
     if (isBusy(hero)) return;
     notice.value = null;
     const free = slots.value.indexOf(null);
     if (free === -1) {
         errorMessage.value = t('squad.squadFull');
+        soundService.play('ui_error');
         return;
     }
     const next = [...slots.value];
@@ -194,6 +197,7 @@ const save = async (): Promise<boolean> => {
     notice.value = null;
     try {
         const saved = await HeroesApiService.saveSquad(slots.value);
+        soundService.play('squad_save');
         applyHeroes(saved);
         notice.value = t('squad.saved');
         emit('saved', saved);

@@ -1,4 +1,4 @@
-import { API_BASE_URL } from './apiConfig';
+import { API_BASE_URL, attachErrorSound } from './apiConfig';
 import axios from 'axios';
 import { useAuth } from '@/composables/UseAuth';
 import type { AchievementBoard, AchievementClaimResult, LoginCalendarInfo, LoginClaimResult } from '@/models/types/Achievements';
@@ -10,6 +10,7 @@ const apiClient = axios.create({
         'Content-Type': 'application/json'
     }
 });
+attachErrorSound(apiClient);
 
 // Достижения и календарь у каждого игрока свои — он берётся из токена
 apiClient.interceptors.request.use(config => {

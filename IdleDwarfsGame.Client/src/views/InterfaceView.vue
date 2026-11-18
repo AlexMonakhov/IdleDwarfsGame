@@ -24,7 +24,6 @@ import AccountButton from '@/components/account/AccountButton.vue';
 import AccountModal from '@/components/account/AccountModal.vue';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch, watchEffect, type Component } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import backgroundMusic from "@/assets/sounds/Beneath_The_Marble_Dome.mp3";
 import { useAuth } from '@/composables/UseAuth';
 import { useResources } from '@/composables/UseResources';
 import { useHeroes } from '@/composables/UseHeroes';
@@ -178,6 +177,16 @@ const navItems = computed<NavItem[]>(() => {
     return items;
 });
 
+// Звук уведомления: прибавилось готовых наград, писем или заявок в друзья. После входа значки заполняются все
+// разом — первые секунды молчим
+const NOTIFY_QUIET_MS = 5000;
+let authChangedAt = performance.now();
+watch(isAuthenticated, () => { authChangedAt = performance.now(); });
+const pendingTotal = computed(() => incomingFriendRequests.value + questsClaimable.value + rewardsClaimable.value + mailBadge.value);
+watch(pendingTotal, (total, previous) => {
+    if (total > previous && performance.now() - authChangedAt > NOTIFY_QUIET_MS) soundService.play('ui_notify');
+});
+
 // Компьютер: текстовые кнопки-кристаллы, пока весь ряд влезает в одну строку, иначе — круглые с иконками.
 // Ширину ряда меряет невидимая копия текстовых кнопок: она же следит за сменой языка и значками входа/выхода
 const navMenuRef = ref<HTMLElement | null>(null);
@@ -273,20 +282,16 @@ const resourcesLayerStyle = computed(() => resourcesRaised.value
     ? { left: `${slotBox.value.left}px`, top: `${slotBox.value.top}px`, zIndex: topModalZ.value + 5 }
     : undefined);
 
-// Фоновая музыка: громкость и mute — из настроек звука
-const audioRef = ref<HTMLAudioElement | null>(null);
-
+// Фоновая музыка по сцене: вход, арена (бой с боссом — своя), остальное — город. Громкость и переходы — в soundService
 watchEffect(() => {
-    const audio = audioRef.value;
-    if (!audio) return;
-    audio.volume = soundService.musicGain;
-    // Браузер мог не дать автозапуск до первого действия — включение музыки в настройках и есть такое действие
-    if (soundService.musicGain > 0 && audio.paused) audio.play().catch(() => undefined);
+    const name = route.name;
+    if (name === 'login' || name === 'register') soundService.setMusic('music_login');
+    else if (onArena.value) soundService.setMusic(soundService.scene.bossFight ? 'music_boss' : 'music_battle');
+    else soundService.setMusic('music_town');
 });
 </script>
 
 <template>
-    <audio ref="audioRef" :src="backgroundMusic" autoplay loop :muted="soundService.settings.musicMuted"></audio>
     <div v-show="hudVisible" class="interface-view" :class="`hud-${hudLayout}`">
         <!-- ===== Компьютер: ряд кнопок слева ===== -->
         <template v-if="!compact">

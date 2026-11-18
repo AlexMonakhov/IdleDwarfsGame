@@ -1,4 +1,4 @@
-import { API_BASE_URL } from './apiConfig';
+import { API_BASE_URL, attachErrorSound } from './apiConfig';
 import axios from 'axios';
 import { useAuth } from '@/composables/UseAuth';
 import { HeroInfo, HeroUpgradeResult } from '@/models/types/Heroes';
@@ -10,6 +10,7 @@ const apiClient = axios.create({
         'Content-Type': 'application/json'
     }
 });
+attachErrorSound(apiClient);
 
 // Инвентарь есть только у залогиненного игрока — он берётся из токена
 apiClient.interceptors.request.use(config => {

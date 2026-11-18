@@ -157,6 +157,22 @@ const restartTutorial = () => {
                     <span class="sound-value">{{ percent(sound.musicMuted ? 0 : sound.musicVolume) }}</span>
                 </div>
                 <div class="sound-row">
+                    <span class="sound-label">{{ t('account.interfaceSounds') }}</span>
+                    <button
+                        type="button"
+                        class="sound-mute"
+                        v-tooltip="sound.uiMuted ? t('account.unmute') : t('account.mute')"
+                        @click="soundService.setUiMuted(!sound.uiMuted)"
+                    ><IconMute v-if="sound.uiMuted" /><IconSound v-else /></button>
+                    <input
+                        class="sound-range"
+                        type="range" min="0" max="1" step="0.01"
+                        :value="sound.uiMuted ? 0 : sound.uiVolume"
+                        @input="soundService.setUiVolume(rangeValue($event))"
+                    />
+                    <span class="sound-value">{{ percent(sound.uiMuted ? 0 : sound.uiVolume) }}</span>
+                </div>
+                <div class="sound-row">
                     <span class="sound-label">{{ t('account.effects') }}</span>
                     <button
                         type="button"

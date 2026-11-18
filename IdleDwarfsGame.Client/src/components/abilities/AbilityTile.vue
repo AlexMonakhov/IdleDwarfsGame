@@ -48,6 +48,7 @@ const statusIcon = computed(() => (props.ability.kind === 'Aura' ? STATUS_ICONS[
 <template>
     <div
         class="ability-tile"
+        data-sound-hover="ui_hover_card"
         :class="{
             'ability-tile-selected': selected,
             'ability-tile-highlighted': highlighted && !selected,

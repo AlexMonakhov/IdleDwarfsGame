@@ -66,7 +66,7 @@ const glowState = computed(() => {
 </script>
 
 <template>
-    <div class="stage-card glow-card" :class="[glowState, { locked: props.locked, current: props.current, boss: props.boss }]" :style="{ '--accent': accent }">
+    <div class="stage-card glow-card" :data-sound-hover="props.locked ? 'none' : 'ui_hover_town'" :class="[glowState, { locked: props.locked, current: props.current, boss: props.boss }]" :style="{ '--accent': accent }">
         <div class="stage-card-arena" aria-hidden="true">
             <div class="stage-card-arena-image" :style="{ backgroundImage }"></div>
         </div>

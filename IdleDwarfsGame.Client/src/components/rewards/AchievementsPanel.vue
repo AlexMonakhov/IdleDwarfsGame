@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { soundService } from '@/services/soundService/SoundService';
 import { computed, onMounted, ref } from 'vue';
 import { AxiosError } from 'axios';
 import { useI18n } from 'vue-i18n';
@@ -52,6 +53,7 @@ const run = async (action: () => Promise<AchievementClaimResult>) => {
     message.value = null;
     try {
         const result = await action();
+        soundService.play('achievement_claim');
         apply(result.board);
         message.value = { text: t('achievements.claimed', { reward: grantedText(result.granted) }), error: false };
     } catch (error) {

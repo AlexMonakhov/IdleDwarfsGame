@@ -112,6 +112,7 @@ onMounted(load);
                     v-for="(group, groupIndex) in groups"
                     :key="group.key"
                     class="loot-tile chest-card"
+                    data-sound-hover="ui_hover_card"
                     :class="`loot-tile-${chestRarity(group.level)}`"
                     :style="{ '--rarity-color': chestColor(group) }"
                 >
@@ -122,7 +123,7 @@ onMounted(load);
                             {{ t(`elementNames.${group.element}`) }}
                         </span>
                         <span class="loot-tile-rarity">{{ t('chests.level', { level: group.level }) }}</span>
-                        <GemButton v-tutorial="groupIndex === 0 ? 'warehouse.chest.open' : null" class="chest-card-open" :color="'yellow'" no-filter :disabled="opening" @click="open(group.ids[0])">
+                        <GemButton v-tutorial="groupIndex === 0 ? 'warehouse.chest.open' : null" class="chest-card-open" :color="'yellow'" data-sound="ui_click_primary" no-filter :disabled="opening" @click="open(group.ids[0])">
                             {{ opening ? t('chests.opening') : t('chests.open') }}
                         </GemButton>
                     </GlassButton>

@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { soundService } from '@/services/soundService/SoundService';
 import TimerBadge from '@/components/common/TimerBadge.vue';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
@@ -74,6 +75,7 @@ const claim = async () => {
     message.value = null;
     try {
         const result = await EventsApiService.claimWorldBoss();
+        soundService.play('reward_claim');
         apply(result.overview);
         message.value = { text: t('worldBoss.claimed', { amount: format(result.currency) }), error: false };
     } catch (error) {
@@ -119,7 +121,7 @@ const canAttack = computed(() => !!overview.value?.open && !!boss.value && !boss
 
             <div class="wb-layout">
                 <!-- ===== Босс ===== -->
-                <article v-if="boss" class="wb-card" :class="{ 'wb-card-defeated': boss.defeatedAt }">
+                <article v-if="boss" class="wb-card" :data-sound-hover="canAttack ? 'ui_hover_town' : 'none'" :class="{ 'wb-card-defeated': boss.defeatedAt }">
                     <div class="wb-card-arena" aria-hidden="true" :style="{ backgroundImage: `url(${arenaPreview(boss.background)})` }"></div>
                     <div class="wb-card-body">
                         <span class="wb-stage">{{ t('worldBoss.stage', { stage: boss.stage }) }}</span>

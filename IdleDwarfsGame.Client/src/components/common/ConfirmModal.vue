@@ -46,6 +46,7 @@ const cancel = () => {
         :show-close="false"
         :width="props.dismissible ? 'min(460px, calc(92 * var(--vw)))' : 'min(400px, calc(90 * var(--vw)))'"
         height="200px"
+        open-sound="ui_confirm_open"
         @update:model-value="emit('update:modelValue', $event)"
     >
         <div class="confirm">

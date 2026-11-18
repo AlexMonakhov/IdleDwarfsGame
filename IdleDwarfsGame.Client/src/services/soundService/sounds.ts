@@ -135,7 +135,7 @@ const HIT_SOUNDS: Record<string, (s: SynthContext) => void> = {
 };
 
 // Металлический звон поверх крита
-function clang(s: SynthContext) {
+export function crit(s: SynthContext) {
   const base = vary(520);
   [1, 2.76, 5.4].forEach((ratio, i) => {
     tone(s, { type: 'triangle', freq: base * ratio, dur: 0.5 - i * 0.1, gain: 0.15 / (i + 1) });
@@ -144,9 +144,10 @@ function clang(s: SynthContext) {
   thump(s, 0.6);
 }
 
-export function hit(s: SynthContext, damageType: string, crit: boolean) {
-  (HIT_SOUNDS[damageType] ?? HIT_SOUNDS.Physical)(s);
-  if (crit) clang(s);
+// Тип урона — суффикс ключа звука (physical, fire…)
+export function hit(s: SynthContext, damageType: string) {
+  const key = Object.keys(HIT_SOUNDS).find(name => name.toLowerCase() === damageType) ?? 'Physical';
+  HIT_SOUNDS[key](s);
 }
 
 export function swing(s: SynthContext) {

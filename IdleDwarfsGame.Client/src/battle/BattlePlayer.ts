@@ -147,6 +147,7 @@ export class BattlePlayer {
     await this.beforeStart?.();
     if (runId !== this.runId) return;
     if (options.instant) this.skipping = true;
+    this.sound(s => s.play('battle_start'));
 
     const logs = [...result.logs].sort((a, b) => a.sequence - b.sequence);
     let i = 0;
@@ -223,13 +224,14 @@ export class BattlePlayer {
       case 'RoundStart':
         this.endTurn();
         this.state.round = log.round;
+        this.sound(s => s.play('battle_round'));
         await this.delay(TIMING.roundBanner);
         break;
 
       case 'ArenaBuff':
         // Арена усилила весь урон: баннер раунда показывает новую прибавку, все бойцы вспыхивают
         this.state.damageBonus = log.damageBonusPercent ?? 0;
-        this.sound(s => s.cast());
+        this.sound(s => s.play('battle_arena_buff'));
         Object.values(this.state.units)
           .filter(u => u.alive)
           .forEach(u => this.float(u.id, t('arena.float.fury', { bonus: this.state.damageBonus }), 'status'));
@@ -272,7 +274,7 @@ export class BattlePlayer {
       case 'Stunned':
         this.float(log.attackerId, t('arena.float.stunned'), 'status');
         this.statusTrigger(log.attackerId, ['Stun', 'Freeze']);
-        this.sound(s => s.stun());
+        this.sound(s => s.play('battle_stun'));
         await this.delay(TIMING.stunned);
         this.endTurn();
         break;
@@ -298,7 +300,7 @@ export class BattlePlayer {
     this.setFocus(log.attackerId, { role: 'attacker', color: TURN_COLOR });
     this.setFocus(log.targetId, { role: 'target' });
     this.animate(log.attackerId, v => v.attack?.());
-    this.sound(s => s.swing());
+    this.sound(s => s.play('battle_swing'));
     // Удар от пассивки (двойной удар) подписываем, чтобы было понятно, откуда он
     if (log.skillName) this.float(log.attackerId, t(`passives.names.${log.skillName}`), 'status');
     await this.delay(TIMING.attackWindup);
@@ -326,7 +328,7 @@ export class BattlePlayer {
     }
 
     this.animate(cast.attackerId, v => v.cast?.(color));
-    this.sound(s => s.cast());
+    this.sound(s => s.cast(cast.damageType));
     this.float(cast.attackerId, cast.skillName, 'cast', { color });
 
     // Плата здоровьем (Кровавая цена) — урон кастера по самому себе
@@ -455,7 +457,7 @@ export class BattlePlayer {
     const visual = resolveAuraVisual(effect, bearer?.auraTarget);
 
     this.animate(bearerId, v => v.aura?.(visual.color));
-    this.sound(s => s.cast());
+    this.sound(s => s.play('battle_aura'));
     if (!this.skipping) this.fx.auraBurst(getUnitView(bearerId)?.el?.(), visual, effect);
 
     // Волна наложения стартует вместе со вспышкой
@@ -551,8 +553,7 @@ export class BattlePlayer {
 
   private playVictory(team: number) {
     // Джингл играем и при пропуске боя — это единственный звук в конце
-    if (team === 1) soundService.victory();
-    else soundService.defeat();
+    soundService.play(team === 1 ? 'battle_victory' : 'battle_defeat');
 
     // Не через animate: тот при пропуске боя молчит, а победная поза нужна и после пропуска — юниты в ней и остаются
     Object.values(this.state.units)
@@ -595,13 +596,13 @@ export class BattlePlayer {
     this.lastHealedId = target.id;
     this.float(target.id, `+${log.heal}`, 'heal', { amount: log.heal });
     this.animate(target.id, v => v.heal?.());
-    this.sound(s => s.heal());
+    this.sound(s => s.play('battle_heal'));
     if (!this.skipping) this.fx.heal(getUnitView(target.id)?.el?.());
   }
 
   private applyImmune(log: CombatLogEntry) {
     this.float(log.targetId, t('arena.float.immune'), 'immune');
-    this.sound(s => s.block());
+    this.sound(s => s.play('battle_immune'));
   }
 
   // Сервер держит на юните один статус каждого вида и пишет в лог его итоговое состояние
@@ -623,6 +624,7 @@ export class BattlePlayer {
       return;
     }
     this.setStatus(target, data, log.actionType);
+    this.sound(s => s.play('battle_status'));
   }
 
   // Тик статуса (урон, лечение, пропуск хода): в ActiveEffects — сколько осталось после него
@@ -662,7 +664,7 @@ export class BattlePlayer {
     this.lastDeathId = target.id;
     target.statuses = {};
     target.focus = null;
-    this.sound(s => s.death());
+    this.sound(s => s.play('battle_death'));
   }
 
   // ===== Утилиты =====
@@ -741,7 +743,10 @@ export class BattlePlayer {
       killed: target.hp <= 0,
       log,
     });
-    if (line) this.say(line.speakerId, line.text);
+    if (line) {
+      this.say(line.speakerId, line.text);
+      this.sound(s => s.play('battle_dialogue'));
+    }
   }
 
   private say(unitId: number, text: string) {

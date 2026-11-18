@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { soundService } from '@/services/soundService/SoundService';
 import TimerBadge from '@/components/common/TimerBadge.vue';
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
@@ -244,6 +245,7 @@ const lockSquad = async () => {
     loading.value = true;
     try {
         const next = await PvpApiService.lockRankedSquad();
+        soundService.play('squad_save');
         syncClock(next.serverTime);
         rankedOverview.value = next;
         errorMessage.value = null;
@@ -405,7 +407,7 @@ const footerTimer = computed(() =>
                 <div v-if="!noSquad && !opponents.length" class="pvp-empty">{{ t('pvp.noOpponents') }}</div>
 
                 <ul class="pvp-list">
-                    <li v-for="opponent in opponents" :key="opponent.userId" class="pvp-opponent">
+                    <li v-for="opponent in opponents" :key="opponent.userId" class="pvp-opponent" :data-sound-hover="loading || noSquad ? 'none' : 'ui_hover_town'">
                         <div class="pvp-opponent-info">
                             <span class="pvp-opponent-name">{{ opponent.username }}</span>
                             <span v-if="opponent.rating !== null" class="pvp-rating"><IconStar /> {{ format(opponent.rating) }}</span>
@@ -452,7 +454,7 @@ const footerTimer = computed(() =>
                             </button>
                         </div>
 
-                        <GemButton :color="'red'" :disabled="loading || noSquad" @click="fight(opponent)"><IconPower /> {{ t('pvp.fight') }}</GemButton>
+                        <GemButton data-sound="ui_click_primary" :color="'red'" :disabled="loading || noSquad" @click="fight(opponent)"><IconPower /> {{ t('pvp.fight') }}</GemButton>
                     </li>
                 </ul>
             </template>

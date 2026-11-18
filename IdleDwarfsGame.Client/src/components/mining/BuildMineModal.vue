@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { soundService } from '@/services/soundService/SoundService';
 import { computed, ref, watch } from 'vue';
 import { AxiosError } from 'axios';
 import { useI18n } from 'vue-i18n';
@@ -48,6 +49,7 @@ const build = async () => {
     errorMessage.value = null;
     try {
         const result = await MiningApiService.build(props.plot, type.value);
+        soundService.play('mine_build');
         emit('built', result);
     } catch (error) {
         const code = (error as AxiosError<{ code?: MiningError }>).response?.data?.code;
