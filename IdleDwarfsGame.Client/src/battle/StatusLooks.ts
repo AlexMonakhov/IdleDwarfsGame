@@ -53,7 +53,7 @@ interface Attached {
   el: HTMLElement;
   name: string;
   inst: LookInstance;
-  // Точка юнита в момент наложения: облик следует за юнитом сдвигом своих контейнеров
+  // Ноги юнита в момент наложения: облик следует за юнитом сдвигом своих контейнеров
   base: Point;
   // Мгновенный облик: снять после этого времени
   removeAt: number | null;
@@ -76,6 +76,8 @@ export class StatusLooks {
     private readonly sceneOf: () => PixiScene | null,
     private readonly point: (el: UnitEl, anchor?: 'center' | 'feet' | 'head') => Point | null,
     private readonly speed: () => number,
+    // Во сколько раз юнит крупнее обычного (драконид, голем, босс): облик рисуется как на обычном и растягивается от ног
+    private readonly size: (el: UnitEl) => number = () => 1,
   ) {}
 
   lookFor(name: string): Look | undefined {
@@ -127,10 +129,16 @@ export class StatusLooks {
     if (!scene || !this.back || !this.front) return false;
     const center = this.point(el, 'center');
     if (!center) return false;
+    const feet = this.point(el, 'feet') ?? center;
+    const head = this.point(el, 'head') ?? center;
+    // Облики нарисованы под обычного юнита (купол — фиксированных размеров в пикселях). Для крупного строим обычного
+    // с теми же ногами и растягиваем контейнеры облика от ног: купол, частицы и круг на земле растут вместе с юнитом
+    const k = Math.max(0.5, this.size(el) || 1);
+    const shrink = (p: Point): Point => ({ x: feet.x + (p.x - feet.x) / k, y: feet.y + (p.y - feet.y) / k });
     const unit: ConceptUnit = {
-      center,
-      feet: this.point(el, 'feet') ?? center,
-      head: this.point(el, 'head') ?? center,
+      center: shrink(center),
+      feet,
+      head: shrink(head),
       // Вспышку силуэта и цифры урона на тике показывает BattlePlayer
       hit: () => undefined,
       heal: () => undefined,
@@ -142,7 +150,12 @@ export class StatusLooks {
     };
     try {
       const inst = attachLook(look, unit, stage, { back: this.back, front: this.front }, 3);
-      this.attached.push({ id, el, name, inst, base: center, removeAt: null });
+      inst.layers.forEach(layer => {
+        layer.pivot.set(feet.x, feet.y);
+        layer.position.set(feet.x, feet.y);
+        layer.scale.set(k);
+      });
+      this.attached.push({ id, el, name, inst, base: feet, removeAt: null });
     } catch (error) {
       console.error('status look failed', name, error);
     }
@@ -205,8 +218,8 @@ export class StatusLooks {
       if (a.removeAt !== null && a.inst.t >= a.removeAt) removeLook(a.inst);
       // Юнит ушёл со сцены (бой закончился) — снимаем
       if (!a.el.isConnected) removeLook(a.inst);
-      const now = this.point(a.el, 'center');
-      if (now) a.inst.layers.forEach(layer => layer.position.set(now.x - a.base.x, now.y - a.base.y));
+      const now = this.point(a.el, 'feet');
+      if (now) a.inst.layers.forEach(layer => layer.position.set(now.x, now.y));
       try {
         return !stepLook(a.inst, dt);
       } catch (error) {

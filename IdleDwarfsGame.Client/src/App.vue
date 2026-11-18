@@ -31,6 +31,32 @@ const resetStageScroll = (event: Event) => {
   background: #0c5461;
 }
 
+/* Игра, а не страница: текст, картинки и кнопки не выделяются и не перетаскиваются, долгое нажатие на телефоне
+   не открывает меню. Поля ввода и то, что нужно копировать (класс .selectable), — как обычно */
+body {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+img,
+svg,
+video,
+canvas {
+  -webkit-user-drag: none;
+}
+
+input,
+textarea,
+[contenteditable='true'],
+.selectable,
+.selectable * {
+  -webkit-user-select: text;
+  user-select: text;
+  -webkit-touch-callout: default;
+}
+
 @font-face {
   font-family: RunesFont;
   src: url('/public/viking-younger-space-viking-runes-bold.otf.woff2') format('woff2');

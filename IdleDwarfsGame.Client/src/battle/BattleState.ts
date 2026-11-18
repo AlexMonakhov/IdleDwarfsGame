@@ -65,6 +65,9 @@ export interface BattleUnit {
   // Эффект ауры (Burn, Frost, Regen...) и её цель — по ним выбирается цвет сферы
   auraEffect: string | null;
   auraTarget: AuraTarget | null;
+  // Купол ауры на носителе виден. В бою BattlePlayer показывает его только на срабатывание ауры;
+  // вне боя (превью ауры в коллекции) поле не задано — купол висит постоянно
+  auraShown?: boolean;
   // Имя статуса -> его состояние: сервер держит на юните по одному статусу каждого вида, наложения складываются
   statuses: Record<string, UnitStatus>;
   floatingTexts: FloatingText[];
