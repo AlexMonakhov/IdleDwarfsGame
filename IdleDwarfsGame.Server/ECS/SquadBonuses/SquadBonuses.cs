@@ -180,7 +180,7 @@ public static class SquadBonuses
 
             case SquadBonusId.FireLightning when effect is ShockEffect && Find<BurnEffect>(world, targetId) is { } burn:
                 React(state, () => Strike(world, context, state, sourceId, targetId,
-                    Percent(burn.Power, SquadBonusBook.FireLightningBurnPercent), DamageType.Fire));
+                    Percent(burn.LivePower, SquadBonusBook.FireLightningBurnPercent), DamageType.Fire));
                 break;
 
             case SquadBonusId.FireNature when effect is BurnEffect && Has<PoisonEffect>(world, targetId):
@@ -334,12 +334,12 @@ public static class SquadBonuses
         {
             case SquadBonusId.FireLightning when type == DamageType.Lightning && Find<BurnEffect>(world, targetId) is { } burn:
                 React(state, () => Strike(world, context, state, casterId, targetId,
-                    Percent(burn.Power, SquadBonusBook.FireLightningBurnPercent), DamageType.Fire));
+                    Percent(burn.LivePower, SquadBonusBook.FireLightningBurnPercent), DamageType.Fire));
                 break;
 
             case SquadBonusId.LightningDark when type == DamageType.Lightning && Find<CurseEffect>(world, targetId) is { } curse:
                 React(state, () => Strike(world, context, state, casterId, targetId,
-                    Percent(curse.Power, SquadBonusBook.LightningDarkCursePercent), DamageType.Dark));
+                    Percent(curse.LivePower, SquadBonusBook.LightningDarkCursePercent), DamageType.Dark));
                 break;
 
             case SquadBonusId.FrostLightning when type == DamageType.Lightning && Has<StunEffect>(world, targetId):
@@ -523,40 +523,62 @@ public static class SquadBonuses
     {
         foreach (var state in world.SquadBonuses.Values)
         {
-            if (state.PendingRevives.Count == 0 && state.PendingCocoons.Count == 0 && state.PendingHeals.Count == 0
-                && state.PendingStrikes.Count == 0) continue;
-
-            React(state, () =>
-            {
-                foreach (int id in state.PendingRevives)
-                    Heal(world, context, state, id, id, Percent(world.Health[id].Max, SquadBonusBook.ByTier(SquadBonusBook.NatureRevivePercent, state.Tier)));
-
-                foreach (int id in state.PendingCocoons.Where(world.IsAlive))
-                {
-                    Heal(world, context, state, id, id, Percent(world.Health[id].Max, SquadBonusBook.FrostNatureHealPercent));
-                    world.Shields[id] = world.Shields.GetValueOrDefault(id) + Percent(world.Health[id].Max, SquadBonusBook.FrostNatureShieldPercent);
-                }
-
-                foreach (var (from, amount) in state.PendingHeals)
-                {
-                    if (MostWounded(world, state.TeamId, exclude: from) is { } ally)
-                        Heal(world, context, state, from, ally, amount);
-                }
-
-                foreach (var (from, amount) in state.PendingStrikes)
-                {
-                    var front = world.Entities.Where(e => world.IsAlive(e.Id) && world.Team[e.Id].TeamId != state.TeamId)
-                        .OrderBy(e => world.GetPosition(e.Id)).FirstOrDefault();
-                    if (front != null)
-                        Strike(world, context, state, from, front.Id, amount, DamageType.Radiant);
-                }
-            });
-
-            state.PendingRevives.Clear();
-            state.PendingCocoons.Clear();
-            state.PendingHeals.Clear();
-            state.PendingStrikes.Clear();
+            ResolvePending(world, context, state);
+            ReportTriggers(context, state);
         }
+    }
+
+    // Бонус срабатывал с прошлой отметки — одна запись SquadBonus на отряд за действие: по ней фронт пускает
+    // импульс от значка бонуса. Усиления (урон, статусы) своих записей не дают, поэтому считаем по Triggers
+    private static void ReportTriggers(CombatContext context, SquadBonusState state)
+    {
+        if (state.Triggers <= state.ReportedTriggers) return;
+        state.ReportedTriggers = state.Triggers;
+        context.AddLog(new CombatLogEntry
+        {
+            EventType = CombatEventType.SquadBonus,
+            Phase = Phase,
+            AttackerTeam = state.TeamId,
+            ActionType = state.Id.ToString(),
+            SkillName = state.Id.ToString()
+        });
+    }
+
+    private static void ResolvePending(World world, CombatContext context, SquadBonusState state)
+    {
+        if (state.PendingRevives.Count == 0 && state.PendingCocoons.Count == 0 && state.PendingHeals.Count == 0
+            && state.PendingStrikes.Count == 0) return;
+
+        React(state, () =>
+        {
+            foreach (int id in state.PendingRevives)
+                Heal(world, context, state, id, id, Percent(world.Health[id].Max, SquadBonusBook.ByTier(SquadBonusBook.NatureRevivePercent, state.Tier)));
+
+            foreach (int id in state.PendingCocoons.Where(world.IsAlive))
+            {
+                Heal(world, context, state, id, id, Percent(world.Health[id].Max, SquadBonusBook.FrostNatureHealPercent));
+                world.Shields[id] = world.Shields.GetValueOrDefault(id) + Percent(world.Health[id].Max, SquadBonusBook.FrostNatureShieldPercent);
+            }
+
+            foreach (var (from, amount) in state.PendingHeals)
+            {
+                if (MostWounded(world, state.TeamId, exclude: from) is { } ally)
+                    Heal(world, context, state, from, ally, amount);
+            }
+
+            foreach (var (from, amount) in state.PendingStrikes)
+            {
+                var front = world.Entities.Where(e => world.IsAlive(e.Id) && world.Team[e.Id].TeamId != state.TeamId)
+                    .OrderBy(e => world.GetPosition(e.Id)).FirstOrDefault();
+                if (front != null)
+                    Strike(world, context, state, from, front.Id, amount, DamageType.Radiant);
+            }
+        });
+
+        state.PendingRevives.Clear();
+        state.PendingCocoons.Clear();
+        state.PendingHeals.Clear();
+        state.PendingStrikes.Clear();
     }
 
     // Юнит погиб с этими статусами (HealthSystem)
@@ -706,8 +728,12 @@ public static class SquadBonuses
         return others.Where(id => world.GetPosition(id) > position).Cast<int?>().FirstOrDefault() ?? others[^1];
     }
 
+    // Статус на цели. Истекающий в этом проходе тиков тоже считается: горение на последнем ходу уже без ходов,
+    // но тикнуло в этом ходу, и шок, тикающий следом, должен его видеть («Плазма»; так же «Лесной пожар» и др.)
     private static T? Find<T>(World world, int id) where T : class, IStatusEffect =>
-        world.StatusEffects.TryGetValue(id, out var component) ? component.ActiveEffects.OfType<T>().FirstOrDefault(e => e.RemainingTurns > 0) : null;
+        world.StatusEffects.TryGetValue(id, out var component)
+            ? component.ActiveEffects.OfType<T>().FirstOrDefault(e => e.RemainingTurns > 0 || e is StatusEffectBase { OnTarget: true })
+            : null;
 
     private static bool Has<T>(World world, int id) where T : class, IStatusEffect => Find<T>(world, id) != null;
 

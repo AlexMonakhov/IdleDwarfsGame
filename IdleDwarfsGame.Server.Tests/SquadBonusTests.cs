@@ -216,6 +216,43 @@ public class SquadBonusTests
         Assert.Equal(3, ticks);
     }
 
+    // «Плазма»: тик шока по горящей цели — огненный удар силой горения. Порядок тиков любой (горение первым или шок первым),
+    // и последний тик тоже: шок на 1 ход (аура, Chain Lightning) снимает свой слой до удара — источник всё равно отряд
+    [Theory]
+    [InlineData(true, 1)]
+    [InlineData(false, 1)]
+    [InlineData(true, 2)]
+    [InlineData(false, 2)]
+    public void Plasma_ShockTickOnBurningTarget_AddsFireStrike(bool burnFirst, int shockTurns)
+    {
+        var (world, squad, enemies) = Battle([Fire, Fire, Fire, Lightning, Lightning]);
+        var context = new CombatContext();
+        int target = enemies[0];
+        if (burnFirst) new BurnEffect(1, 10).ApplyEffect(world, target, context, squad[0]);
+        new ShockEffect(shockTurns, 10).ApplyEffect(world, target, context, squad[3]);
+        if (!burnFirst) new BurnEffect(1, 10).ApplyEffect(world, target, context, squad[0]);
+
+        var tick = new CombatContext { CurrentActor = target };
+        new StatusEffectSystem(EffectPhase.Start).Execute(world, tick);
+
+        var strikes = tick.Logs.Where(l => l.Phase == SquadBonuses.Phase && l.DamageType == DamageType.Fire && l.Damage > 0).ToList();
+        Assert.Single(strikes);
+        Assert.Equal(SquadBonusId.FireLightning.ToString(), strikes[0].SkillName);
+    }
+
+    // Последний стак кровотечения тоже лечит по «Кровному долгу»: стак снят до тика, источник — из снимка
+    [Fact]
+    public void BloodDebt_LastBleedStack_StillHeals()
+    {
+        var (world, squad, enemies) = Battle([Blood, Blood, Blood, Blood, Blood]);
+        world.ApplyDamage(squad[1], 500);
+        new BleedEffect(50).ApplyEffect(world, enemies[0], new CombatContext(), squad[0]);
+
+        var tick = new CombatContext { CurrentActor = enemies[0] };
+        new StatusEffectSystem(EffectPhase.Start).Execute(world, tick);
+        Assert.Contains(tick.Logs, l => l.Phase == SquadBonuses.Phase && l.EventType == CombatEventType.Heal);
+    }
+
     [Fact]
     public void Overload_EveryCastOnTierThree_StrikesWithLightning()
     {

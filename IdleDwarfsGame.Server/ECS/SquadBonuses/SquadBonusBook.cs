@@ -98,7 +98,7 @@ public static class SquadBonusBook
     {
         SquadBonusId.Prism => 14,
         _ when bonus.Shape == SquadBonusShape.Pair => 29,
-        _ => bonus.Tier switch { 1 => 20, 2 => 39, _ => 61 }
+        _ => bonus.Tier switch { 1 => 20, 2 => 40, _ => 61 }
     };
 
     // ===================== Числа бонусов =====================
@@ -158,14 +158,14 @@ public static class SquadBonusBook
     public const int FireFrostSplashPercent = 60;
 
     // 🔥⚡ «Плазма»: урон молнией по горящей цели добавляет огненный удар силой текущего горения
-    public const int FireLightningBurnPercent = 950;
+    public const int FireLightningBurnPercent = 400;
 
     // 🔥🌿 «Лесной пожар»: горение на отравленных сильнее и перекидывается на соседа
-    public const int FireNatureTickPercent = 130;
-    public const int FireNatureSplashPercent = 130;
+    public const int FireNatureTickPercent = 110;
+    public const int FireNatureSplashPercent = 110;
 
     // 🔥🌑 «Адское пламя»: горение отряда сильнее (на проклятых — вдвое больше прибавка), каждый тик выжигает энергию
-    public const int FireDarkTickPercent = 225;
+    public const int FireDarkTickPercent = 190;
     public const int FireDarkEnergy = 10;
 
     // 🔥💎 «Очищающий огонь»: тики горения отряда лечат самого раненого дворфа; огонь и свет по горящим сильнее
@@ -179,7 +179,7 @@ public static class SquadBonusBook
     public const int FireBloodBurnTurns = 2;
 
     // ❄⚡ «Сверхпроводник»: молния по замороженным сильнее; по обездвиженным ещё и выжигает энергию
-    public const int FrostLightningDamagePercent = 250;
+    public const int FrostLightningDamagePercent = 160;
     public const int FrostLightningEnergy = 50;
 
     // ❄🌿 «Ледяной кокон»: дворф ниже порога HP раз за бой вмерзает в кокон — лечение и щит; яд на замороженных сильнее
@@ -204,7 +204,7 @@ public static class SquadBonusBook
     // ⚡🌿 «Гроза над лесом»: тики шока лечат; тики яда с шансом бьют молнией
     public const int LightningNatureShockHealPercent = 100;
     public const int LightningNatureZapChance = 70;
-    public const int LightningNatureZapPercent = 450;
+    public const int LightningNatureZapPercent = 350;
 
     // ⚡🌑 «Чёрная молния»: молния по проклятому сразу срабатывает тиком проклятия и бьёт сильнее
     public const int LightningDarkCursePercent = 600;
@@ -225,7 +225,7 @@ public static class SquadBonusBook
     // 🌿💎 «Благодатная почва»: лечение сверх максимума уходит самому раненому, реген отряда сильнее
     // и каждый его тик даёт дворфу энергию
     public const int NatureRadianceRegenPercent = 110;
-    public const int NatureRadianceRegenEnergy = 45;
+    public const int NatureRadianceRegenEnergy = 30;
 
     // 🌿🩸 «Симбиоз»: яд и кровотечение отряда сильнее, часть их урона лечит самого раненого
     public const int NatureBloodLifesteal = 90;

@@ -24,6 +24,7 @@ public class RegenEffect : LayeredStatusEffect
             log.Shares = CombatStatsTracker.Split(healed, weights);
         }
         context.AddLog(log);
-        if (world.SquadBonuses.Count > 0) SquadBonuses.RegenTicked(world, targetId, this);
+        // Источники — снимок до снятия слоёв: на последнем тике своих слоёв уже нет
+        if (world.SquadBonuses.Count > 0) DuringTick(weights, () => SquadBonuses.RegenTicked(world, targetId, this));
     }
 }

@@ -23,7 +23,8 @@ public enum CombatEventType
     Immune,       // эффект не наложился из-за иммунитета
     Death,
     CombatEnd,
-    ArenaBuff     // арена изменила бой целиком: новая прибавка ко всему урону в DamageBonusPercent
+    ArenaBuff,    // арена изменила бой целиком: новая прибавка ко всему урону в DamageBonusPercent
+    SquadBonus    // бонус стихий отряда AttackerTeam сработал в этом действии (SkillName — Id бонуса); только для показа
 }
 
 public enum DamageType

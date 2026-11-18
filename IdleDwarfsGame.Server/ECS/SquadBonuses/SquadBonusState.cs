@@ -19,6 +19,8 @@ public class SquadBonusState
 
     // Сколько раз бонус сработал за бой — для тестов и прогонов баланса
     public int Triggers { get; set; }
+    // Сколько срабатываний уже отмечено в логе записью SquadBonus (импульс значка на фронте)
+    public int ReportedTriggers { get; set; }
 
     // ⚡ «Перегрузка»: касты отряда
     public int SpellCasts { get; set; }
