@@ -1,39 +1,14 @@
 <script lang="ts" setup>
-import { useId } from 'vue';
+import StatusIconBase from './StatusIconBase.vue';
 
+// Регенерация: крест лечения и искорки
 withDefaults(defineProps<{ size?: string }>(), { size: '16px' });
-
-const uid = useId();
-const bgId = `heal-bg-${uid}`;
-const glowId = `heal-glow-${uid}`;
 </script>
 
 <template>
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" :width="size" :height="size">
-    <defs>
-      <radialGradient :id="bgId" cx="50%" cy="50%" r="50%">
-        <stop offset="0%" stop-color="#00ff88" />
-        <stop offset="65%" stop-color="#008044" />
-        <stop offset="100%" stop-color="#002b17" />
-      </radialGradient>
-      <filter :id="glowId" x="-20%" y="-20%" width="140%" height="140%">
-        <feGaussianBlur stdDeviation="2" result="blur" />
-        <feComposite in="SourceGraphic" in2="blur" operator="over" />
-      </filter>
-    </defs>
-
-    <circle cx="50" cy="50" r="45" :fill="`url(#${bgId})`" stroke="#b3ffd9" stroke-width="3" />
-
-    <!-- Крест -->
-    <g fill="#ffffff" :filter="`url(#${glowId})`">
-      <rect x="41" y="23" width="18" height="54" rx="4" />
-      <rect x="23" y="41" width="54" height="18" rx="4" />
-    </g>
-
-    <!-- Искорки -->
-    <circle cx="28" cy="28" r="3" fill="#e6fffa" />
-    <circle cx="72" cy="30" r="2" fill="#e6fffa" />
-    <circle cx="74" cy="70" r="3.5" fill="#e6fffa" />
-    <circle cx="26" cy="68" r="2" fill="#e6fffa" />
-  </svg>
+  <StatusIconBase :size="size" light="#8ff5c8" mid="#0a9a62" dark="#022a1c" rim="#c4fbe2" outline="rgba(0, 40, 25, 0.65)">
+    <path d="M41 20 H59 V41 H80 V59 H59 V80 H41 V59 H20 V41 H41 Z" fill="#f0fff7" />
+    <polygon points="77.0,15.0 78.8,20.2 84.0,22.0 78.8,23.8 77.0,29.0 75.2,23.8 70.0,22.0 75.2,20.2" fill="#f0fff7" stroke="none" />
+    <polygon points="23.0,73.0 24.4,76.6 28.0,78.0 24.4,79.4 23.0,83.0 21.6,79.4 18.0,78.0 21.6,76.6" fill="#f0fff7" stroke="none" />
+  </StatusIconBase>
 </template>

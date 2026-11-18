@@ -3,12 +3,13 @@ import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import ModalComponent from '@/components/common/ModalComponent.vue';
 import type { ModalTab, TabIcon } from '@/models/types/Modal';
-import { IconAura, IconDwarf, IconFlame } from '@/components/icons/ui';
+import { IconAura, IconBanner, IconDwarf, IconFlame } from '@/components/icons/ui';
 import CollectionHeroes from './CollectionHeroes.vue';
 import CollectionAuras from './CollectionAuras.vue';
 import CollectionEffects from './CollectionEffects.vue';
+import CollectionSquads from './CollectionSquads.vue';
 
-// Справочник: все герои с их заклинаниями, ауры и эффекты — с превью, как они выглядят в бою
+// Справочник: все герои с их заклинаниями, ауры и эффекты — с превью, как они выглядят в бою; бонусы стихий отряда — списком
 const props = defineProps<{ modelValue: boolean }>();
 const emit = defineEmits<{ (e: 'update:modelValue', value: boolean): void }>();
 
@@ -19,12 +20,13 @@ const open = computed({
     set: value => emit('update:modelValue', value),
 });
 
-type CollectionTab = 'heroes' | 'auras' | 'effects';
+type CollectionTab = 'heroes' | 'auras' | 'effects' | 'squads';
 
 const ICONS: Record<CollectionTab, TabIcon> = {
     heroes: IconDwarf,
     auras: IconAura,
     effects: IconFlame,
+    squads: IconBanner,
 };
 
 const tab = ref<CollectionTab>('heroes');
@@ -54,6 +56,7 @@ const activeTab = computed({
         <!-- Без KeepAlive: скрытая вкладка не должна крутить сцену превью со звуком -->
         <CollectionHeroes v-if="tab === 'heroes'" />
         <CollectionAuras v-else-if="tab === 'auras'" />
-        <CollectionEffects v-else />
+        <CollectionEffects v-else-if="tab === 'effects'" />
+        <CollectionSquads v-else />
     </ModalComponent>
 </template>

@@ -18,6 +18,13 @@ public abstract class StatusEffectBase : IStatusEffect
     public int RemainingTurns { get; set; }
     // Сила за ход всех наложений вместе: урон, лечение или процент замедления
     public int Power { get; protected set; }
+    // Сила последнего тика. Слоистый статус на последнем ходу сначала теряет слои (Power = 0, ходов 0), потом бьёт,
+    // а снимается только в конце прохода StatusEffectSystem: до тех пор он ещё на цели с этой силой
+    public int LastTickPower { get; private set; }
+    // Сила «сейчас» для реакций на статус: висящий — его Power, истекающий в этом проходе — сила его последнего тика
+    public int LivePower => RemainingTurns > 0 ? Power : LastTickPower;
+    // Статус ещё на цели: висит или истекает в этом проходе после своего тика (снимут в конце прохода)
+    public bool OnTarget => RemainingTurns > 0 || LastTickPower > 0;
     public int Stacks { get; protected set; } = 1;
     protected virtual DamageType? EffectDamageType => null;
 
@@ -99,7 +106,7 @@ public abstract class StatusEffectBase : IStatusEffect
     }
 
     // Боец, наложивший большую часть статуса; -1 — арена или никто
-    public int MainSource() => OriginWeights()
+    public int MainSource() => SourceWeights()
         .Where(o => o.Origin.SourceId > 0)
         .OrderByDescending(o => o.Weight)
         .Select(o => o.Origin.SourceId)
@@ -127,7 +134,28 @@ public abstract class StatusEffectBase : IStatusEffect
         _origins.Select(kv => (kv.Key, kv.Value)).ToList();
 
     // Наложил ли этот боец хоть часть статуса (для эффектов предметов, которые реагируют на «свои» статусы)
-    public bool HasSource(int unitId) => OriginWeights().Any(o => o.Origin.SourceId == unitId);
+    public bool HasSource(int unitId) => SourceWeights().Any(o => o.Origin.SourceId == unitId);
+
+    // Источники текущего тика. Тик сначала снимает истёкшие слои или стак, потом бьёт — на последнем тике
+    // источников «сейчас» уже нет, и бонус отряда или предмет не узнал бы, чей это тик. Пока тик идёт,
+    // источники берутся из снимка до снятия (те же, по которым считается статистика тика)
+    private List<(StatOrigin Origin, int Weight)>? _tickWeights;
+
+    private List<(StatOrigin Origin, int Weight)> SourceWeights() => _tickWeights ?? OriginWeights();
+
+    // Тело тика с источниками weights: MainSource и HasSource внутри видят их
+    protected void DuringTick(List<(StatOrigin Origin, int Weight)> weights, Action body)
+    {
+        _tickWeights = weights;
+        try
+        {
+            body();
+        }
+        finally
+        {
+            _tickWeights = null;
+        }
+    }
 
     // Сколько урона статус ещё нанесёт, если дотикает до конца (0 — статус без урона)
     public virtual int RemainingDamage => EffectDamageType != null ? Power * Math.Max(0, RemainingTurns) : 0;
@@ -180,17 +208,22 @@ public abstract class StatusEffectBase : IStatusEffect
     protected void DealTickDamage(World world, int targetId, CombatContext context, int damage, DamageType damageType,
         List<(StatOrigin Origin, int Weight)>? weights = null)
     {
-        damage = world.ScaleDamage(SquadBonuses.TickDamage(world, targetId, this, damage));
-        int hpLeft = world.ApplyDamage(targetId, damage);
-        var log = TickLog(world, targetId);
-        log.Damage = damage;
-        log.DamageType = damageType;
-        log.TargetRemainingHp = hpLeft;
-        log.Shares = CombatStatsTracker.Split(damage, weights ?? OriginWeights());
-        context.AddLog(log);
+        LastTickPower = damage;
+        var tickWeights = weights ?? OriginWeights();
+        DuringTick(tickWeights, () =>
+        {
+            int dealt = world.ScaleDamage(SquadBonuses.TickDamage(world, targetId, this, damage));
+            int hpLeft = world.ApplyDamage(targetId, dealt);
+            var log = TickLog(world, targetId);
+            log.Damage = dealt;
+            log.DamageType = damageType;
+            log.TargetRemainingHp = hpLeft;
+            log.Shares = CombatStatsTracker.Split(dealt, tickWeights);
+            context.AddLog(log);
 
-        // Реакции бонуса отряда на тик (лечение от тиков, перекидывание, плазма)
-        SquadBonuses.Ticked(world, context, targetId, this, damage);
+            // Реакции бонуса отряда на тик (лечение от тиков, перекидывание, плазма)
+            SquadBonuses.Ticked(world, context, targetId, this, dealt);
+        });
     }
 }
 

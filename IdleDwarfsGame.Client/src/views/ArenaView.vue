@@ -59,6 +59,15 @@
         <span v-if="state.damageBonus" :key="state.damageBonus" class="fury-badge" v-tooltip="t('arena.furyHint')"><IconFlame /> +{{ state.damageBonus }}%</span>
       </div>
 
+      <!-- Бонусы стихий отряда: свой — слева внизу, у соперника (PvP) — справа. Подсказка — что бонус делает,
+           импульс — когда бонус срабатывает (BattleState.bonusPulses) -->
+      <div v-if="squadBonusA" class="arena-squad-bonus arena-squad-bonus-left" @click.stop>
+        <SquadBonusBadge :bonus="squadBonusA" size="84px" animated :pulse="state.bonusPulses[1] ?? 0" />
+      </div>
+      <div v-if="squadBonusB" class="arena-squad-bonus arena-squad-bonus-right" @click.stop>
+        <SquadBonusBadge :bonus="squadBonusB" size="84px" animated :pulse="state.bonusPulses[2] ?? 0" />
+      </div>
+
       <div v-if="error !== null" class="arena-message error">
         {{ error || t('arena.startError') }}
         <button v-if="guildBossTier" class="result-next" @click="goToGuild()">{{ t('arena.toGuild') }}</button>
@@ -162,6 +171,8 @@ import GemButton from '@/components/common/GemButton.vue';
 import SceneLoadingScreen from '@/components/loading/SceneLoadingScreen.vue';
 import { IconPower } from '@/components/icons/stats';
 import { createBattleState, teamUnits } from '@/battle/BattleState';
+import { unitsSquadBonus } from '@/battle/squadBonuses';
+import SquadBonusBadge from '@/components/squadBonus/SquadBonusBadge.vue';
 import { BattlePlayer } from '@/battle/BattlePlayer';
 import { battlePauses, unitAnchor } from '@/tutorial/battle';
 import { useTutorial } from '@/composables/UseTutorial';
@@ -262,6 +273,9 @@ provide(BATTLE_FX_KEY, fx);
 
 const teamA = computed(() => teamUnits(state, 1));
 const teamB = computed(() => teamUnits(state, 2));
+// Бонус считается по составу на начало боя: павшие тоже в счёте, у монстров стихия не засчитывается
+const squadBonusA = computed(() => unitsSquadBonus(teamA.value));
+const squadBonusB = computed(() => unitsSquadBonus(teamB.value));
 const playerWon = computed(() => state.winningTeam === 1);
 
 // Итог боя для баннера и частиц: победа — конфетти и звёзды, поражение — серая сцена, дождь и снег.
@@ -763,6 +777,21 @@ onBeforeUnmount(() => {
 .arena-compact .arena-controls {
   top: 12px;
   zoom: 1.5;
+}
+
+/* Значок бонуса стихий отряда в нижнем углу своей стороны; отступ — с запасом под свечение и орбиту искр */
+.arena-squad-bonus {
+  position: absolute;
+  bottom: 56px;
+  z-index: 12;
+}
+
+.arena-squad-bonus-left {
+  left: 64px;
+}
+
+.arena-squad-bonus-right {
+  right: 64px;
 }
 
 .round-banner {

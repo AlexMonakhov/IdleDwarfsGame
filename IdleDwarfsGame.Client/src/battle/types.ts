@@ -17,7 +17,9 @@ export type CombatEventType =
   | 'Death'
   | 'CombatEnd'
   // Арена изменила бой целиком: новая прибавка ко всему урону (damageBonusPercent)
-  | 'ArenaBuff';
+  | 'ArenaBuff'
+  // Бонус стихий отряда attackerTeam сработал в этом действии — только импульс значка на арене
+  | 'SquadBonus';
 
 export type DamageType =
   | 'Physical'
@@ -120,6 +122,8 @@ export interface CombatPowerBreakdown {
   skills: number;
   passives: number;
   equipment: number;
+  // Прибавка бонуса стихий отряда (только у юнитов в бою; у героя в инвентаре 0)
+  squadBonus?: number;
 }
 
 export type AuraTarget = 'Allies' | 'Enemies' | 'All';

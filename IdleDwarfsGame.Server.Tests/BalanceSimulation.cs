@@ -96,8 +96,9 @@ public class BalanceSimulation(ITestOutputHelper output)
                 Factory.CreateSquad(world, squad, teamId: 1);
                 scenario.PopulateEnemiesAsync(world, definition.Level).Wait();
                 world.AddGlobalEffect(ArenaStatusEffect.FromArena(GuildBosses.ArenaOf(variant))!);
-                new CombatEngine(new Random(seed)).Run(world, GuildBosses.FightRounds);
-                damages.Add(definition.MaxHp - scenario.BossHpLeft);
+                // Как в GuildService: засчитывается урон отряда из статистики боя
+                var context = new CombatEngine(new Random(seed)).Run(world, GuildBosses.FightRounds);
+                damages.Add(context.Stats.Build().Where(s => s.Team == 1).Sum(s => s.DamageDealt));
             }
         }
         return damages.Average();

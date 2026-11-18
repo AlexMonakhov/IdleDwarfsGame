@@ -34,6 +34,9 @@ const inCastGroup = (entry: CombatLogEntry, cast: CombatLogEntry) =>
 // События срабатывания статуса: по их ActiveEffects обновляются цифры на иконке
 const STATUS_TICK_EVENTS = new Set(['StatusTick', 'Heal', 'Stunned']);
 
+// Фаза записей бонуса стихий отряда (SquadBonuses.Phase на сервере)
+const BONUS_PHASE = 'Bonus';
+
 // События-действия, после которых делаем паузу, чтобы анимации не сливались
 const ACTION_EVENTS = new Set(['Attack', 'Damage', 'StatusTick', 'Heal', 'Stunned']);
 
@@ -59,6 +62,10 @@ const TIMING = {
   auraRecover: 450,
   // Купол ауры проявляется (облик гаснет-появляется за 0.3 с) — потом сквад кастует
   auraAppear: 320,
+  // Шаг между вспышками аур носителей одного сквада: каждая со своим звуком
+  auraStagger: 160,
+  // Импульсы значка бонуса стихий не чаще — иначе на быстрых действиях волны слипаются
+  bonusPulseGap: 700,
 };
 
 // Следующий ход начинается за столько мс до конца эффекта каста — хвост гаснет уже под него
@@ -455,7 +462,7 @@ export class BattlePlayer {
     }
   }
 
-  // Срабатывания аур: сквад за сквадом (в порядке лога), у сквада все ауры разом. Купола проявляются на носителях,
+  // Срабатывания аур: сквад за сквадом (в порядке лога), внутри сквада носители друг за другом с коротким шагом. Купола проявляются на носителях,
   // сквад кастует, купола гаснут до следующего срабатывания
   private async playAuraRound(entries: CombatLogEntry[]) {
     const teams = [...new Set(entries.map(e => this.unit(e.attackerId)?.team ?? 0))];
@@ -464,8 +471,11 @@ export class BattlePlayer {
       const bearers = [...new Set(squad.map(e => e.attackerId))];
       bearers.forEach(id => this.setAuraShown(id, true));
       await this.delay(TIMING.auraAppear);
-      this.sound(s => s.play('battle_aura'));
-      await Promise.all(bearers.map(id => this.playAura(id, squad.filter(e => e.attackerId === id))));
+      // Носители прокают друг за другом с шагом auraStagger — у каждой вспышки свой звук, пять аур — пять звуков подряд
+      await Promise.all(bearers.map(async (id, index) => {
+        if (index > 0) await this.delay(TIMING.auraStagger * index);
+        await this.playAura(id, squad.filter(e => e.attackerId === id));
+      }));
       bearers.forEach(id => this.setAuraShown(id, false));
     }
   }
@@ -483,6 +493,7 @@ export class BattlePlayer {
     const visual = resolveAuraVisual(effect, bearer?.auraTarget);
 
     this.animate(bearerId, v => v.aura?.(visual.color));
+    this.sound(snd => snd.play('battle_aura'));
     if (!this.skipping) this.fx.auraBurst(getUnitView(bearerId)?.el?.(), visual, effect);
 
     // Волна наложения стартует вместе со вспышкой
@@ -696,6 +707,18 @@ export class BattlePlayer {
 
   private show(log: CombatLogEntry) {
     this.state.shownLogs.push(log);
+    if (log.phase === BONUS_PHASE) this.bonusPulse(log.attackerTeam);
+  }
+
+  // Импульс значка бонуса стихий: записи SquadBonus (бонус сработал в действии) и удары, лечение бонуса.
+  // Подряд идущие срабатывания сливаются в один импульс, при пропуске боя импульсов нет
+  private lastBonusPulse: Record<number, number> = {};
+  private bonusPulse(team: number) {
+    if (!team || this.skipping) return;
+    const now = performance.now();
+    if (now - (this.lastBonusPulse[team] ?? -Infinity) < TIMING.bonusPulseGap / this.rate) return;
+    this.lastBonusPulse[team] = now;
+    this.state.bonusPulses[team] = (this.state.bonusPulses[team] ?? 0) + 1;
   }
 
   private unit(id: number): BattleUnit | undefined {

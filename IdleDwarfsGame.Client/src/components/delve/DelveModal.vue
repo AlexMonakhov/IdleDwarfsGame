@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { squadPowerOf } from '@/battle/squadBonuses';
+import { squadPowerHint } from '@/components/squadBonus/squadBonusText';
 import { soundService } from '@/services/soundService/SoundService';
 import { hudLayout } from '@/composables/UseUiScale';
 import TimerBadge from '@/components/common/TimerBadge.vue';
@@ -106,7 +108,12 @@ const canMove = computed(() => active.value && pending.value === 'None');
 const onMap = computed(() => !!run.value && (active.value || dead.value) && run.value.next.length > 0);
 const dwarves = computed(() => run.value?.dwarves ?? []);
 const fallen = computed(() => dwarves.value.filter(d => d.hp <= 0));
-const squadPower = computed(() => dwarves.value.reduce((sum, d) => sum + (d.hero.power?.total ?? 0), 0));
+// В бой идут только живые (DelveService.BuildSquadWorld): бонус стихий — по их составу, павшие — без бонуса
+const squadPower = computed(() => {
+    const alive = squadPowerOf(dwarves.value.filter(d => d.hp > 0 && d.hero.power).map(d => d.hero));
+    const fallenPower = fallen.value.reduce((sum, d) => sum + (d.hero.power?.total ?? 0), 0);
+    return { ...alive, total: alive.total + fallenPower };
+});
 const relics = computed(() => groupRelics(run.value?.relics ?? []));
 
 const nextRunIn = computed(() => (overview.value ? formatLeft(new Date(overview.value.nextRunAt).getTime() - now.value - clockOffset) : ''));
@@ -412,7 +419,7 @@ const move = async (node: DelveNodeInfo) => {
                         <h3 class="delve-squad-title">{{ t('social.delve.squad') }}</h3>
                         <InfoComponent inline :title="t('social.delve.squad')" :text="t('social.delve.squadHint')" />
                         <span v-if="picked" class="delve-squad-picking">{{ t('social.delve.chooseTarget', { reward: rewardLabel(picked) }) }}</span>
-                        <span class="delve-squad-power"><StatIcon stat="power" /> {{ t('power.squad', { power: squadPower }) }}</span>
+                        <span class="delve-squad-power" v-tooltip="squadPowerHint(squadPower)"><StatIcon stat="power" /> {{ t('power.squad', { power: squadPower.total }) }}</span>
                     </div>
                     <div class="delve-squad-row">
                         <div

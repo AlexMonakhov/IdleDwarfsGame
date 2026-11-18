@@ -46,8 +46,12 @@ const SLOTS: Record<number, Slot[]> = {
 const CROWD_SCALE = 0.52;
 const CROWD_BASE_WIDTH = 560;
 const SINGLE_SCALE = 0.65;
-// Пустое поле под ногами в кадре спрайта при масштабе 0.65 — его опускаем за край сцены
-const FEET_OFFSET = 56;
+// Ноги юнита — на этой доле высоты сцены от нижнего края: там пол на фонах арен. Раньше ноги стояли
+// на самом краю, и на низкой сцене обрезались ноги, купол ауры и пламя статусов
+const FLOOR_LEVEL = 0.13;
+// Рамка юнита (character-component): кадр 409.6px × масштаб × запас 1.1, ноги — на 0.8 её высоты
+const FRAME = 409.6 * 1.1;
+const FEET_Y = 0.8;
 const stageRef = ref<HTMLElement | null>(null);
 const stageWidth = ref(CROWD_BASE_WIDTH);
 let resizeObserver: ResizeObserver | null = null;
@@ -70,7 +74,8 @@ const crowded = computed(() => placed.value.length > 2);
 const unitScale = computed(() => crowded.value
     ? Math.min(SINGLE_SCALE, CROWD_SCALE * stageWidth.value / CROWD_BASE_WIDTH)
     : SINGLE_SCALE);
-const feetOffset = computed(() => -FEET_OFFSET * unitScale.value / SINGLE_SCALE);
+// Пустое поле под ногами в рамке опускаем ниже уровня пола
+const feetBottom = computed(() => `calc(${FLOOR_LEVEL * 100}% - ${FRAME * unitScale.value * (1 - FEET_Y)}px)`);
 
 const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -125,7 +130,7 @@ onBeforeUnmount(() => {
                 v-for="{ unit, slot } in placed"
                 :key="unit.id"
                 class="preview-unit"
-                :style="{ left: `${slot.left}%`, bottom: `${feetOffset}px`, marginBottom: `${slot.raise ?? 0}px`, zIndex: 100 - (slot.raise ?? 0) }"
+                :style="{ left: `${slot.left}%`, bottom: feetBottom, marginBottom: `${slot.raise ?? 0}px`, zIndex: 100 - (slot.raise ?? 0) }"
             >
                 <CharacterComponent :unit="unit" :rotate="unit.team === 2" :scale="unitScale" />
             </div>
@@ -158,7 +163,7 @@ onBeforeUnmount(() => {
     pointer-events: none;
 }
 
-/* Под ногами в кадре пустое поле — опускаем его за край (bottom — feetOffset), чтобы юнит стоял на полу */
+/* Под ногами в кадре пустое поле — опускаем его ниже уровня пола (bottom — feetBottom), чтобы юнит стоял на полу */
 .preview-unit {
     position: absolute;
     transform: translateX(-50%);
