@@ -14,6 +14,6 @@ export type PowerPart = Exclude<keyof CombatPowerBreakdown, 'total'>;
 
 // Источники мощи в порядке слоёв на сервере; нулевые не показываем (например, уровень у отряда игрока)
 export const powerParts = (power: CombatPowerBreakdown): { part: PowerPart; value: number }[] =>
-  (['stats', 'level', 'skills', 'passives', 'equipment'] as const)
-    .map(part => ({ part, value: power[part] }))
+  (['stats', 'level', 'skills', 'passives', 'equipment', 'squadBonus'] as const)
+    .map(part => ({ part, value: power[part] ?? 0 }))
     .filter(({ value }) => !!value);

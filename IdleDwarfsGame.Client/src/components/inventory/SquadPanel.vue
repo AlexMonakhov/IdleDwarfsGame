@@ -10,6 +10,7 @@ import GemButton from '@/components/common/GemButton.vue';
 import ConfirmModal from '@/components/common/ConfirmModal.vue';
 import HeroCard from '@/components/inventory/HeroCard.vue';
 import SquadRow from '@/components/inventory/SquadRow.vue';
+import SquadBonusHints from '@/components/squadBonus/SquadBonusHints.vue';
 import HeroesApiService from '@/services/apiServices/HeroesApiService';
 import { HeroInfo, SQUAD_SIZE, isBusy, squadSlotIds } from '@/models/types/Heroes';
 import { vDragScroll } from '@/directives/dragScroll';
@@ -38,6 +39,8 @@ const notice = ref<string | null>(null);
 
 const heroById = computed(() => new Map(heroes.value.map(h => [h.id, h])));
 const slotHeroes = computed(() => slots.value.map(id => (id ? heroById.value.get(id) ?? null : null)));
+// Стихии по местам — для бонуса отряда и подсказок к нему
+const slotElements = computed(() => slotHeroes.value.map(hero => hero?.element ?? null));
 // Мощь отряда — сумма мощи героев в слотах, меняется сразу при перетаскивании
 const squadPower = computed(() => slotHeroes.value.reduce((sum, hero) => sum + (hero?.power.total ?? 0), 0));
 // Все, кто не в отряде: сильные сверху, ушедшие в экспедицию — в конце
@@ -282,6 +285,7 @@ const statusText = computed(() => {
                     @hero-dragend="onDragEnd"
                     @slot-click="removeFromSquad"
                 />
+                <SquadBonusHints :elements="slotElements" />
             </section>
 
             <section
