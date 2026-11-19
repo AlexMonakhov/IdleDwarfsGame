@@ -152,12 +152,12 @@ import { getUnitView } from '@/battle/UnitRegistry';
 import { useInterface } from '@/composables/UseInterface';
 import { EffectType } from '@/services/particleService/types/emitter';
 import { CombatUnitInfo, HeroElement } from '@/battle/types';
-import { AURA_SAMPLES, AuraSample, HERO_KINDS, PREVIEW_LOOK_RANK, SPELL_LEVELS, SPELLS, SpellSample } from '@/components/collection/catalog';
+import { AuraSample, HERO_KINDS, PREVIEW_LOOK_RANK, SPELL_LEVELS, SPELLS, SpellSample } from '@/components/collection/catalog';
 
-// Нагрузочный тест арены: 10 дворфов, у каждого аура и одно заклинание 3-го уровня.
+// Нагрузочный тест арены: 10 дворфов, у каждого аура своей стихии и одно заклинание 3-го уровня.
 // Автобой: ходят по очереди, как в бою — на своём ходу носитель пускает волну ауры и кастует, и так по кругу без конца.
 // Ручной режим: автобой стоит, заклинание (любое из стихии дворфа, любого уровня) выбирается в списке справа.
-// Эффекты те же, что в бою (BattleFx и вьюхи юнитов), паузы — как в BattlePlayer
+// Эффекты те же, что в бою (концепты заклинаний и аур, BattleFx и вьюхи юнитов), паузы — как в BattlePlayer
 
 const UNIT_SCALE = 0.8; // как на арене
 const SPELL_LEVEL = 3;
@@ -238,6 +238,19 @@ interface Fighter {
   aura: AuraSample;
 }
 
+// Аура стихии — из тех, что есть у героев на сервере и у которых есть облик на носителе (StatusLooks.BATTLE_AURA_LOOKS):
+// без облика рисуется прежняя сфера aura-sphere
+const ELEMENT_AURA: Record<HeroElement, AuraSample> = {
+  Basic: { key: 'heal', effect: 'Regen', target: 'Allies', element: 'Basic' },
+  Fire: { key: 'fire', effect: 'Burn', target: 'Enemies', element: 'Fire' },
+  Frost: { key: 'frost', effect: 'Frost', target: 'Enemies', element: 'Frost' },
+  Lightning: { key: 'lightning', effect: 'Shock', target: 'Enemies', element: 'Lightning' },
+  Nature: { key: 'heal', effect: 'Regen', target: 'Allies', element: 'Nature' },
+  Dark: { key: 'shadow', effect: 'EnergyBurn', target: 'Enemies', element: 'Dark' },
+  Blood: { key: 'blood', effect: 'Bleed', target: 'Enemies', element: 'Blood' },
+  Radiance: { key: 'heal', effect: 'Regen', target: 'Allies', element: 'Radiance' },
+};
+
 const spellsOf = (element: HeroElement) => HERO_KINDS.find(kind => kind.element === element)?.spells ?? [];
 
 // Первые пять — левая команда, остальные — правая
@@ -248,14 +261,14 @@ const ROSTER: Fighter[] = ([
   { element: 'Nature', spell: SPELLS.healingRune },
   { element: 'Blood', spell: SPELLS.bloodPrice },
   { element: 'Blood', spell: SPELLS.hemorrhage },
-  { element: 'Frost', spell: SPELLS.glacialPrison },
+  { element: 'Frost', spell: SPELLS.frostBolt },
   { element: 'Dark', spell: SPELLS.soulHarvest },
   { element: 'Dark', spell: SPELLS.hex },
   { element: 'Radiance', spell: SPELLS.dawnlight },
-] as Pick<Fighter, 'element' | 'spell'>[]).map((fighter, i) => ({
+] as Pick<Fighter, 'element' | 'spell'>[]).map(fighter => ({
   ...fighter,
   spells: spellsOf(fighter.element),
-  aura: AURA_SAMPLES[i % AURA_SAMPLES.length],
+  aura: ELEMENT_AURA[fighter.element],
 }));
 
 const fighterOf = (unit: BattleUnit) => ROSTER[unit.id - FIRST_ID];
@@ -370,6 +383,8 @@ const highlight = (unit: BattleUnit, on: boolean) => {
 const bgStyle = computed(() => ({
   backgroundImage: `url('${arena.value.url}')`,
   backgroundRepeat: 'round',
+  // Как на арене (ArenaView): фон приглушён, чтобы юниты и эффекты были заметнее
+  filter: 'saturate(0.5)',
 }));
 
 const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms / speed.value));
@@ -434,6 +449,46 @@ const castSpell = async (caster: BattleUnit, sample = fighterOf(caster).spell, l
   if (!support) targets.forEach(u => (u.focus = { role: 'target' }));
   view(caster)?.cast?.(visual.color);
   addFloatingText(caster, FLOATING_TEXT, sample.name, 'cast', { color: visual.color });
+
+  // Как в BattlePlayer.playCast: есть концепт заклинания — играет он, иначе прежний визуал (BattleFx.spell)
+  const ids = targets.map(u => u.id);
+  const concept: ConceptCast = {
+    skillName: sample.name,
+    level,
+    damageType: sample.damageType,
+    casterId: caster.id,
+    enemyIds: support ? [] : ids,
+    healIds: support || spell.heal ? (support ? ids : [caster.id]) : [],
+    entryIds: support || !spell.heal ? ids : [...ids, caster.id],
+    procIds: new Set(),
+    allyIds: teamUnits(state, caster.team).map(u => u.id),
+    bystanderIds: teamUnits(state, 3 - caster.team).filter(u => !ids.includes(u.id)).map(u => u.id),
+    artifacts: [],
+    trigger: null,
+    originId: null,
+  };
+  if (concepts.canPlay(concept)) {
+    if (spell.selfDamage) damage(caster, Math.round(MAX_HP * spell.selfDamage), sample.damageType);
+    const { hits, settled } = concepts.play(concept, CAST_RECOVER);
+    await Promise.all(targets.map(async target => {
+      await hits.get(target.id);
+      if (spell.damage) damage(target, Math.round(ATTACK * spell.damage), sample.damageType);
+      if (spell.consumes) consumeStatus(target, spell.consumes);
+      if (support && spell.heal) heal(target, Math.round(ATTACK * spell.heal));
+      spell.statuses?.forEach(name => applyStatus(target, name));
+    }));
+    if (!support && spell.heal) {
+      // Концепт может и не «долететь» до кастера — тогда лечим, когда он доиграл
+      await Promise.race([hits.get(caster.id), settled]);
+      heal(caster, Math.round(ATTACK * spell.heal));
+    }
+    await settled;
+    caster.focus = null;
+    targets.forEach(u => (u.focus = null));
+    casting.delete(caster.id);
+    return;
+  }
+
   fx.castCircle(el(caster), visual.color, CAST_WINDUP + 700);
   await wait(CAST_WINDUP);
 

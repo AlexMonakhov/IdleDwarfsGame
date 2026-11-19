@@ -1,19 +1,28 @@
 <template>
-  <!-- Меню — вне сцены: масштабируется само и на телефоне остаётся в настоящих пикселях (composables/UseUiScale.ts) -->
-  <InterfaceView></InterfaceView>
-  <!-- Сцена — в логическом экране ~1920×1000, масштабированном под окно (composables/UseUiScale.ts) -->
-  <!-- Сцена не прокручивается никогда: overflow: hidden не мешает браузеру сдвинуть её программно (scrollIntoView,
-       фокус поля у края) — тогда весь интерфейс уезжал. Такой сдвиг сразу возвращаем -->
-  <div class="ui-stage" @scroll="resetStageScroll">
-    <router-view></router-view>
-  </div>
-  <!-- Телефон вертикально — просим повернуть: под вертикальный экран игра не рассчитана -->
-  <RotateDevicePrompt />
+  <!-- Лендинг — обычная прокручиваемая страница: без меню, без масштабируемой сцены и без просьбы повернуть телефон -->
+  <router-view v-if="standalone"></router-view>
+  <template v-else>
+    <!-- Меню — вне сцены: масштабируется само и на телефоне остаётся в настоящих пикселях (composables/UseUiScale.ts) -->
+    <InterfaceView></InterfaceView>
+    <!-- Сцена — в логическом экране ~1920×1000, масштабированном под окно (composables/UseUiScale.ts) -->
+    <!-- Сцена не прокручивается никогда: overflow: hidden не мешает браузеру сдвинуть её программно (scrollIntoView,
+         фокус поля у края) — тогда весь интерфейс уезжал. Такой сдвиг сразу возвращаем -->
+    <div class="ui-stage" @scroll="resetStageScroll">
+      <router-view></router-view>
+    </div>
+    <!-- Телефон вертикально — просим повернуть: под вертикальный экран игра не рассчитана -->
+    <RotateDevicePrompt />
+  </template>
 </template>
 
 <script lang="ts" setup>
 import InterfaceView from './views/InterfaceView.vue';
 import RotateDevicePrompt from './components/interface/RotateDevicePrompt.vue';
+import { computed } from 'vue';
+import { useRoute } from 'vue-router';
+
+const route = useRoute();
+const standalone = computed(() => !!route.meta.standalone);
 
 const resetStageScroll = (event: Event) => {
   const stage = event.currentTarget as HTMLElement;
