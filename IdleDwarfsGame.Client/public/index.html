@@ -6,16 +6,24 @@
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
     <link rel="icon" href="<%= BASE_URL %>favicon.ico">
     <title>Idle Dwarfs</title>
-    <!-- Превью ссылки в мессенджерах и соцсетях: краулеры не выполняют JS, поэтому теги здесь, а не во Vue.
-         og:image лучше абсолютным адресом — когда будет домен, заменить на https://<домен>/email/welcome-dwarfs.jpg -->
-    <meta name="description" content="Idle Dwarfs — assemble a squad of dwarves, combine seven elements and watch them fight on their own. Free browser game.">
+    <!-- Превью ссылки в мессенджерах и соцсетях (Telegram, WhatsApp, VK, Discord): краулеры не выполняют JS,
+         поэтому теги здесь, а не во Vue, и текст один — русский, как у приглашений.
+         Адреса — только абсолютные, с доменом: относительные краулеры не открывают. Сменится домен — поменять здесь.
+         Картинка public/og-image.jpg: 1200×630 (стандарт превью), до ~300 КБ — иначе WhatsApp её не показывает -->
+    <meta name="description" content="Собери отряд дворфов, сочетай семь стихий и отправь их в бой — они сражаются сами, даже пока тебя нет. Бесплатная браузерная игра.">
     <meta property="og:type" content="website">
-    <meta property="og:title" content="Idle Dwarfs">
-    <meta property="og:description" content="Assemble a squad of dwarves, combine seven elements and watch them fight on their own. Free browser game.">
-    <meta property="og:image" content="/email/welcome-dwarfs.jpg">
+    <meta property="og:site_name" content="Idle Dwarfs">
+    <meta property="og:locale" content="ru_RU">
+    <meta property="og:url" content="https://idledwarf-ahc7fncnhvhmgsda.polandcentral-01.azurewebsites.net/">
+    <meta property="og:title" content="Idle Dwarfs — подземелья ждут, дворф!">
+    <meta property="og:description" content="Собери отряд дворфов, сочетай семь стихий и отправь их в бой — они сражаются сами, даже пока тебя нет.">
+    <meta property="og:image" content="https://idledwarf-ahc7fncnhvhmgsda.polandcentral-01.azurewebsites.net/og-image.jpg">
+    <meta property="og:image:type" content="image/jpeg">
     <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="800">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Дворфы отдыхают в бассейне у ворот подземелья">
     <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:image" content="https://idledwarf-ahc7fncnhvhmgsda.polandcentral-01.azurewebsites.net/og-image.jpg">
   </head>
   <body>
     <noscript>
