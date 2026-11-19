@@ -33,7 +33,7 @@ const onSubmit = async () => {
   loading.value = true;
   try {
     await login({ login: form.login.trim(), password: form.password });
-    const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : '/';
+    const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : '/town';
     router.push(redirect);
   } catch (error) {
     if (error instanceof AuthApiError) {

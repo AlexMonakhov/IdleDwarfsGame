@@ -10,4 +10,6 @@ import { installUiSounds } from './services/soundService/uiSounds'
 installUiScale()
 installUiSounds()
 
-createApp(App).use(router).use(i18n).directive('tooltip', vTooltip).directive('tutorial', vTutorial).mount('#app')
+const app = createApp(App).use(router).use(i18n).directive('tooltip', vTooltip).directive('tutorial', vTutorial)
+// Ждём первый маршрут: App.vue по нему решает, рисовать лендинг или игру — без мелькания меню на лендинге
+router.isReady().then(() => app.mount('#app'))

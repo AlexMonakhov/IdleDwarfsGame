@@ -52,7 +52,7 @@ const onSubmit = async () => {
       email: form.email.trim(),
       password: form.password
     });
-    router.push('/');
+    router.push({ name: 'town' });
   } catch (error) {
     if (error instanceof AuthApiError) {
       errorMessage.value = error.message;

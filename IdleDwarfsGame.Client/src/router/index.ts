@@ -10,7 +10,9 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
     name: 'home',
-    component: HomeView
+    component: HomeView,
+    // Лендинг: своя прокручиваемая страница вне игровой сцены и без меню (App.vue)
+    meta: { standalone: true }
   },
   {
     path: '/town',
@@ -76,7 +78,7 @@ const router = createRouter({
 router.beforeEach((to) => {
   const { isAuthenticated } = useAuth()
   if (to.meta.guestOnly && isAuthenticated.value) {
-    return { name: 'home' }
+    return { name: 'town' }
   }
   if (to.meta.requiresAuth && !isAuthenticated.value) {
     return { name: 'login', query: { redirect: to.fullPath } }

@@ -254,22 +254,43 @@ watch(resourcesSlot, el => {
     slotObserver.observe(el);
 });
 onBeforeUnmount(() => slotObserver?.disconnect());
-const measureSlot = () => {
+// Табличку ни разу не видели в шапке (окно открылось, пока меню было скрыто загрузкой) — размер места берём
+// у неё самой, поднятой над окном, и перемеряем положение: место выросло, кнопки меню подвинулись
+const resourcesTable = ref<HTMLElement | null>(null);
+let tableObserver: ResizeObserver | undefined;
+watch(resourcesTable, el => {
+    tableObserver?.disconnect();
+    if (!el) return;
+    tableObserver = new ResizeObserver(() => {
+        if (!resourcesRaised.value || slotSize.value.width || !el.offsetWidth) return;
+        slotSize.value = { width: el.offsetWidth, height: el.offsetHeight };
+        nextTick(() => measureSlot());
+    });
+    tableObserver.observe(el);
+});
+onBeforeUnmount(() => tableObserver?.disconnect());
+// Сколько кадров ждать, пока скрытое меню покажется (полноэкранная загрузка города или арены уходит за ~1 с)
+const SLOT_MEASURE_FRAMES = 180;
+let slotMeasureFrame = 0;
+const measureSlot = (attempt = 0) => {
+    cancelAnimationFrame(slotMeasureFrame);
     const el = resourcesSlot.value;
     if (!el) return;
     if (!resourcesRaised.value && el.offsetWidth) slotSize.value = { width: el.offsetWidth, height: el.offsetHeight };
-    const rect = el.getBoundingClientRect();
-    // Меню ещё скрыто (display: none) — положения нет; перемеряем после отрисовки, когда оно покажется
-    if (!rect.width && !rect.height) {
-        nextTick(() => {
-            const shown = resourcesSlot.value?.getBoundingClientRect();
-            if (shown && (shown.width || shown.height)) slotBox.value = { left: shown.left, top: shown.top };
-        });
+    // Меню ещё скрыто (display: none у предка) — положения нет, перемеряем по кадрам, пока не покажется.
+    // Смотрим на наличие прямоугольника, а не на размер: место таблички бывает нулевой ширины (её ни разу
+    // не видели в шапке — окно открылось сразу после загрузки), а положение у него при этом настоящее
+    if (!el.getClientRects().length) {
+        if (attempt < SLOT_MEASURE_FRAMES) {
+            slotMeasureFrame = requestAnimationFrame(() => { if (resourcesRaised.value) measureSlot(attempt + 1); });
+        }
         return;
     }
+    const rect = el.getBoundingClientRect();
     // Размер — в логических пикселях (offset* не видят масштаб), положение — в пикселях окна
     slotBox.value = { left: rect.left, top: rect.top };
 };
+onBeforeUnmount(() => cancelAnimationFrame(slotMeasureFrame));
 // flush: 'pre' — замер до перерисовки, пока табличка ещё стоит в шапке и задаёт размер места
 watch([resourcesRaised, hudScale], ([raised]) => { if (raised) measureSlot(); }, { flush: 'pre' });
 const onResize = () => { if (resourcesRaised.value) measureSlot(); };
@@ -375,7 +396,7 @@ watchEffect(() => {
             <div v-if="isAuthenticated && resources" ref="resourcesSlot" class="resources-slot" :style="slotStyle">
                 <Teleport to="body" :disabled="!resourcesRaised">
                     <div :class="{ 'resources-layer': resourcesRaised }" :style="resourcesLayerStyle">
-                        <div v-tutorial="'resources'" class="resources" :class="{ 'resources-compact': compact }">
+                        <div ref="resourcesTable" v-tutorial="'resources'" class="resources" :class="{ 'resources-compact': compact }">
                             <span class="resource resource-gold" v-tooltip="t('resources.gold')"><IconCoin /> {{ resources.gold.toLocaleString(locale) }}</span>
                             <span class="resource resource-experience" v-tooltip="t('resources.experience')"><IconExperience /> {{ resources.experience.toLocaleString(locale) }}</span>
                             <span v-if="resources.rainbowCoins !== undefined" class="resource resource-rainbow" v-tooltip="t('shop.currency.rainbowCoins')"><IconRainbowCoin /> {{ resources.rainbowCoins.toLocaleString(locale) }}</span>
